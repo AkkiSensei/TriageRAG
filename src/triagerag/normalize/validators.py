@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from triagerag.contracts.schemas import IngredientStrength
+
 if TYPE_CHECKING:
     from triagerag.contracts.schemas import Patient
     from triagerag.normalize.aliases import AliasResolver
@@ -25,11 +27,20 @@ def normalize_patient(patient: Patient, resolver: AliasResolver) -> Patient:
         resolved, matched_id, suggestion = resolver.resolve(med.raw_text)
         if resolved and matched_id:
             med_copy.resolved = True
+            med_copy.suggestion = None
+
             # Populate ingredients if matched to an alias or formulary drug
             if matched_id in resolver.aliases:
                 alias_entry = resolver.aliases[matched_id]
-                med_copy.ingredients = alias_entry.strengths
-            med_copy.suggestion = None
+                med_copy.ingredients = list(alias_entry.strengths)
+            elif matched_id in resolver.formulary_drugs:
+                drug = resolver.formulary_drugs[matched_id]
+                med_copy.ingredients = [
+                    IngredientStrength(ingredient_id=ing) for ing in drug.ingredient_ids
+                ]
+            else:
+                # Direct active ingredient
+                med_copy.ingredients = [IngredientStrength(ingredient_id=matched_id)]
         else:
             med_copy.resolved = False
             med_copy.suggestion = suggestion

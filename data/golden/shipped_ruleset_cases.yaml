@@ -1,0 +1,530 @@
+cases:
+  # 1-6: DDI_PDE5_NITRATE lookback cases
+  - id: "GOLDEN_01_SILDENAFIL_NITRATE_WITHIN_24H"
+    medications: ["sildenafil", "nitroglycerin"]
+    last_dose_hours_ago: {"sildenafil": 12.0}
+    medication_history_status: "confirmed_list"
+    must_fire: ["DDI_PDE5_NITRATE", "DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_02_TADALAFIL_NITRATE_WITHIN_48H"
+    medications: ["tadalafil", "nitroglycerin"]
+    last_dose_hours_ago: {"tadalafil": 36.0}
+    medication_history_status: "confirmed_list"
+    must_fire: ["DDI_PDE5_NITRATE"]
+    must_skip: []
+    must_not_fire: ["DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT"]
+
+  - id: "GOLDEN_03_SILDENAFIL_OUTSIDE_24H"
+    medications: ["sildenafil", "nitroglycerin"]
+    last_dose_hours_ago: {"sildenafil": 25.0}
+    medication_history_status: "confirmed_list"
+    must_fire: ["DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT"]
+    must_skip: []
+    must_not_fire: ["DDI_PDE5_NITRATE"]
+
+  - id: "GOLDEN_04_SILDENAFIL_UNKNOWN_TIMESTAMP"
+    medications: ["sildenafil", "nitroglycerin"]
+    last_dose_hours_ago: {"sildenafil": null}
+    medication_history_status: "confirmed_list"
+    must_fire: ["DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT"]
+    must_skip: ["DDI_PDE5_NITRATE"]
+    must_not_fire: []
+
+  - id: "GOLDEN_05_DDI_INCOMPLETE_MED_HISTORY"
+    medications: ["sildenafil", "nitroglycerin"]
+    medication_history_status: "incomplete"
+    must_fire: []
+    must_skip: ["DDI_PDE5_NITRATE", "DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT"]
+    must_not_fire: []
+
+  - id: "GOLDEN_06_DDI_UNKNOWN_UNOBTAINABLE_HISTORY"
+    medications: []
+    medication_history_status: "unknown_unobtainable"
+    must_fire: []
+    must_skip: ["DDI_PDE5_NITRATE"]
+    must_not_fire: []
+
+  # 7-12: Pair rule explicit negatives & combinations
+  - id: "GOLDEN_07_SILDENAFIL_ALONE"
+    medications: ["sildenafil"]
+    medication_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT", "DDI_PDE5_NITRATE"]
+
+  - id: "GOLDEN_08_NITROGLYCERIN_ALONE"
+    medications: ["nitroglycerin"]
+    medication_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT", "DDI_PDE5_NITRATE"]
+
+  - id: "GOLDEN_09_SILDENAFIL_WITH_SALBUTAMOL"
+    medications: ["sildenafil", "salbutamol"]
+    medication_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT", "DDI_PDE5_NITRATE"]
+
+  - id: "GOLDEN_10_NITROGLYCERIN_WITH_AMOXICILLIN"
+    medications: ["nitroglycerin", "amoxicillin"]
+    medication_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT", "DDI_PDE5_NITRATE"]
+
+  - id: "GOLDEN_11_BRAND_VIAGRA_NITROSTAT"
+    medications: ["Viagra", "Nitrostat"]
+    last_dose_hours_ago: {"Viagra": 8.0}
+    medication_history_status: "confirmed_list"
+    must_fire: ["DDI_PDE5_NITRATE", "DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_12_BRAND_REVATIO_NITROSTAT"
+    medications: ["Revatio", "Nitrostat"]
+    last_dose_hours_ago: {"Revatio": 6.0}
+    medication_history_status: "confirmed_list"
+    must_fire: ["DDI_PDE5_NITRATE", "DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT"]
+    must_skip: []
+    must_not_fire: []
+
+  # 13-20: Allergy cross-reactivity R1 similar
+  - id: "GOLDEN_13_AMOXICILLIN_ANAPHYLAXIS_CEPHALEXIN"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "anaphylaxis_ige"
+    medications: ["cephalexin"]
+    allergy_history_status: "confirmed_list"
+    medication_history_status: "confirmed_list"
+    must_fire: ["ALLERGY_PENICILLIN_CEPH_R1_SIMILAR"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_14_AMOXICILLIN_ANAPHYLAXIS_CEFACLOR"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "anaphylaxis_ige"
+    medications: ["cefaclor"]
+    allergy_history_status: "confirmed_list"
+    medication_history_status: "confirmed_list"
+    must_fire: ["ALLERGY_PENICILLIN_CEPH_R1_SIMILAR"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_15_AMOXICILLIN_UNKNOWN_REACTION_CEPHALEXIN"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "unknown"
+    medications: ["cephalexin"]
+    allergy_history_status: "confirmed_list"
+    medication_history_status: "confirmed_list"
+    must_fire: ["ALLERGY_PENICILLIN_CEPH_R1_SIMILAR"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_16_AMOXICILLIN_ANAPHYLAXIS_DISSIMILAR_CEFTRIAXONE"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "anaphylaxis_ige"
+    medications: ["ceftriaxone"]
+    allergy_history_status: "confirmed_list"
+    medication_history_status: "confirmed_list"
+    must_fire: ["ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR"]
+    must_skip: []
+    must_not_fire: ["ALLERGY_PENICILLIN_CEPH_R1_SIMILAR"]
+
+  - id: "GOLDEN_17_AMOXICILLIN_MILD_RASH_CEFTRIAXONE"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "mild_rash"
+    medications: ["ceftriaxone"]
+    allergy_history_status: "confirmed_list"
+    medication_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR", "ALLERGY_PENICILLIN_CEPH_R1_SIMILAR"]
+
+  - id: "GOLDEN_18_ALLERGY_HISTORY_INCOMPLETE"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "anaphylaxis_ige"
+    medications: ["cephalexin"]
+    allergy_history_status: "incomplete"
+    medication_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: ["ALLERGY_PENICILLIN_CEPH_R1_SIMILAR"]
+    must_not_fire: []
+
+  - id: "GOLDEN_19_CONFIRMED_NKDA_SAFE"
+    allergies: []
+    medications: ["amoxicillin", "ceftriaxone"]
+    allergy_history_status: "confirmed_nkda"
+    medication_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["ALLERGY_PENICILLIN_CEPH_R1_SIMILAR", "ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR"]
+
+  - id: "GOLDEN_20_CONFIRMED_NONE_SAFE"
+    allergies: []
+    medications: ["amoxicillin"]
+    allergy_history_status: "confirmed_none"
+    medication_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["ALLERGY_PENICILLIN_CEPH_R1_SIMILAR"]
+
+  # 21-25: SCAR catch-all beta-lactam rule
+  - id: "GOLDEN_21_SCAR_WITH_AMOXICILLIN"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "severe_cutaneous_scar"
+    medications: ["amoxicillin"]
+    allergy_history_status: "confirmed_list"
+    medication_history_status: "confirmed_list"
+    must_fire: ["ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_22_SCAR_WITH_CEFTRIAXONE"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "severe_cutaneous_scar"
+    medications: ["ceftriaxone"]
+    allergy_history_status: "confirmed_list"
+    medication_history_status: "confirmed_list"
+    must_fire: ["ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_23_SCAR_WITH_CEFEPIME"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "severe_cutaneous_scar"
+    medications: ["cefepime"]
+    allergy_history_status: "confirmed_list"
+    medication_history_status: "confirmed_list"
+    must_fire: ["ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_24_SCAR_WITH_NON_BETALACTAM"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "severe_cutaneous_scar"
+    medications: ["salbutamol", "epinephrine"]
+    allergy_history_status: "confirmed_list"
+    medication_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+
+  - id: "GOLDEN_25_SCAR_GI_UPSET_NOT_BLOCKED"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "gi_upset"
+    medications: ["amoxicillin"]
+    allergy_history_status: "confirmed_list"
+    medication_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+
+  # 26-33: Vitals interlocks - Nitroglycerin & Metoprolol
+  - id: "GOLDEN_26_NITRO_SBP_80_BLOCKED"
+    medications: ["nitroglycerin"]
+    systolic_bp: 80
+    must_fire: ["VITALS_NITROGLYCERIN_HYPOTENSION"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_27_NITRO_SBP_89_BLOCKED"
+    medications: ["nitroglycerin"]
+    systolic_bp: 89
+    must_fire: ["VITALS_NITROGLYCERIN_HYPOTENSION"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_28_NITRO_SBP_90_CLEAR"
+    medications: ["nitroglycerin"]
+    systolic_bp: 90
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["VITALS_NITROGLYCERIN_HYPOTENSION"]
+
+  - id: "GOLDEN_29_NITRO_SBP_120_CLEAR"
+    medications: ["nitroglycerin"]
+    systolic_bp: 120
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["VITALS_NITROGLYCERIN_HYPOTENSION"]
+
+  - id: "GOLDEN_30_NITRO_SBP_UNKNOWN_SKIPPED"
+    medications: ["nitroglycerin"]
+    systolic_bp: null
+    must_fire: []
+    must_skip: ["VITALS_NITROGLYCERIN_HYPOTENSION"]
+    must_not_fire: []
+
+  - id: "GOLDEN_31_METOPROLOL_NULL_THRESHOLD_SKIPPED"
+    medications: ["metoprolol"]
+    heart_rate: 45
+    must_fire: []
+    must_skip: ["VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"]
+    must_not_fire: []
+
+  - id: "GOLDEN_32_METOPROLOL_SBP_95_HIGH_ALERT"
+    medications: ["metoprolol"]
+    systolic_bp: 95
+    must_fire: ["VITALS_METOPROLOL_HYPOTENSION"]
+    must_skip: ["VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"]
+    must_not_fire: []
+
+  - id: "GOLDEN_33_METOPROLOL_SBP_110_CLEAR"
+    medications: ["metoprolol"]
+    systolic_bp: 110
+    must_fire: []
+    must_skip: ["VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"]
+    must_not_fire: ["VITALS_METOPROLOL_HYPOTENSION"]
+
+  # 34-40: Population & Pregnancy rules
+  - id: "GOLDEN_34_LISINOPRIL_PREGNANCY_CONFIRMED"
+    medications: ["lisinopril"]
+    pregnancy: "yes"
+    must_fire: ["POP_LISINOPRIL_PREGNANCY"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_35_LISINOPRIL_PREGNANCY_NO"
+    medications: ["lisinopril"]
+    pregnancy: "no"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["POP_LISINOPRIL_PREGNANCY"]
+
+  - id: "GOLDEN_36_LISINOPRIL_PREGNANCY_NOT_APPLICABLE"
+    medications: ["lisinopril"]
+    pregnancy: "not_applicable"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["POP_LISINOPRIL_PREGNANCY"]
+
+  - id: "GOLDEN_37_LISINOPRIL_PREGNANCY_UNKNOWN"
+    medications: ["lisinopril"]
+    pregnancy: "unknown"
+    must_fire: []
+    must_skip: ["POP_LISINOPRIL_PREGNANCY"]
+    must_not_fire: []
+
+  - id: "GOLDEN_38_CEFTRIAXONE_NEONATE_14_DAYS"
+    medications: ["ceftriaxone"]
+    age_value: 14
+    age_unit: "days"
+    must_fire: ["POP_CEFTRIAXONE_NEONATE"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_39_CEFTRIAXONE_NEONATE_28_DAYS"
+    medications: ["ceftriaxone"]
+    age_value: 28
+    age_unit: "days"
+    must_fire: ["POP_CEFTRIAXONE_NEONATE"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_40_CEFTRIAXONE_PAEDIATRIC_60_DAYS"
+    medications: ["ceftriaxone"]
+    age_value: 60
+    age_unit: "days"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["POP_CEFTRIAXONE_NEONATE"]
+
+  # 41-45: Therapeutic duplication
+  - id: "GOLDEN_41_DUP_METOPROLOL_ATENOLOL"
+    medications: ["metoprolol", "atenolol"]
+    must_fire: ["DUP_BETA_BLOCKERS"]
+    must_skip: ["VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"]
+    must_not_fire: []
+
+  - id: "GOLDEN_42_SINGLE_METOPROLOL_NO_DUP"
+    medications: ["metoprolol"]
+    must_fire: []
+    must_skip: ["VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"]
+    must_not_fire: ["DUP_BETA_BLOCKERS"]
+
+  - id: "GOLDEN_43_DUP_SILDENAFIL_TADALAFIL"
+    medications: ["sildenafil", "tadalafil"]
+    must_fire: ["DUP_PDE5_INHIBITORS"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_44_SINGLE_SILDENAFIL_NO_DUP"
+    medications: ["sildenafil"]
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["DUP_PDE5_INHIBITORS"]
+
+  - id: "GOLDEN_45_NON_OVERLAPPING_CLASSES"
+    medications: ["metoprolol", "amoxicillin", "salbutamol"]
+    must_fire: []
+    must_skip: ["VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"]
+    must_not_fire: ["DUP_BETA_BLOCKERS", "DUP_PDE5_INHIBITORS"]
+
+  # 46-52: Unresolved brand names & fuzzy match behavior
+  - id: "GOLDEN_46_UNRESOLVED_BRAND_SKIPPED"
+    medications: ["ZyxoMysteryPill"]
+    must_fire: []
+    must_skip: ["DDI_PDE5_NITRATE"]
+    must_not_fire: []
+
+  - id: "GOLDEN_47_UNRESOLVED_ALLERGEN_SKIPPED"
+    allergies:
+      - substance: "UnknownChemicalX"
+        reaction_type: "anaphylaxis_ige"
+    medications: ["cephalexin"]
+    must_fire: []
+    must_skip: ["ALLERGY_PENICILLIN_CEPH_R1_SIMILAR"]
+    must_not_fire: []
+
+  - id: "GOLDEN_48_RESOLVED_BRAND_AUGMENTIN_ALLERGY"
+    allergies:
+      - substance: "Augmentin"
+        reaction_type: "severe_cutaneous_scar"
+    medications: ["ceftriaxone"]
+    must_fire: ["ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_49_RESOLVED_BRAND_VENTOLIN_SAFE"
+    medications: ["Ventolin"]
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["DDI_PDE5_NITRATE", "DUP_BETA_BLOCKERS"]
+
+  - id: "GOLDEN_50_RESOLVED_BRAND_EPIPEN_SAFE"
+    medications: ["EpiPen"]
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["DDI_PDE5_NITRATE", "DUP_BETA_BLOCKERS"]
+
+  - id: "GOLDEN_51_RESOLVED_BRAND_LOPRESSOR_HCT"
+    medications: ["Lopressor-HCT", "atenolol"]
+    must_fire: ["DUP_BETA_BLOCKERS"]
+    must_skip: ["VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"]
+    must_not_fire: []
+
+  - id: "GOLDEN_52_RESOLVED_BRAND_AMOXIL_CEPHALEXIN"
+    allergies:
+      - substance: "Amoxil"
+        reaction_type: "anaphylaxis_ige"
+    medications: ["cephalexin"]
+    must_fire: ["ALLERGY_PENICILLIN_CEPH_R1_SIMILAR"]
+    must_skip: []
+    must_not_fire: []
+
+  # 53-65: Multidrug scenarios, complex histories & negative baselines
+  - id: "GOLDEN_53_TRIPLE_INTERACTION_BLOCK"
+    medications: ["sildenafil", "nitroglycerin", "metoprolol"]
+    systolic_bp: 80
+    last_dose_hours_ago: {"sildenafil": 10.0}
+    must_fire: ["DDI_PDE5_NITRATE", "DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT", "VITALS_NITROGLYCERIN_HYPOTENSION", "VITALS_METOPROLOL_HYPOTENSION"]
+    must_skip: ["VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"]
+    must_not_fire: []
+
+  - id: "GOLDEN_54_COMPLEX_ALLERGY_AND_POPULATION"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "anaphylaxis_ige"
+    medications: ["cephalexin", "lisinopril"]
+    pregnancy: "yes"
+    must_fire: ["ALLERGY_PENICILLIN_CEPH_R1_SIMILAR", "POP_LISINOPRIL_PREGNANCY"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_55_NEONATE_WITH_CEFTRIAXONE_AND_AMPICILLIN"
+    medications: ["ceftriaxone", "amoxicillin"]
+    age_value: 7
+    age_unit: "days"
+    must_fire: ["POP_CEFTRIAXONE_NEONATE"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_56_CLEAN_BASELINE_ADULT_DEXTROSE"
+    medications: ["dextrose"]
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["DDI_PDE5_NITRATE", "DUP_BETA_BLOCKERS", "POP_LISINOPRIL_PREGNANCY"]
+
+  - id: "GOLDEN_57_CLEAN_BASELINE_ADULT_SALBUTAMOL"
+    medications: ["salbutamol"]
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["DDI_PDE5_NITRATE", "DUP_BETA_BLOCKERS"]
+
+  - id: "GOLDEN_58_CLEAN_BASELINE_CONFIRMED_NONE_ALLERGIES_AND_MEDS"
+    allergies: []
+    medications: []
+    allergy_history_status: "confirmed_none"
+    medication_history_status: "confirmed_none"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["DDI_PDE5_NITRATE", "ALLERGY_PENICILLIN_CEPH_R1_SIMILAR"]
+
+  - id: "GOLDEN_59_CONFIRMED_NKDA_EMPTY_MEDS_CLEAR"
+    allergies: []
+    medications: []
+    allergy_history_status: "confirmed_nkda"
+    medication_history_status: "confirmed_none"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["ALLERGY_PENICILLIN_CEPH_R1_SIMILAR", "ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+
+  - id: "GOLDEN_60_PREGNANT_FEMALE_SALBUTAMOL_CLEAR"
+    medications: ["salbutamol"]
+    pregnancy: "yes"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["POP_LISINOPRIL_PREGNANCY"]
+
+  - id: "GOLDEN_61_MALE_PREGNANCY_NOT_APPLICABLE_LISINOPRIL"
+    medications: ["lisinopril"]
+    pregnancy: "not_applicable"
+    sex: "male"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["POP_LISINOPRIL_PREGNANCY"]
+
+  - id: "GOLDEN_62_CHILD_SALBUTAMOL_CLEAR"
+    medications: ["salbutamol"]
+    age_value: 6
+    age_unit: "years"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["POP_CEFTRIAXONE_NEONATE", "DDI_PDE5_NITRATE"]
+
+  - id: "GOLDEN_63_ELDERLY_DEXTROSE_CLEAR"
+    medications: ["dextrose"]
+    age_value: 85
+    age_unit: "years"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["POP_CEFTRIAXONE_NEONATE", "POP_LISINOPRIL_PREGNANCY"]
+
+  - id: "GOLDEN_64_ISOSORBIDE_PDE5_BLOCK"
+    medications: ["isosorbide_mononitrate", "sildenafil"]
+    last_dose_hours_ago: {"sildenafil": 4.0}
+    must_fire: ["DDI_PDE5_NITRATE"]
+    must_skip: []
+    must_not_fire: []
+
+  - id: "GOLDEN_65_SCAR_WITH_ALL_BETALACTAMS_BLOCKED"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "severe_cutaneous_scar"
+    medications: ["amoxicillin", "ceftriaxone", "cephalexin"]
+    must_fire: ["ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+    must_skip: []
+    must_not_fire: []

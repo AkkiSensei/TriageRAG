@@ -20,9 +20,10 @@ cases:
 
   - id: "MECH_DOSE_04_BELOW_MIN"
     drug: "zorapine"
-    dose_mg: 5.0
+    dose_mg: 8.0
     expected_status: "BELOW_MINIMUM"
     tripwire: false
+
 
   - id: "MECH_DOSE_05_EXCEEDS_MAX"
     drug: "zorapine"
