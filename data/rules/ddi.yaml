@@ -1,0 +1,42 @@
+rules:
+  - id: "DDI_PDE5_NITRATE"
+    type: "class_interaction"
+    class_a: "PDE5_INHIBITORS"
+    class_b: "ORGANIC_NITRATES"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Concurrent use causes profound refractory systemic vasodilation and life-threatening hypotension."
+    action: "Do not administer organic nitrates. Withhold and select alternative hemodynamic interventions."
+    requires_fields:
+      - "medications"
+      - "medication_history_status"
+    lookback_hours_by_ingredient:
+      sildenafil: 24
+      tadalafil: 48
+    provenance:
+      source_doc: "SYNTHETIC_DDI_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT"
+    type: "pair"
+    drug_a: "sildenafil"
+    drug_b: "nitroglycerin"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Direct interaction between sildenafil and nitroglycerin triggering severe hypotension."
+    action: "Absolute contraindication: do not co-administer."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "SYNTHETIC_DDI_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null

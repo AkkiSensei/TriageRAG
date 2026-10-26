@@ -1,0 +1,38 @@
+rules:
+  - id: "POP_LISINOPRIL_PREGNANCY"
+    type: "population"
+    drug_id: "lisinopril"
+    contraindicated_pregnancy: true
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "RAAS inhibitors act directly on the renin-angiotensin system causing severe fetal oligohydramnios, skull hypoplasia, and fetal death."
+    action: "Absolute contraindication: do not administer RAAS inhibitors during confirmed pregnancy."
+    requires_fields:
+      - "pregnancy"
+    provenance:
+      source_doc: "SYNTHETIC_POPULATION_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "POP_CEFTRIAXONE_NEONATE"
+    type: "population"
+    drug_id: "ceftriaxone"
+    contraindicated_population: "neonate"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Ceftriaxone displaces bilirubin from albumin binding sites risking kernicterus in neonates (<=28 days)."
+    action: "Absolute contraindication in neonates: select cefotaxime or alternative agent."
+    requires_fields:
+      - "age"
+    provenance:
+      source_doc: "SYNTHETIC_POPULATION_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null

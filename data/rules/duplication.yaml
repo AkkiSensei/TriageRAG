@@ -1,0 +1,38 @@
+rules:
+  - id: "DUP_BETA_BLOCKERS"
+    type: "duplication"
+    class_name: "BETA_BLOCKERS"
+    max_concurrent: 1
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Concurrent administration of multiple beta-adrenergic receptor antagonists produces additive bradycardia and hypotension."
+    action: "Caution: Therapeutic duplication detected. Verify indication and log override if deliberate."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "SYNTHETIC_DUPLICATION_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "DUP_PDE5_INHIBITORS"
+    type: "duplication"
+    class_name: "PDE5_INHIBITORS"
+    max_concurrent: 1
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Concurrent use of multiple phosphodiesterase-5 inhibitors risks severe additive vasodilation."
+    action: "Do not co-prescribe or administer multiple concurrent PDE5 inhibitors."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "SYNTHETIC_DUPLICATION_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null

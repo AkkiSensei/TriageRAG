@@ -1,0 +1,52 @@
+drug_id: "amoxicillin"
+display_name: "Amoxicillin"
+ingredient_ids:
+  - "amoxicillin"
+classes:
+  - "PENICILLINS"
+  - "AMINOPENICILLINS"
+  - "BETA_LACTAMS"
+routes:
+  - "oral"
+  - "iv"
+dose_basis_ingredient_id: null
+population_rules:
+  adult:
+    dose_basis: "fixed"
+    per_dose_min: 500
+    per_dose_max: 1000
+    daily_max: 3000
+    unit: "mg"
+    status: "NEEDS_SOURCE"
+    provenance:
+      source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+  paediatric:
+    dose_basis: "weight"
+    per_dose_min: 25
+    per_dose_max: 50
+    daily_max: 2000
+    unit: "mg/kg"
+    status: "NEEDS_SOURCE"
+    provenance:
+      source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+concentrations: []
+provenance:
+  source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+  section_ref: "TO_BE_RESOLVED"
+  version_or_date: "2026-DRAFT"
+  source_status: "PLACEHOLDER_UNRETRIEVED"
+  content_origin: "AGENT_DRAFT_UNSOURCED"
+  verified: false
+  reviewer: null

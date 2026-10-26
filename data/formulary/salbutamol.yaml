@@ -1,0 +1,54 @@
+drug_id: "salbutamol"
+display_name: "Salbutamol (Albuterol)"
+ingredient_ids:
+  - "salbutamol"
+classes:
+  - "BETA2_AGONISTS"
+  - "BRONCHODILATORS"
+routes:
+  - "inhaled"
+  - "nebulized"
+dose_basis_ingredient_id: null
+population_rules:
+  adult:
+    dose_basis: "fixed"
+    per_dose_min: 2.5
+    per_dose_max: 5.0
+    daily_max: 20.0
+    unit: "mg"
+    status: "NEEDS_SOURCE"
+    provenance:
+      source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+  paediatric:
+    dose_basis: "fixed"
+    per_dose_min: 2.5
+    per_dose_max: 5.0
+    daily_max: 10.0
+    unit: "mg"
+    status: "NEEDS_SOURCE"
+    provenance:
+      source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+concentrations:
+  - amount: 2.5
+    unit: "mg"
+    volume_ml: 2.5
+provenance:
+  source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+  section_ref: "TO_BE_RESOLVED"
+  version_or_date: "2026-DRAFT"
+  source_status: "PLACEHOLDER_UNRETRIEVED"
+  content_origin: "AGENT_DRAFT_UNSOURCED"
+  verified: false
+  reviewer: null

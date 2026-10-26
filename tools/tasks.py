@@ -166,6 +166,9 @@ def verify() -> None:
     if (REPO_ROOT / "tools/validate_data.py").exists():
         validate_data()
 
+    if (REPO_ROOT / "tools/provenance_report.py").exists():
+        _run([sys.executable, "tools/provenance_report.py"])
+
     test_files = list((REPO_ROOT / "tests").glob("**/test_*.py"))
     if test_files:
         test()

@@ -1,0 +1,216 @@
+aliases:
+  Viagra:
+    brand_name: "Viagra"
+    ingredient_ids: ["sildenafil"]
+    strengths:
+      - ingredient_id: "sildenafil"
+        strength_amount: 50
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Revatio:
+    brand_name: "Revatio"
+    ingredient_ids: ["sildenafil"]
+    strengths:
+      - ingredient_id: "sildenafil"
+        strength_amount: 20
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Cialis:
+    brand_name: "Cialis"
+    ingredient_ids: ["tadalafil"]
+    strengths:
+      - ingredient_id: "tadalafil"
+        strength_amount: 20
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Nitrostat:
+    brand_name: "Nitrostat"
+    ingredient_ids: ["nitroglycerin"]
+    strengths:
+      - ingredient_id: "nitroglycerin"
+        strength_amount: 0.4
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Lopressor:
+    brand_name: "Lopressor"
+    ingredient_ids: ["metoprolol"]
+    strengths:
+      - ingredient_id: "metoprolol"
+        strength_amount: 50
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Toprol-XL:
+    brand_name: "Toprol-XL"
+    ingredient_ids: ["metoprolol"]
+    strengths:
+      - ingredient_id: "metoprolol"
+        strength_amount: 50
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Amoxil:
+    brand_name: "Amoxil"
+    ingredient_ids: ["amoxicillin"]
+    strengths:
+      - ingredient_id: "amoxicillin"
+        strength_amount: 500
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Ventolin:
+    brand_name: "Ventolin"
+    ingredient_ids: ["salbutamol"]
+    strengths:
+      - ingredient_id: "salbutamol"
+        strength_amount: 2.5
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  EpiPen:
+    brand_name: "EpiPen"
+    ingredient_ids: ["epinephrine"]
+    strengths:
+      - ingredient_id: "epinephrine"
+        strength_amount: 0.3
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  EpiPen-0.3mg:
+    brand_name: "EpiPen-0.3mg"
+    ingredient_ids: ["epinephrine"]
+    strengths:
+      - ingredient_id: "epinephrine"
+        strength_amount: 0.3
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  EpiPen-Jr-0.15mg:
+    brand_name: "EpiPen-Jr-0.15mg"
+    ingredient_ids: ["epinephrine"]
+    strengths:
+      - ingredient_id: "epinephrine"
+        strength_amount: 0.15
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Augmentin:
+    brand_name: "Augmentin"
+    ingredient_ids: ["amoxicillin", "clavulanate"]
+    dose_basis_ingredient_id: "amoxicillin"
+    strengths:
+      - ingredient_id: "amoxicillin"
+        strength_amount: 500
+        strength_unit: "mg"
+      - ingredient_id: "clavulanate"
+        strength_amount: 125
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Lopressor-HCT:
+    brand_name: "Lopressor-HCT"
+    ingredient_ids: ["metoprolol", "hydrochlorothiazide"]
+    dose_basis_ingredient_id: "metoprolol"
+    strengths:
+      - ingredient_id: "metoprolol"
+        strength_amount: 50
+        strength_unit: "mg"
+      - ingredient_id: "hydrochlorothiazide"
+        strength_amount: 25
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null

@@ -1,0 +1,53 @@
+drug_id: "dextrose"
+display_name: "Dextrose (Glucose)"
+ingredient_ids:
+  - "dextrose"
+classes:
+  - "CARBOHYDRATES"
+routes:
+  - "iv"
+  - "oral"
+dose_basis_ingredient_id: null
+population_rules:
+  adult:
+    dose_basis: "fixed"
+    per_dose_min: 10
+    per_dose_max: 25
+    daily_max: 100
+    unit: "g"
+    status: "NEEDS_SOURCE"
+    provenance:
+      source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+  paediatric:
+    dose_basis: "weight"
+    per_dose_min: 500
+    per_dose_max: 1000
+    daily_max: 5000
+    unit: "mg/kg"
+    status: "NEEDS_SOURCE"
+    provenance:
+      source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+concentrations:
+  - amount: 10
+    unit: "g"
+    volume_ml: 100
+provenance:
+  source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+  section_ref: "TO_BE_RESOLVED"
+  version_or_date: "2026-DRAFT"
+  source_status: "PLACEHOLDER_UNRETRIEVED"
+  content_origin: "AGENT_DRAFT_UNSOURCED"
+  verified: false
+  reviewer: null

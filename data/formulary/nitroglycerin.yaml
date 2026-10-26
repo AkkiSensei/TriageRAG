@@ -1,0 +1,36 @@
+drug_id: "nitroglycerin"
+display_name: "Nitroglycerin (Glyceryl Trinitrate)"
+ingredient_ids:
+  - "nitroglycerin"
+classes:
+  - "ORGANIC_NITRATES"
+routes:
+  - "sublingual"
+  - "iv"
+  - "topical"
+dose_basis_ingredient_id: null
+population_rules:
+  adult:
+    dose_basis: "fixed"
+    per_dose_min: 0.3
+    per_dose_max: 0.6
+    daily_max: 2.0
+    unit: "mg"
+    status: "NEEDS_SOURCE"
+    provenance:
+      source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+concentrations: []
+provenance:
+  source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+  section_ref: "TO_BE_RESOLVED"
+  version_or_date: "2026-DRAFT"
+  source_status: "PLACEHOLDER_UNRETRIEVED"
+  content_origin: "AGENT_DRAFT_UNSOURCED"
+  verified: false
+  reviewer: null

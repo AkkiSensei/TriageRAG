@@ -1,0 +1,77 @@
+rules:
+  - id: "FICT_PAIR_ZORA_QUEN"
+    type: "pair"
+    drug_a: "zorapine"
+    drug_b: "quenmycin"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Fictional lethal pair interaction."
+    action: "Block co-administration."
+    requires_fields: ["medications"]
+    provenance:
+      source_doc: "FICTIONAL_RULES"
+      section_ref: "F1"
+      version_or_date: "2026-TEST"
+      source_status: "REVIEWED"
+      content_origin: "HUMAN_AUTHORED"
+      verified: true
+      reviewer: "test_harness"
+
+  - id: "FICT_LOOKBACK_12H"
+    type: "class_interaction"
+    class_a: "ZORA_CLASS"
+    class_b: "QUEN_CLASS"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Fictional lookback window interaction."
+    action: "Enforce 12-hour separation."
+    requires_fields: ["medications", "medication_history_status"]
+    lookback_hours_by_ingredient:
+      zorapine: 12
+      quenmycin: 24
+    provenance:
+      source_doc: "FICTIONAL_RULES"
+      section_ref: "F2"
+      version_or_date: "2026-TEST"
+      source_status: "REVIEWED"
+      content_origin: "HUMAN_AUTHORED"
+      verified: true
+      reviewer: "test_harness"
+
+  - id: "FICT_VITALS_SBP_85"
+    type: "vitals_interlock"
+    drug_id: "zorapine"
+    vital_name: "systolic_bp_mmhg"
+    operator: "lt"
+    threshold_value: 85
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Zorapine with SBP < 85 mmHg produces fictional circulatory collapse."
+    action: "Do not administer if SBP < 85."
+    requires_fields: ["systolic_bp_mmhg"]
+    provenance:
+      source_doc: "FICTIONAL_RULES"
+      section_ref: "F3"
+      version_or_date: "2026-TEST"
+      source_status: "REVIEWED"
+      content_origin: "HUMAN_AUTHORED"
+      verified: true
+      reviewer: "test_harness"
+
+  - id: "FICT_DUP_ZORA"
+    type: "duplication"
+    class_name: "ZORA_CLASS"
+    max_concurrent: 1
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Fictional duplication alert."
+    action: "Warn on multiple concurrent agents."
+    requires_fields: ["medications"]
+    provenance:
+      source_doc: "FICTIONAL_RULES"
+      section_ref: "F4"
+      version_or_date: "2026-TEST"
+      source_status: "REVIEWED"
+      content_origin: "HUMAN_AUTHORED"
+      verified: true
+      reviewer: "test_harness"

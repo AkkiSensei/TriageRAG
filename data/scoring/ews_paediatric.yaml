@@ -1,0 +1,84 @@
+table_name: "EWS_PAEDIATRIC_DRAFT"
+population: "paediatric"
+rows:
+  # Respiratory rate (bpm)
+  - parameter: "respiratory_rate_bpm"
+    score: 3
+    min_value: 0
+    max_value: 14
+  - parameter: "respiratory_rate_bpm"
+    score: 0
+    min_value: 15
+    max_value: 30
+  - parameter: "respiratory_rate_bpm"
+    score: 2
+    min_value: 31
+    max_value: 45
+  - parameter: "respiratory_rate_bpm"
+    score: 3
+    min_value: 46
+    max_value: 120
+
+  # SpO2 (%)
+  - parameter: "spo2_percent"
+    score: 3
+    min_value: 0
+    max_value: 91
+  - parameter: "spo2_percent"
+    score: 1
+    min_value: 92
+    max_value: 94
+  - parameter: "spo2_percent"
+    score: 0
+    min_value: 95
+    max_value: 100
+
+  # Heart rate (bpm)
+  - parameter: "heart_rate_bpm"
+    score: 3
+    min_value: 0
+    max_value: 60
+  - parameter: "heart_rate_bpm"
+    score: 0
+    min_value: 61
+    max_value: 110
+  - parameter: "heart_rate_bpm"
+    score: 2
+    min_value: 111
+    max_value: 140
+  - parameter: "heart_rate_bpm"
+    score: 3
+    min_value: 141
+    max_value: 250
+
+  # Consciousness (A, C, V, P, U)
+  - parameter: "consciousness"
+    score: 0
+    string_value: "A"
+  - parameter: "consciousness"
+    score: 3
+    string_value: "C"
+  - parameter: "consciousness"
+    score: 3
+    string_value: "V"
+  - parameter: "consciousness"
+    score: 3
+    string_value: "P"
+  - parameter: "consciousness"
+    score: 3
+    string_value: "U"
+
+bands:
+  GREEN: [0, 0]
+  YELLOW: [1, 2]
+  ORANGE: [3, 4]
+  RED: [5, 100]
+
+provenance:
+  source_doc: "SYNTHETIC_PEWS_DRAFT"
+  section_ref: "TO_BE_RESOLVED"
+  version_or_date: "2026-DRAFT"
+  source_status: "PLACEHOLDER_UNRETRIEVED"
+  content_origin: "AGENT_DRAFT_UNSOURCED"
+  verified: false
+  reviewer: null

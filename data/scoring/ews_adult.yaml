@@ -1,0 +1,152 @@
+table_name: "EWS_ADULT_DRAFT"
+population: "adult"
+rows:
+  # Respiratory rate (bpm)
+  - parameter: "respiratory_rate_bpm"
+    score: 3
+    min_value: 0
+    max_value: 8
+  - parameter: "respiratory_rate_bpm"
+    score: 1
+    min_value: 9
+    max_value: 11
+  - parameter: "respiratory_rate_bpm"
+    score: 0
+    min_value: 12
+    max_value: 20
+  - parameter: "respiratory_rate_bpm"
+    score: 2
+    min_value: 21
+    max_value: 24
+  - parameter: "respiratory_rate_bpm"
+    score: 3
+    min_value: 25
+    max_value: 100
+
+  # SpO2 (%)
+  - parameter: "spo2_percent"
+    score: 3
+    min_value: 0
+    max_value: 91
+  - parameter: "spo2_percent"
+    score: 2
+    min_value: 92
+    max_value: 93
+  - parameter: "spo2_percent"
+    score: 1
+    min_value: 94
+    max_value: 95
+  - parameter: "spo2_percent"
+    score: 0
+    min_value: 96
+    max_value: 100
+
+  # Supplemental O2 (yes/no)
+  - parameter: "supplemental_o2"
+    score: 2
+    string_value: "yes"
+  - parameter: "supplemental_o2"
+    score: 0
+    string_value: "no"
+
+  # Systolic BP (mmHg)
+  - parameter: "systolic_bp_mmhg"
+    score: 3
+    min_value: 0
+    max_value: 90
+  - parameter: "systolic_bp_mmhg"
+    score: 2
+    min_value: 91
+    max_value: 100
+  - parameter: "systolic_bp_mmhg"
+    score: 1
+    min_value: 101
+    max_value: 110
+  - parameter: "systolic_bp_mmhg"
+    score: 0
+    min_value: 111
+    max_value: 219
+  - parameter: "systolic_bp_mmhg"
+    score: 3
+    min_value: 220
+    max_value: 400
+
+  # Heart rate (bpm)
+  - parameter: "heart_rate_bpm"
+    score: 3
+    min_value: 0
+    max_value: 40
+  - parameter: "heart_rate_bpm"
+    score: 1
+    min_value: 41
+    max_value: 50
+  - parameter: "heart_rate_bpm"
+    score: 0
+    min_value: 51
+    max_value: 90
+  - parameter: "heart_rate_bpm"
+    score: 1
+    min_value: 91
+    max_value: 110
+  - parameter: "heart_rate_bpm"
+    score: 2
+    min_value: 111
+    max_value: 130
+  - parameter: "heart_rate_bpm"
+    score: 3
+    min_value: 131
+    max_value: 300
+
+  # Consciousness (A, C, V, P, U)
+  - parameter: "consciousness"
+    score: 0
+    string_value: "A"
+  - parameter: "consciousness"
+    score: 3
+    string_value: "C"
+  - parameter: "consciousness"
+    score: 3
+    string_value: "V"
+  - parameter: "consciousness"
+    score: 3
+    string_value: "P"
+  - parameter: "consciousness"
+    score: 3
+    string_value: "U"
+
+  # Temperature (C)
+  - parameter: "temperature_c"
+    score: 3
+    min_value: 0.0
+    max_value: 35.0
+  - parameter: "temperature_c"
+    score: 1
+    min_value: 35.1
+    max_value: 36.0
+  - parameter: "temperature_c"
+    score: 0
+    min_value: 36.1
+    max_value: 38.0
+  - parameter: "temperature_c"
+    score: 1
+    min_value: 38.1
+    max_value: 39.0
+  - parameter: "temperature_c"
+    score: 2
+    min_value: 39.1
+    max_value: 50.0
+
+bands:
+  GREEN: [0, 0]
+  YELLOW: [1, 4]
+  ORANGE: [5, 6]
+  RED: [7, 100]
+
+provenance:
+  source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
+  section_ref: "TO_BE_RESOLVED"
+  version_or_date: "2026-DRAFT"
+  source_status: "PLACEHOLDER_UNRETRIEVED"
+  content_origin: "AGENT_DRAFT_UNSOURCED"
+  verified: false
+  reviewer: null

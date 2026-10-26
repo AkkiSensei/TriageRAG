@@ -1,0 +1,70 @@
+rules:
+  - id: "ALLERGY_PENICILLIN_CEPH_R1_SIMILAR"
+    type: "allergy_crossreactivity"
+    allergen_class: "AMINOPENICILLINS"
+    target_class: "CEPH_R1_SIMILAR_TO_AMINOPENICILLIN"
+    reaction_types:
+      - "anaphylaxis_ige"
+      - "unknown"
+    severity: "BLOCK"
+    cross_reactivity_risk: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Shared R1 side-chain creates significant risk of severe IgE-mediated cross-reactivity and anaphylaxis."
+    action: "Do not administer cephalosporins with similar R1 side-chains (e.g. cephalexin, cefaclor) to patients with aminopenicillin anaphylaxis."
+    requires_fields:
+      - "allergies"
+      - "allergy_history_status"
+    provenance:
+      source_doc: "SYNTHETIC_ALLERGY_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR"
+    type: "allergy_crossreactivity"
+    allergen_class: "PENICILLINS"
+    target_class: "CEPH_R1_DISSIMILAR"
+    reaction_types:
+      - "anaphylaxis_ige"
+    severity: "HIGH"
+    cross_reactivity_risk: "HIGH"
+    status: "ACTIVE"
+    consequence: "Low but non-negligible cross-reactivity risk with dissimilar side-chain cephalosporins (e.g. ceftriaxone)."
+    action: "Caution: Requires clinical assessment and documented override before administration."
+    requires_fields:
+      - "allergies"
+      - "allergy_history_status"
+    provenance:
+      source_doc: "SYNTHETIC_ALLERGY_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "ALLERGY_BETALACTAM_SCAR_CATCHALL"
+    type: "allergy_crossreactivity"
+    allergen_class: "BETA_LACTAMS"
+    target_class: "BETA_LACTAMS"
+    reaction_types:
+      - "severe_cutaneous_scar"
+    severity: "BLOCK"
+    cross_reactivity_risk: "BLOCK"
+    status: "ACTIVE"
+    consequence: "History of Severe Cutaneous Adverse Reaction (SCAR/DRESS/SJS/TEN) contraindicates all beta-lactam class antimicrobials regardless of side-chain."
+    action: "Absolute contraindication: do not administer any beta-lactam antimicrobial."
+    requires_fields:
+      - "allergies"
+      - "allergy_history_status"
+    provenance:
+      source_doc: "SYNTHETIC_ALLERGY_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null

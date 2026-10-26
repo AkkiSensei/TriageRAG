@@ -1,0 +1,35 @@
+drug_id: "sildenafil"
+display_name: "Sildenafil"
+ingredient_ids:
+  - "sildenafil"
+classes:
+  - "PDE5_INHIBITORS"
+routes:
+  - "oral"
+  - "iv"
+dose_basis_ingredient_id: null
+population_rules:
+  adult:
+    dose_basis: "fixed"
+    per_dose_min: 20
+    per_dose_max: 100
+    daily_max: 100
+    unit: "mg"
+    status: "NEEDS_SOURCE"
+    provenance:
+      source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+concentrations: []
+provenance:
+  source_doc: "SYNTHETIC_SKELETON_FORMULARY"
+  section_ref: "TO_BE_RESOLVED"
+  version_or_date: "2026-DRAFT"
+  source_status: "PLACEHOLDER_UNRETRIEVED"
+  content_origin: "AGENT_DRAFT_UNSOURCED"
+  verified: false
+  reviewer: null

@@ -1,0 +1,127 @@
+drugs:
+  zorapine:
+    drug_id: "zorapine"
+    display_name: "Zorapine (FICTIONAL TEST DRUG)"
+    ingredient_ids: ["zorapine"]
+    classes: ["ZORA_CLASS"]
+    routes: ["oral", "iv"]
+    dose_basis_ingredient_id: null
+    population_rules:
+      adult:
+        dose_basis: "fixed"
+        per_dose_min: 10
+        per_dose_max: 50
+        daily_max: 100
+        unit: "mg"
+        status: "ACTIVE"
+        provenance:
+          source_doc: "FICTIONAL_TEST_MECHANICS"
+          section_ref: "FICTIONAL_SEC_1"
+          version_or_date: "2026-TEST"
+          source_status: "REVIEWED"
+          content_origin: "HUMAN_AUTHORED"
+          verified: true
+          reviewer: "test_harness"
+      paediatric:
+        dose_basis: "weight"
+        per_dose_min: 1.0
+        per_dose_max: 2.0
+        daily_max: 50.0
+        unit: "mg/kg"
+        status: "ACTIVE"
+        provenance:
+          source_doc: "FICTIONAL_TEST_MECHANICS"
+          section_ref: "FICTIONAL_SEC_1"
+          version_or_date: "2026-TEST"
+          source_status: "REVIEWED"
+          content_origin: "HUMAN_AUTHORED"
+          verified: true
+          reviewer: "test_harness"
+    concentrations:
+      - amount: 10
+        unit: "mg"
+        volume_ml: 1.0
+    provenance:
+      source_doc: "FICTIONAL_TEST_MECHANICS"
+      section_ref: "FICTIONAL_SEC_1"
+      version_or_date: "2026-TEST"
+      source_status: "REVIEWED"
+      content_origin: "HUMAN_AUTHORED"
+      verified: true
+      reviewer: "test_harness"
+
+  quenmycin:
+    drug_id: "quenmycin"
+    display_name: "Quenmycin (FICTIONAL TEST DRUG)"
+    ingredient_ids: ["quenmycin"]
+    classes: ["QUEN_CLASS"]
+    routes: ["iv"]
+    dose_basis_ingredient_id: null
+    population_rules:
+      adult:
+        dose_basis: "weight"
+        per_dose_min: 5.0
+        per_dose_max: 10.0
+        daily_max: 800.0
+        unit: "mg/kg"
+        status: "ACTIVE"
+        provenance:
+          source_doc: "FICTIONAL_TEST_MECHANICS"
+          section_ref: "FICTIONAL_SEC_2"
+          version_or_date: "2026-TEST"
+          source_status: "REVIEWED"
+          content_origin: "HUMAN_AUTHORED"
+          verified: true
+          reviewer: "test_harness"
+    concentrations:
+      - amount: 100
+        unit: "mg"
+        volume_ml: 2.0
+    provenance:
+      source_doc: "FICTIONAL_TEST_MECHANICS"
+      section_ref: "FICTIONAL_SEC_2"
+      version_or_date: "2026-TEST"
+      source_status: "REVIEWED"
+      content_origin: "HUMAN_AUTHORED"
+      verified: true
+      reviewer: "test_harness"
+
+  zorapine_plus:
+    drug_id: "zorapine_plus"
+    display_name: "Zorapine Plus (FICTIONAL FDC)"
+    ingredient_ids: ["zorapine", "quenmycin"]
+    classes: ["ZORA_CLASS", "QUEN_CLASS"]
+    routes: ["oral"]
+    dose_basis_ingredient_id: "zorapine"
+    ingredient_daily_ceilings:
+      zorapine:
+        amount: 100
+        unit: "mg"
+      quenmycin:
+        amount: 200
+        unit: "mg"
+    population_rules:
+      adult:
+        dose_basis: "fixed"
+        per_dose_min: 20
+        per_dose_max: 50
+        daily_max: 100
+        unit: "mg"
+        status: "ACTIVE"
+        provenance:
+          source_doc: "FICTIONAL_TEST_MECHANICS"
+          section_ref: "FICTIONAL_SEC_3"
+          version_or_date: "2026-TEST"
+          source_status: "REVIEWED"
+          content_origin: "HUMAN_AUTHORED"
+          verified: true
+          reviewer: "test_harness"
+    concentrations: []
+    provenance:
+      source_doc: "FICTIONAL_TEST_MECHANICS"
+      section_ref: "FICTIONAL_SEC_3"
+      version_or_date: "2026-TEST"
+      source_status: "REVIEWED"
+      content_origin: "HUMAN_AUTHORED"
+      verified: true
+      reviewer: "test_harness"

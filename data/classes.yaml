@@ -1,0 +1,57 @@
+ingredient_to_classes:
+  amoxicillin:
+    - PENICILLINS
+    - AMINOPENICILLINS
+    - BETA_LACTAMS
+  ampicillin:
+    - PENICILLINS
+    - AMINOPENICILLINS
+    - BETA_LACTAMS
+  cephalexin:
+    - CEPHALOSPORINS
+    - CEPH_R1_SIMILAR_TO_AMINOPENICILLIN
+    - BETA_LACTAMS
+  cefaclor:
+    - CEPHALOSPORINS
+    - CEPH_R1_SIMILAR_TO_AMINOPENICILLIN
+    - BETA_LACTAMS
+  ceftriaxone:
+    - CEPHALOSPORINS
+    - CEPH_R1_DISSIMILAR
+    - BETA_LACTAMS
+  cefepime:
+    - CEPHALOSPORINS
+    - CEPH_R1_DISSIMILAR
+    - BETA_LACTAMS
+  sildenafil:
+    - PDE5_INHIBITORS
+  tadalafil:
+    - PDE5_INHIBITORS
+  nitroglycerin:
+    - ORGANIC_NITRATES
+  isosorbide_mononitrate:
+    - ORGANIC_NITRATES
+  metoprolol:
+    - BETA_BLOCKERS
+  atenolol:
+    - BETA_BLOCKERS
+  lisinopril:
+    - RAAS_INHIBITORS
+    - ACE_INHIBITORS
+  epinephrine:
+    - SYMPATHOMIMETICS
+    - VASOPRESSORS
+  salbutamol:
+    - BETA2_AGONISTS
+    - BRONCHODILATORS
+  dextrose:
+    - CARBOHYDRATES
+
+provenance:
+  source_doc: "PHARMACOLOGICAL_CLASS_TAXONOMY_DRAFT"
+  section_ref: "TO_BE_RESOLVED"
+  version_or_date: "2026-DRAFT"
+  source_status: "PLACEHOLDER_UNRETRIEVED"
+  content_origin: "AGENT_DRAFT_UNSOURCED"
+  verified: false
+  reviewer: null

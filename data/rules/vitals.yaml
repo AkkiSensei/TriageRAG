@@ -1,0 +1,63 @@
+rules:
+  - id: "VITALS_NITROGLYCERIN_HYPOTENSION"
+    type: "vitals_interlock"
+    drug_id: "nitroglycerin"
+    vital_name: "systolic_bp_mmhg"
+    operator: "lt"
+    threshold_value: 90
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Nitroglycerin administration in systolic hypotension (SBP < 90 mmHg) precipitates cardiovascular collapse."
+    action: "Do not administer nitroglycerin. Optimize preload and hemodynamic stability."
+    requires_fields:
+      - "systolic_bp_mmhg"
+    provenance:
+      source_doc: "SYNTHETIC_VITALS_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"
+    type: "vitals_interlock"
+    drug_id: "metoprolol"
+    vital_name: "heart_rate_bpm"
+    operator: "lt"
+    threshold_value: null
+    severity: "BLOCK"
+    status: "NEEDS_SOURCE"
+    consequence: "Beta-blocker administration during bradycardia worsens atrioventricular nodal conduction block and cardiogenic shock."
+    action: "Threshold requires human clinician sourcing. Check skipped until threshold verified."
+    requires_fields:
+      - "heart_rate_bpm"
+    provenance:
+      source_doc: "SYNTHETIC_VITALS_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "VITALS_METOPROLOL_HYPOTENSION"
+    type: "vitals_interlock"
+    drug_id: "metoprolol"
+    vital_name: "systolic_bp_mmhg"
+    operator: "lt"
+    threshold_value: 100
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Beta-blocker administration during borderline hypotension risks precipitating acute decompensated heart failure."
+    action: "Requires clinician assessment and logged override before administration."
+    requires_fields:
+      - "systolic_bp_mmhg"
+    provenance:
+      source_doc: "SYNTHETIC_VITALS_RULES_DRAFT"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
