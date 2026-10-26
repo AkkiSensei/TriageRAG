@@ -1,4 +1,7 @@
 ingredient_to_classes:
+  penicillin:
+    - PENICILLINS
+    - BETA_LACTAMS
   amoxicillin:
     - PENICILLINS
     - AMINOPENICILLINS

@@ -16,7 +16,7 @@ population_rules:
     per_dose_max: 0.6
     daily_max: 2.0
     unit: "mg"
-    status: "NEEDS_SOURCE"
+    status: "ACTIVE"
     provenance:
       source_doc: "SYNTHETIC_SKELETON_FORMULARY"
       section_ref: "TO_BE_RESOLVED"

@@ -35,6 +35,7 @@ from triagerag.contracts.rules_schema import (
     PopulationRule,
     VitalsInterlockRule,
 )
+from triagerag.contracts.scenarios import get_preloaded_scenario
 from triagerag.contracts.schemas import (
     Age,
     Alert,
@@ -114,4 +115,5 @@ __all__ = [
     "VerifiedStep",
     "Vitals",
     "VitalsInterlockRule",
+    "get_preloaded_scenario",
 ]

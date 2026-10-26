@@ -11,6 +11,7 @@ from __future__ import annotations
 import socket
 from collections.abc import Generator
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 
@@ -28,13 +29,29 @@ def block_network(
         yield
         return
 
-    def guarded_socket(*args: object, **kwargs: object) -> socket.socket:
-        raise BlockedNetworkError(
-            f"Unauthorized network call attempted in offline test: {request.node.name}. "
-            "All TriageRAG tests must run completely offline."
-        )
+    class GuardedSocket(socket.socket):
+        def connect(self, address: Any) -> None:
+            if isinstance(address, tuple) and len(address) >= 2:
+                host = address[0]
+                if host in ("127.0.0.1", "localhost", "::1"):
+                    super().connect(address)
+                    return
+            raise BlockedNetworkError(
+                f"Unauthorized network call to {address!r} attempted in offline test: "
+                f"{request.node.name}. All TriageRAG tests must run completely offline."
+            )
 
-    monkeypatch.setattr(socket, "socket", guarded_socket)
+        def connect_ex(self, address: Any) -> int:
+            if isinstance(address, tuple) and len(address) >= 2:
+                host = address[0]
+                if host in ("127.0.0.1", "localhost", "::1"):
+                    return int(super().connect_ex(address))
+            raise BlockedNetworkError(
+                f"Unauthorized network call to {address!r} attempted in offline test: "
+                f"{request.node.name}. All TriageRAG tests must run completely offline."
+            )
+
+    monkeypatch.setattr(socket, "socket", GuardedSocket)
     yield
 
 

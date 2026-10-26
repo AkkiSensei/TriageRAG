@@ -214,3 +214,16 @@ aliases:
       content_origin: "AGENT_DRAFT_UNSOURCED"
       verified: false
       reviewer: null
+
+  penicillin:
+    brand_name: "penicillin"
+    ingredient_ids: ["penicillin"]
+    strengths: []
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
