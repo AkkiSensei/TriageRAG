@@ -41,14 +41,17 @@ htmlcov/
 # Secrets and environment
 .env
 .env.local
+audit_log.jsonl
+*.jsonl
 
 # Real protocols (confidential / external)
 data/protocols_real/*
 !data/protocols_real/.gitkeep
 
-# Eval outputs (keep reports tracked via .gitkeep)
+# Eval outputs (keep reports tracked via .gitkeep and *.md)
 eval/reports/*
 !eval/reports/.gitkeep
+!eval/reports/*.md
 
 # OS
 .DS_Store
