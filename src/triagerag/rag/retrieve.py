@@ -73,7 +73,8 @@ def build_retrieval_query(patient: Patient) -> tuple[str, list[str]]:
     query_parts: list[str] = []
 
     if patient.suspected_syndrome:
-        query_parts.append(patient.suspected_syndrome)
+        # Boost suspected syndrome to anchor guideline retrieval
+        query_parts.extend([patient.suspected_syndrome] * 3)
 
     query_parts.extend(flags)
     query_string = " ".join(query_parts).strip()
