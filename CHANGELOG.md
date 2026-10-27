@@ -21,7 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Inviolable UX Safety rules (S1–S8): Static un-animated safety banners, alerts, blocked drugs, and skipped checks.
   - Fail-closed `ErrorBoundary` preventing inconsistent clinical state rendering on unexpected exceptions.
   - Mandatory clinical disclaimer banner on all pages and persistent in layout footer.
-  - Interactive Golden Scenario loader (`BLOCK`, `UNVERIFIED`, `HIGH`, `CLEAN`).
+  - Interactive Golden Scenario loader (`BLOCK`, `UNVERIFIED`, `HIGH`, `CLEAN`) with 1-click live auto-run.
+  - Debloated navigation: consolidated fragmented secondary technical views into unified `ClinicalIntelligencePage`.
+  - Enforced biological invariant: male pregnancy is strictly locked to 'No' (Not Applicable) and auto-resets on sex toggles.
+  - Streamlined intake flow: reduced 5 tabs to 2 intuitive steps with an All-in-One toggle and quick drug/allergy chips.
+  - Auto-run on mount: Console initializes with active live clinical analysis rather than empty placeholders.
   - Red-Team Security Lab with adversarial prompt injection presets and engine isolation verification.
   - Interactive Registries & Audit chain viewer with client-side verification trigger.
   - ADR 0005: "Clinical UX Safety Architecture — UI Displays Decisions, Never Computes or Conceals Them".

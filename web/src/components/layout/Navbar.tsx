@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Activity, ShieldAlert, BookOpen, FileText, CheckCircle2, Info, Zap, ZapOff } from 'lucide-react'
+import { Activity, ShieldAlert, BookOpen, Info, Zap, ZapOff } from 'lucide-react'
 import { useMotionSettings } from '@/lib/motion'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
@@ -18,11 +18,18 @@ export const Navbar: React.FC = () => {
 
   const navItems = [
     { label: 'Triage Console', path: '/', icon: Activity },
-    { label: 'Red-Team Lab', path: '/redteam', icon: ShieldAlert },
-    { label: 'Ruleset', path: '/ruleset', icon: BookOpen },
-    { label: 'Protocols', path: '/protocols', icon: FileText },
-    { label: 'Evidence & Eval', path: '/evidence', icon: CheckCircle2 },
-    { label: 'Audit Trail', path: '/audit', icon: FileText },
+    { label: 'Safety Lab', path: '/redteam', icon: ShieldAlert },
+    {
+      label: 'Clinical Intelligence',
+      path: '/intelligence',
+      icon: BookOpen,
+      isActive: (pathname: string) =>
+        pathname === '/intelligence' ||
+        pathname === '/ruleset' ||
+        pathname === '/protocols' ||
+        pathname === '/evidence' ||
+        pathname === '/audit',
+    },
     { label: 'About', path: '/about', icon: Info },
   ]
 
@@ -53,15 +60,15 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Navigation links */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-1.5">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = location.pathname === item.path
+            const isActive = item.isActive ? item.isActive(location.pathname) : location.pathname === item.path
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                   isActive
                     ? 'bg-slate-800 text-teal-400 border border-slate-700 shadow-inner'
                     : 'text-slate-300 hover:bg-slate-800/60 hover:text-slate-100'

@@ -7,10 +7,7 @@ import { Layout } from '@/components/layout/Layout'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { ConsolePage } from '@/pages/ConsolePage'
 import { RedTeamPage } from '@/pages/RedTeamPage'
-import { RulesetPage } from '@/pages/RulesetPage'
-import { ProtocolsPage } from '@/pages/ProtocolsPage'
-import { EvidencePage } from '@/pages/EvidencePage'
-import { AuditPage } from '@/pages/AuditPage'
+import { ClinicalIntelligencePage } from '@/pages/ClinicalIntelligencePage'
 import { AboutPage } from '@/pages/AboutPage'
 
 export const App: FC = () => {
@@ -24,10 +21,11 @@ export const App: FC = () => {
               <Route index element={<ConsolePage />} />
               <Route path="console" element={<Navigate to="/" replace />} />
               <Route path="redteam" element={<RedTeamPage />} />
-              <Route path="ruleset" element={<RulesetPage />} />
-              <Route path="protocols" element={<ProtocolsPage />} />
-              <Route path="evidence" element={<EvidencePage />} />
-              <Route path="audit" element={<AuditPage />} />
+              <Route path="intelligence" element={<ClinicalIntelligencePage />} />
+              <Route path="ruleset" element={<ClinicalIntelligencePage initialTab="rules" />} />
+              <Route path="protocols" element={<ClinicalIntelligencePage initialTab="protocols" />} />
+              <Route path="evidence" element={<ClinicalIntelligencePage initialTab="evidence" />} />
+              <Route path="audit" element={<ClinicalIntelligencePage initialTab="audit" />} />
               <Route path="about" element={<AboutPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
