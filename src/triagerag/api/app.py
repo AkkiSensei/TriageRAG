@@ -78,7 +78,7 @@ def create_app() -> FastAPI:
         for err in exc.errors():
             loc = " -> ".join(str(part) for part in err.get("loc", []))
             errors.append({"field": loc, "message": err.get("msg", "Invalid value")})
-        logger.warning("Validation error on %s: %d issues", request.url.path, len(errors))
+        logger.warning("Validation error on %s: %s", request.url.path, errors)
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={"detail": "Validation error", "errors": errors},

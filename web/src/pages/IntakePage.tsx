@@ -105,6 +105,7 @@ export const IntakePage: React.FC = () => {
           isLoading={isLoading}
           initialScenario={selectedScenario}
           existingRequest={patientRequest}
+          errorMessage={error}
         />
       </div>
     </div>

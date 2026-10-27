@@ -23,9 +23,30 @@ interface TriageContextType {
 
 const TriageContext = createContext<TriageContextType | undefined>(undefined)
 
+const STORAGE_KEY_REQ = 'triagerag_patient_request'
+const STORAGE_KEY_RES = 'triagerag_triage_result'
+
 export const TriageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [patientRequest, setPatientRequest] = useState<TriageApiRequest | null>(null)
-  const [triageResult, setTriageResult] = useState<TriageResponse | null>(null)
+  const [patientRequest, setPatientRequest] = useState<TriageApiRequest | null>(() => {
+    if (typeof window === 'undefined') return null
+    try {
+      const saved = sessionStorage.getItem(STORAGE_KEY_REQ)
+      return saved ? JSON.parse(saved) : null
+    } catch {
+      return null
+    }
+  })
+
+  const [triageResult, setTriageResult] = useState<TriageResponse | null>(() => {
+    if (typeof window === 'undefined') return null
+    try {
+      const saved = sessionStorage.getItem(STORAGE_KEY_RES)
+      return saved ? JSON.parse(saved) : null
+    } catch {
+      return null
+    }
+  })
+
   const [activeOverrides, setActiveOverrides] = useState<OverrideRecord[]>([])
   const [selectedScenario, setSelectedScenario] = useState<ScenarioDetail | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -40,8 +61,19 @@ export const TriageProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         overrides: activeOverrides.length > 0 ? activeOverrides : req.overrides || [],
       }
       setPatientRequest(payload)
+      try {
+        sessionStorage.setItem(STORAGE_KEY_REQ, JSON.stringify(payload))
+      } catch {
+        // ignore storage errors
+      }
+
       const res = await api.runTriage(payload)
       setTriageResult(res)
+      try {
+        sessionStorage.setItem(STORAGE_KEY_RES, JSON.stringify(res))
+      } catch {
+        // ignore storage errors
+      }
       return res
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Triage evaluation failed'
@@ -65,6 +97,11 @@ export const TriageProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       try {
         const res = await api.runTriage(payload)
         setTriageResult(res)
+        try {
+          sessionStorage.setItem(STORAGE_KEY_RES, JSON.stringify(res))
+        } catch {
+          // ignore storage errors
+        }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Override evaluation failed'
         setError(msg)
@@ -80,6 +117,12 @@ export const TriageProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setActiveOverrides([])
     setSelectedScenario(null)
     setError(null)
+    try {
+      sessionStorage.removeItem(STORAGE_KEY_REQ)
+      sessionStorage.removeItem(STORAGE_KEY_RES)
+    } catch {
+      // ignore storage errors
+    }
   }
 
   return (
@@ -110,3 +153,4 @@ export const useTriage = (): TriageContextType => {
   }
   return context
 }
+export default TriageProvider

@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Clock,
   Loader2,
+  AlertCircle,
 } from 'lucide-react'
 
 type AgeUnit = components['schemas']['AgeUnit']
@@ -161,6 +162,7 @@ interface PatientIntakeFormProps {
   isLoading?: boolean
   initialScenario?: ScenarioDetail | null
   existingRequest?: TriageApiRequest | null
+  errorMessage?: string | null
 }
 
 export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
@@ -168,6 +170,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
   isLoading,
   initialScenario,
   existingRequest,
+  errorMessage,
 }) => {
   const [form, setForm] = useState<FormState>(INITIAL_FORM_STATE)
 
@@ -357,85 +360,164 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
     })
   }
 
+  const cleanMeasuredDecimal = (
+    val: number | string | null | undefined,
+    source: MeasurementStatus
+  ): components['schemas']['Measured_Decimal_-Input'] => {
+    if (source === 'unknown' || val === null || val === undefined) {
+      return { value: null, source: 'unknown' }
+    }
+    const strVal = String(val).trim()
+    if (strVal === '') {
+      return { value: null, source: 'unknown' }
+    }
+    const num = Number(strVal)
+    if (isNaN(num)) {
+      return { value: null, source: 'unknown' }
+    }
+    return {
+      value: strVal,
+      source,
+    }
+  }
+
+  const cleanMeasuredInt = (
+    val: number | string | null | undefined,
+    source: MeasurementStatus
+  ): components['schemas']['Measured_int_'] => {
+    if (source === 'unknown' || val === null || val === undefined) {
+      return { value: null, source: 'unknown' }
+    }
+    const strVal = String(val).trim()
+    if (strVal === '') {
+      return { value: null, source: 'unknown' }
+    }
+    const num = Number(strVal)
+    if (isNaN(num)) {
+      return { value: null, source: 'unknown' }
+    }
+    return {
+      value: Math.round(num),
+      source,
+    }
+  }
+
   const buildApiPayload = (): TriageApiRequest => {
     const assessedAt = new Date().toISOString()
     const assessedMs = new Date(assessedAt).getTime()
+
+    // 1. Sanitize sex and biological pregnancy invariant
+    const sex = form.sex || 'male'
+    const pregnancy = sex === 'male' ? 'no' : (form.pregnancy || 'no')
+
+    // 2. Sanitize age
+    const ageNum = Number(form.ageValue)
+    const validAge = !isNaN(ageNum) && ageNum >= 0 ? String(ageNum) : '62'
+
+    // 3. Sanitize supplemental O2
+    let o2Payload: components['schemas']['Measured_Literal__yes____no____unknown___']
+    if (form.o2Status === 'unknown') {
+      o2Payload = { value: null, source: 'unknown' }
+    } else if (form.o2Value === 'yes' || form.o2Value === 'no') {
+      o2Payload = { value: form.o2Value, source: form.o2Status }
+    } else {
+      o2Payload = { value: null, source: 'unknown' }
+    }
+
+    // 4. Sanitize consciousness
+    let consciousnessPayload: components['schemas']['Measured_Consciousness_']
+    if (form.consciousnessStatus === 'unknown') {
+      consciousnessPayload = { value: null, source: 'unknown' }
+    } else if (['A', 'C', 'V', 'P', 'U'].includes(form.consciousnessValue)) {
+      consciousnessPayload = { value: form.consciousnessValue, source: form.consciousnessStatus }
+    } else {
+      consciousnessPayload = { value: 'A', source: 'measured' }
+    }
+
+    // 5. Sanitize medications and reconcile status
+    const validMedications = form.medications
+      .filter((m) => m && m.raw_string && m.raw_string.trim().length > 0)
+      .map((m) => {
+        let lastDoseIso: string | null = null
+        if (
+          m.last_dose_hours_ago !== null &&
+          m.last_dose_hours_ago !== undefined &&
+          !isNaN(Number(m.last_dose_hours_ago))
+        ) {
+          const hours = Math.max(0, Number(m.last_dose_hours_ago))
+          const timeAgo = new Date(assessedMs - hours * 3600 * 1000)
+          lastDoseIso = timeAgo.toISOString()
+        }
+        return {
+          raw_text: m.raw_string.trim(),
+          last_dose_time: lastDoseIso,
+        }
+      })
+
+    let resolvedMedStatus = form.medicationStatus
+    if (validMedications.length > 0) {
+      if (resolvedMedStatus === 'confirmed_none' || resolvedMedStatus === 'confirmed_nkda') {
+        resolvedMedStatus = 'confirmed_list'
+      }
+    } else {
+      if (resolvedMedStatus === 'confirmed_list') {
+        resolvedMedStatus = 'confirmed_none'
+      }
+    }
+
+    // 6. Sanitize allergies and reconcile status
+    const validAllergies = form.allergies
+      .filter((a) => a && a.raw_substance && a.raw_substance.trim().length > 0)
+      .map((a) => ({
+        raw_substance: a.raw_substance.trim(),
+        reaction_type: a.reaction_type || 'unknown',
+      }))
+
+    let resolvedAllergyStatus = form.allergyStatus
+    if (validAllergies.length > 0) {
+      if (resolvedAllergyStatus === 'confirmed_none' || resolvedAllergyStatus === 'confirmed_nkda') {
+        resolvedAllergyStatus = 'confirmed_list'
+      }
+    } else {
+      if (resolvedAllergyStatus === 'confirmed_list') {
+        resolvedAllergyStatus = 'confirmed_nkda'
+      }
+    }
 
     return {
       patient: {
         assessed_at: assessedAt,
         age: {
-          value: form.ageValue,
+          value: validAge,
           unit: form.ageUnit,
         },
-        sex: form.sex,
-        pregnancy: form.sex === 'male' ? 'no' : form.pregnancy,
-        weight_kg: {
-          value: form.weightStatus === 'unknown' ? null : form.weightValue,
-          source: form.weightStatus,
-        },
+        sex,
+        pregnancy,
+        weight_kg: cleanMeasuredDecimal(form.weightValue, form.weightStatus),
         vitals: {
-          heart_rate_bpm: {
-            value: form.hrStatus === 'unknown' ? null : form.hrValue,
-            source: form.hrStatus,
-          },
-          systolic_bp_mmhg: {
-            value: form.sbpStatus === 'unknown' ? null : form.sbpValue,
-            source: form.sbpStatus,
-          },
-          diastolic_bp_mmhg: {
-            value: form.dbpStatus === 'unknown' ? null : form.dbpValue,
-            source: form.dbpStatus,
-          },
-          respiratory_rate_bpm: {
-            value: form.rrStatus === 'unknown' ? null : form.rrValue,
-            source: form.rrStatus,
-          },
-          spo2_percent: {
-            value: form.spo2Status === 'unknown' ? null : form.spo2Value,
-            source: form.spo2Status,
-          },
-          supplemental_o2: {
-            value: form.o2Status === 'unknown' ? null : form.o2Value,
-            source: form.o2Status,
-          },
-          temperature_c: {
-            value: form.tempStatus === 'unknown' ? null : form.tempValue,
-            source: form.tempStatus,
-          },
-          blood_glucose_mg_dl: {
-            value: form.glucoseStatus === 'unknown' ? null : form.glucoseValue,
-            source: form.glucoseStatus,
-          },
-          consciousness: {
-            value: form.consciousnessStatus === 'unknown' ? null : form.consciousnessValue,
-            source: form.consciousnessStatus,
-          },
+          heart_rate_bpm: cleanMeasuredInt(form.hrValue, form.hrStatus),
+          systolic_bp_mmhg: cleanMeasuredInt(form.sbpValue, form.sbpStatus),
+          diastolic_bp_mmhg: cleanMeasuredInt(form.dbpValue, form.dbpStatus),
+          respiratory_rate_bpm: cleanMeasuredInt(form.rrValue, form.rrStatus),
+          spo2_percent: cleanMeasuredInt(form.spo2Value, form.spo2Status),
+          supplemental_o2: o2Payload,
+          temperature_c: cleanMeasuredDecimal(form.tempValue, form.tempStatus),
+          blood_glucose_mg_dl: cleanMeasuredDecimal(form.glucoseValue, form.glucoseStatus),
+          consciousness: consciousnessPayload,
+          gcs_total: { value: null, source: 'unknown' },
         },
-        medication_history_status: form.medicationStatus,
-        medications: form.medications.map((m) => {
-          let lastDoseIso: string | null = null
-          if (m.last_dose_hours_ago !== null && m.last_dose_hours_ago !== undefined) {
-            const timeAgo = new Date(assessedMs - m.last_dose_hours_ago * 3600 * 1000)
-            lastDoseIso = timeAgo.toISOString()
-          }
-          return {
-            raw_text: m.raw_string,
-            last_dose_time: lastDoseIso,
-          }
-        }),
-        allergy_history_status: form.allergyStatus,
-        allergies: form.allergies.map((a) => ({
-          raw_substance: a.raw_substance,
-          reaction_type: a.reaction_type,
-        })),
-        suspected_syndrome: form.suspectedSyndrome || null,
-        renal_impairment: form.renalImpairment,
-        hepatic_impairment: form.hepaticImpairment,
-        chief_complaint_untrusted: form.chiefComplaint,
+        medication_history_status: resolvedMedStatus,
+        medications: validMedications,
+        allergy_history_status: resolvedAllergyStatus,
+        allergies: validAllergies,
+        suspected_syndrome: form.suspectedSyndrome?.trim() || null,
+        renal_impairment: form.renalImpairment || 'no',
+        hepatic_impairment: form.hepaticImpairment || 'no',
+        chief_complaint_untrusted: form.chiefComplaint?.trim() || '',
       },
-      llm_profile: form.llmProfile,
-      include_complaint_in_llm: form.includeComplaintInLlm,
+      llm_profile: form.llmProfile || 'COMPLIANT',
+      include_complaint_in_llm: Boolean(form.includeComplaintInLlm),
+      overrides: [],
     }
   }
 
@@ -959,29 +1041,39 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       </div>
 
       {/* PRIMARY CTA: EVALUATE PATIENT */}
-      <div className="sticky bottom-4 z-20 flex items-center justify-between rounded-xl border border-teal-500/40 bg-slate-950/95 p-4 shadow-2xl backdrop-blur-md">
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <FileText className="h-4 w-4 text-teal-400" />
-          <span>Form ready for deterministic safety verification</span>
-        </div>
+      <div className="sticky bottom-4 z-20 flex flex-col gap-3 rounded-xl border border-teal-500/40 bg-slate-950/95 p-4 shadow-2xl backdrop-blur-md">
+        {errorMessage && (
+          <div className="flex items-center gap-2 rounded-lg border border-red-800/80 bg-red-950/60 p-2.5 text-xs text-red-300">
+            <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
+            <span className="font-medium">{errorMessage}</span>
+          </div>
+        )}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="flex items-center gap-2 rounded-lg bg-teal-500 hover:bg-teal-400 px-6 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-teal-500/20 transition-all disabled:opacity-50"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Evaluating Patient...</span>
-            </>
-          ) : (
-            <>
-              <span>Evaluate Patient & Generate Report</span>
-              <ArrowRight className="h-4 w-4" />
-            </>
-          )}
-        </button>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <FileText className="h-4 w-4 text-teal-400" />
+            <span>Form ready for deterministic safety verification</span>
+          </div>
+
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="flex items-center gap-2 rounded-lg bg-teal-500 hover:bg-teal-400 px-6 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-teal-500/20 transition-all disabled:opacity-50 cursor-pointer"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Evaluating Patient...</span>
+              </>
+            ) : (
+              <>
+                <span>Evaluate Patient & Generate Report</span>
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </form>
   )

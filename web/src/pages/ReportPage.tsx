@@ -25,6 +25,7 @@ export const ReportPage: React.FC = () => {
   const {
     patientRequest,
     triageResult,
+    evaluatePatient,
     applyOverride,
     clearPatient,
     isLoading,
@@ -51,6 +52,15 @@ export const ReportPage: React.FC = () => {
     navigate('/intake')
   }
 
+  // Auto-evaluate if patientRequest exists but triageResult is not loaded yet
+  React.useEffect(() => {
+    if (!triageResult && patientRequest && !isLoading && !error) {
+      evaluatePatient(patientRequest).catch((err: unknown) => {
+        console.error('Auto-eval on ReportPage error:', err)
+      })
+    }
+  }, [triageResult, patientRequest, isLoading, error, evaluatePatient])
+
   if (isLoading && !triageResult) {
     return (
       <div className="mx-auto flex min-h-[500px] max-w-5xl flex-col items-center justify-center p-8 text-center">
@@ -61,6 +71,40 @@ export const ReportPage: React.FC = () => {
         <p className="mt-1 text-xs text-slate-400">
           Evaluating contraindications, NEWS2 score, formulary limits, and protocol citations.
         </p>
+      </div>
+    )
+  }
+
+  if (error && !triageResult) {
+    return (
+      <div className="mx-auto flex min-h-[450px] max-w-lg flex-col items-center justify-center p-8 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-950/80 border border-red-800 text-red-400 mb-4">
+          <ShieldAlert className="h-6 w-6" />
+        </div>
+        <h3 className="text-base font-bold text-slate-200">Clinical Evaluation Failed</h3>
+        <p className="mt-1.5 text-xs text-red-300 leading-relaxed mb-5 max-w-md bg-red-950/40 p-3 rounded-lg border border-red-900/60 font-mono">
+          {error}
+        </p>
+        <div className="flex items-center gap-3">
+          {patientRequest && (
+            <button
+              type="button"
+              onClick={() => evaluatePatient(patientRequest)}
+              className="flex items-center gap-2 rounded-lg bg-teal-500 hover:bg-teal-400 px-4 py-2 text-xs font-bold text-slate-950 transition-colors"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span>Retry Evaluation</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => navigate('/intake')}
+            className="flex items-center gap-2 rounded-lg bg-slate-800 hover:bg-slate-700 px-4 py-2 text-xs font-medium text-slate-200 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Patient Intake</span>
+          </button>
+        </div>
       </div>
     )
   }

@@ -55,10 +55,17 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     } catch {
       errorData = await response.text()
     }
-    const message =
-      typeof errorData === 'object' && errorData !== null && 'detail' in errorData
-        ? String((errorData as { detail: unknown }).detail)
-        : `API request failed with status ${response.status}`
+    let message = `API request failed with status ${response.status}`
+    if (typeof errorData === 'object' && errorData !== null) {
+      const errObj = errorData as Record<string, unknown>
+      if (Array.isArray(errObj.errors) && errObj.errors.length > 0) {
+        message = errObj.errors
+          .map((e: { field?: string; message?: string }) => e.message || 'Invalid value')
+          .join(', ')
+      } else if (typeof errObj.detail === 'string') {
+        message = errObj.detail
+      }
+    }
     throw new ApiError(response.status, message, errorData)
   }
 
