@@ -18,7 +18,7 @@ export const IntakePage: React.FC = () => {
   } = useTriage()
 
   const [activeScenarioId, setActiveScenarioId] = useState<string | null>(
-    selectedScenario?.id ?? 'BLOCK'
+    selectedScenario?.id ?? null
   )
 
   const handleSelectScenario = (scenario: ScenarioDetail, autoRun: boolean = true) => {

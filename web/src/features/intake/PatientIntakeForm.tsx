@@ -126,8 +126,8 @@ export const INITIAL_FORM_STATE: FormState = {
   consciousnessStatus: 'measured',
   consciousnessValue: 'A',
 
-  medicationStatus: 'confirmed_list',
-  medications: [{ raw_string: 'Sildenafil 50mg', last_dose_hours_ago: 12 }],
+  medicationStatus: 'confirmed_none',
+  medications: [],
 
   allergyStatus: 'confirmed_nkda',
   allergies: [],
@@ -833,7 +833,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
                   addMedication(newMedName, newMedLastDose)
                 }
               }}
-              placeholder="Select or type medication (e.g. Sildenafil 50mg, Metoprolol)..."
+              placeholder="Select or type medication (e.g. Metoprolol, Lisinopril, Amoxicillin)..."
               className="h-8.5 flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 text-xs text-slate-100 placeholder-slate-600 focus:border-teal-500 focus:outline-none"
             />
             <datalist id="formulary-suggestions">

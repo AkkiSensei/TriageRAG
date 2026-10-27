@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState } from 'react'
 import {
   api,
   type TriageApiRequest,
@@ -30,32 +30,6 @@ export const TriageProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [selectedScenario, setSelectedScenario] = useState<ScenarioDetail | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
-
-  // Pre-load default BLOCK scenario on first mount so demo is always ready
-  useEffect(() => {
-    let mounted = true
-    api
-      .getScenario('BLOCK')
-      .then((scenario) => {
-        if (!mounted) return
-        setSelectedScenario(scenario)
-        const p = scenario.patient
-        const initialReq: TriageApiRequest = {
-          patient: {
-            ...p,
-            pregnancy: p.sex === 'male' ? 'no' : p.pregnancy,
-          },
-          overrides: scenario.overrides || [],
-        }
-        setPatientRequest(initialReq)
-      })
-      .catch((err) => {
-        console.warn('Initial default scenario loading deferred:', err)
-      })
-    return () => {
-      mounted = false
-    }
-  }, [])
 
   const evaluatePatient = async (req: TriageApiRequest): Promise<TriageResponse> => {
     setIsLoading(true)
