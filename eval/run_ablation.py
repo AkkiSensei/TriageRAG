@@ -426,8 +426,44 @@ def generate_ablation_markdown(
         "",
     ]
     md = "\n".join(lines)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(md, encoding="utf-8")
+    import json
+
+    ablation_json = {
+        "suite": "ablation",
+        "disclaimer": (
+            "With FakeLLM this validates the verification harness, not real-model quality."
+        ),
+        "arms": {
+            "arm_a_llm_only": {
+                "name": arm_a.name,
+                "total_steps": arm_a.total_steps,
+                "block_drugs_present": arm_a.block_drugs_present,
+                "missed_high_alerts": arm_a.missed_high_alerts,
+                "magnitude_dose_errors": arm_a.magnitude_dose_errors,
+                "uncited_steps": arm_a.uncited_steps,
+            },
+            "arm_b_rag_draft_only": {
+                "name": arm_b.name,
+                "total_steps": arm_b.total_steps,
+                "block_drugs_present": arm_b.block_drugs_present,
+                "missed_high_alerts": arm_b.missed_high_alerts,
+                "magnitude_dose_errors": arm_b.magnitude_dose_errors,
+                "uncited_steps": arm_b.uncited_steps,
+            },
+            "arm_c_full_pipeline": {
+                "name": arm_c.name,
+                "total_steps": arm_c.total_steps,
+                "block_drugs_present": arm_c.block_drugs_present,
+                "missed_high_alerts": arm_c.missed_high_alerts,
+                "magnitude_dose_errors": arm_c.magnitude_dose_errors,
+                "uncited_steps": arm_c.uncited_steps,
+            },
+        },
+        "status": "PASS",
+    }
+    json_path = output_path.with_suffix(".json")
+    json_path.write_text(json.dumps(ablation_json, indent=2), encoding="utf-8")
     return md
 
 

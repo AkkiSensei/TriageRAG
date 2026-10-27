@@ -71,6 +71,20 @@ def run_golden_suite() -> int:
             passed_count += 1
 
     print(f"\nGolden Suite Results: {passed_count}/{len(cases)} passed.")
+    reports_dir = data_dir.parent / "eval" / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    report_json = {
+        "suite": "golden",
+        "passed": passed_count,
+        "total": len(cases),
+        "score": round((passed_count / len(cases)) * 100.0, 1) if cases else 0.0,
+        "status": "PASS" if not failed_cases else "FAIL",
+        "failed_cases": failed_cases,
+    }
+    import json
+
+    (reports_dir / "golden.json").write_text(json.dumps(report_json, indent=2), encoding="utf-8")
+
     if failed_cases:
         print("[FAIL] Golden cases failed:")
         for fc in failed_cases:

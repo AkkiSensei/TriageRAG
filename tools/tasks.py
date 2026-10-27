@@ -157,6 +157,87 @@ def ui() -> None:
 
 
 @app.command()
+def api(
+    host: Annotated[str, typer.Option("--host", help="Host interface to bind")] = "127.0.0.1",
+    port: Annotated[int, typer.Option("--port", help="Port to bind")] = 8000,
+    reload: Annotated[bool, typer.Option("--reload", help="Enable auto-reload")] = False,
+) -> None:
+    """Launch the FastAPI backend server with Uvicorn."""
+    typer.secho(
+        f"=== Launching TriageRAG API on http://{host}:{port} ===",
+        fg=typer.colors.GREEN,
+        bold=True,
+    )
+    cmd = [
+        sys.executable,
+        "-m",
+        "uvicorn",
+        "triagerag.api.app:app",
+        "--host",
+        host,
+        "--port",
+        str(port),
+    ]
+    if reload:
+        cmd.append("--reload")
+    _run(cmd)
+
+
+@app.command(name="export-openapi")
+def export_openapi() -> None:
+    """Export OpenAPI schema specification to web/openapi/openapi.json."""
+    import json
+
+    from triagerag.api.app import app as fastapi_app
+
+    openapi_schema = fastapi_app.openapi()
+    out_dir = REPO_ROOT / "web" / "openapi"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_file = out_dir / "openapi.json"
+    out_file.write_text(json.dumps(openapi_schema, indent=2), encoding="utf-8")
+    typer.secho(f"[OK] Exported OpenAPI specification to {out_file}", fg=typer.colors.GREEN)
+
+
+@app.command(name="web-install")
+def web_install() -> None:
+    """Install frontend dependencies via npm in web/."""
+    web_dir = REPO_ROOT / "web"
+    if not web_dir.exists():
+        typer.secho("web/ directory does not exist", fg=typer.colors.YELLOW)
+        return
+    _run(["npm", "install"], cwd=web_dir)
+
+
+@app.command(name="web-dev")
+def web_dev() -> None:
+    """Run Vite development server in web/."""
+    web_dir = REPO_ROOT / "web"
+    _run(["npm", "run", "dev"], cwd=web_dir)
+
+
+@app.command(name="web-build")
+def web_build() -> None:
+    """Build production frontend bundle in web/."""
+    web_dir = REPO_ROOT / "web"
+    _run(["npm", "run", "build"], cwd=web_dir)
+
+
+@app.command(name="web-verify")
+def web_verify() -> None:
+    """Run full frontend verification suite: lint, typecheck, tests, and build."""
+    web_dir = REPO_ROOT / "web"
+    if not (web_dir / "package.json").exists():
+        typer.secho("No web/package.json found; skipping web-verify", fg=typer.colors.YELLOW)
+        return
+    typer.secho("=== Running Frontend Verification ===", fg=typer.colors.BLUE, bold=True)
+    _run(["npm", "run", "lint"], cwd=web_dir)
+    _run(["npm", "run", "typecheck"], cwd=web_dir)
+    _run(["npm", "run", "test"], cwd=web_dir)
+    _run(["npm", "run", "build"], cwd=web_dir)
+    typer.secho("[OK] Frontend verification green", fg=typer.colors.GREEN)
+
+
+@app.command()
 def verify() -> None:
     """Run full gating verification."""
     typer.secho("=" * 60, fg=typer.colors.MAGENTA, bold=True)

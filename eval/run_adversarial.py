@@ -203,6 +203,22 @@ def run_adversarial_suite() -> tuple[bool, int, int]:
         print(f"  [FAIL] Test {test_no} (drug_hijack_neutralization): Morphine was not blocked")
 
     success = passed == total
+    reports_dir = data_dir.parent / "eval" / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    report_json = {
+        "suite": "adversarial",
+        "passed": passed,
+        "total": total,
+        "score": round((passed / total) * 100.0, 1) if total else 0.0,
+        "invariance_score": 100.0 if success else 0.0,
+        "status": "PASS" if success else "FAIL",
+    }
+    import json
+
+    (reports_dir / "adversarial.json").write_text(
+        json.dumps(report_json, indent=2), encoding="utf-8"
+    )
+
     return success, passed, total
 
 

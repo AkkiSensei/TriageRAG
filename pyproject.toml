@@ -32,6 +32,11 @@ dev = [
     "import-linter>=2.0",
     "pre-commit",
 ]
+api = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "httpx>=0.27.0",
+]
 llm = [
     "google-genai>=0.1.0",
 ]
@@ -106,6 +111,9 @@ forbidden_modules = [
     "triagerag.orchestrator",
     "triagerag.ui",
     "triagerag.cli",
+    "triagerag.api",
+    "fastapi",
+    "uvicorn",
     "openai",
     "anthropic",
     "google",
@@ -121,7 +129,7 @@ forbidden_modules = [
 name = "Layered architecture"
 type = "layers"
 layers = [
-    "triagerag.ui | triagerag.cli",
+    "triagerag.ui | triagerag.cli | triagerag.api",
     "triagerag.orchestrator",
     "triagerag.verify | triagerag.audit",
     "triagerag.llm | triagerag.rag",

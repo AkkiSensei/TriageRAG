@@ -356,6 +356,20 @@ def run_retrieval_suite() -> tuple[bool, float, float, float]:
     print(f"  Abstain Accuracy: {abstain_accuracy:.1f}%")
 
     success = (recall_at_5 >= 90.0) and (mrr >= 0.70) and (abstain_accuracy == 100.0)
+    reports_dir = data_dir.parent / "eval" / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    report_json = {
+        "suite": "retrieval",
+        "benchmark_pairs": len(BENCHMARK_PAIRS),
+        "recall_at_5": round(recall_at_5, 1),
+        "mrr": round(mrr, 3),
+        "abstain_accuracy": round(abstain_accuracy, 1),
+        "status": "PASS" if success else "FAIL",
+    }
+    import json
+
+    (reports_dir / "retrieval.json").write_text(json.dumps(report_json, indent=2), encoding="utf-8")
+
     return success, recall_at_5, mrr, abstain_accuracy
 
 

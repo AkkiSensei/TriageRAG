@@ -335,6 +335,20 @@ def run_mechanics_suite() -> int:
             passed += 1
 
     print(f"\nMechanics Suite Results: {passed}/{len(cases)} passed.")
+    reports_dir = root / "eval" / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    report_json = {
+        "suite": "mechanics",
+        "passed": passed,
+        "total": len(cases),
+        "score": round((passed / len(cases)) * 100.0, 1) if cases else 0.0,
+        "status": "PASS" if not failed else "FAIL",
+        "failed_cases": failed,
+    }
+    import json
+
+    (reports_dir / "mechanics.json").write_text(json.dumps(report_json, indent=2), encoding="utf-8")
+
     if failed:
         print("[FAIL] Mechanics cases failed:")
         for f in failed:

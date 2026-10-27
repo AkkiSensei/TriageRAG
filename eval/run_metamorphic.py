@@ -187,6 +187,22 @@ def run_metamorphic_suite() -> tuple[bool, int, int]:
             print(f"  [ERROR] {name}: {e}")
 
     success = passed == total
+    reports_dir = data_dir.parent / "eval" / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    report_json = {
+        "suite": "metamorphic",
+        "passed": passed,
+        "total": total,
+        "score": round((passed / total) * 100.0, 1) if total else 0.0,
+        "status": "PASS" if success else "FAIL",
+        "transformations": [name for name, _ in tests],
+    }
+    import json
+
+    (reports_dir / "metamorphic.json").write_text(
+        json.dumps(report_json, indent=2), encoding="utf-8"
+    )
+
     return success, passed, total
 
 

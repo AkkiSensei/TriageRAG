@@ -1,0 +1,2492 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "TriageRAG Clinical Console API",
+    "description": "Deterministic emergency-triage decision support API. \n\n**DISCLAIMER:** Research prototype. Synthetic data only. Not a medical device. Not for clinical use.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Get Health",
+        "operationId": "get_health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios": {
+      "get": {
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "List Scenarios",
+        "operationId": "list_scenarios_api_scenarios_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ScenarioSummary"
+                  },
+                  "type": "array",
+                  "title": "Response List Scenarios Api Scenarios Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/scenarios/{scenario_id}": {
+      "get": {
+        "tags": [
+          "scenarios"
+        ],
+        "summary": "Get Scenario",
+        "operationId": "get_scenario_api_scenarios__scenario_id__get",
+        "parameters": [
+          {
+            "name": "scenario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Scenario Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/triage": {
+      "post": {
+        "tags": [
+          "triage"
+        ],
+        "summary": "Execute Triage",
+        "operationId": "execute_triage_api_triage_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriageApiRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TriageResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/registry/summary": {
+      "get": {
+        "tags": [
+          "registry"
+        ],
+        "summary": "Get Registry Summary",
+        "operationId": "get_registry_summary_api_registry_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrySummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/registry/rules": {
+      "get": {
+        "tags": [
+          "registry"
+        ],
+        "summary": "List Rules",
+        "operationId": "list_rules_api_registry_rules_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RuleSummaryDto"
+                  },
+                  "type": "array",
+                  "title": "Response List Rules Api Registry Rules Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/protocols": {
+      "get": {
+        "tags": [
+          "protocols"
+        ],
+        "summary": "List Protocols",
+        "operationId": "list_protocols_api_protocols_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProtocolChunkDto"
+                  },
+                  "type": "array",
+                  "title": "Response List Protocols Api Protocols Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/entries": {
+      "get": {
+        "tags": [
+          "audit"
+        ],
+        "summary": "Get Audit Entries",
+        "operationId": "get_audit_entries_api_audit_entries_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEntryDto"
+                  },
+                  "title": "Response Get Audit Entries Api Audit Entries Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/audit/verify": {
+      "post": {
+        "tags": [
+          "audit"
+        ],
+        "summary": "Verify Audit",
+        "operationId": "verify_audit_api_audit_verify_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditVerifyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/eval/summary": {
+      "get": {
+        "tags": [
+          "eval"
+        ],
+        "summary": "Get Eval Summary",
+        "operationId": "get_eval_summary_api_eval_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActionType": {
+        "type": "string",
+        "enum": [
+          "administer",
+          "withhold",
+          "monitor",
+          "diagnostic",
+          "maneuver"
+        ],
+        "title": "ActionType",
+        "description": "Action category of a clinical plan step."
+      },
+      "Age-Input": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Value"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/AgeUnit",
+            "default": "years"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "Age",
+        "description": "Patient chronological age with population classification."
+      },
+      "Age-Output": {
+        "properties": {
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/AgeUnit",
+            "default": "years"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "Age",
+        "description": "Patient chronological age with population classification."
+      },
+      "AgeUnit": {
+        "type": "string",
+        "enum": [
+          "days",
+          "months",
+          "years"
+        ],
+        "title": "AgeUnit",
+        "description": "Units of chronological age."
+      },
+      "Alert": {
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "title": "Rule Id"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/Severity"
+          },
+          "rule_type": {
+            "type": "string",
+            "title": "Rule Type"
+          },
+          "drug_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Drug Ids"
+          },
+          "consequence": {
+            "type": "string",
+            "title": "Consequence"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "unverified": {
+            "type": "boolean",
+            "title": "Unverified",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rule_id",
+          "severity",
+          "rule_type",
+          "consequence",
+          "action",
+          "provenance"
+        ],
+        "title": "Alert",
+        "description": "Deterministic clinical rule alert."
+      },
+      "AllergyEntry": {
+        "properties": {
+          "raw_substance": {
+            "type": "string",
+            "title": "Raw Substance"
+          },
+          "normalized_allergen_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Normalized Allergen Id"
+          },
+          "allergen_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allergen Class"
+          },
+          "suggestion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggestion"
+          },
+          "reaction_type": {
+            "type": "string",
+            "enum": [
+              "anaphylaxis_ige",
+              "severe_cutaneous_scar",
+              "mild_rash",
+              "gi_upset",
+              "unknown"
+            ],
+            "title": "Reaction Type",
+            "default": "unknown"
+          },
+          "resolved": {
+            "type": "boolean",
+            "title": "Resolved",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "raw_substance"
+        ],
+        "title": "AllergyEntry",
+        "description": "Allergy or adverse substance reaction entry."
+      },
+      "AuditEntryDto": {
+        "properties": {
+          "sequence_number": {
+            "type": "integer",
+            "title": "Sequence Number"
+          },
+          "timestamp_iso": {
+            "type": "string",
+            "title": "Timestamp Iso"
+          },
+          "patient_hash": {
+            "type": "string",
+            "title": "Patient Hash"
+          },
+          "ruleset_version": {
+            "type": "string",
+            "title": "Ruleset Version"
+          },
+          "formulary_version": {
+            "type": "string",
+            "title": "Formulary Version"
+          },
+          "retrieved_chunk_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Retrieved Chunk Ids"
+          },
+          "provider_name": {
+            "type": "string",
+            "title": "Provider Name"
+          },
+          "model_name": {
+            "type": "string",
+            "title": "Model Name"
+          },
+          "verdict": {
+            "type": "string",
+            "title": "Verdict"
+          },
+          "alert_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Alert Ids"
+          },
+          "skipped_rule_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skipped Rule Ids"
+          },
+          "previous_hash": {
+            "type": "string",
+            "title": "Previous Hash"
+          },
+          "record_hash": {
+            "type": "string",
+            "title": "Record Hash"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sequence_number",
+          "timestamp_iso",
+          "patient_hash",
+          "ruleset_version",
+          "formulary_version",
+          "retrieved_chunk_ids",
+          "provider_name",
+          "model_name",
+          "verdict",
+          "alert_ids",
+          "skipped_rule_ids",
+          "previous_hash",
+          "record_hash"
+        ],
+        "title": "AuditEntryDto"
+      },
+      "AuditVerifyResponse": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "first_bad_index": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Bad Index"
+          }
+        },
+        "type": "object",
+        "required": [
+          "valid"
+        ],
+        "title": "AuditVerifyResponse"
+      },
+      "CalculatedDoseReport": {
+        "properties": {
+          "drug_id": {
+            "type": "string",
+            "title": "Drug Id"
+          },
+          "requested_dose": {
+            "$ref": "#/components/schemas/ExplicitDose-Output"
+          },
+          "calculated_ceiling": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExplicitDose-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "calculated_recommended": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExplicitDose-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "magnitude_tripwire_triggered": {
+            "type": "boolean",
+            "title": "Magnitude Tripwire Triggered",
+            "default": false
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "EXCEEDS_CEILING",
+              "BELOW_MINIMUM",
+              "UNVERIFIED_MISSING_CAP",
+              "MAGNITUDE_WARNING"
+            ],
+            "title": "Status"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "drug_id",
+          "requested_dose",
+          "status"
+        ],
+        "title": "CalculatedDoseReport",
+        "description": "Dose mathematics and formulary limit verification report."
+      },
+      "Consciousness": {
+        "type": "string",
+        "enum": [
+          "A",
+          "C",
+          "V",
+          "P",
+          "U"
+        ],
+        "title": "Consciousness",
+        "description": "AVPU+C scale: A (Alert), C (New Confusion), V (Voice), P (Pain), U (Unresponsive).\n\nEarly-warning scores (NEWS2) treat new onset confusion 'C' distinctly with maximum score."
+      },
+      "ContentOrigin": {
+        "type": "string",
+        "enum": [
+          "AGENT_DRAFT_UNSOURCED",
+          "HUMAN_AUTHORED",
+          "SOURCE_EXTRACT"
+        ],
+        "title": "ContentOrigin",
+        "description": "Origin tracking for rule and formulary facts."
+      },
+      "DoseUnit": {
+        "type": "string",
+        "enum": [
+          "mcg",
+          "mg",
+          "g",
+          "mL",
+          "IU",
+          "mcg/kg",
+          "mg/kg",
+          "mcg/kg/min",
+          "mg/kg/hr"
+        ],
+        "title": "DoseUnit",
+        "description": "Controlled clinical dosage units."
+      },
+      "EngineReport": {
+        "properties": {
+          "verdict": {
+            "$ref": "#/components/schemas/Verdict"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScoreResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "baseline_alerts": {
+            "items": {
+              "$ref": "#/components/schemas/Alert"
+            },
+            "type": "array",
+            "title": "Baseline Alerts"
+          },
+          "plan_alerts": {
+            "items": {
+              "$ref": "#/components/schemas/Alert"
+            },
+            "type": "array",
+            "title": "Plan Alerts"
+          },
+          "dose_reports": {
+            "items": {
+              "$ref": "#/components/schemas/CalculatedDoseReport"
+            },
+            "type": "array",
+            "title": "Dose Reports"
+          },
+          "checks_run": {
+            "type": "integer",
+            "title": "Checks Run",
+            "default": 0
+          },
+          "checks_skipped": {
+            "items": {
+              "$ref": "#/components/schemas/SkippedCheck"
+            },
+            "type": "array",
+            "title": "Checks Skipped"
+          },
+          "unresolved_entities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unresolved Entities"
+          },
+          "ruleset_coverage": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ruleset Coverage"
+          },
+          "coverage_gaps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Coverage Gaps"
+          },
+          "unverified_rules_evaluated": {
+            "type": "integer",
+            "title": "Unverified Rules Evaluated",
+            "default": 0
+          },
+          "ruleset_review_state": {
+            "type": "string",
+            "enum": [
+              "UNREVIEWED_DRAFT",
+              "PARTIALLY_REVIEWED",
+              "FULLY_REVIEWED"
+            ],
+            "title": "Ruleset Review State",
+            "default": "UNREVIEWED_DRAFT"
+          },
+          "ruleset_version": {
+            "type": "string",
+            "title": "Ruleset Version",
+            "default": "0.1.0"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "verdict"
+        ],
+        "title": "EngineReport",
+        "description": "Deterministic, pure output from the clinical decision engine."
+      },
+      "EvalSummaryResponse": {
+        "properties": {
+          "golden": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Golden"
+          },
+          "mechanics": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Mechanics"
+          },
+          "metamorphic": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metamorphic"
+          },
+          "adversarial": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Adversarial"
+          },
+          "mutation": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Mutation"
+          },
+          "retrieval": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Retrieval"
+          },
+          "ablation": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Ablation"
+          }
+        },
+        "type": "object",
+        "title": "EvalSummaryResponse"
+      },
+      "ExplicitDose-Input": {
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Amount"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/DoseUnit"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "amount",
+          "unit"
+        ],
+        "title": "ExplicitDose",
+        "description": "Explicit clinical dose amount and unit."
+      },
+      "ExplicitDose-Output": {
+        "properties": {
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/DoseUnit"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "amount",
+          "unit"
+        ],
+        "title": "ExplicitDose",
+        "description": "Explicit clinical dose amount and unit."
+      },
+      "FakeLLMProfile": {
+        "type": "string",
+        "enum": [
+          "COMPLIANT",
+          "INVENT_DRUG",
+          "PROSE_LEAK",
+          "INVALID_CITATION",
+          "IGNORE_BLOCK",
+          "OBEY_COMPLAINT",
+          "NAIVE_FREE_TEXT"
+        ],
+        "title": "FakeLLMProfile",
+        "description": "Profiles for deterministic FakeLLM behavior."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": "0.1.0"
+          },
+          "ruleset_version": {
+            "type": "string",
+            "title": "Ruleset Version",
+            "default": "0.1.0"
+          },
+          "llm_available": {
+            "type": "boolean",
+            "title": "Llm Available",
+            "default": true
+          },
+          "retrieval_backend": {
+            "type": "string",
+            "title": "Retrieval Backend",
+            "default": "bm25"
+          },
+          "unreviewed_rules_count": {
+            "type": "integer",
+            "title": "Unreviewed Rules Count",
+            "default": 0
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "Research prototype. Synthetic data only. Not a medical device. Not for clinical use."
+          }
+        },
+        "type": "object",
+        "title": "HealthResponse"
+      },
+      "IngredientStrength-Input": {
+        "properties": {
+          "ingredient_id": {
+            "type": "string",
+            "title": "Ingredient Id"
+          },
+          "strength_amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strength Amount"
+          },
+          "strength_unit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DoseUnit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ingredient_id"
+        ],
+        "title": "IngredientStrength",
+        "description": "Active pharmaceutical ingredient and strength for single or combination products."
+      },
+      "IngredientStrength-Output": {
+        "properties": {
+          "ingredient_id": {
+            "type": "string",
+            "title": "Ingredient Id"
+          },
+          "strength_amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strength Amount"
+          },
+          "strength_unit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DoseUnit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ingredient_id"
+        ],
+        "title": "IngredientStrength",
+        "description": "Active pharmaceutical ingredient and strength for single or combination products."
+      },
+      "Measured_Consciousness_": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Consciousness"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "estimated",
+              "unknown"
+            ],
+            "title": "Source",
+            "default": "unknown"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Measured[Consciousness]"
+      },
+      "Measured_Decimal_-Input": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "estimated",
+              "unknown"
+            ],
+            "title": "Source",
+            "default": "unknown"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Measured[Decimal]"
+      },
+      "Measured_Decimal_-Output": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "estimated",
+              "unknown"
+            ],
+            "title": "Source",
+            "default": "unknown"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Measured[Decimal]"
+      },
+      "Measured_Literal__yes____no____unknown___": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "yes",
+                  "no",
+                  "unknown"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "estimated",
+              "unknown"
+            ],
+            "title": "Source",
+            "default": "unknown"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Measured[Literal['yes', 'no', 'unknown']]"
+      },
+      "Measured_int_": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "measured",
+              "estimated",
+              "unknown"
+            ],
+            "title": "Source",
+            "default": "unknown"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Measured[int]"
+      },
+      "MedicationEntry-Input": {
+        "properties": {
+          "raw_text": {
+            "type": "string",
+            "title": "Raw Text"
+          },
+          "ingredients": {
+            "items": {
+              "$ref": "#/components/schemas/IngredientStrength-Input"
+            },
+            "type": "array",
+            "title": "Ingredients"
+          },
+          "suggestion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggestion"
+          },
+          "dose_taken": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExplicitDose-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Route"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_dose_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Dose Time"
+          },
+          "resolved": {
+            "type": "boolean",
+            "title": "Resolved",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "raw_text"
+        ],
+        "title": "MedicationEntry",
+        "description": "Medication in patient active or home regimen."
+      },
+      "MedicationEntry-Output": {
+        "properties": {
+          "raw_text": {
+            "type": "string",
+            "title": "Raw Text"
+          },
+          "ingredients": {
+            "items": {
+              "$ref": "#/components/schemas/IngredientStrength-Output"
+            },
+            "type": "array",
+            "title": "Ingredients"
+          },
+          "suggestion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggestion"
+          },
+          "dose_taken": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExplicitDose-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Route"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_dose_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Dose Time"
+          },
+          "resolved": {
+            "type": "boolean",
+            "title": "Resolved",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "raw_text"
+        ],
+        "title": "MedicationEntry",
+        "description": "Medication in patient active or home regimen."
+      },
+      "OverrideRecord": {
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "title": "Rule Id"
+          },
+          "step_number": {
+            "type": "integer",
+            "title": "Step Number"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 15,
+            "title": "Reason"
+          },
+          "clinician_id": {
+            "type": "string",
+            "title": "Clinician Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rule_id",
+          "step_number",
+          "reason",
+          "clinician_id"
+        ],
+        "title": "OverrideRecord",
+        "description": "Clinician override acknowledgment for a HIGH alert step."
+      },
+      "Patient-Input": {
+        "properties": {
+          "assessed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Assessed At"
+          },
+          "age": {
+            "$ref": "#/components/schemas/Age-Input"
+          },
+          "sex": {
+            "type": "string",
+            "enum": [
+              "male",
+              "female",
+              "other",
+              "unknown"
+            ],
+            "title": "Sex"
+          },
+          "pregnancy": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "not_applicable",
+              "unknown"
+            ],
+            "title": "Pregnancy"
+          },
+          "weight_kg": {
+            "$ref": "#/components/schemas/Measured_Decimal_-Input"
+          },
+          "vitals": {
+            "$ref": "#/components/schemas/Vitals-Input"
+          },
+          "allergy_history_status": {
+            "type": "string",
+            "enum": [
+              "confirmed_none",
+              "confirmed_nkda",
+              "confirmed_list",
+              "incomplete",
+              "unknown_unobtainable"
+            ],
+            "title": "Allergy History Status"
+          },
+          "medication_history_status": {
+            "type": "string",
+            "enum": [
+              "confirmed_none",
+              "confirmed_nkda",
+              "confirmed_list",
+              "incomplete",
+              "unknown_unobtainable"
+            ],
+            "title": "Medication History Status"
+          },
+          "allergies": {
+            "items": {
+              "$ref": "#/components/schemas/AllergyEntry"
+            },
+            "type": "array",
+            "title": "Allergies"
+          },
+          "medications": {
+            "items": {
+              "$ref": "#/components/schemas/MedicationEntry-Input"
+            },
+            "type": "array",
+            "title": "Medications"
+          },
+          "renal_impairment": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "title": "Renal Impairment",
+            "default": "unknown"
+          },
+          "hepatic_impairment": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "title": "Hepatic Impairment",
+            "default": "unknown"
+          },
+          "suspected_syndrome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suspected Syndrome"
+          },
+          "chief_complaint_untrusted": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Chief Complaint Untrusted",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "assessed_at",
+          "age",
+          "sex",
+          "pregnancy",
+          "weight_kg",
+          "vitals",
+          "allergy_history_status",
+          "medication_history_status"
+        ],
+        "title": "Patient",
+        "description": "Complete structured synthetic patient record."
+      },
+      "Patient-Output": {
+        "properties": {
+          "assessed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Assessed At"
+          },
+          "age": {
+            "$ref": "#/components/schemas/Age-Output"
+          },
+          "sex": {
+            "type": "string",
+            "enum": [
+              "male",
+              "female",
+              "other",
+              "unknown"
+            ],
+            "title": "Sex"
+          },
+          "pregnancy": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "not_applicable",
+              "unknown"
+            ],
+            "title": "Pregnancy"
+          },
+          "weight_kg": {
+            "$ref": "#/components/schemas/Measured_Decimal_-Output"
+          },
+          "vitals": {
+            "$ref": "#/components/schemas/Vitals-Output"
+          },
+          "allergy_history_status": {
+            "type": "string",
+            "enum": [
+              "confirmed_none",
+              "confirmed_nkda",
+              "confirmed_list",
+              "incomplete",
+              "unknown_unobtainable"
+            ],
+            "title": "Allergy History Status"
+          },
+          "medication_history_status": {
+            "type": "string",
+            "enum": [
+              "confirmed_none",
+              "confirmed_nkda",
+              "confirmed_list",
+              "incomplete",
+              "unknown_unobtainable"
+            ],
+            "title": "Medication History Status"
+          },
+          "allergies": {
+            "items": {
+              "$ref": "#/components/schemas/AllergyEntry"
+            },
+            "type": "array",
+            "title": "Allergies"
+          },
+          "medications": {
+            "items": {
+              "$ref": "#/components/schemas/MedicationEntry-Output"
+            },
+            "type": "array",
+            "title": "Medications"
+          },
+          "renal_impairment": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "title": "Renal Impairment",
+            "default": "unknown"
+          },
+          "hepatic_impairment": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "title": "Hepatic Impairment",
+            "default": "unknown"
+          },
+          "suspected_syndrome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suspected Syndrome"
+          },
+          "chief_complaint_untrusted": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Chief Complaint Untrusted",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "assessed_at",
+          "age",
+          "sex",
+          "pregnancy",
+          "weight_kg",
+          "vitals",
+          "allergy_history_status",
+          "medication_history_status"
+        ],
+        "title": "Patient",
+        "description": "Complete structured synthetic patient record."
+      },
+      "PlanStepDraft": {
+        "properties": {
+          "step_number": {
+            "type": "integer",
+            "title": "Step Number"
+          },
+          "action_type": {
+            "$ref": "#/components/schemas/ActionType"
+          },
+          "narrative_instruction": {
+            "type": "string",
+            "title": "Narrative Instruction"
+          },
+          "drug_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drug Id"
+          },
+          "requested_dose": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExplicitDose-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "route": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Route"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/SpanCitation"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Citations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "step_number",
+          "action_type",
+          "narrative_instruction",
+          "citations"
+        ],
+        "title": "PlanStepDraft",
+        "description": "A single proposed clinical plan step drafted by the LLM."
+      },
+      "ProtocolChunkDto": {
+        "properties": {
+          "chunk_id": {
+            "type": "string",
+            "title": "Chunk Id"
+          },
+          "doc_id": {
+            "type": "string",
+            "title": "Doc Id"
+          },
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "population": {
+            "type": "string",
+            "title": "Population"
+          },
+          "syndrome": {
+            "type": "string",
+            "title": "Syndrome"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "synthetic": {
+            "type": "boolean",
+            "title": "Synthetic",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "chunk_id",
+          "doc_id",
+          "section",
+          "population",
+          "syndrome",
+          "text"
+        ],
+        "title": "ProtocolChunkDto"
+      },
+      "Provenance": {
+        "properties": {
+          "source_doc": {
+            "type": "string",
+            "title": "Source Doc"
+          },
+          "section_ref": {
+            "type": "string",
+            "title": "Section Ref"
+          },
+          "version_or_date": {
+            "type": "string",
+            "title": "Version Or Date"
+          },
+          "source_status": {
+            "$ref": "#/components/schemas/SourceStatus",
+            "default": "PLACEHOLDER_UNRETRIEVED"
+          },
+          "content_origin": {
+            "$ref": "#/components/schemas/ContentOrigin",
+            "default": "AGENT_DRAFT_UNSOURCED"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified",
+            "default": false
+          },
+          "reviewer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_doc",
+          "section_ref",
+          "version_or_date"
+        ],
+        "title": "Provenance",
+        "description": "Immutable audit trail of clinical evidence sources."
+      },
+      "RegistrySummaryResponse": {
+        "properties": {
+          "formulary_drugs_count": {
+            "type": "integer",
+            "title": "Formulary Drugs Count"
+          },
+          "rules_count": {
+            "type": "integer",
+            "title": "Rules Count"
+          },
+          "rules_by_severity": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Rules By Severity"
+          },
+          "rules_by_source_status": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Rules By Source Status"
+          },
+          "aliases_count": {
+            "type": "integer",
+            "title": "Aliases Count"
+          },
+          "acronyms_count": {
+            "type": "integer",
+            "title": "Acronyms Count"
+          },
+          "coverage_gaps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Coverage Gaps"
+          },
+          "unreviewed_count": {
+            "type": "integer",
+            "title": "Unreviewed Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "formulary_drugs_count",
+          "rules_count",
+          "rules_by_severity",
+          "rules_by_source_status",
+          "aliases_count",
+          "acronyms_count",
+          "coverage_gaps",
+          "unreviewed_count"
+        ],
+        "title": "RegistrySummaryResponse"
+      },
+      "RetrievalReport": {
+        "properties": {
+          "chunks": {
+            "items": {
+              "$ref": "#/components/schemas/RetrievedChunk"
+            },
+            "type": "array",
+            "title": "Chunks"
+          },
+          "backend": {
+            "type": "string",
+            "title": "Backend",
+            "default": "bm25"
+          },
+          "abstained": {
+            "type": "boolean",
+            "title": "Abstained",
+            "default": false
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RetrievalReport",
+        "description": "Report on retrieval execution, backend used, and abstain decisions."
+      },
+      "RetrievedChunk": {
+        "properties": {
+          "doc_id": {
+            "type": "string",
+            "title": "Doc Id"
+          },
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "chunk_id": {
+            "type": "string",
+            "title": "Chunk Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "population": {
+            "type": "string",
+            "title": "Population"
+          },
+          "syndrome": {
+            "type": "string",
+            "title": "Syndrome"
+          },
+          "score": {
+            "type": "string",
+            "title": "Score",
+            "default": "0.0"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "doc_id",
+          "section",
+          "chunk_id",
+          "text",
+          "population",
+          "syndrome"
+        ],
+        "title": "RetrievedChunk",
+        "description": "Retrieved document text chunk with metadata."
+      },
+      "Route": {
+        "type": "string",
+        "enum": [
+          "oral",
+          "iv",
+          "im",
+          "sc",
+          "inhaled",
+          "sublingual",
+          "rectal",
+          "topical",
+          "nebulized"
+        ],
+        "title": "Route",
+        "description": "Medication administration routes."
+      },
+      "RuleSummaryDto": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "rule_type": {
+            "type": "string",
+            "title": "Rule Type"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "source_status": {
+            "type": "string",
+            "title": "Source Status"
+          },
+          "content_origin": {
+            "type": "string",
+            "title": "Content Origin"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          },
+          "requires_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Requires Fields"
+          },
+          "consequence": {
+            "type": "string",
+            "title": "Consequence",
+            "default": ""
+          },
+          "action": {
+            "type": "string",
+            "title": "Action",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "rule_type",
+          "severity",
+          "status",
+          "source_status",
+          "content_origin",
+          "verified"
+        ],
+        "title": "RuleSummaryDto"
+      },
+      "ScenarioDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "what_it_demonstrates": {
+            "type": "string",
+            "title": "What It Demonstrates"
+          },
+          "expected_verdict": {
+            "type": "string",
+            "title": "Expected Verdict"
+          },
+          "patient": {
+            "$ref": "#/components/schemas/Patient-Output"
+          },
+          "overrides": {
+            "items": {
+              "$ref": "#/components/schemas/OverrideRecord"
+            },
+            "type": "array",
+            "title": "Overrides"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "description",
+          "what_it_demonstrates",
+          "expected_verdict",
+          "patient"
+        ],
+        "title": "ScenarioDetail"
+      },
+      "ScenarioSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "what_it_demonstrates": {
+            "type": "string",
+            "title": "What It Demonstrates"
+          },
+          "expected_verdict": {
+            "type": "string",
+            "title": "Expected Verdict"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "description",
+          "what_it_demonstrates",
+          "expected_verdict"
+        ],
+        "title": "ScenarioSummary"
+      },
+      "ScoreBand": {
+        "type": "string",
+        "enum": [
+          "RED",
+          "ORANGE",
+          "YELLOW",
+          "GREEN",
+          "UNSCORED"
+        ],
+        "title": "ScoreBand",
+        "description": "Risk stratification score bands."
+      },
+      "ScoreResult": {
+        "properties": {
+          "score_name": {
+            "type": "string",
+            "title": "Score Name"
+          },
+          "total_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Score"
+          },
+          "band": {
+            "$ref": "#/components/schemas/ScoreBand",
+            "default": "UNSCORED"
+          },
+          "subscores": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Subscores"
+          },
+          "missing_vitals": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Vitals"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "score_name",
+          "provenance"
+        ],
+        "title": "ScoreResult",
+        "description": "Physiological score calculation result."
+      },
+      "Severity": {
+        "type": "string",
+        "enum": [
+          "BLOCK",
+          "HIGH",
+          "MODERATE",
+          "INFO"
+        ],
+        "title": "Severity",
+        "description": "Clinical severity levels for safety alerts."
+      },
+      "SkippedCheck": {
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "title": "Rule Id"
+          },
+          "rule_type": {
+            "type": "string",
+            "title": "Rule Type"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "missing_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Fields"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rule_id",
+          "rule_type",
+          "reason"
+        ],
+        "title": "SkippedCheck",
+        "description": "Explicit record of an unperformed check due to missing or unresolved data."
+      },
+      "SourceStatus": {
+        "type": "string",
+        "enum": [
+          "PLACEHOLDER_UNRETRIEVED",
+          "RETRIEVED_UNREVIEWED",
+          "REVIEWED"
+        ],
+        "title": "SourceStatus",
+        "description": "Retrieval and clinical review status of an evidence source."
+      },
+      "SpanCitation": {
+        "properties": {
+          "doc_id": {
+            "type": "string",
+            "title": "Doc Id"
+          },
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "chunk_id": {
+            "type": "string",
+            "title": "Chunk Id"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "quoted_span": {
+            "type": "string",
+            "minLength": 10,
+            "title": "Quoted Span"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "doc_id",
+          "section",
+          "chunk_id",
+          "quoted_span"
+        ],
+        "title": "SpanCitation",
+        "description": "Verbatim citation pointing directly to a retrieved protocol chunk."
+      },
+      "StepStatus": {
+        "type": "string",
+        "enum": [
+          "APPROVED",
+          "FLAGGED_HIGH",
+          "FLAGGED_MODERATE",
+          "UNVERIFIED_MISSING_DATA",
+          "CITATION_UNVERIFIED",
+          "BLOCKED_STRUCK_THROUGH"
+        ],
+        "title": "StepStatus",
+        "description": "Verification verdict for a proposed plan step."
+      },
+      "TriageApiRequest": {
+        "properties": {
+          "patient": {
+            "$ref": "#/components/schemas/Patient-Input"
+          },
+          "overrides": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/OverrideRecord"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overrides"
+          },
+          "llm_profile": {
+            "$ref": "#/components/schemas/FakeLLMProfile",
+            "default": "COMPLIANT"
+          },
+          "include_complaint_in_llm": {
+            "type": "boolean",
+            "title": "Include Complaint In Llm",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "patient"
+        ],
+        "title": "TriageApiRequest"
+      },
+      "TriageResponse": {
+        "properties": {
+          "engine": {
+            "$ref": "#/components/schemas/EngineReport"
+          },
+          "verified_steps": {
+            "items": {
+              "$ref": "#/components/schemas/VerifiedStep"
+            },
+            "type": "array",
+            "title": "Verified Steps"
+          },
+          "retrieved_protocol_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved Protocol Title"
+          },
+          "retrieval": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetrievalReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "overrides": {
+            "items": {
+              "$ref": "#/components/schemas/OverrideRecord"
+            },
+            "type": "array",
+            "title": "Overrides"
+          },
+          "llm_fallback_mode": {
+            "type": "boolean",
+            "title": "Llm Fallback Mode",
+            "default": false
+          },
+          "audit_hash": {
+            "type": "string",
+            "title": "Audit Hash",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "engine"
+        ],
+        "title": "TriageResponse",
+        "description": "Full triage response returned to UI and CLI."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "Verdict": {
+        "type": "string",
+        "enum": [
+          "BLOCKED",
+          "UNVERIFIED",
+          "CHECKED_ALERTS",
+          "CHECKED_CLEAR"
+        ],
+        "title": "Verdict",
+        "description": "Top-level safety verdict resolved from the lattice BLOCKED > UNVERIFIED > ALERTS > CLEAR."
+      },
+      "VerifiedStep": {
+        "properties": {
+          "draft": {
+            "$ref": "#/components/schemas/PlanStepDraft"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StepStatus"
+          },
+          "triggered_rule_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Triggered Rule Ids"
+          },
+          "rejection_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rejection Reasons"
+          },
+          "citation_verified": {
+            "type": "boolean",
+            "title": "Citation Verified",
+            "default": false
+          },
+          "citation_overlap_score": {
+            "type": "string",
+            "title": "Citation Overlap Score",
+            "default": "0.0"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "draft",
+          "status"
+        ],
+        "title": "VerifiedStep",
+        "description": "Machine-verified plan step."
+      },
+      "Vitals-Input": {
+        "properties": {
+          "heart_rate_bpm": {
+            "$ref": "#/components/schemas/Measured_int_"
+          },
+          "systolic_bp_mmhg": {
+            "$ref": "#/components/schemas/Measured_int_"
+          },
+          "diastolic_bp_mmhg": {
+            "$ref": "#/components/schemas/Measured_int_"
+          },
+          "respiratory_rate_bpm": {
+            "$ref": "#/components/schemas/Measured_int_"
+          },
+          "spo2_percent": {
+            "$ref": "#/components/schemas/Measured_int_"
+          },
+          "supplemental_o2": {
+            "$ref": "#/components/schemas/Measured_Literal__yes____no____unknown___"
+          },
+          "temperature_c": {
+            "$ref": "#/components/schemas/Measured_Decimal_-Input"
+          },
+          "blood_glucose_mg_dl": {
+            "$ref": "#/components/schemas/Measured_Decimal_-Input"
+          },
+          "consciousness": {
+            "$ref": "#/components/schemas/Measured_Consciousness_"
+          },
+          "gcs_total": {
+            "$ref": "#/components/schemas/Measured_int_"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Vitals",
+        "description": "Triage physiological vital signs with explicit uncertainty."
+      },
+      "Vitals-Output": {
+        "properties": {
+          "heart_rate_bpm": {
+            "$ref": "#/components/schemas/Measured_int_"
+          },
+          "systolic_bp_mmhg": {
+            "$ref": "#/components/schemas/Measured_int_"
+          },
+          "diastolic_bp_mmhg": {
+            "$ref": "#/components/schemas/Measured_int_"
+          },
+          "respiratory_rate_bpm": {
+            "$ref": "#/components/schemas/Measured_int_"
+          },
+          "spo2_percent": {
+            "$ref": "#/components/schemas/Measured_int_"
+          },
+          "supplemental_o2": {
+            "$ref": "#/components/schemas/Measured_Literal__yes____no____unknown___"
+          },
+          "temperature_c": {
+            "$ref": "#/components/schemas/Measured_Decimal_-Output"
+          },
+          "blood_glucose_mg_dl": {
+            "$ref": "#/components/schemas/Measured_Decimal_-Output"
+          },
+          "consciousness": {
+            "$ref": "#/components/schemas/Measured_Consciousness_"
+          },
+          "gcs_total": {
+            "$ref": "#/components/schemas/Measured_int_"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Vitals",
+        "description": "Triage physiological vital signs with explicit uncertainty."
+      }
+    }
+  }
+}
