@@ -11,12 +11,14 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from triagerag.api.routes.audit import router as audit_router
 from triagerag.api.routes.eval import router as eval_router
@@ -102,15 +104,39 @@ def create_app() -> FastAPI:
     app.include_router(protocols_router, prefix="/api")
     app.include_router(audit_router, prefix="/api")
     app.include_router(eval_router, prefix="/api")
+    app.include_router(health_router, prefix="")
 
-    @app.get("/")
-    def root() -> dict[str, str]:
+    @app.get("/api")
+    def api_info() -> dict[str, str]:
         return {
             "name": "TriageRAG Clinical API",
             "version": "0.1.0",
             "disclaimer": DISCLAIMER,
             "docs": "/docs",
         }
+
+    # Serve built SPA frontend if available
+    dist_dir = Path(__file__).resolve().parent.parent.parent.parent / "web" / "dist"
+    if dist_dir.exists() and (dist_dir / "index.html").exists():
+        assets_dir = dist_dir / "assets"
+        if assets_dir.exists():
+            app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+        @app.get("/{full_path:path}")
+        async def serve_spa(full_path: str) -> FileResponse:
+            target = dist_dir / full_path
+            if full_path and target.is_file():
+                return FileResponse(target)
+            return FileResponse(dist_dir / "index.html")
+    else:
+        @app.get("/")
+        def root() -> dict[str, str]:
+            return {
+                "name": "TriageRAG Clinical API",
+                "version": "0.1.0",
+                "disclaimer": DISCLAIMER,
+                "docs": "/docs",
+            }
 
     return app
 

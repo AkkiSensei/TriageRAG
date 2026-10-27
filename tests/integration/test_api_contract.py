@@ -39,6 +39,18 @@ def test_health_endpoint() -> None:
     assert "Not for clinical use" in data["disclaimer"]
 
 
+def test_api_info_and_spa_root() -> None:
+    """GET /api returns API JSON info; GET / serves SPA index."""
+    resp = client.get("/api")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["name"] == "TriageRAG Clinical API"
+    assert "disclaimer" in data
+
+    root_resp = client.get("/")
+    assert root_resp.status_code == 200
+
+
 def test_scenarios_list_and_detail() -> None:
     """GET /api/scenarios and GET /api/scenarios/{id} return preloaded cases."""
     list_resp = client.get("/api/scenarios")
