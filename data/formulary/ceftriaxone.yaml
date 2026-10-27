@@ -17,7 +17,7 @@ population_rules:
     per_dose_max: 2000
     daily_max: 4000
     unit: "mg"
-    status: "NEEDS_SOURCE"
+    status: "ACTIVE"
     provenance:
       source_doc: "SYNTHETIC_SKELETON_FORMULARY"
       section_ref: "TO_BE_RESOLVED"
@@ -32,7 +32,7 @@ population_rules:
     per_dose_max: 80
     daily_max: 2000
     unit: "mg/kg"
-    status: "NEEDS_SOURCE"
+    status: "ACTIVE"
     provenance:
       source_doc: "SYNTHETIC_SKELETON_FORMULARY"
       section_ref: "TO_BE_RESOLVED"

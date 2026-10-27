@@ -162,6 +162,29 @@ def _evaluate_single_rule(
                 provenance=rule.provenance,
             )
 
+    # 2. Check rule clinical applicability to active drugs/classes
+    # A rule only applies if its target drug or class is active in patient meds or plan
+    if isinstance(rule, VitalsInterlockRule) and rule.drug_id not in active_drugs:
+        return None, None
+    if isinstance(rule, PopulationRule) and rule.drug_id not in active_drugs:
+        return None, None
+    if isinstance(rule, PairRule) and (
+        rule.drug_a not in active_drugs or rule.drug_b not in active_drugs
+    ):
+        return None, None
+    if isinstance(rule, ClassInteractionRule) and (
+        rule.class_a not in active_classes or rule.class_b not in active_classes
+    ):
+        return None, None
+    if isinstance(rule, DuplicationRule) and rule.class_name not in active_classes:
+        return None, None
+    if isinstance(rule, AllergyCrossReactivityRule) and (
+        not patient.allergies or rule.target_class not in active_classes
+    ):
+        return None, None
+
+    # 3. Check remaining required fields (vitals) for applicable rules
+    if rule.requires_fields:
         for req_field in rule.requires_fields:
             if req_field not in (
                 "medications",
@@ -181,7 +204,7 @@ def _evaluate_single_rule(
                         provenance=rule.provenance,
                     )
 
-    # 2. Check rule status (NEEDS_SOURCE)
+    # 4. Check rule status (NEEDS_SOURCE)
     if rule.status == RuleStatus.NEEDS_SOURCE:
         return None, SkippedCheck(
             rule_id=rule.id,

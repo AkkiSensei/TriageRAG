@@ -16,7 +16,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from triagerag.audit.chain import verify_audit_chain
-from triagerag.config import get_data_dir
+from triagerag.config import get_audit_path, get_data_dir
 from triagerag.contracts.enums import StepStatus, Verdict
 from triagerag.contracts.schemas import OverrideRecord, Patient
 from triagerag.engine.registry import ClinicalRegistry
@@ -60,9 +60,9 @@ def run(
         typer.Option("--scenario", help="Preloaded scenario: BLOCK | UNVERIFIED | HIGH | CLEAN"),
     ] = None,
     audit_log: Annotated[
-        Path,
+        Path | None,
         typer.Option("--audit-log", help="Path to append-only audit log"),
-    ] = Path("audit_log.jsonl"),
+    ] = None,
     include_complaint_in_llm: Annotated[
         bool,
         typer.Option(
@@ -118,7 +118,7 @@ def run(
 
     config = {
         "include_complaint_in_llm": include_complaint_in_llm,
-        "audit_log_path": audit_log,
+        "audit_log_path": audit_log or get_audit_path(),
     }
     llm = FakeLLM(profile=FakeLLMProfile.COMPLIANT)
 
@@ -329,17 +329,18 @@ def run_eval(
 @app.command()
 def audit_verify(
     path: Annotated[
-        Path,
+        Path | None,
         typer.Argument(help="Path to audit log JSONL file"),
-    ] = Path("audit_log.jsonl"),
+    ] = None,
 ) -> None:
     """Verify cryptographic integrity of audit log."""
     _print_disclaimer()
-    if not path.exists():
-        console.print(f"[red]Error: Audit log file does not exist: {path}[/red]")
+    target_path = path or get_audit_path()
+    if not target_path.exists():
+        console.print(f"[red]Error: Audit log file does not exist: {target_path}[/red]")
         raise typer.Exit(code=1)
 
-    is_valid, err = verify_audit_chain(path)
+    is_valid, err = verify_audit_chain(target_path)
     if is_valid:
         console.print(f"[bold green]Audit log '{path}' verified: INTEGRITY INTACT.[/bold green]")
     else:

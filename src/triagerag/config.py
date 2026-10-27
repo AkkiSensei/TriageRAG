@@ -34,3 +34,11 @@ def is_complaint_included_in_llm() -> bool:
     """Return whether untrusted chief complaint should be passed to LLM (default False)."""
     val = os.environ.get("TRIAGERAG_INCLUDE_COMPLAINT_IN_LLM", "false").lower()
     return val in ("1", "true", "yes", "on")
+
+
+def get_audit_path() -> Path:
+    """Resolve audit log path via env TRIAGERAG_AUDIT_PATH or default to var/audit_log.jsonl."""
+    env_path = os.environ.get("TRIAGERAG_AUDIT_PATH")
+    if env_path:
+        return Path(env_path).resolve()
+    return get_repo_root() / "var" / "audit_log.jsonl"

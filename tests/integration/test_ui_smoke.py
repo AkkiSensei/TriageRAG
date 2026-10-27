@@ -92,3 +92,18 @@ def test_ui_smoke_no_bare_clear_wording() -> None:
     # If checked clear, must display: 'No rules fired (within covered scope) — ruleset unreviewed'
     assert "Verdict: CLEAR" not in full_output
     assert ">CLEAR<" not in full_output
+
+
+def test_ui_smoke_high_scenario() -> None:
+    """Smoke test AppTest execution for preloaded HIGH scenario."""
+    at = AppTest.from_file(APP_PATH, default_timeout=30)
+    at.run()
+    assert not at.exception, f"App threw exception: {at.exception}"
+
+    at.sidebar.selectbox[0].select("HIGH")
+    at.run()
+    assert not at.exception, f"App threw exception: {at.exception}"
+
+    markdown_texts = [m.value for m in at.markdown]
+    combined_markdown = "\n".join(markdown_texts)
+    assert "CHECKED_ALERTS" in combined_markdown or "HIGH" in combined_markdown

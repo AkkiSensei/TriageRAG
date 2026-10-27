@@ -62,27 +62,24 @@ def render_top_banner(engine: EngineReport) -> None:
     verdict_text = format_verdict_display(engine.verdict)
 
     if engine.verdict == Verdict.BLOCKED:
-        banner_color = "red"
+        st.markdown(f"## :red[Verdict: {verdict_text}]")
     elif engine.verdict in (Verdict.UNVERIFIED, Verdict.CHECKED_ALERTS):
-        banner_color = "orange"
+        st.markdown(f"## :orange[Verdict: {verdict_text}]")
     else:
-        banner_color = "green"
+        st.markdown(f"## :blue[Verdict: {verdict_text}]")
 
     ews_score = engine.score.total_score if engine.score else "UNSCORED"
     ews_band = engine.score.band.value if engine.score else "UNSCORED"
 
-    banner_html = (
-        f'<div style="border: 2px solid {banner_color}; border-radius: 8px; '
-        f'padding: 12px; margin-bottom: 16px; background-color: rgba(255, 255, 255, 0.05);">'
-        f'<h2 style="margin: 0; color: {banner_color};">{verdict_text}</h2>'
-        f'<div style="display: flex; gap: 24px; margin-top: 8px; flex-wrap: wrap;">'
-        f"<div><strong>EWS Score:</strong> {ews_score} ({ews_band})</div>"
-        f"<div><strong>Checks Run:</strong> {engine.checks_run}</div>"
-        f"<div><strong>Checks Skipped:</strong> {len(engine.checks_skipped)}</div>"
-        f"<div><strong>Ruleset State:</strong> <em>{engine.ruleset_review_state}</em></div>"
-        f"</div></div>"
-    )
-    st.markdown(banner_html, unsafe_allow_html=True)
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown(f"**EWS Score:** {ews_score} ({ews_band})")
+    with col2:
+        st.markdown(f"**Checks Run:** {engine.checks_run}")
+    with col3:
+        st.markdown(f"**Checks Skipped:** {len(engine.checks_skipped)}")
+    with col4:
+        st.markdown(f"**Ruleset State:** *{engine.ruleset_review_state}*")
 
 
 def render_alerts_and_blocks(engine: EngineReport) -> None:

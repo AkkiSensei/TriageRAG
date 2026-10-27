@@ -181,6 +181,6 @@ def test_llm_failure_degrades_gracefully_to_fallback(
     response = run_triage(patient, registry=registry, llm=None, index=index)
     assert response.llm_fallback_mode is True
     assert response.verified_steps == []
-    # Engine report still fully generated
-    assert response.engine.verdict != Verdict.CHECKED_CLEAR
+    # Engine report still fully generated (Rule R1: LLM state does not alter deterministic verdict)
+    assert response.engine.verdict == Verdict.CHECKED_CLEAR
     assert response.engine.checks_run > 0

@@ -72,7 +72,7 @@ def scan_narrative_for_drug_leaks(
             continue
 
         # Check exact membership in lexicon
-        if token in lexicon_words and token not in bound_tokens:
+        if token in lexicon_words:
             leaks.append(token)
             continue
 
@@ -81,7 +81,7 @@ def scan_narrative_for_drug_leaks(
             for target in lexicon_words:
                 if len(target) >= 5 and abs(len(token) - len(target)) <= 2:
                     ratio = fuzz.ratio(token, target)
-                    if ratio >= 88 and target not in bound_tokens:
+                    if ratio >= 88:
                         leaks.append(f"{token} (matched {target})")
                         break
 

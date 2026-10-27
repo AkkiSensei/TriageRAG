@@ -22,12 +22,15 @@ from triagerag.contracts.enums import (
 )
 from triagerag.contracts.schemas import (
     CalculatedDoseReport,
+    Clock,
     EngineReport,
+    OrchestratorConfig,
     OverrideRecord,
     PlanContext,
     PlanDraft,
     RetrievalReport,
     ScoreResult,
+    SystemClock,
     TriageResponse,
     VerifiedStep,
 )
@@ -35,6 +38,7 @@ from triagerag.engine.rule_engine import evaluate_baseline
 from triagerag.engine.scores import calculate_early_warning_score
 from triagerag.engine.verdict import resolve_verdict
 from triagerag.llm.draft import draft_plan_safe
+from triagerag.llm.repair import attempt_plan_repair, sanitize_repair_violations
 from triagerag.normalize.validators import normalize_patient
 from triagerag.rag.retrieve import (
     derive_vitals_flags,
@@ -64,14 +68,24 @@ def run_triage(
     llm: LLMProvider | None = None,
     index: BM25ClinicalIndex | None = None,
     overrides: list[OverrideRecord] | None = None,
-    config: dict[str, Any] | None = None,
+    config: OrchestratorConfig | dict[str, Any] | None = None,
+    clock: Clock | None = None,
 ) -> TriageResponse:
     """Execute complete emergency triage decision support pipeline.
 
     Every external dependency (LLM, retrieval) is guarded with fault isolation.
     Failures degrade gracefully to llm_fallback_mode=True and never produce false clearance.
     """
-    cfg = config or {}
+    if config is None:
+        cfg = OrchestratorConfig()
+    elif isinstance(config, OrchestratorConfig):
+        cfg = config
+    elif isinstance(config, dict):
+        cfg = OrchestratorConfig(**config)
+    else:
+        raise TypeError(f"Invalid config type: {type(config)}")
+
+    active_clock: Clock = clock if clock is not None else SystemClock()
     overrides_list = overrides or []
 
     # 1. Normalize patient data
@@ -138,7 +152,7 @@ def run_triage(
     if llm is None or retrieval_report.abstained or not retrieval_report.chunks:
         llm_fallback_mode = True
     else:
-        include_complaint = bool(cfg.get("include_complaint_in_llm", False))
+        include_complaint = cfg.include_complaint_in_llm
         delimited_complaint = (
             normalized_patient.chief_complaint_untrusted if include_complaint else None
         )
@@ -158,7 +172,7 @@ def run_triage(
         else:
             plan_draft = draft
 
-    # 6. Machine Verification & Pass 2 (guarded with repair loop)
+    # 6. Machine Verification & Pass 2 (guarded with repair loop, Rules R1, R7)
     verified_steps: list[VerifiedStep] = []
     plan_alerts: list[Any] = []
     dose_reports: list[CalculatedDoseReport] = []
@@ -177,23 +191,30 @@ def run_triage(
         baseline_skips.extend(p_skips)
 
         # Repair loop: If repairable violations exist and LLM is active
+        # Feeds back strictly structured violation codes (never echoes untrusted patient complaint)
         repair_attempts = 0
-        while repair_attempts < 2:
-            violations: list[str] = []
+        while repair_attempts < cfg.max_repair_cycles:
+            raw_violations: list[str] = []
             for s in verified_steps:
-                if s.status in (
-                    StepStatus.CITATION_UNVERIFIED,
-                    StepStatus.FLAGGED_MODERATE,
-                ):
-                    violations.extend(s.rejection_reasons)
+                if s.status != StepStatus.APPROVED:
+                    raw_violations.extend(s.rejection_reasons)
 
-            if not violations or llm is None:
+            if not raw_violations or llm is None:
+                break
+
+            structured_violations = sanitize_repair_violations(raw_violations)
+            if not structured_violations:
                 break
 
             repair_attempts += 1
             try:
                 assert plan_context is not None
-                repaired_draft = llm.repair_plan(plan_context, plan_draft, violations)
+                repaired_draft = attempt_plan_repair(
+                    llm=llm,
+                    context=plan_context,
+                    draft=plan_draft,
+                    violations=structured_violations,
+                )
                 v_steps, p_alerts, _, d_reports = verify_plan(
                     patient=normalized_patient,
                     draft=repaired_draft,
@@ -277,7 +298,7 @@ def run_triage(
     # 10. Audit Chain Logging
     patient_hash = compute_patient_hash(normalized_patient)
     audit_hash = "UNAUDITED"
-    audit_log_path = cfg.get("audit_log_path")
+    audit_log_path = cfg.audit_log_path
     if audit_log_path:
         from triagerag.audit.chain import append_audit_entry
 
@@ -299,6 +320,7 @@ def run_triage(
             alert_ids=[a.rule_id for a in all_alerts],
             skipped_rule_ids=[s.rule_id for s in baseline_skips],
             override_records=overrides_dicts,
+            timestamp_iso=active_clock.now().isoformat(),
         )
 
     return TriageResponse(

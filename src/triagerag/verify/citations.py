@@ -62,6 +62,13 @@ def verify_citation(
         )
 
     matched_chunk = chunk_map[citation.chunk_id]
+    if citation.doc_id != matched_chunk.doc_id:
+        return (
+            False,
+            0.0,
+            f"Citation doc_id '{citation.doc_id}' does not match "
+            f"chunk doc_id '{matched_chunk.doc_id}'",
+        )
 
     # 3. Exact verbatim substring check (whitespace normalized)
     norm_span = _normalize_whitespace(citation.quoted_span)

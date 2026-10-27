@@ -12,11 +12,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from decimal import Decimal
-from pathlib import Path
 
 import streamlit as st
 
-from triagerag.config import get_data_dir
+from triagerag.config import get_audit_path, get_data_dir
 from triagerag.contracts.enums import (
     AgeUnit,
     Consciousness,
@@ -217,7 +216,7 @@ def main() -> None:
     llm = FakeLLM(profile=FakeLLMProfile.COMPLIANT)
     config = {
         "include_complaint_in_llm": include_complaint_in_llm,
-        "audit_log_path": Path("audit_log.jsonl"),
+        "audit_log_path": get_audit_path(),
     }
 
     response = run_triage(

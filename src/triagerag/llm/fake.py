@@ -364,15 +364,14 @@ class FakeLLM(LLMProvider):
                     )
                 ]
 
-            is_allowed = step.drug_id in context.allowed_drug_ids if step.drug_id else False
             repaired_steps.append(
                 PlanStepDraft(
                     step_number=step.step_number,
                     action_type=step.action_type,
                     narrative_instruction=fixed_instruction,
-                    drug_id=step.drug_id if is_allowed else None,
-                    requested_dose=step.requested_dose if is_allowed else None,
-                    route=step.route if is_allowed else None,
+                    drug_id=step.drug_id,
+                    requested_dose=step.requested_dose,
+                    route=step.route,
                     citations=fixed_citations,
                 )
             )

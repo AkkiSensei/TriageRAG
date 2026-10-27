@@ -7,6 +7,7 @@ typechecking, layer isolation checking, test execution, and evaluation.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -32,7 +33,10 @@ def _run(cmd: list[str], cwd: Path | None = None, check: bool = True) -> int:
     cwd = cwd or REPO_ROOT
     cmd_str = " ".join(cmd)
     typer.secho(f"--> Running: {cmd_str}", fg=typer.colors.CYAN)
-    result = subprocess.run(cmd, cwd=cwd)
+    env = os.environ.copy()
+    pythonpath = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = f"{REPO_ROOT}{os.pathsep}{pythonpath}" if pythonpath else str(REPO_ROOT)
+    result = subprocess.run(cmd, cwd=cwd, env=env)
     if check and result.returncode != 0:
         typer.secho(
             f"FAILED (code {result.returncode}): {cmd_str}",

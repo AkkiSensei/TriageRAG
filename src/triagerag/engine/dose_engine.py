@@ -107,8 +107,38 @@ def verify_dose(
         )
 
     # Convert requested dose to same unit as calculated ceiling for exact comparison
+    actual_requested = requested_dose
+    if requested_dose.unit == DoseUnit.mg_per_kg:
+        if patient.weight_kg.source == "unknown" or patient.weight_kg.value is None:
+            return CalculatedDoseReport(
+                drug_id=drug_id,
+                requested_dose=requested_dose,
+                calculated_ceiling=calculated_ceiling,
+                calculated_recommended=calculated_recommended,
+                magnitude_tripwire_triggered=False,
+                status="UNVERIFIED_MISSING_CAP",
+                notes="Weight-based dose verification cannot proceed: patient weight is unknown",
+            )
+        actual_requested = ExplicitDose(
+            amount=requested_dose.amount * patient.weight_kg.value, unit=DoseUnit.mg
+        )
+    elif requested_dose.unit == DoseUnit.mcg_per_kg:
+        if patient.weight_kg.source == "unknown" or patient.weight_kg.value is None:
+            return CalculatedDoseReport(
+                drug_id=drug_id,
+                requested_dose=requested_dose,
+                calculated_ceiling=calculated_ceiling,
+                calculated_recommended=calculated_recommended,
+                magnitude_tripwire_triggered=False,
+                status="UNVERIFIED_MISSING_CAP",
+                notes="Weight-based dose verification cannot proceed: patient weight is unknown",
+            )
+        actual_requested = ExplicitDose(
+            amount=requested_dose.amount * patient.weight_kg.value, unit=DoseUnit.mcg
+        )
+
     try:
-        req_converted = convert_dose(requested_dose, calculated_ceiling.unit)
+        req_converted = convert_dose(actual_requested, calculated_ceiling.unit)
     except ValueError as e:
         return CalculatedDoseReport(
             drug_id=drug_id,

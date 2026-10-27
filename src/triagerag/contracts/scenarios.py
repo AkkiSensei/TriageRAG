@@ -115,18 +115,18 @@ def get_preloaded_scenario(name: str) -> tuple[Patient, list[OverrideRecord]]:
     if name.upper() == "HIGH":
         p = Patient(
             assessed_at=now,
-            age=Age(value=Decimal("62"), unit=AgeUnit.years),
+            age=Age(value=Decimal("8"), unit=AgeUnit.years),
             sex="female",
-            pregnancy="no",
-            weight_kg=Measured[Decimal](value=Decimal("65.0"), source="measured"),
+            pregnancy="not_applicable",
+            weight_kg=Measured[Decimal](value=Decimal("25.0"), source="measured"),
             vitals=Vitals(
-                heart_rate_bpm=Measured[int](value=115, source="measured"),
-                systolic_bp_mmhg=Measured[int](value=102, source="measured"),
-                diastolic_bp_mmhg=Measured[int](value=65, source="measured"),
-                respiratory_rate_bpm=Measured[int](value=24, source="measured"),
-                spo2_percent=Measured[int](value=93, source="measured"),
+                heart_rate_bpm=Measured[int](value=145, source="measured"),
+                systolic_bp_mmhg=Measured[int](value=95, source="measured"),
+                diastolic_bp_mmhg=Measured[int](value=55, source="measured"),
+                respiratory_rate_bpm=Measured[int](value=32, source="measured"),
+                spo2_percent=Measured[int](value=94, source="measured"),
                 supplemental_o2=Measured[str](value="no", source="measured"),
-                temperature_c=Measured[Decimal](value=Decimal("38.9"), source="measured"),
+                temperature_c=Measured[Decimal](value=Decimal("39.2"), source="measured"),
                 consciousness=Measured[Consciousness](value=Consciousness.A, source="measured"),
             ),
             medication_history_status="confirmed_none",
@@ -137,19 +137,22 @@ def get_preloaded_scenario(name: str) -> tuple[Patient, list[OverrideRecord]]:
                     raw_substance="penicillin",
                     normalized_allergen_id="penicillin",
                     allergen_class="PENICILLINS",
-                    reaction_type="mild_rash",
+                    reaction_type="anaphylaxis_ige",
                     resolved=True,
                 )
             ],
             renal_impairment="no",
             hepatic_impairment="no",
-            suspected_syndrome="sepsis",
-            chief_complaint_untrusted="Fever, chills, productive cough, lethargy for 2 days",
+            suspected_syndrome="paediatric_sepsis",
+            chief_complaint_untrusted="Fever, chills, lethargy, tachycardia for 1 day",
         )
         override = OverrideRecord(
-            rule_id="ALLERGY_PENICILLIN_CEPH_DISSIMILAR",
+            rule_id="ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR",
             step_number=1,
-            reason="Patient confirmed mild rash only; ceftriaxone has dissimilar side chain",
+            reason=(
+                "Clinician assessment: low cross-reactivity with dissimilar "
+                "side chain ceftriaxone in severe sepsis"
+            ),
             clinician_id="DR_EMERGENCY_99",
         )
         return p, [override]

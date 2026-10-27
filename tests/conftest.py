@@ -69,3 +69,23 @@ class FixedClock:
 def fixed_clock() -> FixedClock:
     """Fixture returning a deterministic frozen Clock."""
     return FixedClock()
+
+
+@pytest.fixture(scope="session")
+def clinical_registry() -> Any:
+    """Cached ClinicalRegistry loaded from repository data directory."""
+    from triagerag.config import get_data_dir
+    from triagerag.engine.registry import ClinicalRegistry
+
+    return ClinicalRegistry.load_from_directory(get_data_dir())
+
+
+@pytest.fixture(scope="session")
+def bm25_index() -> Any:
+    """Cached BM25ClinicalIndex loaded from synthetic protocols."""
+    from triagerag.config import get_data_dir
+    from triagerag.rag.index import BM25ClinicalIndex
+    from triagerag.rag.ingest import ingest_protocols
+
+    chunks = ingest_protocols(get_data_dir())
+    return BM25ClinicalIndex(chunks)

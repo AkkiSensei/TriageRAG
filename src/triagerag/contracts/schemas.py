@@ -9,7 +9,8 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Generic, Literal, TypeVar
+from pathlib import Path
+from typing import Generic, Literal, Protocol, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -456,3 +457,42 @@ class TriageResponse(BaseModel):
     overrides: list[OverrideRecord] = Field(default_factory=list)
     llm_fallback_mode: bool = False
     audit_hash: str = ""
+
+
+class Clock(Protocol):
+    """Abstract clock protocol for deterministic time injection (Rule R12)."""
+
+    def now(self) -> datetime: ...
+
+
+class SystemClock:
+    """Real system clock emitting timezone-aware UTC datetime."""
+
+    def now(self) -> datetime:
+        from datetime import UTC, datetime
+
+        return datetime.now(UTC)
+
+
+class FixedClock:
+    """Deterministic fixed clock for testing and repeatable evaluation."""
+
+    def __init__(self, fixed_time: datetime) -> None:
+        if fixed_time.tzinfo is None:
+            raise ValueError("FixedClock requires timezone-aware datetime")
+        self._time = fixed_time
+
+    def now(self) -> datetime:
+        return self._time
+
+
+class OrchestratorConfig(BaseModel):
+    """Immutable runtime configuration for the clinical orchestrator."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    include_complaint_in_llm: bool = False
+    retrieval_threshold: float = 0.30
+    top_k_chunks: int = 5
+    max_repair_cycles: int = 2
+    audit_log_path: Path | None = None

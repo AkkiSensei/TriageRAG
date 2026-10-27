@@ -38,11 +38,13 @@ htmlcov/
 # Streamlit
 .streamlit/
 
-# Secrets and environment
+# Secrets, environment and local data
 .env
 .env.local
-audit_log.jsonl
+var/
+audit_log.jsonl*
 *.jsonl
+*.lock
 
 # Real protocols (confidential / external)
 data/protocols_real/*
