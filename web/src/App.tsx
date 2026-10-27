@@ -5,6 +5,7 @@ import { queryClient } from '@/lib/api'
 import { MotionProvider } from '@/lib/motion'
 import { Layout } from '@/components/layout/Layout'
 import { ConsolePage } from '@/pages/ConsolePage'
+import { RedTeamPage } from '@/pages/RedTeamPage'
 import { RulesetPage } from '@/pages/RulesetPage'
 import { ProtocolsPage } from '@/pages/ProtocolsPage'
 import { EvidencePage } from '@/pages/EvidencePage'
@@ -20,6 +21,7 @@ export const App: React.FC = () => {
             <Route path="/" element={<Layout />}>
               <Route index element={<ConsolePage />} />
               <Route path="console" element={<Navigate to="/" replace />} />
+              <Route path="redteam" element={<RedTeamPage />} />
               <Route path="ruleset" element={<RulesetPage />} />
               <Route path="protocols" element={<ProtocolsPage />} />
               <Route path="evidence" element={<EvidencePage />} />

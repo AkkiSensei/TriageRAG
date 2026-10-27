@@ -18,8 +18,9 @@ export const Navbar: React.FC = () => {
 
   const navItems = [
     { label: 'Triage Console', path: '/', icon: Activity },
-    { label: 'Ruleset', path: '/ruleset', icon: ShieldAlert },
-    { label: 'Protocols', path: '/protocols', icon: BookOpen },
+    { label: 'Red-Team Lab', path: '/redteam', icon: ShieldAlert },
+    { label: 'Ruleset', path: '/ruleset', icon: BookOpen },
+    { label: 'Protocols', path: '/protocols', icon: FileText },
     { label: 'Evidence & Eval', path: '/evidence', icon: CheckCircle2 },
     { label: 'Audit Trail', path: '/audit', icon: FileText },
     { label: 'About', path: '/about', icon: Info },
