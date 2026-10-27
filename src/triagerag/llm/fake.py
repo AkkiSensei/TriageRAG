@@ -71,14 +71,16 @@ class FakeLLM(LLMProvider):
             )
 
         if self.profile == FakeLLMProfile.PROSE_LEAK:
-            # Leaks drug name in narrative instruction (Section 10 violation)
+            # Leaks unbound drug name (amoxicillin) in narrative instruction (Section 10 violation)
             return PlanDraft(
                 matched_protocol_title=first_chunk.section,
                 steps=[
                     PlanStepDraft(
                         step_number=1,
                         action_type=ActionType.administer,
-                        narrative_instruction="Administer epinephrine immediately into thigh",
+                        narrative_instruction=(
+                            "Administer amoxicillin alongside epinephrine immediately into thigh"
+                        ),
                         drug_id="epinephrine",
                         requested_dose=ExplicitDose(amount=Decimal("0.5"), unit=DoseUnit.mg),
                         route=Route.im,

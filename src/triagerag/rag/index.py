@@ -89,7 +89,13 @@ class BM25ClinicalIndex:
             return []
 
         scores: list[float] = bm25.get_scores(query_tokens)  # type: ignore[assignment]
-        scored_chunks = list(zip(pop_chunks, scores, strict=True))
+        # Boost atomic child decision nodes over broad whole-document parent chunks
+        # to ensure actionable clinical decision nodes are prioritized
+        scored_chunks: list[tuple[ProtocolChunk, float]] = []
+        for chunk, score in zip(pop_chunks, scores, strict=True):
+            boost = 1.15 if chunk.parent_id is not None else 1.0
+            scored_chunks.append((chunk, score * boost))
+
         scored_chunks.sort(key=lambda x: x[1], reverse=True)
 
         return scored_chunks[:top_k]

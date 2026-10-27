@@ -1,14 +1,18 @@
 import React from 'react'
-import { HelpCircle, AlertCircle } from 'lucide-react'
+import { HelpCircle, AlertCircle, ArrowLeft } from 'lucide-react'
 import type { components } from '@/types/api'
 
 export type SkippedCheck = components['schemas']['SkippedCheck']
 
 interface SkippedChecksListProps {
   skippedChecks: SkippedCheck[]
+  onFixInIntake?: () => void
 }
 
-export const SkippedChecksList: React.FC<SkippedChecksListProps> = ({ skippedChecks }) => {
+export const SkippedChecksList: React.FC<SkippedChecksListProps> = ({
+  skippedChecks,
+  onFixInIntake,
+}) => {
   if (!skippedChecks || skippedChecks.length === 0) {
     return null
   }
@@ -19,14 +23,23 @@ export const SkippedChecksList: React.FC<SkippedChecksListProps> = ({ skippedChe
         <div className="flex items-center gap-2">
           <HelpCircle className="h-4 w-4 text-purple-400" />
           <h3 className="text-xs font-semibold uppercase tracking-wider text-purple-200">
-            What I Couldn&apos;t Check ({skippedChecks.length}) &mdash; R2 Fail Closed
+            Unverified Safety Checks ({skippedChecks.length}) — Missing Clinical Data
           </h3>
         </div>
-        <span className="text-[10px] font-mono text-purple-300/80">Missing Data Tripped</span>
+        {onFixInIntake && (
+          <button
+            type="button"
+            onClick={onFixInIntake}
+            className="flex items-center gap-1 text-[11px] font-mono text-purple-300 hover:text-purple-100 hover:underline transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            <span>Supply missing data in Intake</span>
+          </button>
+        )}
       </div>
 
       <p className="text-xs text-purple-300/90 leading-relaxed">
-        The following clinical rules could not be evaluated due to missing or unresolved patient fields. Under the fail-closed principle, these are flagged as unverified rather than assumed safe:
+        The following clinical rules could not be evaluated due to missing, incomplete, or unresolved patient fields. Under the fail-closed safety protocol, these remain unverified rather than assumed safe:
       </p>
 
       <div className="flex flex-col gap-2">
@@ -63,3 +76,4 @@ export const SkippedChecksList: React.FC<SkippedChecksListProps> = ({ skippedChe
     </div>
   )
 }
+export default SkippedChecksList

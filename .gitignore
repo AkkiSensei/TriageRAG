@@ -34,6 +34,7 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 .import_linter_cache/
+.hypothesis/
 
 # Streamlit
 .streamlit/
@@ -58,6 +59,7 @@ eval/reports/*
 # Frontend
 web/node_modules/
 web/dist/
+*.tsbuildinfo
 !web/src/lib/
 !web/src/lib/**
 

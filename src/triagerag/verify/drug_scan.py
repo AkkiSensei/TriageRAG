@@ -71,6 +71,10 @@ def scan_narrative_for_drug_leaks(
         if len(token) < 4:
             continue
 
+        # If token matches the explicitly bound drug or its ingredient, it is permitted
+        if token in bound_tokens:
+            continue
+
         # Check exact membership in lexicon
         if token in lexicon_words:
             leaks.append(token)
@@ -79,6 +83,8 @@ def scan_narrative_for_drug_leaks(
         # Fuzzy check against lexicon for misspellings (min length 5)
         if len(token) >= 5:
             for target in lexicon_words:
+                if target in bound_tokens:
+                    continue
                 if len(target) >= 5 and abs(len(token) - len(target)) <= 2:
                     ratio = fuzz.ratio(token, target)
                     if ratio >= 88:

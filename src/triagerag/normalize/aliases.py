@@ -87,7 +87,12 @@ class AliasResolver:
         if cleaned in self._clean_lookup:
             return True, self._clean_lookup[cleaned], None
 
-        # 3. Fuzzy match -> Suggestion ONLY, resolved=False
+        # 3. Strip dose / frequency suffixes (e.g. "sildenafil 50mg daily" -> "sildenafil")
+        prefix = re.split(r"\s+\d", cleaned)[0].strip()
+        if prefix and prefix != cleaned and prefix in self._clean_lookup:
+            return True, self._clean_lookup[prefix], None
+
+        # 4. Fuzzy match -> Suggestion ONLY, resolved=False
         match_result = process.extractOne(
             raw_stripped,
             self._all_candidates,

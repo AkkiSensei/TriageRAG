@@ -102,3 +102,23 @@ def test_duplicate_chunk_ids_in_retrieval() -> None:
 
     is_valid, ov_score, err = verify_citation(cit, [chunk1, chunk2], "instruction")
     assert is_valid is True
+
+
+def test_bound_drug_name_permitted_in_narrative() -> None:
+    """Narrative mentioning the bound drug_id or its ingredients is permitted; other drugs leak."""
+    data_dir = get_data_dir()
+    registry = ClinicalRegistry.load_from_directory(data_dir)
+
+    # Narrative mentions bound drug 'epinephrine' -> Allowed
+    narrative_bound = "Administer epinephrine immediately into anterolateral thigh"
+    leaks = scan_narrative_for_drug_leaks(
+        narrative=narrative_bound, bound_drug_id="epinephrine", registry=registry
+    )
+    assert not leaks, f"Expected zero leaks for bound drug, got: {leaks}"
+
+    # Narrative mentions an UNBOUND drug 'amoxicillin' alongside bound drug -> Leaks
+    narrative_unbound = "Administer amoxicillin alongside epinephrine immediately"
+    leaks = scan_narrative_for_drug_leaks(
+        narrative=narrative_unbound, bound_drug_id="epinephrine", registry=registry
+    )
+    assert any("amoxicillin" in leak for leak in leaks), f"Expected amoxicillin leak, got: {leaks}"
