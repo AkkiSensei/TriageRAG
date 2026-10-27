@@ -4,61 +4,84 @@
 
 ## Current State
 
-- **Current Status:** Part A Iterative Debugging & Hardening Complete (`debug-complete`). Transitioning to Part B (React Frontend Console).
-- **Verification:** All gates green (`gate-1` through `gate-7` + `debug-complete`). 75/75 pytest tests green, 40/40 mutants killed (100%), 0 lint/mypy/import-linter errors.
+- **Current Status:** Part A Iterative Debugging (`debug-complete`) and Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`) **100% COMPLETE**.
+- **Verification:** All gates green:
+  - 89/89 Pytest tests green (including unit, integration, property, UI smoke, and safety boundary).
+  - 8/8 Vitest frontend unit & component tests green.
+  - 40/40 mutants killed (100% kill score).
+  - 65/65 Golden cases green (100%).
+  - 41/41 Mechanics cases green (100%).
+  - 3/3 Metamorphic transformations green.
+  - 9/9 Adversarial prompt injection attacks neutralized.
+  - 0 lint / format errors (Python ruff & TypeScript eslint).
+  - 0 type errors (Python mypy strict & TypeScript tsc).
+  - 0 import isolation contract violations (import-linter).
+  - Vite production build succeeds with clean chunking (~451KB, well below 2MB threshold).
 
-## Key Updates in Part A (Debugging & Hardening)
+## Architecture Highlights
 
-1. **Bug Resolution & Clinical Engine Hardening (see `docs/DEBUG_LOG.md`):**
-   - **CI & Deployment:** Fixed `ModuleNotFoundError: 'eval'` in `eval/run_mutation.py` by ensuring `PYTHONPATH` propagation in `tools/tasks.py`.
-   - **Audit Trail Isolation:** Removed committed `audit_log.jsonl*` runtime artifacts; added configurable `get_audit_path()` via `TRIAGERAG_AUDIT_PATH` env var.
-   - **LLM Repair Loop:** Implemented bounded 1-attempt repair loop in `src/triagerag/llm/repair.py` (`classify_violation`, `sanitize_repair_violations`, `attempt_plan_repair`) wired into `orchestrator.py` with full untrusted text stripping.
-   - **Determinism & Pure Clocks (Rule R12):** Created frozen `OrchestratorConfig` and `Clock` protocol (`SystemClock`, `FixedClock`) injected into `run_triage`.
-   - **Mutation Testing (Rule R10):** Expanded `eval/run_mutation.py` from 12 rule mutants to 40 total mutants (12 rule + 28 code-level mutants). **100% kill score (40/40)** across verdict lattice, lookbacks, withhold exemptions, citation groundings, drug-scan tokens, population filters, BLOCK override guards, dose math, and cryptographic audit.
-   - **HTML Injection Elimination (Rule R7):** Removed all `unsafe_allow_html=True` calls from Streamlit components; replaced with native Streamlit markdown badges.
-   - **Rule Applicability Gating (Rule R2):** Evaluates clinical applicability before `NEEDS_SOURCE` checks to prevent false `UNVERIFIED` skips for patients not receiving the drug/class.
-   - **Weight-Based Pediatric Math (Rule R8):** Added automatic scaling by `patient.weight_kg` for weight-based units (`mg_per_kg`, `mcg_per_kg`) before formulary ceiling checks.
-   - **HIGH Scenario Allergy Reaction:** Updated scenario to `anaphylaxis_ige` and aligned ceftriaxone formulary limits.
+1. **Part A: Master Debugging & Mutation Hardening (tagged `debug-complete`):**
+   - 40-mutant kill suite (`eval/run_mutation.py`) covering verdict lattice, lookbacks, withhold exemptions, citation groundings, drug-scan tokens, population filters, BLOCK override guards, dose math, and cryptographic audit.
+   - Bounded 1-attempt LLM repair loop (`src/triagerag/llm/repair.py`).
+   - Deterministic execution with pure clocks (`src/triagerag/orchestrator.py`).
+   - Strict Decimal math with 10x/1000x tripwires (`src/triagerag/engine/dose.py`).
 
-2. **Expanded Test Suite (75 Tests Total):**
-   - `tests/unit/test_r_rules_conformance.py`: AST scans for no floats in dose engine, pure engine isolation (no network, no `datetime.now`), no `unsafe_allow_html`, no bare "CLEAR", and functional BLOCK override guard.
-   - `tests/unit/test_serialization.py`: Exact Decimal string preservation across JSON round-trips.
-   - `tests/integration/test_audit_concurrency.py`: Multiprocessing concurrent writes under file lock and cryptographic tamper detection (modify, delete, reorder).
-   - `tests/unit/test_repair.py`: Sanitization and repair loop behavior.
-   - `tests/unit/test_retrieval_edge_cases.py`: Empty index, missing population abstention, case/punctuation variants.
-   - `tests/unit/test_verifier_edge_cases.py`: Normal English word substring isolation, typo leak detection, whitespace/unicode normalization.
-   - `tests/property/test_pipeline_fuzz.py`: Hypothesis fuzzing verifying pipeline stability, fail-closed invariant, and complaint isolation.
+2. **Part B: TriageRAG Console (tagged `fe-gate-1` through `fe-gate-7`):**
+   - **FastAPI Presentation Adapter (`src/triagerag/api/`):** REST API with typed Pydantic models matching core domain contracts, exact string Decimal preservation, and OpenAPI schema generation (`web/openapi/openapi.json`).
+   - **Modern Clinical Console (`web/`):** Built with React 18, TypeScript, Tailwind CSS, Vite, Lucide React, and React Query.
+   - **React Bits Integration with Strict Safety UX Boundaries (ADR 0005):**
+     - Decorative/educational micro-animations (`Particles`, `SplitText`, `BlurText`, `ShinyText`, `Magnet`, `SpotlightCard`, `CountUp`, `ClickSpark`) used in hero, navigation, and metrics.
+     - **Inviolable S1 UX Guard:** Safety banners, alerts, blocked drugs, skipped checks, and disclaimers are **NEVER** animated, delayed, or obscured.
+     - **Accessibility Guard:** `prefers-reduced-motion` and global user toggle (`useMotionOk()`, `<Motion>`) disable all animations instantly.
+   - **Clinical Features:**
+     - `PatientIntakeForm`: Tri-state uncertainty inputs (`measured`, `estimated`, `unknown`), golden scenario loader, and quarantined untrusted complaint box.
+     - `SafetyBanner`: Static high-contrast banner with qualified wording (`CHECKED CLEAR (ruleset coverage: N active rules)`); never renders bare "CLEAR".
+     - `ScoreCard`: Physiological early warning score with exact subscores and clinical band enums (`RED`, `ORANGE`, `YELLOW`, `GREEN`, `UNSCORED`).
+     - `AlertsList`: Visual severity hierarchy, strikethrough for blocked drugs, and strict prohibition of BLOCK overrides.
+     - `OverrideModal`: Audit-logged justification workflow for HIGH alerts requiring >= 15 character rationale.
+     - `RedTeamPage`: Adversarial testing playground simulating prompt injections and demonstrating R7 engine isolation and R1 plan verification.
+     - `RulesetPage` & `ProtocolsPage`: Searchable registries with provenance drawers and synthetic corpus watermarks.
+     - `EvidencePage`: Live metrics dashboard displaying mutant matrices and ablation results.
+     - `AuditPage`: SHA-256 Merkle audit trail viewer with one-click cryptographic chain verification.
+     - `ErrorBoundary`: Fail-closed React component boundary preventing inconsistent clinical UI rendering upon unexpected exceptions.
 
-## Verification Metrics
+## Verification Metrics Summary
 
-| Suite | Metric | Result |
-|:---|:---:|:---:|
-| **Linters & Formatters** | Ruff check & format | Clean (74 files) |
-| **Type Checking** | Mypy strict mode | Clean (74 files, 0 errors) |
-| **Layer Isolation** | Import-linter | Clean (2 contracts intact) |
-| **Data Validation** | `tools/validate_data.py` | 37 entities valid |
-| **Provenance Audit** | `tools/provenance_report.py` | 37/37 unverified draft |
-| **Pytest Suite** | Unit, integration, property, UI smoke | **75 passed** |
-| **Shipped Golden Cases** | `eval/run_golden.py` | 65/65 passed (100%) |
-| **Mechanics Suite** | `eval/run_mechanics.py` | 41/41 passed (100%) |
-| **Metamorphic Suite** | `eval/run_metamorphic.py` | 3/3 passed (100%) |
-| **Adversarial Suite** | `eval/run_adversarial.py` | 9/9 passed (100%) |
-| **Mutation Testing** | `eval/run_mutation.py` | **40/40 killed (100%)** |
-| **Retrieval Benchmarks** | `eval/run_retrieval.py` | 32 pairs, 100% R@5, 0.896 MRR |
-| **Ablation Study** | `eval/run_ablation.py` | Generated `eval/reports/ablation.md` |
+| Verification Suite | Scope | Target | Result | Status |
+|:---|:---|:---:|:---:|:---:|
+| **Python Linters** | Ruff check & format | 0 warnings | Clean | PASS |
+| **Python Typing** | Mypy strict mode | 0 errors | Clean | PASS |
+| **Layer Contracts** | Import-linter | 0 violations | Clean | PASS |
+| **Backend Tests** | Pytest unit, integration, property | 100% | 89/89 passed | PASS |
+| **Safety Boundary Tests** | AST scans & rule checks | 100% | 4/4 passed | PASS |
+| **Golden Ruleset** | Shipped clinical cases | 100% | 65/65 passed | PASS |
+| **Mechanics Suite** | Edge cases & unit trips | 100% | 41/41 passed | PASS |
+| **Metamorphic Suite** | Equivalence transformations | 100% | 3/3 passed | PASS |
+| **Adversarial Suite** | Prompt injection attacks | 100% | 9/9 passed | PASS |
+| **Mutation Testing** | Code & rule mutant kill rate | 100% | 40/40 killed | PASS |
+| **Frontend Linters** | ESLint with strict safety rules | 0 warnings | Clean | PASS |
+| **Frontend Typing** | TypeScript (`tsc --noEmit`) | 0 errors | Clean | PASS |
+| **Frontend Tests** | Vitest unit & component specs | 100% | 8/8 passed | PASS |
+| **Production Build** | Vite production bundle | < 2 MB | ~451 KB | PASS |
 
-## Exact Commands to Resume / Verify
+## Verification & Execution Commands
 
 ```bash
-# 1. Run full verification gates
+# Full backend & evaluative verification
 python tools/tasks.py verify
 
-# 2. Run all evaluation suites
-python tools/tasks.py eval all
+# Full frontend verification (lint, typecheck, vitest, build)
+python tools/tasks.py web-verify
 
-# 3. Launch Streamlit UI
+# Run mutation testing suite (40 mutants)
+python eval/run_mutation.py
+
+# Launch FastAPI backend API (port 8000)
+python tools/tasks.py api
+
+# Launch React frontend dev server (port 5173)
+python tools/tasks.py web-dev
+
+# Launch Streamlit fallback UI
 python tools/tasks.py ui
-
-# 4. Run CLI triage execution
-python -m triagerag run data/golden/shipped_ruleset_cases.yaml 1
 ```
