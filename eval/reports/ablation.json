@@ -1,0 +1,31 @@
+{
+  "suite": "ablation",
+  "disclaimer": "With FakeLLM this validates the verification harness, not real-model quality.",
+  "arms": {
+    "arm_a_llm_only": {
+      "name": "Arm A (Naive Free-Text / LLM-Only)",
+      "total_steps": 4,
+      "block_drugs_present": 1,
+      "missed_high_alerts": 1,
+      "magnitude_dose_errors": 1,
+      "uncited_steps": 4
+    },
+    "arm_b_rag_draft_only": {
+      "name": "Arm B (RAG Draft Without Verification)",
+      "total_steps": 4,
+      "block_drugs_present": 1,
+      "missed_high_alerts": 1,
+      "magnitude_dose_errors": 1,
+      "uncited_steps": 1
+    },
+    "arm_c_full_pipeline": {
+      "name": "Arm C (Full Pipeline: RAG + Verify + Repair)",
+      "total_steps": 4,
+      "block_drugs_present": 0,
+      "missed_high_alerts": 0,
+      "magnitude_dose_errors": 0,
+      "uncited_steps": 0
+    }
+  },
+  "status": "PASS"
+}

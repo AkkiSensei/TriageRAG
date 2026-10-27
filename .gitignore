@@ -4,14 +4,14 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
+/build/
 develop-eggs/
-dist/
+/dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -41,7 +41,6 @@ htmlcov/
 # Secrets, environment and local data
 .env
 .env.local
-var/
 audit_log.jsonl*
 *.jsonl
 *.lock
@@ -50,10 +49,17 @@ audit_log.jsonl*
 data/protocols_real/*
 !data/protocols_real/.gitkeep
 
-# Eval outputs (keep reports tracked via .gitkeep and *.md)
+# Eval outputs (keep reports tracked via .gitkeep, *.md, and *.json)
 eval/reports/*
 !eval/reports/.gitkeep
 !eval/reports/*.md
+!eval/reports/*.json
+
+# Frontend
+web/node_modules/
+web/dist/
+!web/src/lib/
+!web/src/lib/**
 
 # OS
 .DS_Store

@@ -1,0 +1,12 @@
+{
+  "suite": "metamorphic",
+  "passed": 3,
+  "total": 3,
+  "score": 100.0,
+  "status": "PASS",
+  "transformations": [
+    "brand_generic_equivalence",
+    "list_reordering_invariance",
+    "equivalent_units_tripwire"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "suite": "golden",
+  "passed": 65,
+  "total": 65,
+  "score": 100.0,
+  "status": "PASS",
+  "failed_cases": []
+}
