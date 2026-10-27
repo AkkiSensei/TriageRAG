@@ -36,7 +36,14 @@ def _run(cmd: list[str], cwd: Path | None = None, check: bool = True) -> int:
     env = os.environ.copy()
     pythonpath = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = f"{REPO_ROOT}{os.pathsep}{pythonpath}" if pythonpath else str(REPO_ROOT)
-    result = subprocess.run(cmd, cwd=cwd, env=env)
+    resolved_cmd = list(cmd)
+    if resolved_cmd and not Path(resolved_cmd[0]).is_absolute():
+        import shutil
+
+        found = shutil.which(resolved_cmd[0])
+        if found:
+            resolved_cmd[0] = found
+    result = subprocess.run(resolved_cmd, cwd=cwd, env=env)
     if check and result.returncode != 0:
         typer.secho(
             f"FAILED (code {result.returncode}): {cmd_str}",
