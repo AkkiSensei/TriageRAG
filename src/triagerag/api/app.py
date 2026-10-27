@@ -129,6 +129,7 @@ def create_app() -> FastAPI:
                 return FileResponse(target)
             return FileResponse(dist_dir / "index.html")
     else:
+
         @app.get("/")
         def root() -> dict[str, str]:
             return {
