@@ -1,18 +1,23 @@
-"""Clinical protocol retrieval index using BM25 with acronym preservation.
+"""Clinical protocol retrieval index using global non-negative IDF BM25.
 
-Safety Property (Section 8):
-1. Hard population filter: zero cross-population ranking.
-2. Clinical acronym preservation: STEMI, DKA, SpO2, etc., are never corrupted.
-3. Fully offline: BM25Okapi runs without external network or API access.
+Safety Properties (Section 8, RAG-01, RAG-07, RAG-09):
+1. Hard population filter at query time: zero cross-population ranking.
+2. Hard syndrome filter at query time (when suspected_syndrome is provided): zero cross-syndrome
+   contamination.
+3. Global non-negative IDF across the corpus: eliminates small-shard IDF degeneracy (zero or
+   negative scores on small paediatric/neonate pools).
+4. Pure Python float scores: no numpy.float64 leakage and zero '# type: ignore' comments.
 """
 
 from __future__ import annotations
 
+import math
 import re
+from collections import Counter
 
-from rank_bm25 import BM25Okapi
-
+from triagerag.rag.abstain import load_retrieval_config
 from triagerag.rag.chunking import ProtocolChunk
+from triagerag.rag.ingest import compute_corpus_hash
 
 
 class ClinicalTokenizer:
@@ -44,58 +49,111 @@ class ClinicalTokenizer:
 
 
 class BM25ClinicalIndex:
-    """Partitioned BM25 index enforcing strict population isolation."""
+    """BM25 index with global non-negative IDF and strict query-time population/syndrome filters."""
 
     def __init__(
         self,
         chunks: list[ProtocolChunk],
         acronyms: dict[str, str] | None = None,
     ) -> None:
+        cfg = load_retrieval_config()
+        self.k1: float = cfg.bm25_k1
+        self.b: float = cfg.bm25_b
+        self.child_node_boost: float = cfg.child_node_boost
         self.tokenizer = ClinicalTokenizer(acronyms)
+        self.all_chunks: tuple[ProtocolChunk, ...] = tuple(chunks)
+        self.corpus_hash: str = compute_corpus_hash(chunks)
+        self.index_version: str = "2.0.0"
         self.chunks_by_population: dict[str, list[ProtocolChunk]] = {}
-        self.index_by_population: dict[str, BM25Okapi] = {}
+        self.index_by_population: dict[str, list[int]] = {}
         self.backend = "bm25"
 
-        # Partition chunks strictly by population
-        for chunk in chunks:
+        self._doc_term_freqs: list[Counter[str]] = []
+        self._doc_lengths: list[int] = []
+        self._doc_freqs: Counter[str] = Counter()
+
+        for idx, chunk in enumerate(self.all_chunks):
             pop = chunk.population.lower().strip()
             self.chunks_by_population.setdefault(pop, []).append(chunk)
+            self.index_by_population.setdefault(pop, []).append(idx)
 
-        # Build BM25 index for each population slice
-        for pop, pop_chunks in self.chunks_by_population.items():
-            corpus_tokens = [self.tokenizer.tokenize(c.indexed_text or c.text) for c in pop_chunks]
-            self.index_by_population[pop] = BM25Okapi(corpus_tokens)
+            tokens = self.tokenizer.tokenize(chunk.indexed_text or chunk.text)
+            tf = Counter(tokens)
+            self._doc_term_freqs.append(tf)
+            self._doc_lengths.append(len(tokens))
+            for term in tf:
+                self._doc_freqs[term] += 1
+
+        total_docs = len(self.all_chunks)
+        self._total_docs: int = total_docs
+        self._avgdl: float = (
+            float(sum(self._doc_lengths)) / float(total_docs) if total_docs > 0 else 1.0
+        )
+        self._idf: dict[str, float] = {}
+        for term, df in self._doc_freqs.items():
+            # Non-negative Lucene/BM25+ IDF: ln(1 + (N - df + 0.5) / (df + 0.5)) > 0 always
+            self._idf[term] = math.log(1.0 + (float(total_docs - df) + 0.5) / (float(df) + 0.5))
+
+    def known_syndromes(self, population: str | None = None) -> set[str]:
+        """Return set of syndromes present in the index (optionally scoped to population)."""
+        if population is not None:
+            pop_key = population.lower().strip()
+            return {c.syndrome.lower().strip() for c in self.chunks_by_population.get(pop_key, [])}
+        return {c.syndrome.lower().strip() for c in self.all_chunks}
+
+    def _score_doc(self, doc_idx: int, query_tokens: list[str]) -> float:
+        """Compute pure-Python float BM25 score for a single document index."""
+        tf_map = self._doc_term_freqs[doc_idx]
+        dl = float(self._doc_lengths[doc_idx])
+        norm_denom_base = self.k1 * (1.0 - self.b + self.b * (dl / self._avgdl))
+        score = 0.0
+        for token in query_tokens:
+            tf = float(tf_map.get(token, 0))
+            if tf <= 0.0:
+                continue
+            idf = self._idf.get(token, 0.0)
+            numerator = tf * (self.k1 + 1.0)
+            denominator = tf + norm_denom_base
+            score += idf * (numerator / denominator)
+        return float(score)
 
     def search(
         self,
         query: str,
         population: str,
-        top_k: int = 5,
+        top_k: int | None = None,
+        syndrome: str | None = None,
     ) -> list[tuple[ProtocolChunk, float]]:
-        """Search the index for a query within a single mandatory population category.
+        """Search the index for a query within a mandatory population and optional syndrome.
 
         Hard population filter: If no chunks exist for the specified population,
         immediately returns an empty list without falling back across populations.
+        Hard syndrome filter: If syndrome is specified, only chunks matching that
+        syndrome are eligible.
         """
+        cfg = load_retrieval_config()
+        eff_top_k = top_k if top_k is not None else cfg.top_k
+
         pop_key = population.lower().strip()
         if pop_key not in self.index_by_population:
             return []
-
-        pop_chunks = self.chunks_by_population[pop_key]
-        bm25 = self.index_by_population[pop_key]
 
         query_tokens = self.tokenizer.tokenize(query)
         if not query_tokens:
             return []
 
-        scores: list[float] = bm25.get_scores(query_tokens)  # type: ignore[assignment]
-        # Boost atomic child decision nodes over broad whole-document parent chunks
-        # to ensure actionable clinical decision nodes are prioritized
+        syn_filter = syndrome.lower().strip() if syndrome else None
+        candidate_indices = self.index_by_population[pop_key]
+
         scored_chunks: list[tuple[ProtocolChunk, float]] = []
-        for chunk, score in zip(pop_chunks, scores, strict=True):
-            boost = 1.15 if chunk.parent_id is not None else 1.0
-            scored_chunks.append((chunk, score * boost))
+        for doc_idx in candidate_indices:
+            chunk = self.all_chunks[doc_idx]
+            if syn_filter is not None and chunk.syndrome.lower().strip() != syn_filter:
+                continue
+            raw_score = self._score_doc(doc_idx, query_tokens)
+            boost = self.child_node_boost if chunk.parent_id is not None else 1.0
+            scored_chunks.append((chunk, float(raw_score * boost)))
 
         scored_chunks.sort(key=lambda x: x[1], reverse=True)
 
-        return scored_chunks[:top_k]
+        return scored_chunks[:eff_top_k]

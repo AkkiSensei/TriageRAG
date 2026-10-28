@@ -249,7 +249,7 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
                 if current_item_is_if
                 else "Numbered item does not start with IF condition"
             )
-            preview = current_item_lines[0].strip()[:60]
+            preview = current_item_lines[0].strip()
             msg = f"{reason}: '{preview}'"
             parse_warnings.append(msg)
             logger.warning("Protocol %s parse warning: %s", fm.doc_id, msg)
@@ -303,7 +303,7 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
 
         # 6. Any other non-empty line outside a valid numbered item is unparsed
         unparsed_lines.append(stripped)
-        msg = f"Unparsed body line outside decision node: '{stripped[:60]}'"
+        msg = f"Unparsed body line outside decision node: '{stripped}'"
         parse_warnings.append(msg)
 
     _flush_current_item()

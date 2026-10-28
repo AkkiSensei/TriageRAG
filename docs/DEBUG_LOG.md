@@ -159,3 +159,18 @@
   - Added contextual header indexing (`"{title} › {section} › {syndrome} › {chunk_id}\n{text}"`) in `chunk.indexed_text` while keeping `chunk.text` verbatim for span citations.
   - Added `chunk_decision_graph_json` adapter for structured JSON decision flowcharts.
 - **Tests:** `tests/unit/test_rag_wp2_chunker.py` (4 unit tests), `tests/property/test_chunker_properties.py` (500 Hypothesis generated protocol documents), `test_trailing_section_not_absorbed_into_last_node` and `test_node_without_then_is_reported_not_silently_dropped` in `tests/unit/test_rag_regressions.py` — all PASS.
+
+---
+
+### WP3: Per-Population Vitals Flags, Syndrome Vocabulary & Hard Syndrome Filter (`rag-wp3`)
+- **Finding IDs:** RAG-01 (part), RAG-03, RAG-14, RAG-15 (part).
+- **Symptoms:**
+  - `retrieve.py::derive_vitals_flags` hardcoded adult clinical thresholds (`SBP < 90`, `HR > 100`, `RR > 22`, etc.) and applied them to all populations, causing a 4-year-old with HR 120 / RR 30 to be flagged with adult `tachycardia` and `tachypnea` (violating Rule R3).
+  - `suspected_syndrome` was only repeated 3x as BM25 tokens, allowing unknown syndromes (`kidney_stone`) with abnormal vitals to retrieve unrelated protocols (`CHEST_PAIN_01_NODE_4`, score 3.11 vs 0.30) and known syndromes (`anaphylaxis` + hypotension) to return cross-syndrome chunks (`chest_pain`).
+- **Root Cause:** Lack of data-driven per-population vitals flag tables with `Provenance`, lack of a controlled syndrome vocabulary, and soft keyword matching instead of hard syndrome filtering.
+- **Fixes:**
+  - Created `data/retrieval/vitals_flags.yaml` defining per-population (`adult`, `paediatric`, `neonate`) vitals flag rules with full `Provenance` and `RuleStatus` (`ACTIVE` vs `NEEDS_SOURCE`). Unsourced thresholds (`threshold: null, status: NEEDS_SOURCE`) fail closed and emit nothing; paediatric/neonate never fall back to adult values.
+  - Created `data/retrieval/config.yaml` with `Provenance` and `calibration_run_id`, removing all magic clinical/retrieval numeric literals from `src/triagerag/rag/*.py`.
+  - Added `AbstainCode` enum (`NONE`, `NO_POPULATION_COVERAGE`, `UNKNOWN_SYNDROME`, `LOW_CONFIDENCE`, `AMBIGUOUS_MARGIN`, `EMPTY_QUERY`, `INDEX_UNAVAILABLE`, `SYNDROME_INFERRED`) to `src/triagerag/contracts/enums.py` and extended `RetrievalReport`.
+  - Enforced hard syndrome filtering when `suspected_syndrome` is known, `AbstainCode.UNKNOWN_SYNDROME` when unknown, and top-1/top-2 syndrome relative margin + `SYNDROME_INFERRED` when `suspected_syndrome` is omitted.
+- **Tests:** `tests/unit/test_rag_wp3_query_and_flags.py` (3 tests incl. AST scan across all `rag/*.py` files) + `test_unknown_syndrome_with_flags_abstains`, `test_known_syndrome_never_returns_other_syndrome_chunks`, `test_no_adult_thresholds_applied_to_paediatric` in `tests/unit/test_rag_regressions.py` — all PASS.

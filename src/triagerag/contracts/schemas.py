@@ -15,6 +15,7 @@ from typing import Generic, Literal, Protocol, TypeVar
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from triagerag.contracts.enums import (
+    AbstainCode,
     ActionType,
     AgeUnit,
     Consciousness,
@@ -320,14 +321,21 @@ class RetrievedChunk(BaseModel):
 
 
 class RetrievalReport(BaseModel):
-    """Report on retrieval execution, backend used, and abstain decisions."""
+    """Report on retrieval execution, backend used, provenance hashes, and abstain decisions."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     chunks: list[RetrievedChunk] = Field(default_factory=list)
     backend: str = "bm25"
     abstained: bool = False
+    abstain_code: AbstainCode = AbstainCode.NONE
     reason: str | None = None
+    query: str = ""
+    filters: dict[str, str] = Field(default_factory=dict)
+    stage_scores: dict[str, dict[str, float]] = Field(default_factory=dict)
+    corpus_hash: str = ""
+    index_version: str = "1.0.0"
+    config_hash: str = ""
 
 
 class PlanContext(BaseModel):
@@ -443,6 +451,7 @@ class VerifiedStep(BaseModel):
     rejection_reasons: list[str] = Field(default_factory=list)
     citation_verified: bool = False
     citation_overlap_score: Decimal = Decimal("0.0")
+    support_reason: str | None = None
 
 
 class TriageResponse(BaseModel):

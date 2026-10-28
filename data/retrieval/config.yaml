@@ -1,0 +1,20 @@
+version: "1.0.0"
+calibration_run_id: "CALIB_WP5_SYNTHETIC_DEV_SPLIT_V1"
+
+top_k: 5
+calibrated_threshold: 0.15
+syndrome_inferred_threshold: 0.35
+min_syndrome_margin: 0.25
+bm25_k1: 1.5
+bm25_b: 0.75
+child_node_boost: 1.0
+score_decimal_places: 4
+
+provenance:
+  source_doc: "TRIAGERAG_RETRIEVAL_CALIBRATION_REPORT"
+  section_ref: "TO_BE_RESOLVED"
+  version_or_date: "2026-DRAFT"
+  source_status: "PLACEHOLDER_UNRETRIEVED"
+  content_origin: "AGENT_DRAFT_UNSOURCED"
+  verified: false
+  reviewer: null

@@ -137,3 +137,16 @@ class PopulationCategory(StrEnum):
     neonate = "neonate"
     paediatric = "paediatric"
     adult = "adult"
+
+
+class AbstainCode(StrEnum):
+    """Typed outcome codes for retrieval abstention and syndrome inference (RAG-01, RAG-15)."""
+
+    NONE = "NONE"
+    NO_POPULATION_COVERAGE = "NO_POPULATION_COVERAGE"
+    UNKNOWN_SYNDROME = "UNKNOWN_SYNDROME"
+    LOW_CONFIDENCE = "LOW_CONFIDENCE"
+    AMBIGUOUS_MARGIN = "AMBIGUOUS_MARGIN"
+    EMPTY_QUERY = "EMPTY_QUERY"
+    INDEX_UNAVAILABLE = "INDEX_UNAVAILABLE"
+    SYNDROME_INFERRED = "SYNDROME_INFERRED"
