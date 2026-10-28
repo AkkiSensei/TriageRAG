@@ -191,3 +191,16 @@
   - Created `data/retrieval/synonyms.yaml` (with `Provenance`) covering clinical morphology (`hypotensive` -> `hypotension`), British/US variants, drug synonyms (`adrenaline` -> `epinephrine`), and Hinglish triage terms (`bukhar` -> `fever`, `saans`/`dama` -> `severe_asthma`), plus conservative suffix stemming and case rules for 2-letter acronyms (`HR`, `PE`, `RR`).
   - Defined `@runtime_checkable class Retriever(Protocol)` and eliminated `# type: ignore` from `src/triagerag/rag/`.
 - **Tests:** `tests/unit/test_rag_wp4_index.py` (5 unit & Hypothesis property tests) — all PASS.
+
+---
+
+### WP5: Evaluation Overhaul (160-Case Node-Level Benchmark) & Calibration (`rag-wp5`)
+- **Finding IDs:** RAG-01 (calibration & margin), RAG-10.
+- **Symptoms:**
+  - Legacy `eval/run_retrieval.py` only had 32 near-identical queries targeting whole-document parent chunk IDs (`ANAPHYLAXIS_01`), only 3 abstain cases (none with unknown syndrome + abnormal vitals), and instantiated `BM25ClinicalIndex(chunks)` without production config parity.
+- **Root Cause:** Doc-level targets and tiny benchmark size hid node-level ranking degeneracy and wrong-syndrome abstention failures.
+- **Fixes:**
+  - Created `eval/retrieval/dataset.yaml` (via `eval/retrieval/build_dataset.py`) with **160 structured patient cases** (98 `dev` [60%], 62 `test` [40%], stratified with seed 42) across all 10 mandatory case families from Appendix B, with graded node-level relevance (`2` = directly actionable node, `1` = supporting node, `0` = irrelevant).
+  - Replaced `eval/run_retrieval.py` to evaluate the shared production `RetrievalService.create_default()` factory, computing node-level Recall@5, MRR, nDCG@5 with 95% bootstrap confidence intervals, Abstain Precision/Recall, Hard-Negative Abstain Recall (`1.0000`), Wrong-Protocol Rate (`0.0000` on test), Expected Calibration Error (ECE `0.1456`), latency p50/p95 (`p95 = 12.238 ms`), and cross-run determinism.
+  - Generated `eval/reports/retrieval.json`, `eval/reports/retrieval_baseline.json`, and `eval/reports/retrieval_calibration.md`.
+- **Tests:** `tests/unit/test_rag_wp5_eval.py` (2 tests verifying 160-case structure, 10 mandatory families, production parity, and zero wrong-protocol rate) — all PASS.
