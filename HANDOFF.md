@@ -4,19 +4,21 @@
 
 ## Current State
 
-- **Current Status:** Part A Iterative Debugging (`debug-complete`) and Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`) **100% COMPLETE**.
+- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), and Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`) **100% COMPLETE**.
 - **Verification:** All gates green:
-  - 89/89 Pytest tests green (including unit, integration, property, UI smoke, and safety boundary).
+  - 131/131 Pytest tests green (including unit, integration, property, UI smoke, safety boundary, and WP0–WP9 RAG suites).
   - 8/8 Vitest frontend unit & component tests green.
-  - 40/40 mutants killed (100% kill score).
+  - 45/45 mutants killed (100% kill score: 12 rule mutants + 33 code mutants).
   - 65/65 Golden cases green (100%).
   - 41/41 Mechanics cases green (100%).
   - 3/3 Metamorphic transformations green.
   - 9/9 Adversarial prompt injection attacks neutralized.
+  - 160-case WP5 Node-Level Retrieval Benchmark green (100.0% Test Node Recall@5, 0.0000 Wrong-Protocol Rate, 100.0% Abstain Accuracy).
+  - 10,000-chunk Synthetic Scale Benchmark green (`p95 = 5.648 ms < 50.0 ms`).
   - 0 lint / format errors (Python ruff & TypeScript eslint).
   - 0 type errors (Python mypy strict & TypeScript tsc).
   - 0 import isolation contract violations (import-linter).
-  - Vite production build succeeds with clean chunking (~451KB, well below 2MB threshold).
+  - Vite production build succeeds with clean chunking (~293KB, well below 2MB threshold).
 
 ## Architecture Highlights
 
@@ -52,17 +54,19 @@
 | **Python Linters** | Ruff check & format | 0 warnings | Clean | PASS |
 | **Python Typing** | Mypy strict mode | 0 errors | Clean | PASS |
 | **Layer Contracts** | Import-linter | 0 violations | Clean | PASS |
-| **Backend Tests** | Pytest unit, integration, property | 100% | 89/89 passed | PASS |
+| **Backend Tests** | Pytest unit, integration, property | 100% | 131/131 passed | PASS |
 | **Safety Boundary Tests** | AST scans & rule checks | 100% | 4/4 passed | PASS |
 | **Golden Ruleset** | Shipped clinical cases | 100% | 65/65 passed | PASS |
 | **Mechanics Suite** | Edge cases & unit trips | 100% | 41/41 passed | PASS |
 | **Metamorphic Suite** | Equivalence transformations | 100% | 3/3 passed | PASS |
 | **Adversarial Suite** | Prompt injection attacks | 100% | 9/9 passed | PASS |
-| **Mutation Testing** | Code & rule mutant kill rate | 100% | 40/40 killed | PASS |
+| **Mutation Testing** | Code & rule mutant kill rate | 100% | 45/45 killed | PASS |
+| **Retrieval Benchmark** | 160-case node-level (98 dev / 62 test) | R@5 >= 90%, WrongProto == 0 | 100% R@5, 0.0 WrongProto | PASS |
+| **Scale Latency** | 10,000-chunk lexical search | p95 < 50 ms | p95 = 5.65 ms | PASS |
 | **Frontend Linters** | ESLint with strict safety rules | 0 warnings | Clean | PASS |
 | **Frontend Typing** | TypeScript (`tsc --noEmit`) | 0 errors | Clean | PASS |
 | **Frontend Tests** | Vitest unit & component specs | 100% | 8/8 passed | PASS |
-| **Production Build** | Vite production bundle | < 2 MB | ~451 KB | PASS |
+| **Production Build** | Vite production bundle | < 2 MB | ~293 KB | PASS |
 
 ## Verification & Execution Commands
 

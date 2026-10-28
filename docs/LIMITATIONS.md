@@ -37,3 +37,9 @@ The deterministic ruleset intentionally covers only specific explicit rules. The
 - Full pharmacogenomic interactions.
 
 Whenever an entity, history, or threshold is unmapped or missing, the system adheres to **Rule R2: Fail Closed**, emitting `SkippedCheck` and setting the verdict to `UNVERIFIED`.
+
+## 7. Retrieval & Grounding Scope Limitations (ADR 0006)
+
+- **Controlled Syndrome Vocabulary:** Protocol retrieval requires a recognized `suspected_syndrome` in `data/retrieval/vitals_flags.yaml` matching the patient's chronological `AgeGroup` population partition. Unmapped syndromes (e.g., `"kidney_stone"`) deterministically abstain (`AbstainCode.UNKNOWN_SYNDROME`) and trigger extractive/safety-only fallback (`llm_fallback_mode=True`).
+- **Paediatric/Infant/Neonate Query Vitals Flags:** Where age-stratified vital-sign query flag thresholds are unverified (`status: NEEDS_SOURCE` in `data/retrieval/vitals_flags.yaml`), the query builder omits those vital flag tokens and records them in `skipped_flags` rather than inventing cutoffs (Rule R3).
+- **Deterministic Support Heuristic vs. Full NLI:** `verify_step_support()` enforces verbatim substring matching, lexical overlap ($\ge 0.08$), child-node specificity, drug/alias mention, and action-cue polarity (`administer` vs. `withhold`), which catches citation laundering and polarity inversions deterministically offline but is not a substitute for human clinical guideline review.

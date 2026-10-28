@@ -14,8 +14,8 @@ Prioritized engineering and clinical verification backlog (ordered by safety pri
 8. **[P1-DATA] FHIR R4 Bundle Ingestion**: Ingest standard FHIR R4 `Patient`, `Condition`, `Observation`, and `MedicationStatement` resources directly into `triagerag.contracts.schemas.Patient`.
 9. **[P2-I18N] Multilingual & Hinglish Query Normalization**: Expand alias and chief complaint normalization to handle Hinglish and code-switched colloquial descriptions.
 10. **[P2-SAFETY] DDI Dataset Evaluation & Licensing Review**: Evaluate standard Drug-Drug Interaction datasets (e.g., DrugBank / openFDA) with strict copyright review before integration.
-11. **[P2-RAG] Structured Protocol Flowchart Parser**: Convert visual emergency clinical algorithms/flowcharts into deterministic decision-tree representations.
-12. **[P2-EVAL] Retrieval Score Threshold Calibration**: Empirically calibrate BM25 and dense retrieval score cutoffs on clinical query distributions to minimize abstain false-positives while preventing hallucinated retrievals.
+11. **[COMPLETED in WP2/WP7] Structured Protocol Flowchart Parser**: Implemented `chunk_decision_graph_json()` adapter in `src/triagerag/rag/chunking.py`.
+12. **[COMPLETED in WP5] Retrieval Score Threshold Calibration**: Calibrated BM25/dense retrieval score cutoffs on the 160-case node-level dataset with ECE and reliability curves (`eval/reports/retrieval_calibration.md`).
 13. **[P2-EVAL] Real-Model Ablation Study**: Execute full 3-arm ablation with live frontier LLMs (Gemini, Claude, GPT-4) comparing naive generation vs unverified RAG vs TriageRAG verified pipeline.
 14. **[P2-FEATURE] Continuous Vital Sign Trend Analysis**: Detect physiological deterioration trends (e.g. delta MAP over 30 mins) rather than static snapshot scores.
 15. **[P3-UX] Voice Dictation Normalizer for Bedside Triage**: Add offline Whisper-based transcription pipeline with prompt-injection filtering.
