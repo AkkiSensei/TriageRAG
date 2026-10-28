@@ -215,3 +215,17 @@
   3. Updated `src/triagerag/llm/prompts.py` (`sanitize_protocol_chunk_for_prompt` + `<untrusted_retrieved_protocol_data>` delimiter) and `src/triagerag/llm/fake.py` (`_select_supporting_chunk_and_span`).
   4. Extended `eval/run_mutation.py` with 5 new grounding/RAG mutants (`M29`–`M33`), achieving **45/45 killed (100.0%)**.
 - **Tests:** `tests/unit/test_rag_regressions.py` (all 7/7 probes GREEN) and `tests/unit/test_rag_wp6_grounding.py` (4/4 GREEN).
+
+
+### WP7 — Hybrid & Rerank Experiment (`rag-wp7`)
+- **Findings Addressed:** RAG-08 (claimed hybrid RRF / reranker vs. lexical-only implementation).
+- **Root Cause:** `docs/ARCHITECTURE.md` claimed `BM25 / RRF Retrieval` while only `BM25ClinicalIndex` was implemented and no comparative ablation across lexical, dense, hybrid RRF, and reranked arms existed.
+- **Remediation:**
+  1. Implemented `DenseRetriever`, `HybridRRFRetriever` (`hybrid_rrf` and `hybrid_rrf_rerank`), and `build_retriever_backend` in `src/triagerag/rag/hybrid.py`, all conforming to `@runtime_checkable class Retriever(Protocol)` and enforcing identical query-time hard population and syndrome filters.
+  2. Created `eval/run_retrieval_ablation.py` evaluating all 4 arms on the 160-case WP5 dataset and writing `eval/reports/retrieval_ablation.json` and `eval/reports/retrieval_ablation.md`:
+     - `bm25`: 100.0% R@5, 0.8840 MRR, 0.9242 nDCG@5, 0.0000 Wrong-Protocol Rate
+     - `dense`: 99.0% R@5, 0.8873 MRR, 0.9174 nDCG@5, 0.0000 Wrong-Protocol Rate
+     - `hybrid_rrf`: 96.1% R@5, 0.8578 MRR, 0.8973 nDCG@5, 0.0000 Wrong-Protocol Rate
+     - `hybrid_rrf_rerank`: 100.0% R@5, 0.8971 MRR, 0.9297 nDCG@5, 0.0000 Wrong-Protocol Rate
+  3. Updated `docs/ARCHITECTURE.md` to accurately reflect the `Retriever` protocol, default `BM25ClinicalIndex`, optional `DenseRetriever` / `HybridRRFRetriever`, and ablation results.
+- **Tests:** `tests/unit/test_rag_wp7_hybrid.py` (2/2 PASS).

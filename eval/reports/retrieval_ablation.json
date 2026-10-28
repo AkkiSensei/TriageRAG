@@ -1,0 +1,181 @@
+{
+  "suite": "retrieval_ablation",
+  "total_cases": 160,
+  "test_cases": 62,
+  "default_production_backend": "bm25",
+  "arms": {
+    "bm25": {
+      "backend": "bm25",
+      "label": "Arm 1: Lexical BM25 (Default)",
+      "recall_at_5": 100.0,
+      "mrr": 0.884,
+      "ndcg_at_5": 0.9242,
+      "wrong_protocol_rate": 0.0,
+      "hard_negative_abstain_recall": 1.0,
+      "abstain_precision": 1.0,
+      "abstain_recall": 1.0,
+      "ece": 0.1531,
+      "latency_p50_ms": 10.978,
+      "latency_p95_ms": 13.873,
+      "test_split": {
+        "total_cases": 62,
+        "positive_cases": 39,
+        "abstain_cases": 23,
+        "recall_at_5": 100.0,
+        "recall_at_5_ci95": [
+          100.0,
+          100.0
+        ],
+        "mrr": 0.859,
+        "mrr_ci95": [
+          0.7821,
+          0.9316
+        ],
+        "ndcg_at_5": 0.914,
+        "ndcg_at_5_ci95": [
+          0.8776,
+          0.9476
+        ],
+        "abstain_precision": 1.0,
+        "abstain_recall": 1.0,
+        "abstain_accuracy": 100.0,
+        "abstain_code_accuracy": 100.0,
+        "abstain_recall_hard_negatives": 1.0,
+        "wrong_protocol_rate": 0.0,
+        "ece": 0.1456,
+        "latency_p50_ms": 11.315,
+        "latency_p95_ms": 12.661
+      }
+    },
+    "dense": {
+      "backend": "dense",
+      "label": "Arm 2: Dense Vector Cosine (Char 3-gram + Token TF-IDF)",
+      "recall_at_5": 99.02,
+      "mrr": 0.8873,
+      "ndcg_at_5": 0.9174,
+      "wrong_protocol_rate": 0.0,
+      "hard_negative_abstain_recall": 1.0,
+      "abstain_precision": 0.9831,
+      "abstain_recall": 1.0,
+      "ece": 0.3575,
+      "latency_p50_ms": 15.361,
+      "latency_p95_ms": 23.684,
+      "test_split": {
+        "total_cases": 62,
+        "positive_cases": 39,
+        "abstain_cases": 23,
+        "recall_at_5": 97.44,
+        "recall_at_5_ci95": [
+          92.31,
+          100.0
+        ],
+        "mrr": 0.8803,
+        "mrr_ci95": [
+          0.7991,
+          0.9487
+        ],
+        "ndcg_at_5": 0.9008,
+        "ndcg_at_5_ci95": [
+          0.8335,
+          0.9516
+        ],
+        "abstain_precision": 0.9583,
+        "abstain_recall": 1.0,
+        "abstain_accuracy": 98.39,
+        "abstain_code_accuracy": 98.39,
+        "abstain_recall_hard_negatives": 1.0,
+        "wrong_protocol_rate": 0.0,
+        "ece": 0.3426,
+        "latency_p50_ms": 17.819,
+        "latency_p95_ms": 27.851
+      }
+    },
+    "hybrid_rrf": {
+      "backend": "hybrid_rrf",
+      "label": "Arm 3: Hybrid Reciprocal Rank Fusion (BM25 + Dense)",
+      "recall_at_5": 96.08,
+      "mrr": 0.8578,
+      "ndcg_at_5": 0.8973,
+      "wrong_protocol_rate": 0.0,
+      "hard_negative_abstain_recall": 1.0,
+      "abstain_precision": 0.9355,
+      "abstain_recall": 1.0,
+      "ece": 0.146,
+      "latency_p50_ms": 15.539,
+      "latency_p95_ms": 22.981,
+      "test_split": {
+        "total_cases": 62,
+        "positive_cases": 39,
+        "abstain_cases": 23,
+        "recall_at_5": 94.87,
+        "recall_at_5_ci95": [
+          87.18,
+          100.0
+        ],
+        "mrr": 0.8333,
+        "mrr_ci95": [
+          0.7436,
+          0.9103
+        ],
+        "ndcg_at_5": 0.8815,
+        "ndcg_at_5_ci95": [
+          0.8028,
+          0.945
+        ],
+        "abstain_precision": 0.92,
+        "abstain_recall": 1.0,
+        "abstain_accuracy": 96.77,
+        "abstain_code_accuracy": 96.77,
+        "abstain_recall_hard_negatives": 1.0,
+        "wrong_protocol_rate": 0.0,
+        "ece": 0.1365,
+        "latency_p50_ms": 11.612,
+        "latency_p95_ms": 13.093
+      }
+    },
+    "hybrid_rrf_rerank": {
+      "backend": "hybrid_rrf_rerank",
+      "label": "Arm 4: Hybrid RRF + Lexical Overlap Reranker",
+      "recall_at_5": 100.0,
+      "mrr": 0.8971,
+      "ndcg_at_5": 0.9297,
+      "wrong_protocol_rate": 0.0,
+      "hard_negative_abstain_recall": 1.0,
+      "abstain_precision": 1.0,
+      "abstain_recall": 1.0,
+      "ece": 0.1255,
+      "latency_p50_ms": 11.778,
+      "latency_p95_ms": 14.461,
+      "test_split": {
+        "total_cases": 62,
+        "positive_cases": 39,
+        "abstain_cases": 23,
+        "recall_at_5": 100.0,
+        "recall_at_5_ci95": [
+          100.0,
+          100.0
+        ],
+        "mrr": 0.8846,
+        "mrr_ci95": [
+          0.8205,
+          0.9487
+        ],
+        "ndcg_at_5": 0.9239,
+        "ndcg_at_5_ci95": [
+          0.8871,
+          0.9561
+        ],
+        "abstain_precision": 1.0,
+        "abstain_recall": 1.0,
+        "abstain_accuracy": 100.0,
+        "abstain_code_accuracy": 100.0,
+        "abstain_recall_hard_negatives": 1.0,
+        "wrong_protocol_rate": 0.0,
+        "ece": 0.1205,
+        "latency_p50_ms": 11.45,
+        "latency_p95_ms": 12.092
+      }
+    }
+  },
+  "status": "PASS"
+}

@@ -163,7 +163,7 @@ def _build_ablation_test_cases() -> list[tuple[Patient, PlanDraft]]:
         ],
         renal_impairment="no",
         hepatic_impairment="no",
-        suspected_syndrome="paediatric_sepsis_screen",
+        suspected_syndrome="paediatric_sepsis",
         chief_complaint_untrusted="",
     )
     d2 = PlanDraft(
@@ -468,8 +468,11 @@ def generate_ablation_markdown(
 
 
 if __name__ == "__main__":
+    from eval.run_retrieval_ablation import run_retrieval_ablation_suite
+
     arm_a, arm_b, arm_c = run_ablation_suite()
     report_file = Path(__file__).resolve().parent / "reports" / "ablation.md"
     content = generate_ablation_markdown(arm_a, arm_b, arm_c, report_file)
     print(content)
     print(f"\nAblation report successfully generated at: {report_file}")
+    run_retrieval_ablation_suite()
