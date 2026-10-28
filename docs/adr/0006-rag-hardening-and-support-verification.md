@@ -30,3 +30,4 @@ During the comprehensive RAG subsystem postmortem audit (`RAG-01` through `RAG-1
 ## Consequences
 - **Zero Wrong-Protocol Rate:** Unknown or out-of-scope syndromes deterministically abstain (`UNKNOWN_SYNDROME`), achieving `0.00%` Wrong-Protocol Rate on the 160-case evaluation benchmark.
 - **Elimination of Citation Laundering:** Mutants `M29`–`M33` verify that dropping drug support, withhold-cue polarity, overlap gates, child-node specificity, or unknown-syndrome abstention is immediately caught by the test and mutation suites (`45/45` killed).
+

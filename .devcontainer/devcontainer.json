@@ -1,0 +1,19 @@
+{
+  "name": "TriageRAG Clinical Decision Support Prototype",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".."
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "ms-python.mypy-type-checker"
+      ]
+    }
+  },
+  "forwardPorts": [8000, 5173],
+  "postCreateCommand": "pip install -e '.[api,dev]'"
+}
+

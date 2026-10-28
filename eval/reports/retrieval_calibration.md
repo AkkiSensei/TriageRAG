@@ -5,7 +5,7 @@
 - **Dataset:** `eval/retrieval/dataset.yaml` (160 cases: 98 dev [60%], 62 test [40%])
 - **Corpus Hash:** `591c6cd10f3067be`
 - **Index Version:** `2.0.0`
-- **Config Hash:** `20acd1dc181ef4be`
+- **Config Hash:** `b1efcb3502204f8d`
 - **Calibrated Threshold (dev):** `0.15` (Syndrome-Inferred Threshold: `0.35`, Min Margin: `0.25`)
 
 ## Held-Out Test Split vs Dev Split Metrics (Node-Level)
@@ -19,4 +19,4 @@
 | **Hard-Negative Abstain Recall** | 1.0000 | **1.0000** | Gate: == 1.0000 |
 | **Abstain Precision / Recall** | 1.0000 / 1.0000 | **1.0000 / 1.0000** | - |
 | **Expected Calibration Error (ECE)** | 0.1577 | **0.1456** | - |
-| **Latency p50 / p95 (ms)** | 10.910 / 12.458 | **11.309 / 12.238** | Budget: p95 < 50 ms |
+| **Latency p50 / p95 (ms)** | 11.629 / 14.119 | **11.128 / 11.651** | Budget: p95 < 50 ms |

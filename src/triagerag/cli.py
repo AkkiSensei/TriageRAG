@@ -356,6 +356,105 @@ def audit_verify(
         raise typer.Exit(code=1)
 
 
+@app.command("retrieve")
+def retrieve_cmd(
+    scenario: Annotated[
+        str | None,
+        typer.Option("--scenario", help="Preloaded scenario: BLOCK | UNVERIFIED | HIGH | CLEAN"),
+    ] = None,
+    syndrome: Annotated[
+        str | None,
+        typer.Option("--syndrome", help="Suspected clinical syndrome to query"),
+    ] = None,
+    population: Annotated[
+        str,
+        typer.Option("--population", help="Population slice: adult | paediatric | neonate"),
+    ] = "adult",
+    explain: Annotated[
+        bool,
+        typer.Option("--explain", help="Print full BM25 term contribution and abstention trace"),
+    ] = True,
+    backend: Annotated[
+        str,
+        typer.Option("--backend", help="Retriever backend: bm25 | dense | hybrid_rrf"),
+    ] = "bm25",
+) -> None:
+    """Execute protocol retrieval and render the Retrieval Inspector diagnostic trace."""
+    from datetime import UTC, datetime
+    from decimal import Decimal
+
+    from triagerag.contracts.enums import AgeUnit
+    from triagerag.contracts.scenarios import get_preloaded_scenario
+    from triagerag.contracts.schemas import Age, Measured, Vitals
+
+    _print_disclaimer()
+    data_dir = get_data_dir()
+    service = RetrievalService.create_default(data_dir, backend=backend)
+
+    if scenario is not None:
+        patient, _ = get_preloaded_scenario(scenario)
+    else:
+        pop_lower = population.lower().strip()
+        if pop_lower == "neonate":
+            age = Age(value=Decimal("10"), unit=AgeUnit.days)
+            weight = Decimal("3.5")
+        elif pop_lower == "paediatric":
+            age = Age(value=Decimal("6"), unit=AgeUnit.years)
+            weight = Decimal("20.0")
+        else:
+            age = Age(value=Decimal("45"), unit=AgeUnit.years)
+            weight = Decimal("75.0")
+
+        patient = Patient(
+            assessed_at=datetime(2026, 10, 26, 12, 0, 0, tzinfo=UTC),
+            age=age,
+            sex="female",
+            pregnancy="not_applicable" if pop_lower != "adult" else "no",
+            weight_kg=Measured[Decimal](value=weight, source="measured"),
+            vitals=Vitals(
+                heart_rate_bpm=Measured[int](value=115, source="measured"),
+                systolic_bp_mmhg=Measured[int](value=85, source="measured"),
+            ),
+            medication_history_status="confirmed_none",
+            allergy_history_status="confirmed_none",
+            suspected_syndrome=syndrome,
+        )
+
+    trace = service.explain(patient)
+    console.print(
+        Panel(
+            f"Query String: {trace['query']}\n"
+            f"Vitals Flags: {trace['vitals_derived_flags']}\n"
+            f"Population: {trace['population']} | Raw Syndrome: {trace['raw_syndrome']} -> "
+            f"Normalized: {trace['normalized_syndrome']}\n"
+            f"Abstained: {trace['abstained']} | AbstainCode: {trace['abstain_code']}\n"
+            f"Reason: {trace['reason']}\n"
+            f"Corpus Hash: {trace['corpus_hash'][:16]} | Index Version: {trace['index_version']}",
+            title="RETRIEVAL INSPECTOR SUMMARY",
+            border_style="cyan",
+        )
+    )
+
+    if explain and trace.get("bm25_trace"):
+        bm25_t = trace["bm25_trace"]
+        cand_table = Table(title="BM25 CANDIDATE SCORING TRACE", expand=True)
+        cand_table.add_column("Chunk ID")
+        cand_table.add_column("Syndrome")
+        cand_table.add_column("Score", justify="right")
+        cand_table.add_column("Term Contributions")
+        for cand in bm25_t.get("candidates", []):
+            contrib_str = ", ".join(
+                f"{k}={v:.3f}" for k, v in cand.get("term_contributions", {}).items()
+            )
+            cand_table.add_row(
+                str(cand.get("chunk_id")),
+                str(cand.get("syndrome")),
+                f"{cand.get('total_score', 0.0):.4f}",
+                contrib_str or "-",
+            )
+        console.print(cand_table)
+
+
 @corpus_app.command("validate")
 def corpus_validate(
     data_dir: Annotated[

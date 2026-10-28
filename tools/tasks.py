@@ -164,6 +164,15 @@ def ui() -> None:
 
 
 @app.command()
+def demo() -> None:
+    """Run an offline end-to-end demo across preloaded scenarios + retrieval inspector."""
+    typer.secho("=== Running TriageRAG Offline Demo ===", fg=typer.colors.GREEN, bold=True)
+    _run([sys.executable, "-m", "triagerag.cli", "corpus", "validate"])
+    _run([sys.executable, "-m", "triagerag.cli", "retrieve", "--scenario", "BLOCK", "--explain"])
+    _run([sys.executable, "-m", "triagerag.cli", "triage", "--scenario", "BLOCK"])
+
+
+@app.command()
 def api(
     host: Annotated[str, typer.Option("--host", help="Host interface to bind")] = "127.0.0.1",
     port: Annotated[int, typer.Option("--port", help="Port to bind")] = 8000,

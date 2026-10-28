@@ -4,8 +4,8 @@
   "dataset_version": "2.0.0",
   "corpus_hash": "591c6cd10f3067be58abf29ecbda0d5dd2b46eee6d09d99e36057de25aed763b",
   "index_version": "2.0.0",
-  "config_hash": "20acd1dc181ef4be87b50981ce044076aad72f458a97eaabca2f9ba8bcbfd508",
-  "index_build_time_ms": 17.192,
+  "config_hash": "b1efcb3502204f8d66b0fb505098f22d305c3d9cfef33885470f6c495b18ae69",
+  "index_build_time_ms": 14.505,
   "deterministic": true,
   "benchmark_pairs": 102,
   "total_cases": 160,
@@ -41,8 +41,8 @@
     "abstain_recall_hard_negatives": 1.0,
     "wrong_protocol_rate": 0.0,
     "ece": 0.1577,
-    "latency_p50_ms": 10.91,
-    "latency_p95_ms": 12.458
+    "latency_p50_ms": 11.629,
+    "latency_p95_ms": 14.119
   },
   "test": {
     "total_cases": 62,
@@ -70,8 +70,8 @@
     "abstain_recall_hard_negatives": 1.0,
     "wrong_protocol_rate": 0.0,
     "ece": 0.1456,
-    "latency_p50_ms": 11.309,
-    "latency_p95_ms": 12.238
+    "latency_p50_ms": 11.128,
+    "latency_p95_ms": 11.651
   },
   "overall": {
     "total_cases": 160,
@@ -99,8 +99,8 @@
     "abstain_recall_hard_negatives": 1.0,
     "wrong_protocol_rate": 0.0,
     "ece": 0.1531,
-    "latency_p50_ms": 11.535,
-    "latency_p95_ms": 18.913
+    "latency_p50_ms": 11.596,
+    "latency_p95_ms": 16.874
   },
   "status": "PASS"
 }

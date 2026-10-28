@@ -241,3 +241,15 @@
   4. Extended `AuditRecord`, `append_audit_entry`, and `AuditEntryDto` with `retrieval_query`, `retrieval_filters`, `retrieval_stage_scores`, `corpus_hash`, `index_version`, `config_hash`, and `abstain_code`.
   5. Authored `docs/adr/0006-rag-hardening-and-support-verification.md`.
 - **Tests:** `tests/unit/test_rag_wp8_service_and_audit.py` (4/4 PASS).
+
+
+### WP9 — Ease of Use & Ops (`rag-wp9`)
+- **Findings Addressed:** RAG-16 (lack of retrieval explainability CLI/UI, containerization, and 10k-chunk scale latency verification).
+- **Root Cause:** Operators lacked a CLI `retrieve --explain` diagnostic command, UI retrieval inspection panel showing `abstain_code` and `corpus_hash`, Docker/DevContainer packaging, and 10,000-chunk scale benchmark verification.
+- **Remediation:**
+  1. Added `triagerag retrieve --scenario <ID> --explain` (and `--syndrome` / `--population`) to `src/triagerag/cli.py`.
+  2. Updated `web/src/features/results/RetrievalView.tsx` and `web/src/types/api.ts` to render the Retrieval Inspector diagnostic banner (`abstain_code`, `query`, `backend`, `index_version`, `corpus_hash`) and abstention alerts.
+  3. Optimized `BM25ClinicalIndex` with precomputed syndrome index partitions (`indices_by_syndrome`) and cached config parameters, and created `eval/run_latency_benchmark.py` verifying 10,000-chunk scale performance (`p50 = 3.945 ms`, `p95 = 5.648 ms` < `50.0 ms` target) and writing `eval/reports/latency_benchmark.json`.
+  4. Added `Dockerfile`, `docker-compose.yml`, `.devcontainer/devcontainer.json`, `pyproject.toml` dependency groups (`core`, `rag`, `ui`, `api`, `llm`, `dense`, `dev`), and `demo` task in `tools/tasks.py` and `Makefile`.
+- **Tests:** `tests/unit/test_rag_wp9_ops.py` (4/4 PASS).
+

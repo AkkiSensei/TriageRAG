@@ -135,6 +135,50 @@
         }
       }
     },
+    "/api/triage/explain": {
+      "post": {
+        "tags": [
+          "triage"
+        ],
+        "summary": "Explain Triage Retrieval",
+        "description": "Return full Retrieval Inspector diagnostic trace for a patient presentation.",
+        "operationId": "explain_triage_retrieval_api_triage_explain_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriageApiRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Explain Triage Retrieval Api Triage Explain Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/registry/summary": {
       "get": {
         "tags": [
@@ -297,10 +341,31 @@
         }
       }
     },
-    "/": {
+    "/health": {
       "get": {
-        "summary": "Root",
-        "operationId": "root__get",
+        "tags": [
+          "health"
+        ],
+        "summary": "Get Health",
+        "operationId": "get_health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api": {
+      "get": {
+        "summary": "Api Info",
+        "operationId": "api_info_api_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -311,7 +376,44 @@
                     "type": "string"
                   },
                   "type": "object",
-                  "title": "Response Root  Get"
+                  "title": "Response Api Info Api Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/{full_path}": {
+      "get": {
+        "summary": "Serve Spa",
+        "operationId": "serve_spa__full_path__get",
+        "parameters": [
+          {
+            "name": "full_path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Full Path"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -322,6 +424,21 @@
   },
   "components": {
     "schemas": {
+      "AbstainCode": {
+        "type": "string",
+        "enum": [
+          "NONE",
+          "NO_POPULATION_COVERAGE",
+          "UNKNOWN_SYNDROME",
+          "LOW_CONFIDENCE",
+          "AMBIGUOUS_MARGIN",
+          "EMPTY_QUERY",
+          "INDEX_UNAVAILABLE",
+          "SYNDROME_INFERRED"
+        ],
+        "title": "AbstainCode",
+        "description": "Typed outcome codes for retrieval abstention and syndrome inference (RAG-01, RAG-15)."
+      },
       "ActionType": {
         "type": "string",
         "enum": [
@@ -532,6 +649,41 @@
             },
             "type": "array",
             "title": "Retrieved Chunk Ids"
+          },
+          "retrieval_query": {
+            "type": "string",
+            "title": "Retrieval Query",
+            "default": ""
+          },
+          "retrieval_filters": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Retrieval Filters"
+          },
+          "retrieval_stage_scores": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Retrieval Stage Scores"
+          },
+          "corpus_hash": {
+            "type": "string",
+            "title": "Corpus Hash",
+            "default": ""
+          },
+          "index_version": {
+            "type": "string",
+            "title": "Index Version",
+            "default": ""
+          },
+          "config_hash": {
+            "type": "string",
+            "title": "Config Hash",
+            "default": ""
+          },
+          "abstain_code": {
+            "type": "string",
+            "title": "Abstain Code",
+            "default": "NONE"
           },
           "provider_name": {
             "type": "string",
@@ -1673,6 +1825,22 @@
             "type": "string",
             "title": "Doc Id"
           },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "default": ""
+          },
           "section": {
             "type": "string",
             "title": "Section"
@@ -1691,8 +1859,55 @@
           },
           "synthetic": {
             "type": "boolean",
-            "title": "Synthetic",
-            "default": true
+            "title": "Synthetic"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": "1.0.0"
+          },
+          "content_hash": {
+            "type": "string",
+            "title": "Content Hash",
+            "default": ""
+          },
+          "license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License"
+          },
+          "attribution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attribution"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "source_status": {
+            "type": "string",
+            "title": "Source Status",
+            "default": "PLACEHOLDER_UNRETRIEVED"
           }
         },
         "type": "object",
@@ -1702,7 +1917,8 @@
           "section",
           "population",
           "syndrome",
-          "text"
+          "text",
+          "synthetic"
         ],
         "title": "ProtocolChunkDto"
       },
@@ -1831,6 +2047,10 @@
             "title": "Abstained",
             "default": false
           },
+          "abstain_code": {
+            "$ref": "#/components/schemas/AbstainCode",
+            "default": "NONE"
+          },
           "reason": {
             "anyOf": [
               {
@@ -1841,12 +2061,49 @@
               }
             ],
             "title": "Reason"
+          },
+          "query": {
+            "type": "string",
+            "title": "Query",
+            "default": ""
+          },
+          "filters": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Filters"
+          },
+          "stage_scores": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Stage Scores"
+          },
+          "corpus_hash": {
+            "type": "string",
+            "title": "Corpus Hash",
+            "default": ""
+          },
+          "index_version": {
+            "type": "string",
+            "title": "Index Version",
+            "default": "1.0.0"
+          },
+          "config_hash": {
+            "type": "string",
+            "title": "Config Hash",
+            "default": ""
           }
         },
         "additionalProperties": false,
         "type": "object",
         "title": "RetrievalReport",
-        "description": "Report on retrieval execution, backend used, and abstain decisions."
+        "description": "Report on retrieval execution, backend used, provenance hashes, and abstain decisions."
       },
       "RetrievedChunk": {
         "properties": {
@@ -1861,6 +2118,17 @@
           "chunk_id": {
             "type": "string",
             "title": "Chunk Id"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
           },
           "text": {
             "type": "string",
@@ -2400,6 +2668,17 @@
             "type": "string",
             "title": "Citation Overlap Score",
             "default": "0.0"
+          },
+          "support_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Support Reason"
           }
         },
         "additionalProperties": false,

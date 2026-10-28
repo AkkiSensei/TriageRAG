@@ -689,6 +689,8 @@ export interface components {
     RetrievalReport: {
       /** Chunks */
       chunks?: components["schemas"]["RetrievedChunk"][];
+      /** Parent Chunks */
+      parent_chunks?: components["schemas"]["RetrievedChunk"][];
       /**
        * Backend
        * @default bm25
@@ -699,8 +701,31 @@ export interface components {
        * @default false
        */
       abstained?: boolean;
+      /**
+       * Abstain Code
+       * @default NONE
+       */
+      abstain_code?: string;
       /** Reason */
       reason?: string | null;
+      /** Query */
+      query?: string;
+      /** Filters */
+      filters?: {
+        [key: string]: string | null;
+      };
+      /** Stage Scores */
+      stage_scores?: {
+        [key: string]: {
+          [key: string]: number;
+        };
+      };
+      /** Corpus Hash */
+      corpus_hash?: string;
+      /** Index Version */
+      index_version?: string;
+      /** Config Hash */
+      config_hash?: string;
     };
     /**
      * RetrievedChunk
@@ -713,6 +738,8 @@ export interface components {
       section: string;
       /** Chunk Id */
       chunk_id: string;
+      /** Parent Id */
+      parent_id?: string | null;
       /** Text */
       text: string;
       /** Population */
@@ -724,6 +751,8 @@ export interface components {
        * @default 0.0
        */
       score?: string;
+      /** Content Hash */
+      content_hash?: string;
     };
     /**
      * Route

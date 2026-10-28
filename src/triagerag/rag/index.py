@@ -166,8 +166,11 @@ class _PopulationBM25Stats:
         self.doc_term_freqs: list[Counter[str]] = []
         self.doc_lengths: list[int] = []
         self.doc_freqs: Counter[str] = Counter()
+        self.indices_by_syndrome: dict[str, list[int]] = {}
 
-        for chunk in self.chunks:
+        for idx, chunk in enumerate(self.chunks):
+            syn_key = chunk.syndrome.lower().strip()
+            self.indices_by_syndrome.setdefault(syn_key, []).append(idx)
             tokens = tokenizer.tokenize(chunk.indexed_text or chunk.text)
             tf = Counter(tokens)
             self.doc_term_freqs.append(tf)
@@ -195,6 +198,8 @@ class BM25ClinicalIndex:
         cfg = load_retrieval_config()
         self.k1: float = cfg.bm25_k1
         self.b: float = cfg.bm25_b
+        self.score_decimal_places: int = cfg.score_decimal_places
+        self.default_top_k: int = cfg.top_k
         self.tokenizer = ClinicalTokenizer(acronyms=acronyms)
         self.all_chunks: tuple[ProtocolChunk, ...] = tuple(chunks)
         self.corpus_hash: str = compute_corpus_hash(chunks)
@@ -262,7 +267,7 @@ class BM25ClinicalIndex:
             total_score += contrib
             term_contributions[token] = round(
                 term_contributions.get(token, 0.0) + contrib,
-                load_retrieval_config().score_decimal_places,
+                self.score_decimal_places,
             )
         return float(total_score), term_contributions
 
@@ -274,8 +279,7 @@ class BM25ClinicalIndex:
         syndrome: str | None = None,
     ) -> list[tuple[ProtocolChunk, float]]:
         """Search the index for a query within a mandatory population and optional syndrome."""
-        cfg = load_retrieval_config()
-        eff_top_k = top_k if top_k is not None else cfg.top_k
+        eff_top_k = top_k if top_k is not None else self.default_top_k
 
         pop_key = population.lower().strip()
         if pop_key not in self._stats_by_population:
@@ -287,11 +291,15 @@ class BM25ClinicalIndex:
 
         stats = self._stats_by_population[pop_key]
         syn_filter = syndrome.lower().strip() if syndrome else None
+        candidate_indices = (
+            stats.indices_by_syndrome.get(syn_filter, [])
+            if syn_filter is not None
+            else range(len(stats.chunks))
+        )
 
         scored_chunks: list[tuple[ProtocolChunk, float]] = []
-        for local_idx, chunk in enumerate(stats.chunks):
-            if syn_filter is not None and chunk.syndrome.lower().strip() != syn_filter:
-                continue
+        for local_idx in candidate_indices:
+            chunk = stats.chunks[local_idx]
             score, _ = self._score_doc_in_stats(stats, local_idx, query_tokens)
             scored_chunks.append((chunk, float(score)))
 
@@ -306,8 +314,7 @@ class BM25ClinicalIndex:
         syndrome: str | None = None,
     ) -> dict[str, Any]:
         """Return detailed BM25 term contributions, tokens, and filter trace for inspection."""
-        cfg = load_retrieval_config()
-        eff_top_k = top_k if top_k is not None else cfg.top_k
+        eff_top_k = top_k if top_k is not None else self.default_top_k
         pop_key = population.lower().strip()
         query_tokens = self.tokenizer.tokenize(query)
         syn_filter = syndrome.lower().strip() if syndrome else None
@@ -322,10 +329,14 @@ class BM25ClinicalIndex:
             }
 
         stats = self._stats_by_population[pop_key]
+        candidate_indices = (
+            stats.indices_by_syndrome.get(syn_filter, [])
+            if syn_filter is not None
+            else range(len(stats.chunks))
+        )
         explained: list[dict[str, Any]] = []
-        for local_idx, chunk in enumerate(stats.chunks):
-            if syn_filter is not None and chunk.syndrome.lower().strip() != syn_filter:
-                continue
+        for local_idx in candidate_indices:
+            chunk = stats.chunks[local_idx]
             score, contribs = self._score_doc_in_stats(stats, local_idx, query_tokens)
             explained.append(
                 {
@@ -333,7 +344,7 @@ class BM25ClinicalIndex:
                     "doc_id": chunk.doc_id,
                     "parent_id": chunk.parent_id,
                     "syndrome": chunk.syndrome,
-                    "score": round(float(score), cfg.score_decimal_places),
+                    "score": round(float(score), self.score_decimal_places),
                     "term_contributions": contribs,
                 }
             )

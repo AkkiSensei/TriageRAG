@@ -1,4 +1,4 @@
-.PHONY: all verify lint format test eval ui validate-data clean
+.PHONY: all verify lint format test eval ui demo validate-data clean
 
 PYTHON ?= python
 
@@ -18,6 +18,9 @@ eval:
 
 ui:
 	$(PYTHON) tools/tasks.py ui
+
+demo:
+	$(PYTHON) tools/tasks.py demo
 
 validate-data:
 	$(PYTHON) tools/tasks.py validate-data

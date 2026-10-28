@@ -1,0 +1,14 @@
+services:
+  triagerag-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - TRIAGERAG_DATA_DIR=/app/data
+      - TRIAGERAG_AUDIT_PATH=/app/var/audit_log.jsonl
+    volumes:
+      - ./var:/app/var
+    restart: unless-stopped
+
