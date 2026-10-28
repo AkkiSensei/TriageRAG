@@ -73,6 +73,13 @@ class AuditRecord(BaseModel):
     ruleset_version: str
     formulary_version: str
     retrieved_chunk_ids: list[str]
+    retrieval_query: str = ""
+    retrieval_filters: dict[str, Any] = Field(default_factory=dict)
+    retrieval_stage_scores: dict[str, Any] = Field(default_factory=dict)
+    corpus_hash: str = ""
+    index_version: str = ""
+    config_hash: str = ""
+    abstain_code: str = "NONE"
     provider_name: str
     model_name: str
     verdict: str
@@ -113,6 +120,14 @@ def append_audit_entry(
     skipped_rule_ids: list[str],
     override_records: list[dict[str, Any]] | None = None,
     timestamp_iso: str | None = None,
+    *,
+    retrieval_query: str = "",
+    retrieval_filters: dict[str, Any] | None = None,
+    retrieval_stage_scores: dict[str, Any] | None = None,
+    corpus_hash: str = "",
+    index_version: str = "",
+    config_hash: str = "",
+    abstain_code: str = "NONE",
 ) -> str:
     """Append a cryptographically chained audit record under an exclusive file lock.
 
@@ -135,6 +150,13 @@ def append_audit_entry(
             "ruleset_version": ruleset_version,
             "formulary_version": formulary_version,
             "retrieved_chunk_ids": sorted(retrieved_chunk_ids),
+            "retrieval_query": retrieval_query,
+            "retrieval_filters": retrieval_filters or {},
+            "retrieval_stage_scores": retrieval_stage_scores or {},
+            "corpus_hash": corpus_hash,
+            "index_version": index_version,
+            "config_hash": config_hash,
+            "abstain_code": abstain_code,
             "provider_name": provider_name,
             "model_name": model_name,
             "verdict": verdict,

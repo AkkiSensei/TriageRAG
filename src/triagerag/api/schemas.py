@@ -102,6 +102,13 @@ class AuditEntryDto(BaseModel):
     ruleset_version: str
     formulary_version: str
     retrieved_chunk_ids: list[str]
+    retrieval_query: str = ""
+    retrieval_filters: dict[str, Any] = Field(default_factory=dict)
+    retrieval_stage_scores: dict[str, Any] = Field(default_factory=dict)
+    corpus_hash: str = ""
+    index_version: str = ""
+    config_hash: str = ""
+    abstain_code: str = "NONE"
     provider_name: str
     model_name: str
     verdict: str

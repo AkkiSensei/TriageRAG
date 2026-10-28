@@ -23,12 +23,11 @@ from triagerag.engine.registry import ClinicalRegistry
 from triagerag.llm.fake import FakeLLM, FakeLLMProfile
 from triagerag.orchestrator import run_triage
 from triagerag.rag.chunking import chunk_protocol_markdown, verify_round_trip_invariant
-from triagerag.rag.index import BM25ClinicalIndex
 from triagerag.rag.ingest import (
-    ingest_protocols,
     ingest_protocols_with_report,
     load_corpus_manifest,
 )
+from triagerag.rag.service import RetrievalService
 
 DISCLAIMER: str = (
     "Research prototype. Synthetic data only. Not a medical device. Not for clinical use."
@@ -89,8 +88,8 @@ def run(
 
     data_dir = get_data_dir()
     registry = ClinicalRegistry.load_from_directory(data_dir)
-    chunks = ingest_protocols(data_dir)
-    index = BM25ClinicalIndex(chunks)
+    service = RetrievalService.create_default(data_dir)
+    index = service.index
 
     from triagerag.contracts.scenarios import get_preloaded_scenario
 

@@ -229,3 +229,15 @@
      - `hybrid_rrf_rerank`: 100.0% R@5, 0.8971 MRR, 0.9297 nDCG@5, 0.0000 Wrong-Protocol Rate
   3. Updated `docs/ARCHITECTURE.md` to accurately reflect the `Retriever` protocol, default `BM25ClinicalIndex`, optional `DenseRetriever` / `HybridRRFRetriever`, and ablation results.
 - **Tests:** `tests/unit/test_rag_wp7_hybrid.py` (2/2 PASS).
+
+
+### WP8 — Service, Observability, Reproducibility (`rag-wp8`)
+- **Findings Addressed:** RAG-12 (audit trail missing retrieval metadata & duplicate `formulary_version`), RAG-13 (fragmented index construction & module-global `_INDEX`), RAG-14 (`assert prov is not None` in orchestrator), RAG-15 (Streamlit UI `"paediatric_sepsis_screen"` mismatch).
+- **Root Cause:** `api/routes/triage.py`, `api/routes/protocols.py`, `cli.py`, and `ui/app.py` each built their own `BM25ClinicalIndex` directly from disk; `orchestrator.py` borrowed `registry.rules[0].provenance` with `assert prov is not None` for unscored populations and passed `formulary_version=registry.version` to `append_audit_entry` without logging retrieval query, filters, stage scores, `corpus_hash`, `index_version`, `config_hash`, or `abstain_code`.
+- **Remediation:**
+  1. Wired `RetrievalService.create_default(get_data_dir())` into `api/routes/triage.py` (including new `POST /api/triage/explain`), `api/routes/protocols.py`, `cli.py`, and `ui/app.py` (and fixed `"paediatric_sepsis_screen"` -> `"paediatric_sepsis"`).
+  2. Added deterministic `formulary_version` SHA-256 hash calculation to `ClinicalRegistry`.
+  3. Replaced `registry.rules[0].provenance` and `assert prov is not None` in `src/triagerag/orchestrator.py` with `_UNAVAILABLE_SCORE_PROVENANCE`.
+  4. Extended `AuditRecord`, `append_audit_entry`, and `AuditEntryDto` with `retrieval_query`, `retrieval_filters`, `retrieval_stage_scores`, `corpus_hash`, `index_version`, `config_hash`, and `abstain_code`.
+  5. Authored `docs/adr/0006-rag-hardening-and-support-verification.md`.
+- **Tests:** `tests/unit/test_rag_wp8_service_and_audit.py` (4/4 PASS).

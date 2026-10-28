@@ -6,14 +6,15 @@ from fastapi import APIRouter
 
 from triagerag.api.schemas import ProtocolChunkDto
 from triagerag.config import get_data_dir
-from triagerag.rag.ingest import ingest_protocols
+from triagerag.rag.service import RetrievalService
 
 router = APIRouter(prefix="/protocols", tags=["protocols"])
 
 
 @router.get("", response_model=list[ProtocolChunkDto])
 def list_protocols() -> list[ProtocolChunkDto]:
-    chunks = ingest_protocols(get_data_dir())
+    service = RetrievalService.create_default(get_data_dir())
+    chunks = service.list_chunks()
     return [
         ProtocolChunkDto(
             chunk_id=c.chunk_id,

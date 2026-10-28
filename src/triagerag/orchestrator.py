@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 from triagerag.contracts.enums import (
+    AbstainCode,
     ScoreBand,
     Severity,
     StepStatus,
@@ -28,6 +29,7 @@ from triagerag.contracts.schemas import (
     OverrideRecord,
     PlanContext,
     PlanDraft,
+    Provenance,
     RetrievalReport,
     ScoreResult,
     SystemClock,
@@ -50,9 +52,15 @@ if TYPE_CHECKING:
     from triagerag.contracts.schemas import Patient
     from triagerag.engine.registry import ClinicalRegistry
     from triagerag.llm.provider import LLMProvider
-    from triagerag.rag.index import BM25ClinicalIndex
+    from triagerag.rag.index import Retriever
 
 logger = logging.getLogger(__name__)
+
+_UNAVAILABLE_SCORE_PROVENANCE = Provenance(
+    source_doc="SYNTHETIC_EWS_TABLE_PLACEHOLDER",
+    section_ref="TO_BE_RESOLVED",
+    version_or_date="2026-DRAFT",
+)
 
 
 def compute_patient_hash(patient: Patient) -> str:
@@ -66,7 +74,7 @@ def run_triage(
     *,
     registry: ClinicalRegistry,
     llm: LLMProvider | None = None,
-    index: BM25ClinicalIndex | None = None,
+    index: Retriever | None = None,
     overrides: list[OverrideRecord] | None = None,
     config: OrchestratorConfig | dict[str, Any] | None = None,
     clock: Clock | None = None,
@@ -98,14 +106,12 @@ def run_triage(
         score_result = calculate_early_warning_score(normalized_patient, score_table)
     else:
         # Neonate or unconfigured population table
-        prov = registry.rules[0].provenance if registry.rules else None
-        assert prov is not None
         score_result = ScoreResult(
             score_name=f"EWS_{pop_str.upper()}_UNAVAILABLE",
             total_score=None,
             band=ScoreBand.UNSCORED,
             missing_vitals=["population_table"],
-            provenance=prov,
+            provenance=_UNAVAILABLE_SCORE_PROVENANCE,
         )
 
     # 3. Pass 1 deterministic checks (home medications, allergies, vitals interlocks)
@@ -131,6 +137,7 @@ def run_triage(
             chunks=[],
             backend="none",
             abstained=True,
+            abstain_code=AbstainCode.INDEX_UNAVAILABLE,
             reason="No retrieval index configured",
         )
     else:
@@ -142,6 +149,7 @@ def run_triage(
                 chunks=[],
                 backend=index.backend,
                 abstained=True,
+                abstain_code=AbstainCode.INDEX_UNAVAILABLE,
                 reason=f"Retrieval error: {e}",
             )
 
@@ -312,7 +320,7 @@ def run_triage(
             audit_path=path_obj,
             patient_hash=patient_hash,
             ruleset_version=registry.version,
-            formulary_version=registry.version,
+            formulary_version=registry.formulary_version,
             retrieved_chunk_ids=chunk_ids,
             provider_name=prov_name,
             model_name=str(mod_name),
@@ -321,6 +329,13 @@ def run_triage(
             skipped_rule_ids=[s.rule_id for s in baseline_skips],
             override_records=overrides_dicts,
             timestamp_iso=active_clock.now().isoformat(),
+            retrieval_query=retrieval_report.query,
+            retrieval_filters=dict(retrieval_report.filters),
+            retrieval_stage_scores=dict(retrieval_report.stage_scores),
+            corpus_hash=retrieval_report.corpus_hash,
+            index_version=retrieval_report.index_version,
+            config_hash=retrieval_report.config_hash,
+            abstain_code=retrieval_report.abstain_code.value,
         )
 
     return TriageResponse(

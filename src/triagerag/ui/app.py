@@ -30,8 +30,8 @@ from triagerag.contracts.schemas import (
 from triagerag.engine.registry import ClinicalRegistry
 from triagerag.llm.fake import FakeLLM, FakeLLMProfile
 from triagerag.orchestrator import run_triage
-from triagerag.rag.index import BM25ClinicalIndex
-from triagerag.rag.ingest import ingest_protocols
+from triagerag.rag.index import Retriever
+from triagerag.rag.service import RetrievalService
 from triagerag.ui.components import (
     get_preloaded_scenario,
     render_alerts_and_blocks,
@@ -51,13 +51,12 @@ st.set_page_config(
 
 
 @st.cache_resource
-def load_triage_resources() -> tuple[ClinicalRegistry, BM25ClinicalIndex]:
-    """Load clinical registry and protocol index once."""
+def load_triage_resources() -> tuple[ClinicalRegistry, Retriever]:
+    """Load clinical registry and protocol index once via RetrievalService."""
     data_dir = get_data_dir()
     registry = ClinicalRegistry.load_from_directory(data_dir)
-    chunks = ingest_protocols(data_dir)
-    index = BM25ClinicalIndex(chunks)
-    return registry, index
+    service = RetrievalService.create_default(data_dir)
+    return registry, service.index
 
 
 def main() -> None:
@@ -140,7 +139,7 @@ def main() -> None:
                         "chest_pain",
                         "severe_asthma",
                         "hypoglycemia",
-                        "paediatric_sepsis_screen",
+                        "paediatric_sepsis",
                         "altered_mental_status",
                     ],
                     index=1,

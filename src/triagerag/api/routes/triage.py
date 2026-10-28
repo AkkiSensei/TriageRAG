@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 from typing import Any
 
 from fastapi import APIRouter
@@ -11,41 +12,37 @@ from fastapi import APIRouter
 from triagerag.api.schemas import TriageApiRequest
 from triagerag.config import get_data_dir
 from triagerag.contracts.schemas import OrchestratorConfig, TriageResponse
-from triagerag.engine.registry import load_registry
+from triagerag.engine.registry import ClinicalRegistry, load_registry
 from triagerag.llm.fake import FakeLLM
 from triagerag.orchestrator import run_triage
-from triagerag.rag.index import BM25ClinicalIndex
-from triagerag.rag.ingest import ingest_protocols
+from triagerag.rag.service import RetrievalService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/triage", tags=["triage"])
 
-# Cached registry and BM25 index for fast response times
-_REGISTRY = None
-_INDEX = None
+_REGISTRY_LOCK = threading.RLock()
+_REGISTRY: ClinicalRegistry | None = None
 
 
-def get_cached_registry():
+def get_cached_registry() -> ClinicalRegistry:
+    """Return thread-safe cached ClinicalRegistry."""
     global _REGISTRY
-    if _REGISTRY is None:
-        _REGISTRY = load_registry(get_data_dir())
-    return _REGISTRY
+    with _REGISTRY_LOCK:
+        if _REGISTRY is None:
+            _REGISTRY = load_registry(get_data_dir())
+        return _REGISTRY
 
 
-def get_cached_index():
-    global _INDEX
-    if _INDEX is None:
-        registry = get_cached_registry()
-        chunks = ingest_protocols(get_data_dir())
-        _INDEX = BM25ClinicalIndex(chunks, acronyms=registry.acronyms.acronyms)
-    return _INDEX
+def get_retrieval_service() -> RetrievalService:
+    """Return unified thread-safe RetrievalService instance."""
+    return RetrievalService.create_default(get_data_dir())
 
 
 @router.post("", response_model=TriageResponse)
 def execute_triage(request: TriageApiRequest) -> TriageResponse:
     registry = get_cached_registry()
-    index = get_cached_index()
+    retrieval_service = get_retrieval_service()
 
     llm: Any
     gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
@@ -68,8 +65,15 @@ def execute_triage(request: TriageApiRequest) -> TriageResponse:
         patient=request.patient,
         registry=registry,
         llm=llm,
-        index=index,
+        index=retrieval_service.index,
         overrides=request.overrides or [],
         config=config,
     )
     return response
+
+
+@router.post("/explain")
+def explain_triage_retrieval(request: TriageApiRequest) -> dict[str, Any]:
+    """Return full Retrieval Inspector diagnostic trace for a patient presentation."""
+    retrieval_service = get_retrieval_service()
+    return retrieval_service.explain(request.patient)

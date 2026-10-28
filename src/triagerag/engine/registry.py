@@ -8,6 +8,7 @@ strict determinism.
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -50,16 +51,21 @@ class ClinicalRegistry:
     scoring_tables: dict[str, EWSTable]
     coverage_gaps: tuple[str, ...] = DEFAULT_COVERAGE_GAPS
     version: str = "0.1.0"
+    formulary_version: str = field(init=False)
     resolver: AliasResolver = field(init=False)
 
     def __post_init__(self) -> None:
-        # Build deterministic alias resolver
+        # Build deterministic alias resolver and formulary version hash
         resolver = AliasResolver(
             aliases=self.aliases,
             formulary_drugs=self.formulary_drugs,
             classes=self.classes,
         )
         object.__setattr__(self, "resolver", resolver)
+        hasher = hashlib.sha256()
+        for d_id in sorted(self.formulary_drugs.keys()):
+            hasher.update(self.formulary_drugs[d_id].model_dump_json().encode("utf-8"))
+        object.__setattr__(self, "formulary_version", f"formulary-{hasher.hexdigest()[:12]}")
 
     def get_drug(self, drug_id: str) -> FormularyDrug | None:
         """Lookup formulary drug by ID."""
