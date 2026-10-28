@@ -15,50 +15,50 @@ export const Navbar: React.FC = () => {
   })
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 w-full px-3 sm:px-6 lg:px-8 py-2.5">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3.5 sm:px-5 rounded-2xl bg-[#1A2421]/95 backdrop-blur-md border border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.12)] text-white">
         {/* Left: Hospital-grade Brand & Workflow Steps */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-4 sm:gap-6">
           <Link
             to="/intake"
             className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
             title="TriageRAG Clinical Decision Support"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-400">
-              <Activity className="h-4.5 w-4.5" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2D6A4F] text-white shadow-sm">
+              <Activity className="h-4 w-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold tracking-tight text-white flex items-center gap-1.5">
-                TriageRAG <span className="text-xs font-normal text-teal-400">Station</span>
+              <span className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5 leading-tight">
+                TriageRAG <span className="text-[10px] uppercase tracking-wider font-bold bg-[#2D6A4F] text-white px-1.5 py-0.5 rounded-full">Station</span>
               </span>
-              <span className="text-[10px] text-slate-400 font-mono">
-                Emergency Decision Support
+              <span className="text-[10px] text-[#A3B0A9] font-mono leading-tight">
+                Clinical Decision Support
               </span>
             </div>
           </Link>
 
           {/* Workflow Step Indicators */}
-          <nav className="hidden sm:flex items-center gap-1.5 pl-4 border-l border-slate-800 text-xs font-medium">
+          <nav className="hidden sm:flex items-center gap-1 pl-4 border-l border-white/15 text-xs font-medium">
             <Link
               to="/intake"
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
                 !isReport
-                  ? 'bg-slate-800 text-teal-400 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#2D6A4F] text-white font-semibold shadow-xs'
+                  : 'text-[#A3B0A9] hover:text-white hover:bg-white/10'
               }`}
             >
               <Stethoscope className="h-3.5 w-3.5" />
               <span>1. Patient Intake</span>
             </Link>
 
-            <ChevronRight className="h-3.5 w-3.5 text-slate-600" />
+            <ChevronRight className="h-3.5 w-3.5 text-white/40" />
 
             <Link
               to="/report"
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
                 isReport
-                  ? 'bg-slate-800 text-teal-400 font-semibold'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#2D6A4F] text-white font-semibold shadow-xs'
+                  : 'text-[#A3B0A9] hover:text-white hover:bg-white/10'
               }`}
             >
               <FileSpreadsheet className="h-3.5 w-3.5" />
@@ -68,25 +68,26 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Right: Disclaimer and API Health */}
-        <div className="flex items-center gap-3">
-          <span className="hidden md:inline rounded bg-slate-900 border border-slate-800 px-2 py-0.5 text-[10px] font-mono text-amber-400">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <span className="hidden md:inline rounded-full bg-amber-400/10 border border-amber-400/25 px-2.5 py-0.5 text-[10px] font-mono text-amber-300">
             Research Prototype • Synthetic Data
           </span>
 
           <div
-            className="flex items-center gap-1.5 rounded-full bg-slate-900 border border-slate-800 px-2.5 py-1 text-[11px] font-mono text-slate-300"
+            className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-1 text-[11px] font-mono text-white/90"
             title={isSuccess ? 'Backend API Connected' : 'Connecting to API...'}
           >
             <span
               className={`h-2 w-2 rounded-full ${
-                isSuccess ? 'bg-teal-400 shadow-[0_0_6px_rgba(20,184,166,0.6)]' : 'bg-amber-400'
+                isSuccess ? 'bg-[#43A047] shadow-[0_0_6px_rgba(67,160,71,0.8)]' : 'bg-amber-400'
               }`}
             />
-            <span className="hidden sm:inline">{isSuccess ? 'API Online' : 'Connecting'}</span>
+            <span className="hidden sm:inline font-bold">{isSuccess ? 'ONLINE' : 'CONNECTING'}</span>
           </div>
         </div>
       </div>
     </header>
   )
 }
+
 export default Navbar

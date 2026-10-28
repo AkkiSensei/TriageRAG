@@ -33,62 +33,62 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
       case 'BLOCK':
       case 'BLOCKED':
         return {
-          icon: <AlertOctagon className="h-4 w-4 text-red-400 shrink-0" />,
+          icon: <AlertOctagon className="h-4 w-4 text-red-600 shrink-0" />,
           label: 'BLOCKED',
           subtitle: 'Fatal Sildenafil + Nitrate DDI',
-          color: 'border-red-900/60 bg-red-950/40 text-red-300 hover:border-red-500/60 hover:bg-red-950/60',
-          activeColor: 'border-red-500 bg-red-950/80 text-white shadow-lg shadow-red-950/50',
-          badge: 'bg-red-500/20 text-red-300 border-red-500/40',
+          color: 'border-red-200 bg-red-50/60 text-red-900 hover:border-red-300 hover:bg-red-50',
+          activeColor: 'border-red-500 bg-red-50 text-red-950 font-bold ring-2 ring-red-500/20 shadow-sm',
+          badge: 'bg-red-100 text-red-800 border-red-200',
         }
       case 'HIGH':
         return {
-          icon: <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />,
+          icon: <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />,
           label: 'HIGH ALERT',
           subtitle: 'Penicillin Ceftriaxone Anaphylaxis',
-          color: 'border-amber-900/60 bg-amber-950/40 text-amber-300 hover:border-amber-500/60 hover:bg-amber-950/60',
-          activeColor: 'border-amber-500 bg-amber-950/80 text-white shadow-lg shadow-amber-950/50',
-          badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+          color: 'border-amber-200 bg-amber-50/60 text-amber-900 hover:border-amber-300 hover:bg-amber-50',
+          activeColor: 'border-amber-500 bg-amber-50 text-amber-950 font-bold ring-2 ring-amber-500/20 shadow-sm',
+          badge: 'bg-amber-100 text-amber-800 border-amber-200',
         }
       case 'UNVERIFIED':
         return {
-          icon: <HelpCircle className="h-4 w-4 text-purple-400 shrink-0" />,
+          icon: <HelpCircle className="h-4 w-4 text-purple-600 shrink-0" />,
           label: 'UNVERIFIED',
           subtitle: 'Missing Renal Vitals (Fail-Closed)',
-          color: 'border-purple-900/60 bg-purple-950/40 text-purple-300 hover:border-purple-500/60 hover:bg-purple-950/60',
-          activeColor: 'border-purple-500 bg-purple-950/80 text-white shadow-lg shadow-purple-950/50',
-          badge: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+          color: 'border-purple-200 bg-purple-50/60 text-purple-900 hover:border-purple-300 hover:bg-purple-50',
+          activeColor: 'border-purple-500 bg-purple-50 text-purple-950 font-bold ring-2 ring-purple-500/20 shadow-sm',
+          badge: 'bg-purple-100 text-purple-800 border-purple-200',
         }
       case 'CHECKED_CLEAR':
       case 'CLEAR':
       default:
         return {
-          icon: <CheckCircle className="h-4 w-4 text-teal-400 shrink-0" />,
+          icon: <CheckCircle className="h-4 w-4 text-[#2D6A4F] shrink-0" />,
           label: 'CHECKED CLEAR',
           subtitle: 'Acute Asthma Salbutamol Inhalation',
-          color: 'border-teal-900/60 bg-teal-950/40 text-teal-300 hover:border-teal-500/60 hover:bg-teal-950/60',
-          activeColor: 'border-teal-500 bg-teal-950/80 text-white shadow-lg shadow-teal-950/50',
-          badge: 'bg-teal-500/20 text-teal-300 border-teal-500/40',
+          color: 'border-[#A5D6A7] bg-[#E8F5E9]/60 text-[#1B4D39] hover:border-[#2D6A4F] hover:bg-[#E8F5E9]',
+          activeColor: 'border-[#2D6A4F] bg-[#E8F5E9] text-[#1B4D39] font-bold ring-2 ring-[#2D6A4F]/25 shadow-sm',
+          badge: 'bg-[#E8F5E9] text-[#1B4D39] border-[#A5D6A7]',
         }
     }
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/40 p-3 text-xs text-slate-400">
-        <Loader2 className="h-4 w-4 animate-spin text-teal-400" />
+      <div className="flex items-center gap-2 rounded-xl border border-[#E1E7E1] bg-white p-3 text-xs text-[#5C6B64]">
+        <Loader2 className="h-4 w-4 animate-spin text-[#2D6A4F]" />
         <span>Loading reference triage scenarios...</span>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-xl border border-slate-800 bg-slate-900/50 p-3.5 backdrop-blur-sm">
+    <div className="flex flex-col gap-2.5 rounded-xl border border-[#E1E7E1] bg-white p-3.5 shadow-sm">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-200">
-          <Zap className="h-3.5 w-3.5 text-amber-400" />
+        <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#1A2421]">
+          <Zap className="h-3.5 w-3.5 text-amber-500" />
           <span>1-Click Clinical Showcase</span>
         </div>
-        <span className="text-[11px] font-mono text-slate-400">
+        <span className="text-[11px] font-mono text-[#5C6B64]">
           Click any case to test live
         </span>
       </div>
@@ -119,13 +119,13 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
                   <span>{details.label}</span>
                 </div>
                 {isActive && (
-                  <span className="flex h-1.5 w-1.5 rounded-full bg-teal-400" />
+                  <span className="flex h-1.5 w-1.5 rounded-full bg-[#2D6A4F]" />
                 )}
               </div>
-              <span className="text-xs font-semibold text-slate-100 line-clamp-1 group-hover:text-white">
+              <span className="text-xs font-semibold text-[#1A2421] line-clamp-1">
                 {s.title}
               </span>
-              <span className="text-[10px] text-slate-400 line-clamp-1">
+              <span className="text-[10px] text-[#5C6B64] line-clamp-1">
                 {details.subtitle}
               </span>
             </button>
@@ -135,3 +135,4 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
     </div>
   )
 }
+

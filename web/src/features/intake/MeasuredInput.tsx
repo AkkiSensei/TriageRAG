@@ -35,16 +35,18 @@ export function MeasuredInput<T extends string | number>({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-slate-300">
-          {label} {unit && <span className="text-slate-400 font-mono">({unit})</span>}
+        <label className="text-xs font-semibold text-[#1A2421]">
+          {label} {unit && <span className="text-[#5C6B64] font-mono">({unit})</span>}
         </label>
         {/* Tri-state selector: Measured / Estimated / Unknown */}
-        <div className="flex rounded bg-slate-950 p-0.5 border border-slate-800 text-[10px] font-mono">
+        <div className="flex rounded-md bg-[#F4F6F4] p-0.5 border border-[#E1E7E1] text-[10px] font-mono">
           <button
             type="button"
             onClick={() => onStatusChange('measured')}
             className={`px-1.5 py-0.5 rounded transition-colors ${
-              status === 'measured' ? 'bg-teal-500/20 text-teal-300 font-semibold' : 'text-slate-400 hover:text-slate-300'
+              status === 'measured'
+                ? 'bg-white text-[#2D6A4F] font-bold shadow-xs border border-[#C4CEBD]'
+                : 'text-[#5C6B64] hover:text-[#1A2421]'
             }`}
           >
             Meas
@@ -53,7 +55,9 @@ export function MeasuredInput<T extends string | number>({
             type="button"
             onClick={() => onStatusChange('estimated')}
             className={`px-1.5 py-0.5 rounded transition-colors ${
-              status === 'estimated' ? 'bg-amber-500/20 text-amber-300 font-semibold' : 'text-slate-400 hover:text-slate-300'
+              status === 'estimated'
+                ? 'bg-amber-100 text-amber-900 font-bold shadow-xs border border-amber-300'
+                : 'text-[#5C6B64] hover:text-[#1A2421]'
             }`}
           >
             Est
@@ -65,7 +69,9 @@ export function MeasuredInput<T extends string | number>({
               onValueChange(null)
             }}
             className={`px-1.5 py-0.5 rounded transition-colors ${
-              status === 'unknown' ? 'bg-purple-500/20 text-purple-300 font-semibold' : 'text-slate-400 hover:text-slate-300'
+              status === 'unknown'
+                ? 'bg-purple-100 text-purple-900 font-bold shadow-xs border border-purple-300'
+                : 'text-[#5C6B64] hover:text-[#1A2421]'
             }`}
           >
             Unk
@@ -74,7 +80,7 @@ export function MeasuredInput<T extends string | number>({
       </div>
 
       {status === 'unknown' ? (
-        <div className="flex h-9 items-center rounded-md border border-purple-900/40 bg-purple-950/20 px-3 text-xs italic text-purple-300/80 font-mono">
+        <div className="flex h-9 items-center rounded-lg border border-purple-200 bg-purple-50/70 px-3 text-xs italic text-purple-900 font-mono">
           Unknown / Unmeasured (Fail Closed)
         </div>
       ) : (
@@ -95,21 +101,22 @@ export function MeasuredInput<T extends string | number>({
               }
             }}
             placeholder={placeholder}
-            className={`h-9 w-full rounded-md border bg-slate-950 px-3 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-1 ${
+            className={`h-9 w-full rounded-lg border bg-white px-3 text-xs text-[#1A2421] placeholder-[#8A9991] focus:outline-none focus:ring-2 ${
               status === 'estimated'
-                ? 'border-amber-700/60 focus:border-amber-500 focus:ring-amber-500/30'
-                : 'border-slate-800 focus:border-teal-500 focus:ring-teal-500/30'
+                ? 'border-amber-300 focus:border-amber-500 focus:ring-amber-500/20'
+                : 'border-[#E1E7E1] focus:border-[#2D6A4F] focus:ring-[#2D6A4F]/20'
             }`}
           />
           {unit && (
-            <span className="pointer-events-none absolute right-3 text-xs text-slate-400 font-mono">
+            <span className="pointer-events-none absolute right-3 text-xs text-[#5C6B64] font-mono">
               {unit}
             </span>
           )}
         </div>
       )}
 
-      {helperText && <span className="text-[10px] text-slate-400">{helperText}</span>}
+      {helperText && <span className="text-[10px] text-[#5C6B64]">{helperText}</span>}
     </div>
   )
 }
+

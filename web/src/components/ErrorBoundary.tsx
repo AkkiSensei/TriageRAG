@@ -32,25 +32,25 @@ export class ErrorBoundary extends Component<Props, State> {
   public render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-clinical-navy flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-clinical-surface border border-status-block/40 rounded-xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center space-x-3 text-status-block">
+        <div className="min-h-screen bg-[#F4F6F4] flex items-center justify-center p-6 text-[#1A2421]">
+          <div className="max-w-md w-full bg-white border border-[#E1E7E1] rounded-2xl p-6 shadow-xl space-y-4">
+            <div className="flex items-center space-x-3 text-red-600">
               <AlertOctagon className="w-8 h-8 flex-shrink-0" />
               <div>
-                <h2 className="text-lg font-bold text-slate-100">Console Error Encountered</h2>
-                <p className="text-xs text-status-block uppercase tracking-wider font-semibold">
+                <h2 className="text-lg font-bold text-[#1A2421]">Console Error Encountered</h2>
+                <p className="text-xs text-red-700 uppercase tracking-wider font-bold">
                   Fail-Closed Safe Boundary
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs text-[#5C6B64] leading-relaxed">
               An unexpected interface exception occurred. Under fail-closed clinical safety
               standards, execution was halted to prevent rendering inconsistent clinical data.
             </p>
 
             {this.state.error && (
-              <div className="bg-clinical-dark border border-clinical-border rounded p-3 text-xs font-mono text-status-block/90 overflow-x-auto">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs font-mono text-red-900 overflow-x-auto">
                 {this.state.error.message}
               </div>
             )}
@@ -59,7 +59,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <button
                 type="button"
                 onClick={this.handleReset}
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-clinical-border hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg transition-colors"
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-[#2D6A4F] hover:bg-[#1B4D39] text-white text-xs font-bold rounded-lg transition-colors shadow-xs"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reload Console</span>
@@ -72,4 +72,5 @@ export class ErrorBoundary extends Component<Props, State> {
 
     return this.props.children
   }
+
 }

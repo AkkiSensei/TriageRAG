@@ -571,18 +571,18 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {/* CARD 1: PRESENTING SYNDROME & CLINICAL NARRATIVE */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5 shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
+      <div className="rounded-xl border border-[#E1E7E1] bg-white p-4 sm:p-5 shadow-xs">
+        <div className="flex items-center justify-between border-b border-[#E1E7E1] pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-teal-400" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+            <Activity className="h-4 w-4 text-[#2D6A4F]" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#1A2421]">
               1. Presenting Clinical Syndrome & Narrative
             </h3>
           </div>
           <button
             type="button"
             onClick={() => setForm(INITIAL_FORM_STATE)}
-            className="flex items-center gap-1 text-[11px] font-mono text-slate-400 hover:text-slate-200 transition-colors"
+            className="flex items-center gap-1 text-[11px] font-mono text-[#5C6B64] hover:text-[#1A2421] transition-colors"
             title="Reset to default baseline"
           >
             <RotateCcw className="h-3 w-3" />
@@ -593,14 +593,14 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
         <div className="flex flex-col gap-3.5">
           {/* Syndrome Dropdown */}
           <div>
-            <label className="text-xs font-medium text-slate-300 flex items-center justify-between">
+            <label className="text-xs font-semibold text-[#1A2421] flex items-center justify-between">
               <span>Suspected Clinical Syndrome</span>
-              <span className="text-[10px] text-teal-400 font-mono">Guides Protocol Retrieval</span>
+              <span className="text-[10px] text-[#2D6A4F] font-mono font-medium">Guides Protocol Retrieval</span>
             </label>
             <select
               value={form.suspectedSyndrome}
               onChange={(e) => setForm({ ...form, suspectedSyndrome: e.target.value })}
-              className="mt-1 h-9 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-xs text-slate-100 focus:border-teal-500 focus:outline-none"
+              className="mt-1 h-9 w-full rounded-lg border border-[#E1E7E1] bg-white px-3 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20"
             >
               <option value="">None / Unspecified (General Vitals Screening)</option>
               <option value="chest_pain">Acute Chest Pain & Suspected Coronary Syndrome</option>
@@ -614,9 +614,9 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
           {/* Chief Complaint / Triage Narrative */}
           <div>
-            <label className="text-xs font-medium text-slate-300 flex items-center justify-between">
+            <label className="text-xs font-semibold text-[#1A2421] flex items-center justify-between">
               <span>Clinical Notes / Triage Narrative</span>
-              <span className="text-[10px] text-slate-400 font-mono">
+              <span className="text-[10px] text-[#5C6B64] font-mono">
                 Patient-reported • Quarantined from decision engine
               </span>
             </label>
@@ -625,41 +625,41 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               value={form.chiefComplaint}
               onChange={(e) => setForm({ ...form, chiefComplaint: e.target.value })}
               placeholder="Enter patient-reported narrative or paramedic handoff notes..."
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 p-2.5 text-xs text-slate-100 placeholder-slate-600 focus:border-teal-500 focus:outline-none resize-none font-sans leading-relaxed"
+              className="mt-1 w-full rounded-lg border border-[#E1E7E1] bg-white p-2.5 text-xs text-[#1A2421] placeholder-[#8A9991] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20 resize-none font-sans leading-relaxed"
             />
           </div>
         </div>
       </div>
 
       {/* CARD 2: DEMOGRAPHICS & PHYSIOLOGICAL VITALS */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5 shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
+      <div className="rounded-xl border border-[#E1E7E1] bg-white p-4 sm:p-5 shadow-xs">
+        <div className="flex items-center justify-between border-b border-[#E1E7E1] pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <Stethoscope className="h-4 w-4 text-teal-400" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+            <Stethoscope className="h-4 w-4 text-[#2D6A4F]" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#1A2421]">
               2. Demographics & Physiological Vitals
             </h3>
           </div>
-          <span className="text-[10px] font-mono text-slate-400">NEWS2 Standard</span>
+          <span className="text-[10px] font-mono text-[#5C6B64]">NEWS2 Standard</span>
         </div>
 
         {/* Demographics Row */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
           {/* Age */}
           <div>
-            <label className="text-[11px] font-medium text-slate-300">Age</label>
+            <label className="text-[11px] font-semibold text-[#1A2421]">Age</label>
             <div className="mt-1 flex gap-1.5">
               <input
                 type="text"
                 value={form.ageValue}
                 onChange={(e) => setForm({ ...form, ageValue: e.target.value })}
                 placeholder="62"
-                className="h-8.5 w-2/3 rounded-md border border-slate-800 bg-slate-950 px-2.5 text-xs text-slate-100 focus:border-teal-500 focus:outline-none"
+                className="h-8.5 w-2/3 rounded-lg border border-[#E1E7E1] bg-white px-2.5 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20"
               />
               <select
                 value={form.ageUnit}
                 onChange={(e) => setForm({ ...form, ageUnit: e.target.value as AgeUnit })}
-                className="h-8.5 w-1/3 rounded-md border border-slate-800 bg-slate-950 px-1 text-[11px] text-slate-300 focus:border-teal-500 focus:outline-none"
+                className="h-8.5 w-1/3 rounded-lg border border-[#E1E7E1] bg-white px-1 text-[11px] text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20"
               >
                 <option value="years">yr</option>
                 <option value="months">mo</option>
@@ -670,11 +670,11 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
           {/* Biological Sex */}
           <div>
-            <label className="text-[11px] font-medium text-slate-300">Biological Sex</label>
+            <label className="text-[11px] font-semibold text-[#1A2421]">Biological Sex</label>
             <select
               value={form.sex}
               onChange={(e) => handleSexChange(e.target.value as Sex)}
-              className="mt-1 h-8.5 w-full rounded-md border border-slate-800 bg-slate-950 px-2 text-xs text-slate-300 focus:border-teal-500 focus:outline-none"
+              className="mt-1 h-8.5 w-full rounded-lg border border-[#E1E7E1] bg-white px-2 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20"
             >
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -686,14 +686,14 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
           {/* Pregnancy Status (Strictly locked to No for Male) */}
           <div>
             <div className="flex items-center justify-between">
-              <label className="text-[11px] font-medium text-slate-300">Pregnancy</label>
+              <label className="text-[11px] font-semibold text-[#1A2421]">Pregnancy</label>
               {form.sex === 'male' && (
-                <span className="text-[10px] text-slate-400 font-mono">Auto-Locked</span>
+                <span className="text-[10px] text-[#5C6B64] font-mono">Auto-Locked</span>
               )}
             </div>
             {form.sex === 'male' ? (
               <div
-                className="mt-1 flex h-8.5 w-full items-center rounded-md border border-slate-800 bg-slate-950/60 px-2.5 text-xs text-slate-400 font-mono cursor-not-allowed select-none"
+                className="mt-1 flex h-8.5 w-full items-center rounded-lg border border-[#E1E7E1] bg-[#F4F6F4] px-2.5 text-xs text-[#5C6B64] font-mono cursor-not-allowed select-none"
                 title="Biological invariant: Male patients are not pregnant"
               >
                 No (N/A)
@@ -702,7 +702,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               <select
                 value={form.pregnancy}
                 onChange={(e) => setForm({ ...form, pregnancy: e.target.value as Pregnancy })}
-                className="mt-1 h-8.5 w-full rounded-md border border-teal-500/30 bg-slate-950 px-2 text-xs text-slate-200 focus:border-teal-500 focus:outline-none"
+                className="mt-1 h-8.5 w-full rounded-lg border border-[#2D6A4F]/40 bg-white px-2 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none"
               >
                 <option value="no">Not Pregnant (No)</option>
                 <option value="yes">Pregnant (Yes)</option>
@@ -713,20 +713,20 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
           {/* Weight */}
           <div>
-            <label className="text-[11px] font-medium text-slate-300">Weight (kg)</label>
+            <label className="text-[11px] font-semibold text-[#1A2421]">Weight (kg)</label>
             <input
               type="text"
               value={form.weightValue}
               onChange={(e) => setForm({ ...form, weightValue: e.target.value })}
               placeholder="82.0"
-              className="mt-1 h-8.5 w-full rounded-md border border-slate-800 bg-slate-950 px-2.5 text-xs text-slate-100 focus:border-teal-500 focus:outline-none"
+              className="mt-1 h-8.5 w-full rounded-lg border border-[#E1E7E1] bg-white px-2.5 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20"
             />
           </div>
         </div>
 
         {/* 7 Physiological Vitals Grid */}
-        <div className="flex flex-col gap-2 pt-3 border-t border-slate-800/60">
-          <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">
+        <div className="flex flex-col gap-2 pt-3 border-t border-[#E1E7E1]">
+          <span className="text-[11px] font-bold text-[#1A2421] uppercase tracking-wider">
             Physiological Measurements
           </span>
 
@@ -800,13 +800,13 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               onValueChange={(val) => setForm({ ...form, glucoseValue: val || '' })}
             />
             <div>
-              <label className="text-[11px] font-medium text-slate-300">Supplemental O2</label>
+              <label className="text-[11px] font-semibold text-[#1A2421]">Supplemental O2</label>
               <select
                 value={form.o2Value}
                 onChange={(e) =>
                   setForm({ ...form, o2Value: e.target.value as 'yes' | 'no' | 'unknown' })
                 }
-                className="mt-1 h-8.5 w-full rounded-md border border-slate-800 bg-slate-950 px-2 text-xs text-slate-200 focus:border-teal-500 focus:outline-none"
+                className="mt-1 h-8.5 w-full rounded-lg border border-[#E1E7E1] bg-white px-2 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none"
               >
                 <option value="no">Room Air (No)</option>
                 <option value="yes">On Supplemental O2 (+2 pts)</option>
@@ -817,7 +817,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
           {/* Consciousness */}
           <div className="pt-2">
-            <label className="text-[11px] font-medium text-slate-300">
+            <label className="text-[11px] font-semibold text-[#1A2421]">
               Consciousness Level (AVPU+C)
             </label>
             <select
@@ -825,7 +825,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               onChange={(e) =>
                 setForm({ ...form, consciousnessValue: e.target.value as Consciousness })
               }
-              className="mt-1 h-8.5 w-full rounded-md border border-slate-800 bg-slate-950 px-3 text-xs text-slate-200 focus:border-teal-500 focus:outline-none"
+              className="mt-1 h-8.5 w-full rounded-lg border border-[#E1E7E1] bg-white px-3 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none"
             >
               <option value="A">Alert (A) - Fully oriented, normal (0 points)</option>
               <option value="C">New Confusion (C) - Acute altered mental state (3 points - Critical)</option>
@@ -838,15 +838,15 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       </div>
 
       {/* CARD 3: HOME MEDICATIONS & ALLERGIES */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5 shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-800/80 pb-3 mb-4">
+      <div className="rounded-xl border border-[#E1E7E1] bg-white p-4 sm:p-5 shadow-xs">
+        <div className="flex items-center justify-between border-b border-[#E1E7E1] pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <Pill className="h-4 w-4 text-teal-400" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+            <Pill className="h-4 w-4 text-[#2D6A4F]" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#1A2421]">
               3. Home Medications & Documented Allergies
             </h3>
           </div>
-          <span className="text-[10px] font-mono text-slate-400">
+          <span className="text-[10px] font-mono text-[#5C6B64]">
             {form.medications.length} meds • {form.allergies.length} allergies
           </span>
         </div>
@@ -854,15 +854,15 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
         {/* Medication History */}
         <div className="flex flex-col gap-3 mb-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-slate-300">Current Medications</span>
+            <span className="text-xs font-semibold text-[#1A2421]">Current Medications</span>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-slate-400">History Status:</span>
+              <span className="text-[10px] text-[#5C6B64]">History Status:</span>
               <select
                 value={form.medicationStatus}
                 onChange={(e) =>
                   setForm({ ...form, medicationStatus: e.target.value as HistoryStatus })
                 }
-                className="h-7 rounded border border-slate-800 bg-slate-950 px-2 text-[11px] text-slate-300 focus:border-teal-500 focus:outline-none font-mono"
+                className="h-7 rounded-md border border-[#E1E7E1] bg-white px-2 text-[11px] text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none font-mono"
               >
                 <option value="confirmed_list">Confirmed List</option>
                 <option value="confirmed_none">Confirmed None (No Meds)</option>
@@ -873,26 +873,26 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
           </div>
 
           {/* Active Meds List */}
-          <div className="flex flex-wrap gap-2 min-h-[40px] items-center p-2.5 rounded-lg bg-slate-950 border border-slate-800/80">
+          <div className="flex flex-wrap gap-2 min-h-[40px] items-center p-2.5 rounded-lg bg-[#F4F6F4] border border-[#E1E7E1]">
             {form.medications.length === 0 ? (
-              <span className="text-xs text-slate-400 italic">
+              <span className="text-xs text-[#5C6B64] italic">
                 No active home medications recorded.
               </span>
             ) : (
               form.medications.map((m, idx) => (
                 <span
                   key={idx}
-                  className="flex items-center gap-2 rounded bg-slate-900 border border-slate-700 px-2.5 py-1 text-xs text-slate-200 font-mono shadow-sm"
+                  className="flex items-center gap-2 rounded-lg bg-white border border-[#C4CEBD] px-2.5 py-1 text-xs text-[#1A2421] font-mono shadow-xs"
                 >
-                  <span className="font-semibold text-teal-300">{m.raw_string}</span>
-                  <span className="text-[10px] text-slate-400 flex items-center gap-0.5">
+                  <span className="font-bold text-[#2D6A4F]">{m.raw_string}</span>
+                  <span className="text-[10px] text-[#5C6B64] flex items-center gap-0.5">
                     <Clock className="h-2.5 w-2.5" />
                     {m.last_dose_hours_ago !== null ? `${m.last_dose_hours_ago}h ago` : 'Time unk'}
                   </span>
                   <button
                     type="button"
                     onClick={() => removeMedication(idx)}
-                    className="text-slate-500 hover:text-red-400 transition-colors ml-1"
+                    className="text-[#8A9991] hover:text-red-600 transition-colors ml-1"
                     title="Remove medication"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -916,7 +916,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
                 }
               }}
               placeholder="Select or type medication (e.g. Metoprolol, Lisinopril, Amoxicillin)..."
-              className="h-8.5 flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 text-xs text-slate-100 placeholder-slate-600 focus:border-teal-500 focus:outline-none"
+              className="h-8.5 flex-1 rounded-lg border border-[#E1E7E1] bg-white px-3 text-xs text-[#1A2421] placeholder-[#8A9991] focus:border-[#2D6A4F] focus:outline-none"
             />
             <datalist id="formulary-suggestions">
               {COMMON_DRUGS.map((d) => (
@@ -929,7 +929,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               onChange={(e) =>
                 setNewMedLastDose(e.target.value === 'unknown' ? null : Number(e.target.value))
               }
-              className="h-8.5 rounded-md border border-slate-700 bg-slate-950 px-2 text-xs text-slate-300 focus:border-teal-500 focus:outline-none font-mono"
+              className="h-8.5 rounded-lg border border-[#E1E7E1] bg-white px-2 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none font-mono"
             >
               <option value="12">Taken within 12h</option>
               <option value="24">Taken ~24h ago</option>
@@ -942,7 +942,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             <button
               type="button"
               onClick={() => addMedication(newMedName, newMedLastDose)}
-              className="flex items-center justify-center gap-1.5 rounded-md bg-slate-800 hover:bg-slate-700 px-3.5 h-8.5 text-xs font-medium text-slate-200 transition-colors"
+              className="flex items-center justify-center gap-1.5 rounded-lg bg-[#EEF3EE] hover:bg-[#E1E7E1] border border-[#C4CEBD] px-3.5 h-8.5 text-xs font-bold text-[#1A2421] transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Add Med</span>
@@ -951,20 +951,20 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
         </div>
 
         {/* Allergies History */}
-        <div className="flex flex-col gap-3 pt-3 border-t border-slate-800/60">
+        <div className="flex flex-col gap-3 pt-3 border-t border-[#E1E7E1]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-teal-400" />
+            <span className="text-xs font-semibold text-[#1A2421] flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-[#2D6A4F]" />
               Documented Substance Allergies
             </span>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-slate-400">Allergy Status:</span>
+              <span className="text-[10px] text-[#5C6B64]">Allergy Status:</span>
               <select
                 value={form.allergyStatus}
                 onChange={(e) =>
                   setForm({ ...form, allergyStatus: e.target.value as HistoryStatus })
                 }
-                className="h-7 rounded border border-slate-800 bg-slate-950 px-2 text-[11px] text-slate-300 focus:border-teal-500 focus:outline-none font-mono"
+                className="h-7 rounded-md border border-[#E1E7E1] bg-white px-2 text-[11px] text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none font-mono"
               >
                 <option value="confirmed_nkda">No Known Drug Allergies (NKDA)</option>
                 <option value="confirmed_list">Confirmed Allergy List</option>
@@ -974,9 +974,9 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
           </div>
 
           {/* Active Allergies List */}
-          <div className="flex flex-wrap gap-2 min-h-[40px] items-center p-2.5 rounded-lg bg-slate-950 border border-slate-800/80">
+          <div className="flex flex-wrap gap-2 min-h-[40px] items-center p-2.5 rounded-lg bg-[#F4F6F4] border border-[#E1E7E1]">
             {form.allergies.length === 0 ? (
-              <span className="text-xs text-slate-400 italic">
+              <span className="text-xs text-[#5C6B64] italic">
                 {form.allergyStatus === 'confirmed_nkda'
                   ? 'No Known Drug Allergies (NKDA Confirmed).'
                   : 'No allergies recorded.'}
@@ -985,14 +985,14 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               form.allergies.map((a, idx) => (
                 <span
                   key={idx}
-                  className="flex items-center gap-2 rounded bg-amber-950/40 border border-amber-800/60 px-2.5 py-1 text-xs text-amber-200 font-mono shadow-sm"
+                  className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-300 px-2.5 py-1 text-xs text-amber-900 font-mono shadow-xs"
                 >
-                  <span className="font-bold text-amber-300">{a.raw_substance}</span>
-                  <span className="text-[10px] text-amber-400/80">({a.reaction_type})</span>
+                  <span className="font-bold text-amber-800">{a.raw_substance}</span>
+                  <span className="text-[10px] text-amber-700">({a.reaction_type})</span>
                   <button
                     type="button"
                     onClick={() => removeAllergy(idx)}
-                    className="text-amber-400 hover:text-red-400 transition-colors ml-1"
+                    className="text-amber-600 hover:text-red-600 transition-colors ml-1"
                     title="Remove allergy"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -1015,12 +1015,12 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
                 }
               }}
               placeholder="Allergen name (e.g. Penicillin, Cephalosporins, Amoxicillin)..."
-              className="h-8.5 flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 text-xs text-slate-100 placeholder-slate-600 focus:border-teal-500 focus:outline-none"
+              className="h-8.5 flex-1 rounded-lg border border-[#E1E7E1] bg-white px-3 text-xs text-[#1A2421] placeholder-[#8A9991] focus:border-[#2D6A4F] focus:outline-none"
             />
             <select
               value={newAllergyReaction}
               onChange={(e) => setNewAllergyReaction(e.target.value as ReactionType)}
-              className="h-8.5 rounded-md border border-slate-700 bg-slate-950 px-2 text-xs text-slate-300 focus:border-teal-500 focus:outline-none"
+              className="h-8.5 rounded-lg border border-[#E1E7E1] bg-white px-2 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none"
             >
               <option value="anaphylaxis_ige">IgE Anaphylaxis / Airway Compromise</option>
               <option value="severe_cutaneous_scar">Severe Cutaneous (SCAR / DRESS / SJS)</option>
@@ -1031,7 +1031,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             <button
               type="button"
               onClick={() => addAllergy(newAllergySubstance, newAllergyReaction)}
-              className="flex items-center justify-center gap-1.5 rounded-md bg-slate-800 hover:bg-slate-700 px-3.5 h-8.5 text-xs font-medium text-slate-200 transition-colors"
+              className="flex items-center justify-center gap-1.5 rounded-lg bg-[#EEF3EE] hover:bg-[#E1E7E1] border border-[#C4CEBD] px-3.5 h-8.5 text-xs font-bold text-[#1A2421] transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Add Allergy</span>
@@ -1041,17 +1041,17 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       </div>
 
       {/* PRIMARY CTA: EVALUATE PATIENT */}
-      <div className="sticky bottom-4 z-20 flex flex-col gap-3 rounded-xl border border-teal-500/40 bg-slate-950/95 p-4 shadow-2xl backdrop-blur-md">
+      <div className="sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-[#C4CEBD] bg-white/95 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.1)] backdrop-blur-md">
         {errorMessage && (
-          <div className="flex items-center gap-2 rounded-lg border border-red-800/80 bg-red-950/60 p-2.5 text-xs text-red-300">
-            <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
-            <span className="font-medium">{errorMessage}</span>
+          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-800">
+            <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+            <span className="font-semibold">{errorMessage}</span>
           </div>
         )}
 
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <FileText className="h-4 w-4 text-teal-400" />
+          <div className="flex items-center gap-2 text-xs text-[#5C6B64]">
+            <FileText className="h-4 w-4 text-[#2D6A4F]" />
             <span>Form ready for deterministic safety verification</span>
           </div>
 
@@ -1059,7 +1059,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             type="submit"
             onClick={handleSubmit}
             disabled={isLoading}
-            className="flex items-center gap-2 rounded-lg bg-teal-500 hover:bg-teal-400 px-6 py-2.5 text-sm font-bold text-slate-950 shadow-lg shadow-teal-500/20 transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 rounded-lg bg-[#2D6A4F] hover:bg-[#1B4D39] px-6 py-2.5 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer"
           >
             {isLoading ? (
               <>
@@ -1079,3 +1079,4 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
   )
 }
 export default PatientIntakeForm
+

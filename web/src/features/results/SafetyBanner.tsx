@@ -22,29 +22,29 @@ export const SafetyBanner: React.FC<SafetyBannerProps> = ({ report }) => {
   const isUnverified = verdict === 'UNVERIFIED'
   const isAlerts = verdict === 'CHECKED_ALERTS'
 
-  let bannerStyle = 'border-teal-500/50 bg-teal-950/40 text-teal-200'
+  let bannerStyle = 'border-[#A5D6A7] bg-[#E8F5E9] text-[#1B4D39] shadow-xs'
   let Icon = ShieldCheck
-  let iconColor = 'text-teal-400'
+  let iconColor = 'text-[#2D6A4F]'
 
   if (isBlocked) {
-    bannerStyle = 'border-red-500/70 bg-red-950/50 text-red-200 shadow-[0_0_20px_rgba(239,68,68,0.25)]'
+    bannerStyle = 'border-red-300 bg-red-50 text-red-950 shadow-xs'
     Icon = AlertOctagon
-    iconColor = 'text-red-400'
+    iconColor = 'text-red-600'
   } else if (isUnverified) {
-    bannerStyle = 'border-purple-500/70 bg-purple-950/50 text-purple-200 shadow-[0_0_20px_rgba(139,92,246,0.2)]'
+    bannerStyle = 'border-purple-300 bg-purple-50 text-purple-950 shadow-xs'
     Icon = HelpCircle
-    iconColor = 'text-purple-400'
+    iconColor = 'text-purple-600'
   } else if (isAlerts) {
-    bannerStyle = 'border-amber-500/70 bg-amber-950/50 text-amber-200 shadow-[0_0_20px_rgba(245,158,11,0.2)]'
+    bannerStyle = 'border-amber-300 bg-amber-50 text-amber-950 shadow-xs'
     Icon = AlertTriangle
-    iconColor = 'text-amber-400'
+    iconColor = 'text-amber-600'
   }
 
   return (
     <div
       role="alert"
       aria-live="assertive"
-      className={`rounded-xl border-2 p-5 ${bannerStyle}`}
+      className={`rounded-2xl border-2 p-5 ${bannerStyle}`}
     >
       <div className="flex items-start gap-3.5">
         <div className="shrink-0 mt-0.5">
@@ -55,31 +55,31 @@ export const SafetyBanner: React.FC<SafetyBannerProps> = ({ report }) => {
             <span className="font-mono text-sm font-black tracking-wide uppercase">
               {formattedVerdict}
             </span>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-900/80 border border-slate-700/60">
+            <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-white/80 border border-current/20 shadow-xs font-semibold">
               Evaluated: {checksRun} checks &bull; Skipped: {skippedCount}
             </span>
           </div>
 
           {isBlocked && (
-            <p className="text-xs font-semibold text-red-300">
+            <p className="text-xs font-bold text-red-800 leading-relaxed">
               CRITICAL SAFETY CONTRAINDICATION: One or more proposed treatments are strictly blocked by deterministic clinical safety rules. Do NOT administer blocked medications.
             </p>
           )}
 
           {isUnverified && (
-            <p className="text-xs font-semibold text-purple-300">
+            <p className="text-xs font-bold text-purple-800 leading-relaxed">
               SAFETY CHECKS UNVERIFIED: Missing, incomplete, or unknown patient clinical data prevented full rule execution. System failed closed to prevent unverified treatment.
             </p>
           )}
 
           {isAlerts && (
-            <p className="text-xs font-medium text-amber-300">
+            <p className="text-xs font-bold text-amber-900 leading-relaxed">
               CLINICAL SAFETY ALERTS TRIGGERED: One or more high or moderate alerts require clinician attention and documented override.
             </p>
           )}
 
           {!isBlocked && !isUnverified && !isAlerts && (
-            <p className="text-xs text-teal-300">
+            <p className="text-xs font-medium text-[#1B4D39] leading-relaxed">
               No contraindications or active alerts triggered within currently loaded formulary and ruleset coverage.
             </p>
           )}
@@ -88,3 +88,4 @@ export const SafetyBanner: React.FC<SafetyBannerProps> = ({ report }) => {
     </div>
   )
 }
+

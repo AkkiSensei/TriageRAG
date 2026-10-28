@@ -18,11 +18,11 @@ export const SkippedChecksList: React.FC<SkippedChecksListProps> = ({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-purple-900/60 bg-purple-950/20 p-4">
-      <div className="flex items-center justify-between border-b border-purple-900/40 pb-2">
+    <div className="flex flex-col gap-3 rounded-2xl border border-purple-200 bg-purple-50/60 p-4 shadow-xs">
+      <div className="flex items-center justify-between border-b border-purple-200 pb-2">
         <div className="flex items-center gap-2">
-          <HelpCircle className="h-4 w-4 text-purple-400" />
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-purple-200">
+          <HelpCircle className="h-4 w-4 text-purple-600" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-purple-950">
             Unverified Safety Checks ({skippedChecks.length}) — Missing Clinical Data
           </h3>
         </div>
@@ -30,7 +30,7 @@ export const SkippedChecksList: React.FC<SkippedChecksListProps> = ({
           <button
             type="button"
             onClick={onFixInIntake}
-            className="flex items-center gap-1 text-[11px] font-mono text-purple-300 hover:text-purple-100 hover:underline transition-colors"
+            className="flex items-center gap-1 text-[11px] font-mono text-purple-700 hover:text-purple-950 hover:underline transition-colors font-semibold"
           >
             <ArrowLeft className="h-3 w-3" />
             <span>Supply missing data in Intake</span>
@@ -38,7 +38,7 @@ export const SkippedChecksList: React.FC<SkippedChecksListProps> = ({
         )}
       </div>
 
-      <p className="text-xs text-purple-300/90 leading-relaxed">
+      <p className="text-xs text-purple-900/90 leading-relaxed">
         The following clinical rules could not be evaluated due to missing, incomplete, or unresolved patient fields. Under the fail-closed safety protocol, these remain unverified rather than assumed safe:
       </p>
 
@@ -46,25 +46,25 @@ export const SkippedChecksList: React.FC<SkippedChecksListProps> = ({
         {skippedChecks.map((check: SkippedCheck, idx: number) => (
           <div
             key={`${check.rule_id}-${idx}`}
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-lg border border-purple-900/40 bg-slate-950/60 p-2.5 text-xs"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-purple-200 bg-white p-3 text-xs shadow-xs"
           >
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-2">
-                <span className="font-mono font-semibold text-purple-200">{check.rule_id}</span>
-                <span className="text-[10px] text-purple-400 font-mono">({check.rule_type})</span>
+                <span className="font-mono font-bold text-purple-950">{check.rule_id}</span>
+                <span className="text-[10px] text-purple-600 font-mono">({check.rule_type})</span>
               </div>
-              <span className="text-slate-400 text-[11px]">{check.reason}</span>
+              <span className="text-[#5C6B64] text-[11px]">{check.reason}</span>
             </div>
 
             {check.missing_fields && check.missing_fields.length > 0 && (
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] text-slate-400">Missing:</span>
+                <span className="text-[10px] text-[#5C6B64]">Missing:</span>
                 {check.missing_fields.map((f: string) => (
                   <span
                     key={f}
-                    className="flex items-center gap-1 rounded bg-purple-900/40 border border-purple-800/60 px-1.5 py-0.5 text-[10px] font-mono text-purple-200"
+                    className="flex items-center gap-1 rounded-md bg-purple-100 border border-purple-300 px-2 py-0.5 text-[10px] font-mono font-bold text-purple-800"
                   >
-                    <AlertCircle className="h-2.5 w-2.5" />
+                    <AlertCircle className="h-2.5 w-2.5 text-purple-600" />
                     {f}
                   </span>
                 ))}
@@ -77,3 +77,4 @@ export const SkippedChecksList: React.FC<SkippedChecksListProps> = ({
   )
 }
 export default SkippedChecksList
+

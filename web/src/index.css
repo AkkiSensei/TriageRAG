@@ -2,24 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =====================================================
+   TriageRAG — Whisper Sage Design System (BedLink Palette)
+   Clinical Restfulness: calm authority, high readability
+   ===================================================== */
+
 :root {
-  --clinical-bg: #090d16;
-  --clinical-surface: #0f172a;
-  --clinical-surface-muted: #1e293b;
-  --clinical-border: #334155;
-  --clinical-block: #ef4444;
-  --clinical-high: #f97316;
-  --clinical-moderate: #f59e0b;
-  --clinical-info: #3b82f6;
-  --clinical-unverified: #8b5cf6;
-  --clinical-checked: #14b8a6;
+  /* Canvas & Surfaces */
+  --bg-canvas: #F4F6F4;
+  --bg-surface: #FFFFFF;
+  --bg-hover: #EEF3EE;
+
+  /* Primary (Sage Green) */
+  --primary: #2D6A4F;
+  --primary-dark: #1B4D39;
+  --primary-soft: #E8F5E9;
+
+  /* Borders */
+  --border: #E1E7E1;
+  --border-focus: #2D6A4F;
+  --border-strong: #C4CEBD;
+
+  /* Typography */
+  --text-primary: #1A2421;
+  --text-muted: #5C6B64;
+  --text-inverse: #FFFFFF;
+
+  /* Clinical Status & Warning Colors (Preserved) */
+  --clinical-bg: var(--bg-canvas);
+  --clinical-surface: var(--bg-surface);
+  --clinical-surface-muted: var(--bg-hover);
+  --clinical-border: var(--border);
+
+  --clinical-block: #E11D48;
+  --clinical-block-bg: #FFF1F2;
+  --clinical-block-border: #FECDD3;
+
+  --clinical-high: #EA580C;
+  --clinical-high-bg: #FFF7ED;
+  --clinical-high-border: #FED7AA;
+
+  --clinical-moderate: #D97706;
+  --clinical-moderate-bg: #FFFBEB;
+  --clinical-moderate-border: #FDE68A;
+
+  --clinical-info: #1D4ED8;
+  --clinical-info-bg: #EFF6FF;
+  --clinical-info-border: #BFDBFE;
+
+  --clinical-unverified: #7C3AED;
+  --clinical-unverified-bg: #FAF5FF;
+  --clinical-unverified-border: #DDD6FE;
+
+  --clinical-checked: #2E7D32;
+  --clinical-checked-bg: #E8F5E9;
+  --clinical-checked-border: #A5D6A7;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: var(--clinical-bg);
-  color: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', Helvetica, Arial, sans-serif;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
@@ -27,58 +74,59 @@ code, pre, .font-mono {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-/* Custom scrollbar for clinical console */
+/* Clinical Whisper Sage Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 4px;
+  background: var(--border-strong);
+  border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--text-muted);
 }
 
-/* High-contrast status badges */
+/* Clinical Status Badges & Pills */
 .badge-block {
-  background-color: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #f87171;
+  background-color: #FFF1F2;
+  border: 1px solid #FECDD3;
+  color: #E11D48;
 }
 
 .badge-high {
-  background-color: rgba(249, 115, 22, 0.15);
-  border: 1px solid rgba(249, 115, 22, 0.4);
-  color: #fb923c;
+  background-color: #FFF7ED;
+  border: 1px solid #FED7AA;
+  color: #EA580C;
 }
 
 .badge-moderate {
-  background-color: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #fbbf24;
+  background-color: #FFFBEB;
+  border: 1px solid #FDE68A;
+  color: #D97706;
 }
 
 .badge-info {
-  background-color: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  color: #60a5fa;
+  background-color: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1D4ED8;
 }
 
 .badge-unverified {
-  background-color: rgba(139, 92, 246, 0.15);
-  border: 1px solid rgba(139, 92, 246, 0.4);
-  color: #a78bfa;
+  background-color: #FAF5FF;
+  border: 1px solid #DDD6FE;
+  color: #7C3AED;
 }
 
 .badge-checked {
-  background-color: rgba(20, 184, 166, 0.15);
-  border: 1px solid rgba(20, 184, 166, 0.4);
-  color: #2dd4bf;
+  background-color: #E8F5E9;
+  border: 1px solid #A5D6A7;
+  color: #2E7D32;
 }
+
