@@ -237,3 +237,4 @@ Every finding (`RAG-01` through `RAG-16`) and every work package (`WP0` through 
 - **Synthetic Corpus Scale:** `10,000` decision chunks across 6 syndromes and 2 populations (`adult`, `paediatric`).
 - **Index Build Time:** `317.63 ms`
 - **Query Latency (100 Queries):** `mean = 4.190 ms`, `p50 = 3.945 ms`, **`p95 = 5.648 ms`** (target `< 50.0 ms` $\rightarrow$ **PASS**).
+
