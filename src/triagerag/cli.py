@@ -22,8 +22,13 @@ from triagerag.contracts.schemas import OverrideRecord, Patient
 from triagerag.engine.registry import ClinicalRegistry
 from triagerag.llm.fake import FakeLLM, FakeLLMProfile
 from triagerag.orchestrator import run_triage
+from triagerag.rag.chunking import chunk_protocol_markdown, verify_round_trip_invariant
 from triagerag.rag.index import BM25ClinicalIndex
-from triagerag.rag.ingest import ingest_protocols
+from triagerag.rag.ingest import (
+    ingest_protocols,
+    ingest_protocols_with_report,
+    load_corpus_manifest,
+)
 
 DISCLAIMER: str = (
     "Research prototype. Synthetic data only. Not a medical device. Not for clinical use."
@@ -32,6 +37,10 @@ DISCLAIMER: str = (
 app = typer.Typer(
     help="TriageRAG - Emergency triage decision support and plan verification system."
 )
+corpus_app = typer.Typer(
+    help="Corpus validation, provenance report, and chunk inspection commands."
+)
+app.add_typer(corpus_app, name="corpus")
 console = Console()
 
 
@@ -346,6 +355,174 @@ def audit_verify(
     else:
         console.print(f"[bold red]Audit log TAMPER DETECTED: {err}[/bold red]")
         raise typer.Exit(code=1)
+
+
+@corpus_app.command("validate")
+def corpus_validate(
+    data_dir: Annotated[
+        Path | None,
+        typer.Option("--data-dir", help="Data directory containing protocol corpus"),
+    ] = None,
+) -> None:
+    """Validate all protocol files, frontmatter provenance, and round-trip chunking invariants."""
+    _print_disclaimer()
+    target_dir = data_dir or get_data_dir()
+    report = ingest_protocols_with_report(target_dir, strict_unparsed=True)
+
+    errors: list[str] = []
+    if report.quarantined:
+        for q in report.quarantined:
+            errors.append(f"QUARANTINED {q.path}: {q.reason}")
+
+    if report.unparsed_by_doc:
+        for doc_id, lines in report.unparsed_by_doc.items():
+            errors.append(f"UNPARSED lines in {doc_id}: {lines}")
+
+    manifest_path = target_dir / "corpus" / "manifest.yaml"
+    if manifest_path.exists():
+        try:
+            manifest = load_corpus_manifest(target_dir)
+            parent_hashes = {c.doc_id: c.content_hash for c in report.chunks if c.parent_id is None}
+            for entry in manifest.documents:
+                actual_hash = parent_hashes.get(entry.doc_id)
+                if actual_hash is None:
+                    errors.append(f"Manifest document {entry.doc_id} missing from loaded corpus")
+                elif actual_hash != entry.content_hash:
+                    errors.append(
+                        f"Content hash mismatch for {entry.doc_id}: "
+                        f"manifest={entry.content_hash[:12]} vs actual={actual_hash[:12]}"
+                    )
+        except Exception as exc:
+            errors.append(f"Manifest validation failed: {exc}")
+
+    if not report.loaded_docs and not errors:
+        errors.append(f"FAILED: No valid protocol documents found in {target_dir}")
+
+    if errors:
+        for err_msg in errors:
+            console.print(f"[bold red]{err_msg}[/bold red]")
+        console.print(
+            f"[bold red]CORPUS VALIDATION FAILED ({len(errors)} error(s), "
+            f"{len(report.quarantined)} quarantined).[/bold red]"
+        )
+        raise typer.Exit(code=1)
+
+    console.print(
+        f"[bold green]CORPUS VALIDATED: {len(report.loaded_docs)} documents, "
+        f"{len(report.chunks)} chunks, 0 quarantined. "
+        f"Corpus Hash: {report.corpus_hash[:16]}[/bold green]"
+    )
+
+
+@corpus_app.command("report")
+def corpus_report(
+    data_dir: Annotated[
+        Path | None,
+        typer.Option("--data-dir", help="Data directory containing protocol corpus"),
+    ] = None,
+) -> None:
+    """Print detailed corpus provenance, population/syndrome distribution, and quarantine report."""
+    _print_disclaimer()
+    target_dir = data_dir or get_data_dir()
+    report = ingest_protocols_with_report(target_dir, strict_unparsed=False)
+
+    table = Table(title=f"CORPUS REPORT (Hash: {report.corpus_hash[:16]})", expand=True)
+    table.add_column("Chunk ID")
+    table.add_column("Doc ID")
+    table.add_column("Pop")
+    table.add_column("Syndrome")
+    table.add_column("Type")
+    table.add_column("Version")
+    table.add_column("Hash (12)")
+
+    for c in report.chunks:
+        kind = "SYNTHETIC" if c.synthetic else f"REAL ({c.source_status.value})"
+        table.add_row(
+            c.chunk_id,
+            c.doc_id,
+            c.population,
+            c.syndrome,
+            kind,
+            c.version,
+            c.content_hash[:12],
+        )
+    console.print(table)
+
+    if report.quarantined:
+        for q in report.quarantined:
+            console.print(f"[yellow]Quarantined: {q.path} -> {q.reason}[/yellow]")
+
+
+@corpus_app.command("explain")
+def corpus_explain(
+    target: Annotated[str, typer.Argument(help="Chunk ID or path to markdown protocol file")],
+    data_dir: Annotated[
+        Path | None,
+        typer.Option("--data-dir", help="Data directory containing protocol corpus"),
+    ] = None,
+) -> None:
+    """Inspect how a protocol file or chunk ID is parsed, contextualized, and hashed."""
+    _print_disclaimer()
+    candidate_path = Path(target)
+    if candidate_path.exists() and candidate_path.is_file():
+        content = candidate_path.read_text(encoding="utf-8")
+        chunks = chunk_protocol_markdown(content, source_path=candidate_path)
+        invariant_ok = verify_round_trip_invariant(content, chunks)
+        console.print(f"[bold]Round-trip invariant:[/bold] {invariant_ok}")
+    else:
+        target_dir = data_dir or get_data_dir()
+        all_chunks = ingest_protocols_with_report(target_dir, strict_unparsed=False).chunks
+        chunks = [c for c in all_chunks if c.chunk_id == target or c.doc_id == target]
+        if not chunks:
+            console.print(f"[red]No chunk or document found matching '{target}'[/red]")
+            raise typer.Exit(code=1)
+
+    for c in chunks:
+        console.print(
+            Panel(
+                f"Doc ID: {c.doc_id}\n"
+                f"Chunk ID: {c.chunk_id} (Parent: {c.parent_id})\n"
+                f"Population: {c.population} | Syndrome: {c.syndrome}\n"
+                f"Synthetic: {c.synthetic} | Status: {c.source_status.value}\n"
+                f"Hash: {c.content_hash}\n"
+                f"Unparsed Lines: {list(c.unparsed_lines)}\n\n"
+                f"--- Indexed Text ---\n{c.indexed_text}",
+                title=f"Chunk {c.chunk_id}",
+            )
+        )
+
+
+@corpus_app.command("add")
+def corpus_add(
+    file_path: Annotated[Path, typer.Argument(help="Path to candidate protocol markdown file")],
+    data_dir: Annotated[
+        Path | None,
+        typer.Option("--data-dir", help="Data directory containing protocol corpus"),
+    ] = None,
+) -> None:
+    """Validate and add a protocol markdown file to the corpus."""
+    _print_disclaimer()
+    if not file_path.exists():
+        console.print(f"[red]File not found: {file_path}[/red]")
+        raise typer.Exit(code=1)
+    content = file_path.read_text(encoding="utf-8")
+    try:
+        chunks = chunk_protocol_markdown(content, source_path=file_path)
+    except Exception as exc:
+        console.print(f"[red]Validation failed: {exc}[/red]")
+        raise typer.Exit(code=1) from exc
+
+    if not verify_round_trip_invariant(content, chunks) or chunks[0].unparsed_lines:
+        console.print(f"[red]Protocol has unparsed lines: {list(chunks[0].unparsed_lines)}[/red]")
+        raise typer.Exit(code=1)
+
+    target_dir = data_dir or get_data_dir()
+    dest_subdir = "protocols_synthetic" if chunks[0].synthetic else "protocols_real"
+    dest_dir = target_dir / dest_subdir
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_file = dest_dir / file_path.name
+    dest_file.write_text(content, encoding="utf-8")
+    console.print(f"[green]Added {file_path.name} -> {dest_file}[/green]")
 
 
 if __name__ == "__main__":

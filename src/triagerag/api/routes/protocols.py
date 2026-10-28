@@ -18,11 +18,19 @@ def list_protocols() -> list[ProtocolChunkDto]:
         ProtocolChunkDto(
             chunk_id=c.chunk_id,
             doc_id=c.doc_id,
+            parent_id=c.parent_id,
+            title=c.title,
             section=c.section,
             population=c.population,
             syndrome=c.syndrome,
             text=c.text,
-            synthetic=True,
+            synthetic=c.synthetic,
+            version=c.version,
+            content_hash=c.content_hash,
+            license=c.license,
+            attribution=c.attribution,
+            source_url=c.source_url,
+            source_status=c.source_status.value,
         )
         for c in chunks
     ]

@@ -1,0 +1,107 @@
+manifest_version: "1.0.0"
+
+controlled_syndromes:
+  - "altered_mental_status"
+  - "anaphylaxis"
+  - "chest_pain"
+  - "hypoglycemia"
+  - "paediatric_sepsis"
+  - "severe_asthma"
+
+syndrome_aliases:
+  "paediatric_sepsis_screen": "paediatric_sepsis"
+  "acs": "chest_pain"
+  "acute_coronary_syndrome": "chest_pain"
+  "asthma": "severe_asthma"
+  "encephalopathy": "altered_mental_status"
+
+documents:
+  - doc_id: "EMERG_ALTERED_MENTAL_STATUS"
+    title: "Emergency Protocol: Altered Mental Status & Encephalopathy (SYNTHETIC)"
+    path: "protocols_synthetic/altered_mental_status.md"
+    population: "adult"
+    syndrome: "altered_mental_status"
+    synthetic: true
+    license: null
+    attribution: "TriageRAG Synthetic Research Corpus"
+    source_url: null
+    version: "1.0.0"
+    retrieved_at: null
+    content_hash: "df0f8e63445d5e18a7d048be093e5b85e21b9b0141bf00358e6668bab89b9a6a"
+    reviewed_by: null
+    status: "PLACEHOLDER_UNRETRIEVED"
+
+  - doc_id: "EMERG_ANAPHYLAXIS"
+    title: "Emergency Protocol: Severe Anaphylaxis Management (SYNTHETIC)"
+    path: "protocols_synthetic/anaphylaxis.md"
+    population: "adult"
+    syndrome: "anaphylaxis"
+    synthetic: true
+    license: null
+    attribution: "TriageRAG Synthetic Research Corpus"
+    source_url: null
+    version: "1.0.0"
+    retrieved_at: null
+    content_hash: "d716cf45361994d0e0c3773633892e3e282da65c5183538c74f97332592f59eb"
+    reviewed_by: null
+    status: "PLACEHOLDER_UNRETRIEVED"
+
+  - doc_id: "EMERG_CHEST_PAIN"
+    title: "Emergency Protocol: Acute Chest Pain & Suspected Coronary Syndrome (SYNTHETIC)"
+    path: "protocols_synthetic/chest_pain.md"
+    population: "adult"
+    syndrome: "chest_pain"
+    synthetic: true
+    license: null
+    attribution: "TriageRAG Synthetic Research Corpus"
+    source_url: null
+    version: "1.0.0"
+    retrieved_at: null
+    content_hash: "567914fccec150dd2f6b53816190ddbec89b7e80e8e0092c1b4c65e47835d4c3"
+    reviewed_by: null
+    status: "PLACEHOLDER_UNRETRIEVED"
+
+  - doc_id: "EMERG_HYPOGLYCEMIA"
+    title: "Emergency Protocol: Severe Symptomatic Hypoglycemia (SYNTHETIC)"
+    path: "protocols_synthetic/hypoglycemia.md"
+    population: "adult"
+    syndrome: "hypoglycemia"
+    synthetic: true
+    license: null
+    attribution: "TriageRAG Synthetic Research Corpus"
+    source_url: null
+    version: "1.0.0"
+    retrieved_at: null
+    content_hash: "a95825b79230fad6a08ad72d26565bb434434c51d399a6398d0400114bc12b9b"
+    reviewed_by: null
+    status: "PLACEHOLDER_UNRETRIEVED"
+
+  - doc_id: "EMERG_PAED_SEPSIS"
+    title: "Emergency Protocol: Paediatric Sepsis Screening & Antibiotic Initiation (SYNTHETIC)"
+    path: "protocols_synthetic/paediatric_sepsis_screen.md"
+    population: "paediatric"
+    syndrome: "paediatric_sepsis"
+    synthetic: true
+    license: null
+    attribution: "TriageRAG Synthetic Research Corpus"
+    source_url: null
+    version: "1.0.0"
+    retrieved_at: null
+    content_hash: "dd4233e5ef6e33f28c8d03ddbdbb8bd40861657e39e795f4e62695e41bb58357"
+    reviewed_by: null
+    status: "PLACEHOLDER_UNRETRIEVED"
+
+  - doc_id: "EMERG_SEVERE_ASTHMA"
+    title: "Emergency Protocol: Severe Acute Asthma Exacerbation (SYNTHETIC)"
+    path: "protocols_synthetic/severe_asthma.md"
+    population: "adult"
+    syndrome: "severe_asthma"
+    synthetic: true
+    license: null
+    attribution: "TriageRAG Synthetic Research Corpus"
+    source_url: null
+    version: "1.0.0"
+    retrieved_at: null
+    content_hash: "64392acd28476cb48df9c91aa3ae1792cd01516c64a31e5e49e32a59148a36ef"
+    reviewed_by: null
+    status: "PLACEHOLDER_UNRETRIEVED"

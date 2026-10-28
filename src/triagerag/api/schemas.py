@@ -80,11 +80,19 @@ class RegistrySummaryResponse(BaseModel):
 class ProtocolChunkDto(BaseModel):
     chunk_id: str
     doc_id: str
+    parent_id: str | None = None
+    title: str = ""
     section: str
     population: str
     syndrome: str
     text: str
-    synthetic: bool = True
+    synthetic: bool
+    version: str = "1.0.0"
+    content_hash: str = ""
+    license: str | None = None
+    attribution: str | None = None
+    source_url: str | None = None
+    source_status: str = "PLACEHOLDER_UNRETRIEVED"
 
 
 class AuditEntryDto(BaseModel):

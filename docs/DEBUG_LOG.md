@@ -124,3 +124,22 @@
   6. `test_missing_synthetic_flag_rejected` (RAG-04): **FAILED as expected** (frontmatter missing `synthetic` defaulted silently to `True` instead of raising `ValueError`).
   7. `test_step_drug_must_appear_in_cited_chunk` (RAG-02): **FAILED as expected** (`administer nitroglycerin` citing `HYPOGLYCEMIA_01_NODE_1` was `APPROVED` — citation laundering).
 - **Gate Status:** All 7 new probes fail for the exact documented reasons; all 91 pre-existing tests pass.
+
+---
+
+### WP1: Provenance, Frontmatter Schema, Manifest, Quarantine & Corpus CLI (`rag-wp1`)
+- **Finding IDs:** RAG-04, RAG-12 (part).
+- **Symptoms:**
+  - `chunking.py` defaulted `synthetic` to `True` when omitted in YAML frontmatter.
+  - `api/routes/protocols.py` hardcoded `synthetic=True` on `ProtocolChunkDto`.
+  - `ingest.py` parsed chunks before checking license metadata, split frontmatter naively with `content.split("---")` (breaking on horizontal rules in markdown body), and aborted the entire ingestion run if a single file was malformed.
+  - Chunks lacked `version`, `content_hash`, `license`, `attribution`, `source_url`, and `source_status`.
+- **Root Cause:** Missing Pydantic validation schema for frontmatter and lack of per-file quarantine reporting in `ingest.py`.
+- **Fixes:**
+  - Added `ProtocolFrontmatter` (Pydantic `extra="forbid"`, `synthetic: StrictBool` required with no default; `synthetic=False` requires `license`, `attribution`, `source_url`, `version`, `retrieved_at`).
+  - Extended `ProtocolChunk` with `title`, `indexed_text`, `version`, `content_hash` (SHA-256), `license`, `attribution`, `source_url`, `retrieved_at`, `reviewed_by`, `source_status`, `unparsed_lines`, `parse_warnings`, and `suspicious_patterns`.
+  - Created `data/corpus/manifest.yaml` with SHA-256 `content_hash` per document and controlled syndrome vocabulary.
+  - Implemented `ingest_protocols_with_report` returning `IngestReport` with `QuarantinedDocument` records and deterministic `corpus_hash`.
+  - Updated `ProtocolChunkDto` and `/api/protocols` to expose `c.synthetic` and provenance fields.
+  - Added `triagerag corpus {validate,report,explain,add}` CLI commands in `src/triagerag/cli.py`.
+- **Tests:** `tests/unit/test_rag_wp1_ingestion.py` (4 tests) + `test_missing_synthetic_flag_rejected` in `tests/unit/test_rag_regressions.py` — all PASS.
