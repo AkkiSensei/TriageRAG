@@ -33,7 +33,7 @@ from triagerag.rag.ingest import load_corpus_manifest
 
 if TYPE_CHECKING:
     from triagerag.contracts.schemas import Patient
-    from triagerag.rag.index import BM25ClinicalIndex
+    from triagerag.rag.index import Retriever
 
 _NON_ALNUM_RE = re.compile(r"[^a-zA-Z0-9]+")
 
@@ -157,7 +157,7 @@ def build_retrieval_query(patient: Patient) -> tuple[str, list[str]]:
 
 def retrieve_protocol_chunks(
     patient: Patient,
-    index: BM25ClinicalIndex,
+    index: Retriever,
     threshold: float = DEFAULT_MIN_RETRIEVAL_THRESHOLD,
     top_k: int | None = None,
 ) -> RetrievalReport:

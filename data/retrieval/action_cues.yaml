@@ -1,0 +1,36 @@
+version: "1.0.0"
+
+min_overlap_threshold: 0.08
+min_span_chars: 10
+
+administer_cues:
+  - "administer"
+  - "administering"
+  - "give"
+  - "initiate"
+  - "infuse"
+  - "nebulized"
+  - "repeat"
+  - "titrate"
+  - "bolus"
+  - "inject"
+
+withhold_cues:
+  - "withhold"
+  - "withholding"
+  - "avoid"
+  - "contraindicated"
+  - "contraindication"
+  - "do not give"
+  - "stop"
+  - "discontinue"
+  - "prevent"
+
+provenance:
+  source_doc: "SYNTHETIC_ACTION_CUE_LEXICON_DRAFT"
+  section_ref: "TO_BE_RESOLVED"
+  version_or_date: "2026-DRAFT"
+  source_status: "PLACEHOLDER_UNRETRIEVED"
+  content_origin: "AGENT_DRAFT_UNSOURCED"
+  verified: false
+  reviewer: null

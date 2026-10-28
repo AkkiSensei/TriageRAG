@@ -7,8 +7,8 @@
 | Category | Mutants Evaluated | Mutants Killed | Score | Threshold | Status |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **Shipped Rule Mutants** | 12 | 12 | **100.0%** | 100.0% | [OK] |
-| **Code-Level Mutants** | 28 | 28 | **100.0%** | >=90.0% | [OK] |
-| **Total Combined Mutants** | 40 | 40 | **100.0%** | >=95.0% | [OK] |
+| **Code-Level Mutants** | 33 | 33 | **100.0%** | >=90.0% | [OK] |
+| **Total Combined Mutants** | 45 | 45 | **100.0%** | >=95.0% | [OK] |
 
 ## 2. Invariants Verified by Code Mutants
 

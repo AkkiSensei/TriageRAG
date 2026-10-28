@@ -236,4 +236,7 @@ def test_eval_summary_endpoint() -> None:
         assert data["golden"].get("suite") == "golden"
         assert data["golden"].get("passed") == 65
     if data["mutation"]:
-        assert data["mutation"].get("overall_mutants_killed") == 40
+        assert data["mutation"].get("overall_mutants_killed") >= 40
+        assert data["mutation"].get("overall_mutants_killed") == data["mutation"].get(
+            "overall_mutants_total"
+        )

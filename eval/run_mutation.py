@@ -27,6 +27,7 @@ from triagerag.contracts.enums import (
     AgeUnit,
     Consciousness,
     DoseUnit,
+    Route,
     Severity,
     StepStatus,
     Verdict,
@@ -884,6 +885,203 @@ def build_code_mutants() -> list[CodeMutant]:
             "M28_DROP_UNTRUSTED_COMPLAINT_ISOLATION",
             "Dropping Rule R7: leaking untrusted chief complaint to LLM context by default",
             test_untrusted_complaint_isolation,
+        )
+    )
+
+    # 29. Drop citation drug support check (RAG-02)
+    def test_drug_support_check(reg: ClinicalRegistry) -> None:
+        p = _build_standard_patient()
+        unrelated_chunk = RetrievedChunk(
+            doc_id="EMERG_HYPOGLYCEMIA",
+            section="Acute Metabolic Screening",
+            chunk_id="HYPOGLYCEMIA_01_NODE_1",
+            parent_id="HYPOGLYCEMIA_01",
+            text="administer intravenous dextrose immediately via secure vascular access",
+            population="adult",
+            syndrome="hypoglycemia",
+        )
+        draft = PlanDraft(
+            matched_protocol_title="Acute Metabolic Screening",
+            steps=[
+                PlanStepDraft(
+                    step_number=1,
+                    action_type=ActionType.administer,
+                    narrative_instruction=(
+                        "Administer sublingual vasodilator immediately via access"
+                    ),
+                    drug_id="nitroglycerin",
+                    requested_dose=ExplicitDose(amount=Decimal("0.4"), unit=DoseUnit.mg),
+                    route=Route.sublingual,
+                    citations=[
+                        SpanCitation(
+                            doc_id="EMERG_HYPOGLYCEMIA",
+                            section="Acute Metabolic Screening",
+                            chunk_id="HYPOGLYCEMIA_01_NODE_1",
+                            quoted_span="administer intravenous dextrose immediately",
+                        )
+                    ],
+                )
+            ],
+        )
+        v_steps, _, _, _ = verify_plan(p, draft, [], [unrelated_chunk], reg)
+        assert v_steps[0].status == StepStatus.CITATION_UNVERIFIED
+        assert v_steps[0].citation_verified is False
+
+    mutants.append(
+        CodeMutant(
+            "M29_DROP_DRUG_SUPPORT_CHECK",
+            "Dropping drug presence support check in cited chunks (citation laundering)",
+            test_drug_support_check,
+        )
+    )
+
+    # 30. Drop withhold action-cue polarity check (RAG-02)
+    def test_withhold_cue_check(reg: ClinicalRegistry) -> None:
+        p = _build_standard_patient()
+        administer_chunk = RetrievedChunk(
+            doc_id="EMERG_CHEST_PAIN",
+            section="Acute Coronary Syndromes Screening",
+            chunk_id="CHEST_PAIN_01_NODE_2",
+            parent_id="CHEST_PAIN_01",
+            text="administer sublingual nitroglycerin as formulary-directed",
+            population="adult",
+            syndrome="chest_pain",
+        )
+        draft = PlanDraft(
+            matched_protocol_title="Acute Coronary Syndromes Screening",
+            steps=[
+                PlanStepDraft(
+                    step_number=1,
+                    action_type=ActionType.withhold,
+                    narrative_instruction="Withhold sublingual vasodilator as formulary-directed",
+                    drug_id="nitroglycerin",
+                    citations=[
+                        SpanCitation(
+                            doc_id="EMERG_CHEST_PAIN",
+                            section="Acute Coronary Syndromes Screening",
+                            chunk_id="CHEST_PAIN_01_NODE_2",
+                            quoted_span="administer sublingual nitroglycerin as formulary-directed",
+                        )
+                    ],
+                )
+            ],
+        )
+        v_steps, _, _, _ = verify_plan(p, draft, [], [administer_chunk], reg)
+        assert v_steps[0].status == StepStatus.CITATION_UNVERIFIED
+        assert v_steps[0].citation_verified is False
+
+    mutants.append(
+        CodeMutant(
+            "M30_DROP_WITHHOLD_CUE_CHECK",
+            "Dropping withhold action-cue polarity requirement in cited chunks",
+            test_withhold_cue_check,
+        )
+    )
+
+    # 31. Drop citation minimum lexical overlap gate (RAG-02)
+    def test_citation_overlap_gate(_reg: ClinicalRegistry) -> None:
+        chunk = RetrievedChunk(
+            doc_id="D1",
+            section="S1",
+            chunk_id="C1_NODE_1",
+            parent_id="C1",
+            text="obtain immediate 12-lead electrocardiogram and attach continuous cardiac monitor",
+            population="adult",
+            syndrome="chest_pain",
+        )
+        cit = SpanCitation(
+            doc_id="D1",
+            section="S1",
+            chunk_id="C1_NODE_1",
+            quoted_span="obtain immediate 12-lead electrocardiogram",
+        )
+        is_valid, _, _ = verify_citation(
+            cit,
+            [chunk],
+            "Perform lumbar puncture and cerebrospinal fluid analysis",
+        )
+        assert is_valid is False
+
+    mutants.append(
+        CodeMutant(
+            "M31_DROP_CITATION_OVERLAP_GATE",
+            "Dropping minimum lexical overlap threshold on citation grounding",
+            test_citation_overlap_gate,
+        )
+    )
+
+    # 32. Drop child-node citation specificity rule (RAG-02)
+    def test_child_node_citation_rule(_reg: ClinicalRegistry) -> None:
+        parent_chunk = RetrievedChunk(
+            doc_id="D1",
+            section="S1",
+            chunk_id="C1",
+            parent_id=None,
+            text="obtain immediate 12-lead electrocardiogram and attach continuous cardiac monitor",
+            population="adult",
+            syndrome="chest_pain",
+        )
+        child_chunk = RetrievedChunk(
+            doc_id="D1",
+            section="S1",
+            chunk_id="C1_NODE_1",
+            parent_id="C1",
+            text="obtain immediate 12-lead electrocardiogram and attach continuous cardiac monitor",
+            population="adult",
+            syndrome="chest_pain",
+        )
+        cit = SpanCitation(
+            doc_id="D1",
+            section="S1",
+            chunk_id="C1",
+            quoted_span="obtain immediate 12-lead electrocardiogram",
+        )
+        is_valid, _, _ = verify_citation(
+            cit,
+            [parent_chunk, child_chunk],
+            "Obtain immediate 12-lead electrocardiogram",
+        )
+        assert is_valid is False
+
+    mutants.append(
+        CodeMutant(
+            "M32_DROP_CHILD_NODE_CITATION_RULE",
+            "Dropping child-node citation requirement when child decision nodes exist",
+            test_child_node_citation_rule,
+        )
+    )
+
+    # 33. Drop unknown syndrome abstention (RAG-01)
+    def test_unknown_syndrome_abstain(_reg: ClinicalRegistry) -> None:
+        from triagerag.rag.index import BM25ClinicalIndex
+        from triagerag.rag.ingest import ingest_protocols
+        from triagerag.rag.retrieve import retrieve_protocol_chunks
+
+        index = BM25ClinicalIndex(ingest_protocols(get_data_dir()))
+        now = datetime(2026, 10, 26, 12, 0, tzinfo=UTC)
+        p = Patient(
+            assessed_at=now,
+            age=Age(value=Decimal("45"), unit=AgeUnit.years),
+            sex="male",
+            pregnancy="not_applicable",
+            weight_kg=Measured[Decimal](value=Decimal("80.0"), source="measured"),
+            vitals=Vitals(
+                systolic_bp_mmhg=Measured[int](value=80, source="measured"),
+                heart_rate_bpm=Measured[int](value=130, source="measured"),
+            ),
+            medication_history_status="confirmed_none",
+            allergy_history_status="confirmed_none",
+            suspected_syndrome="kidney_stone",
+        )
+        rep = retrieve_protocol_chunks(p, index)
+        assert rep.abstained is True
+        assert rep.abstain_code == "UNKNOWN_SYNDROME"
+
+    mutants.append(
+        CodeMutant(
+            "M33_DROP_UNKNOWN_SYNDROME_ABSTAIN",
+            "Dropping hard syndrome filter abstention on unknown suspected_syndrome",
+            test_unknown_syndrome_abstain,
         )
     )
 

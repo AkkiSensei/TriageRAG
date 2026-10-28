@@ -17,6 +17,7 @@ from triagerag.contracts.schemas import (
     PlanContext,
     PlanDraft,
     PlanStepDraft,
+    RetrievedChunk,
     SpanCitation,
 )
 from triagerag.llm.provider import LLMProvider
@@ -32,6 +33,42 @@ class FakeLLMProfile(StrEnum):
     IGNORE_BLOCK = "IGNORE_BLOCK"
     OBEY_COMPLAINT = "OBEY_COMPLAINT"
     NAIVE_FREE_TEXT = "NAIVE_FREE_TEXT"
+
+
+def _select_supporting_chunk_and_span(
+    chunks: list[RetrievedChunk],
+    target_span: str,
+    fallback_keywords: list[str] | None = None,
+) -> tuple[RetrievedChunk, str]:
+    """Select the specific child node containing target_span (or fallback keywords)."""
+    child_chunks = [c for c in chunks if c.parent_id is not None or "_NODE_" in c.chunk_id]
+    candidate_pool = child_chunks if child_chunks else chunks
+
+    for chunk in candidate_pool:
+        if target_span.lower() in chunk.text.lower():
+            return chunk, target_span
+
+    for chunk in chunks:
+        if target_span.lower() in chunk.text.lower():
+            return chunk, target_span
+
+    if fallback_keywords:
+        for kw in fallback_keywords:
+            kw_low = kw.lower()
+            for chunk in candidate_pool:
+                if kw_low in chunk.text.lower():
+                    for line in chunk.text.splitlines():
+                        stripped = line.strip()
+                        if kw_low in stripped.lower() and len(stripped) >= 10:
+                            return chunk, stripped[:80]
+                    return chunk, chunk.text.strip()[:60]
+
+    chosen = candidate_pool[0]
+    for line in chosen.text.splitlines():
+        stripped = line.strip()
+        if stripped.upper().startswith("THEN ") and len(stripped) >= 10:
+            return chosen, stripped[:80]
+    return chosen, chosen.text.strip()[:60]
 
 
 class FakeLLM(LLMProvider):
@@ -72,6 +109,11 @@ class FakeLLM(LLMProvider):
 
         if self.profile == FakeLLMProfile.PROSE_LEAK:
             # Leaks unbound drug name (amoxicillin) in narrative instruction (Section 10 violation)
+            sup_chunk, sup_span = _select_supporting_chunk_and_span(
+                context.retrieved_chunks,
+                "administer intramuscular epinephrine into the anterolateral mid-thigh",
+                ["epinephrine", "administer"],
+            )
             return PlanDraft(
                 matched_protocol_title=first_chunk.section,
                 steps=[
@@ -79,17 +121,18 @@ class FakeLLM(LLMProvider):
                         step_number=1,
                         action_type=ActionType.administer,
                         narrative_instruction=(
-                            "Administer amoxicillin alongside epinephrine immediately into thigh"
+                            "Administer amoxicillin alongside epinephrine intramuscularly "
+                            "into the anterolateral mid-thigh"
                         ),
                         drug_id="epinephrine",
                         requested_dose=ExplicitDose(amount=Decimal("0.5"), unit=DoseUnit.mg),
                         route=Route.im,
                         citations=[
                             SpanCitation(
-                                doc_id=first_chunk.doc_id,
-                                section=first_chunk.section,
-                                chunk_id=first_chunk.chunk_id,
-                                quoted_span=first_chunk.text[:30],
+                                doc_id=sup_chunk.doc_id,
+                                section=sup_chunk.section,
+                                chunk_id=sup_chunk.chunk_id,
+                                quoted_span=sup_span,
                             )
                         ],
                     )
@@ -103,7 +146,9 @@ class FakeLLM(LLMProvider):
                     PlanStepDraft(
                         step_number=1,
                         action_type=ActionType.diagnostic,
-                        narrative_instruction="Obtain urgent bedside diagnostic electrocardiogram",
+                        narrative_instruction=(
+                            "Obtain immediate bedside diagnostic electrocardiogram"
+                        ),
                         citations=[
                             SpanCitation(
                                 doc_id="NONEXISTENT_DOC",
@@ -167,19 +212,24 @@ class FakeLLM(LLMProvider):
                 )
 
         if self.profile == FakeLLMProfile.NAIVE_FREE_TEXT:
+            sup_chunk, sup_span = _select_supporting_chunk_and_span(
+                context.retrieved_chunks,
+                "obtain immediate",
+                ["obtain", "assess", "monitor"],
+            )
             return PlanDraft(
                 matched_protocol_title=first_chunk.section,
                 steps=[
                     PlanStepDraft(
                         step_number=1,
                         action_type=ActionType.maneuver,
-                        narrative_instruction="Provide general supportive reassurance",
+                        narrative_instruction="Provide general supportive reassurance and monitor",
                         citations=[
                             SpanCitation(
-                                doc_id=first_chunk.doc_id,
-                                section=first_chunk.section,
-                                chunk_id=first_chunk.chunk_id,
-                                quoted_span=first_chunk.text[:20],
+                                doc_id=sup_chunk.doc_id,
+                                section=sup_chunk.section,
+                                chunk_id=sup_chunk.chunk_id,
+                                quoted_span=sup_span,
                             )
                         ],
                     )
@@ -191,10 +241,11 @@ class FakeLLM(LLMProvider):
         syndrome = first_chunk.syndrome.lower()
 
         if "anaphylaxis" in syndrome and "epinephrine" in context.allowed_drug_ids:
-            # Find span in chunk
-            span = "administer intramuscular epinephrine into the anterolateral mid-thigh"
-            if span not in first_chunk.text:
-                span = first_chunk.text[:40]
+            sup_chunk, span = _select_supporting_chunk_and_span(
+                context.retrieved_chunks,
+                "administer intramuscular epinephrine into the anterolateral mid-thigh",
+                ["epinephrine", "administer"],
+            )
             steps.append(
                 PlanStepDraft(
                     step_number=1,
@@ -208,9 +259,9 @@ class FakeLLM(LLMProvider):
                     route=Route.im,
                     citations=[
                         SpanCitation(
-                            doc_id=first_chunk.doc_id,
-                            section=first_chunk.section,
-                            chunk_id=first_chunk.chunk_id,
+                            doc_id=sup_chunk.doc_id,
+                            section=sup_chunk.section,
+                            chunk_id=sup_chunk.chunk_id,
                             quoted_span=span,
                         )
                     ],
@@ -218,62 +269,69 @@ class FakeLLM(LLMProvider):
             )
         elif "chest_pain" in syndrome:
             if "nitroglycerin" in context.allowed_drug_ids:
-                span = "administer sublingual nitroglycerin as formulary-directed"
-                if span not in first_chunk.text:
-                    span = first_chunk.text[:40]
+                sup_chunk, span = _select_supporting_chunk_and_span(
+                    context.retrieved_chunks,
+                    "administer sublingual nitroglycerin as formulary-directed",
+                    ["nitroglycerin", "sublingual"],
+                )
                 steps.append(
                     PlanStepDraft(
                         step_number=1,
                         action_type=ActionType.administer,
                         narrative_instruction=(
-                            "Administer emergency medication sublingually for acute "
-                            "ischemic chest discomfort"
+                            "Administer sublingual emergency medication as formulary-directed "
+                            "for acute ischemic chest discomfort"
                         ),
                         drug_id="nitroglycerin",
                         requested_dose=ExplicitDose(amount=Decimal("0.4"), unit=DoseUnit.mg),
                         route=Route.sublingual,
                         citations=[
                             SpanCitation(
-                                doc_id=first_chunk.doc_id,
-                                section=first_chunk.section,
-                                chunk_id=first_chunk.chunk_id,
+                                doc_id=sup_chunk.doc_id,
+                                section=sup_chunk.section,
+                                chunk_id=sup_chunk.chunk_id,
                                 quoted_span=span,
                             )
                         ],
                     )
                 )
             else:
-                span = "withhold nitroglycerin completely to prevent refractory vasodilation"
-                if span not in first_chunk.text:
-                    span = first_chunk.text[:40]
+                sup_chunk, span = _select_supporting_chunk_and_span(
+                    context.retrieved_chunks,
+                    "withhold nitroglycerin completely to prevent refractory vasodilation",
+                    ["withhold", "nitroglycerin"],
+                )
                 steps.append(
                     PlanStepDraft(
                         step_number=1,
                         action_type=ActionType.withhold,
                         narrative_instruction=(
-                            "Withhold indicated medication due to safety contraindication"
+                            "Withhold indicated medication completely to prevent "
+                            "refractory vasodilation"
                         ),
                         drug_id="nitroglycerin",
                         citations=[
                             SpanCitation(
-                                doc_id=first_chunk.doc_id,
-                                section=first_chunk.section,
-                                chunk_id=first_chunk.chunk_id,
+                                doc_id=sup_chunk.doc_id,
+                                section=sup_chunk.section,
+                                chunk_id=sup_chunk.chunk_id,
                                 quoted_span=span,
                             )
                         ],
                     )
                 )
         elif "sepsis" in syndrome and "ceftriaxone" in context.allowed_drug_ids:
-            span = "administer broad-spectrum intravenous ceftriaxone"
-            if span not in first_chunk.text:
-                span = first_chunk.text[:40]
+            sup_chunk, span = _select_supporting_chunk_and_span(
+                context.retrieved_chunks,
+                "administer broad-spectrum intravenous ceftriaxone",
+                ["ceftriaxone", "broad-spectrum"],
+            )
             steps.append(
                 PlanStepDraft(
                     step_number=1,
                     action_type=ActionType.administer,
                     narrative_instruction=(
-                        "Administer broad-spectrum antimicrobial intravenously "
+                        "Administer broad-spectrum intravenous antimicrobial "
                         "for urgent sepsis screening"
                     ),
                     drug_id="ceftriaxone",
@@ -281,53 +339,61 @@ class FakeLLM(LLMProvider):
                     route=Route.iv,
                     citations=[
                         SpanCitation(
-                            doc_id=first_chunk.doc_id,
-                            section=first_chunk.section,
-                            chunk_id=first_chunk.chunk_id,
+                            doc_id=sup_chunk.doc_id,
+                            section=sup_chunk.section,
+                            chunk_id=sup_chunk.chunk_id,
                             quoted_span=span,
                         )
                     ],
                 )
             )
         elif "hypoglycemia" in syndrome and "dextrose" in context.allowed_drug_ids:
-            span = "administer intravenous dextrose immediately via secure vascular access"
-            if span not in first_chunk.text:
-                span = first_chunk.text[:40]
+            sup_chunk, span = _select_supporting_chunk_and_span(
+                context.retrieved_chunks,
+                "administer intravenous dextrose immediately via secure vascular access",
+                ["dextrose", "intravenous"],
+            )
             steps.append(
                 PlanStepDraft(
                     step_number=1,
                     action_type=ActionType.administer,
                     narrative_instruction=(
-                        "Administer hypertonic solution intravenously for acute hypoglycemia"
+                        "Administer intravenous hypertonic solution immediately "
+                        "via secure vascular access"
                     ),
                     drug_id="dextrose",
                     requested_dose=ExplicitDose(amount=Decimal("25"), unit=DoseUnit.g),
                     route=Route.iv,
                     citations=[
                         SpanCitation(
-                            doc_id=first_chunk.doc_id,
-                            section=first_chunk.section,
-                            chunk_id=first_chunk.chunk_id,
+                            doc_id=sup_chunk.doc_id,
+                            section=sup_chunk.section,
+                            chunk_id=sup_chunk.chunk_id,
                             quoted_span=span,
                         )
                     ],
                 )
             )
         else:
-            # Diagnostic fallback step
+            sup_chunk, span = _select_supporting_chunk_and_span(
+                context.retrieved_chunks,
+                "obtain immediate",
+                ["obtain", "assess", "monitor", "administer"],
+            )
             steps.append(
                 PlanStepDraft(
                     step_number=1,
                     action_type=ActionType.diagnostic,
                     narrative_instruction=(
-                        "Obtain continuous physiological monitoring and bedside screening"
+                        f"Obtain continuous physiological monitoring and follow "
+                        f"protocol: {span[:30]}"
                     ),
                     citations=[
                         SpanCitation(
-                            doc_id=first_chunk.doc_id,
-                            section=first_chunk.section,
-                            chunk_id=first_chunk.chunk_id,
-                            quoted_span=first_chunk.text[:30],
+                            doc_id=sup_chunk.doc_id,
+                            section=sup_chunk.section,
+                            chunk_id=sup_chunk.chunk_id,
+                            quoted_span=span,
                         )
                     ],
                 )
@@ -345,24 +411,31 @@ class FakeLLM(LLMProvider):
         violations: list[str],
     ) -> PlanDraft:
         """Repair loop implementation for FakeLLM."""
-        # When repairing, switch to clean compliant drafting
         repaired_steps: list[PlanStepDraft] = []
         for step in draft.steps:
             fixed_instruction = step.narrative_instruction
-            # Clean any drug names
             for drug in ("epinephrine", "amoxicillin", "nitroglycerin", "morphine"):
                 fixed_instruction = fixed_instruction.replace(drug, "indicated agent")
 
-            # Clean citations
             fixed_citations = list(step.citations)
             if context.retrieved_chunks and any("CITATION" in v for v in violations):
-                c = context.retrieved_chunks[0]
+                keywords: list[str] = []
+                if step.drug_id:
+                    keywords.append(step.drug_id)
+                keywords.extend(
+                    ["electrocardiogram", "monitor", "obtain", "administer", "withhold"]
+                )
+                sup_chunk, sup_span = _select_supporting_chunk_and_span(
+                    context.retrieved_chunks,
+                    "obtain immediate 12-lead electrocardiogram",
+                    keywords,
+                )
                 fixed_citations = [
                     SpanCitation(
-                        doc_id=c.doc_id,
-                        section=c.section,
-                        chunk_id=c.chunk_id,
-                        quoted_span=c.text[:35],
+                        doc_id=sup_chunk.doc_id,
+                        section=sup_chunk.section,
+                        chunk_id=sup_chunk.chunk_id,
+                        quoted_span=sup_span,
                     )
                 ]
 

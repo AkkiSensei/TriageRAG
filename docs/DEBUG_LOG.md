@@ -204,3 +204,14 @@
   - Replaced `eval/run_retrieval.py` to evaluate the shared production `RetrievalService.create_default()` factory, computing node-level Recall@5, MRR, nDCG@5 with 95% bootstrap confidence intervals, Abstain Precision/Recall, Hard-Negative Abstain Recall (`1.0000`), Wrong-Protocol Rate (`0.0000` on test), Expected Calibration Error (ECE `0.1456`), latency p50/p95 (`p95 = 12.238 ms`), and cross-run determinism.
   - Generated `eval/reports/retrieval.json`, `eval/reports/retrieval_baseline.json`, and `eval/reports/retrieval_calibration.md`.
 - **Tests:** `tests/unit/test_rag_wp5_eval.py` (2 tests verifying 160-case structure, 10 mandatory families, production parity, and zero wrong-protocol rate) — all PASS.
+
+
+### WP6 — Grounding Verification (`rag-wp6`)
+- **Findings Addressed:** RAG-02 (citation laundering, action-cue polarity, overlap gate, child-node specificity), RAG-11 (corpus-borne prompt injection defense).
+- **Root Cause:** `verify_citation` only checked whether `quoted_span` was a substring of `chunk.text` and computed `lexical_overlap` without enforcing a threshold, without checking whether a cited chunk actually mentioned the step's `drug_id` or action polarity (`administer` vs `withhold`), and without requiring child-node specificity when child decision nodes existed. Furthermore, retrieved protocol chunks were interpolated directly into LLM prompts without delimiter isolation or sanitization.
+- **Remediation:**
+  1. Created `data/retrieval/action_cues.yaml` with `Provenance`, `min_overlap_threshold: 0.08`, `min_span_chars: 10`, `administer_cues`, and `withhold_cues`.
+  2. Enhanced `src/triagerag/verify/citations.py` (`verify_citation` + `verify_step_support`) and `src/triagerag/verify/plan_verifier.py` (`support_reason` recorded on `VerifiedStep`).
+  3. Updated `src/triagerag/llm/prompts.py` (`sanitize_protocol_chunk_for_prompt` + `<untrusted_retrieved_protocol_data>` delimiter) and `src/triagerag/llm/fake.py` (`_select_supporting_chunk_and_span`).
+  4. Extended `eval/run_mutation.py` with 5 new grounding/RAG mutants (`M29`–`M33`), achieving **45/45 killed (100.0%)**.
+- **Tests:** `tests/unit/test_rag_regressions.py` (all 7/7 probes GREEN) and `tests/unit/test_rag_wp6_grounding.py` (4/4 GREEN).
