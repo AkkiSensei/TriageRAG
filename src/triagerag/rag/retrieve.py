@@ -310,6 +310,7 @@ def retrieve_protocol_chunks(
                 doc_id=chunk.doc_id,
                 section=chunk.section,
                 chunk_id=chunk.chunk_id,
+                parent_id=chunk.parent_id,
                 text=chunk.text,
                 population=chunk.population,
                 syndrome=chunk.syndrome,

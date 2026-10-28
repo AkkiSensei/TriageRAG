@@ -1,0 +1,57 @@
+version: "1.0.0"
+
+synonyms:
+  # Clinical morphology & British/American variants
+  hypotensive: ["hypotension", "low_blood_pressure", "shock"]
+  hypertensive: ["severe_hypertension", "hypertension"]
+  tachycardic: ["tachycardia", "fast_heart_rate"]
+  bradycardic: ["bradycardia", "slow_heart_rate"]
+  tachypneic: ["tachypnea", "tachypnoea", "fast_breathing"]
+  tachypnoeic: ["tachypnea", "tachypnoea"]
+  tachypnoea: ["tachypnea"]
+  hypoxic: ["hypoxia", "desaturation", "low_oxygen"]
+  hypoxaemic: ["hypoxia", "hypoxemia"]
+  hypoxemia: ["hypoxia"]
+  hypoglycemic: ["hypoglycemia", "low_glucose"]
+  hypoglycaemic: ["hypoglycemia"]
+  hypoglycaemia: ["hypoglycemia"]
+  febrile: ["fever", "pyrexia", "hyperthermia"]
+  pyrexia: ["fever"]
+  hypothermic: ["hypothermia"]
+  anaphylactic: ["anaphylaxis", "allergic_shock"]
+  septic: ["sepsis", "infection"]
+  ischemic: ["ischemia", "coronary", "chest_pain"]
+  ischaemic: ["ischemia", "ischemic", "chest_pain"]
+  ischaemia: ["ischemia"]
+  oedema: ["edema", "swelling"]
+  edematous: ["edema", "swelling"]
+  obtunded: ["obtundation", "depressed_consciousness", "altered_mental_status"]
+  confused: ["confusion", "altered_mental_status", "encephalopathy"]
+  wheezy: ["wheezing", "bronchospasm", "severe_asthma"]
+  wheeze: ["wheezing", "bronchospasm"]
+  dyspnea: ["tachypnea", "shortness_of_breath", "respiratory_distress"]
+  dyspnoea: ["tachypnea", "dyspnea"]
+  adrenaline: ["epinephrine"]
+  albuterol: ["salbutamol"]
+  paracetamol: ["acetaminophen"]
+  paediatrics: ["paediatric"]
+  pediatric: ["paediatric"]
+  pediatrics: ["paediatric"]
+
+  # Hinglish / regional triage terms (BACKLOG item)
+  chakkar: ["confusion", "altered_mental_status"]
+  behooshi: ["depressed_consciousness", "obtundation", "altered_mental_status"]
+  bukhar: ["fever"]
+  saans: ["tachypnea", "bronchospasm", "severe_asthma"]
+  dama: ["severe_asthma", "bronchospasm", "wheezing"]
+  chhati: ["chest_pain", "ischemic"]
+  seene: ["chest_pain", "ischemic"]
+
+provenance:
+  source_doc: "SYNTHETIC_CLINICAL_LEXICON_DRAFT"
+  section_ref: "TO_BE_RESOLVED"
+  version_or_date: "2026-DRAFT"
+  source_status: "PLACEHOLDER_UNRETRIEVED"
+  content_origin: "AGENT_DRAFT_UNSOURCED"
+  verified: false
+  reviewer: null

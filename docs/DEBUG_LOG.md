@@ -174,3 +174,20 @@
   - Added `AbstainCode` enum (`NONE`, `NO_POPULATION_COVERAGE`, `UNKNOWN_SYNDROME`, `LOW_CONFIDENCE`, `AMBIGUOUS_MARGIN`, `EMPTY_QUERY`, `INDEX_UNAVAILABLE`, `SYNDROME_INFERRED`) to `src/triagerag/contracts/enums.py` and extended `RetrievalReport`.
   - Enforced hard syndrome filtering when `suspected_syndrome` is known, `AbstainCode.UNKNOWN_SYNDROME` when unknown, and top-1/top-2 syndrome relative margin + `SYNDROME_INFERRED` when `suspected_syndrome` is omitted.
 - **Tests:** `tests/unit/test_rag_wp3_query_and_flags.py` (3 tests incl. AST scan across all `rag/*.py` files) + `test_unknown_syndrome_with_flags_abstains`, `test_known_syndrome_never_returns_other_syndrome_chunks`, `test_no_adult_thresholds_applied_to_paediatric` in `tests/unit/test_rag_regressions.py` — all PASS.
+
+---
+
+### WP4: Index & Scoring Refactor, Morphology/Synonyms & Parent Deduplication (`rag-wp4`)
+- **Finding IDs:** RAG-07, RAG-09.
+- **Symptoms:**
+  - `BM25Okapi` on small shards (paediatric sepsis with 4 chunks) yielded `0.0` or negative IDF scores when terms appeared in `>= N/2` chunks (e.g., parent + 1 child).
+  - Search returned both whole-document parent chunks and their child decision nodes in `top_k`, duplicating context and wasting tokens.
+  - `BM25Okapi.get_scores` leaked `numpy.float64` values and required `# type: ignore[assignment]`.
+  - `ClinicalTokenizer` lacked morphological stemming, clinical/Hinglish synonyms, and expanded 2-letter acronyms (`hr`) case-insensitively.
+- **Root Cause:** Direct reliance on `BM25Okapi` standard IDF formula over un-deduplicated parent+child pools and thin lexical normalization.
+- **Fixes:**
+  - Replaced `BM25Okapi` scoring with pure-Python `_PopulationBM25Stats` implementing non-negative smoothed IDF (`ln(1 + (N - df + 0.5)/(df + 0.5)) > 0`) over deduplicated child decision nodes, guaranteeing both strictly positive scores on small pools and 100% score/ranking invariance when other populations are modified.
+  - Added `expand_parents(chunks)` to attach parent `ProtocolChunk` context once without duplicating parent + child in `top_k`, plus `explain_search()` for per-term BM25 contribution inspection.
+  - Created `data/retrieval/synonyms.yaml` (with `Provenance`) covering clinical morphology (`hypotensive` -> `hypotension`), British/US variants, drug synonyms (`adrenaline` -> `epinephrine`), and Hinglish triage terms (`bukhar` -> `fever`, `saans`/`dama` -> `severe_asthma`), plus conservative suffix stemming and case rules for 2-letter acronyms (`HR`, `PE`, `RR`).
+  - Defined `@runtime_checkable class Retriever(Protocol)` and eliminated `# type: ignore` from `src/triagerag/rag/`.
+- **Tests:** `tests/unit/test_rag_wp4_index.py` (5 unit & Hypothesis property tests) — all PASS.

@@ -314,6 +314,7 @@ class RetrievedChunk(BaseModel):
     doc_id: str
     section: str
     chunk_id: str
+    parent_id: str | None = None
     text: str
     population: str
     syndrome: str
