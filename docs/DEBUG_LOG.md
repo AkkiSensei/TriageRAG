@@ -143,3 +143,19 @@
   - Updated `ProtocolChunkDto` and `/api/protocols` to expose `c.synthetic` and provenance fields.
   - Added `triagerag corpus {validate,report,explain,add}` CLI commands in `src/triagerag/cli.py`.
 - **Tests:** `tests/unit/test_rag_wp1_ingestion.py` (4 tests) + `test_missing_synthetic_flag_rejected` in `tests/unit/test_rag_regressions.py` — all PASS.
+
+---
+
+### WP2: Grammar-Based Chunker, Round-Trip Invariant & Contextual Headers (`rag-wp2`)
+- **Finding IDs:** RAG-05, RAG-06.
+- **Symptoms:**
+  - Trailing non-decision sections (`## Notes`) bled into the final `IF...THEN` child node.
+  - Decision nodes starting with `IF` but lacking a `THEN` clause were silently dropped without warning.
+  - Child decision nodes lacked document title/section/syndrome context in the index.
+- **Root Cause:** Regex `r"(^\d+\.\s+IF\s+.*?)(?=(?:^\d+\.\s+IF|\Z))"` ran to `\Z` (end of document) and silently skipped matches without `"THEN "`.
+- **Fixes:**
+  - Replaced regex splitter with a line-by-line grammar state machine (`chunk_protocol_markdown`) supporting `ELSE IF`, `ELSE`, and indented sub-step bullets (`-`, `*`, `a)`), while terminating nodes on headings (`#`–`######`), blockquotes (`>`), horizontal rules (`---`), or subsequent numbered items.
+  - Implemented `verify_round_trip_invariant(content, chunks)` ensuring every non-empty body line is accounted for in structural headers, a single child node, or `parent.unparsed_lines`.
+  - Added contextual header indexing (`"{title} › {section} › {syndrome} › {chunk_id}\n{text}"`) in `chunk.indexed_text` while keeping `chunk.text` verbatim for span citations.
+  - Added `chunk_decision_graph_json` adapter for structured JSON decision flowcharts.
+- **Tests:** `tests/unit/test_rag_wp2_chunker.py` (4 unit tests), `tests/property/test_chunker_properties.py` (500 Hypothesis generated protocol documents), `test_trailing_section_not_absorbed_into_last_node` and `test_node_without_then_is_reported_not_silently_dropped` in `tests/unit/test_rag_regressions.py` — all PASS.

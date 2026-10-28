@@ -63,7 +63,7 @@ class BM25ClinicalIndex:
 
         # Build BM25 index for each population slice
         for pop, pop_chunks in self.chunks_by_population.items():
-            corpus_tokens = [self.tokenizer.tokenize(c.text) for c in pop_chunks]
+            corpus_tokens = [self.tokenizer.tokenize(c.indexed_text or c.text) for c in pop_chunks]
             self.index_by_population[pop] = BM25Okapi(corpus_tokens)
 
     def search(
