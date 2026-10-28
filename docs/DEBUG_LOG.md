@@ -105,3 +105,22 @@
 - **Mutation Suite:** 40/40 killed (100% combined: 12/12 rule mutants, 28/28 code mutants).
 - **Retrieval Suite:** 32 benchmark pairs, Recall@5 100%, MRR 0.896, Abstain accuracy 100%.
 - **Provenance Audit:** 37/37 entities audited, 37 unverified draft, 0 false claims.
+
+---
+
+## Part C: RAG Pipeline Postmortem & Industry-Grade Remediation (WP0–WP9)
+
+### WP0: Baseline & Reproduction Guardrails (`rag-wp0`)
+- **Baseline Suite Verification:**
+  - `python tools/tasks.py verify`: 91/91 Pytest passed, Ruff clean, Mypy clean (87 files), Import-linter clean, Golden 65/65, Mechanics 41/41, Metamorphic 3/3, Adversarial 9/9.
+  - `python eval/run_mutation.py`: 40/40 mutants killed (100%).
+  - `python eval/run_retrieval.py`: 32 pairs, Recall@5 100.0%, MRR 0.896, 3 abstain cases 100.0%.
+- **Reproduction Probes Added (`tests/unit/test_rag_regressions.py`):**
+  1. `test_unknown_syndrome_with_flags_abstains` (RAG-01): **FAILED as expected** (`report.abstained == False`, returned `CHEST_PAIN_01_NODE_4` with score `3.1103` on `kidney_stone` + hypotension/tachycardia).
+  2. `test_known_syndrome_never_returns_other_syndrome_chunks` (RAG-01): **FAILED as expected** (`anaphylaxis` + hypotension returned cross-syndrome `chest_pain` chunks).
+  3. `test_no_adult_thresholds_applied_to_paediatric` (RAG-03): **FAILED as expected** (4-year-old with HR 120, RR 30 triggered adult `'tachycardia'` and `'tachypnea'` flags).
+  4. `test_trailing_section_not_absorbed_into_last_node` (RAG-05): **FAILED as expected** (`## Notes\nunrelated trailing text` bled into `NODE_2`).
+  5. `test_node_without_then_is_reported_not_silently_dropped` (RAG-05): **FAILED as expected** (node `2. IF condition c` without `THEN` was silently dropped with `unparsed_lines == ()`).
+  6. `test_missing_synthetic_flag_rejected` (RAG-04): **FAILED as expected** (frontmatter missing `synthetic` defaulted silently to `True` instead of raising `ValueError`).
+  7. `test_step_drug_must_appear_in_cited_chunk` (RAG-02): **FAILED as expected** (`administer nitroglycerin` citing `HYPOGLYCEMIA_01_NODE_1` was `APPROVED` — citation laundering).
+- **Gate Status:** All 7 new probes fail for the exact documented reasons; all 91 pre-existing tests pass.
