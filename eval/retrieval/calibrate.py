@@ -83,9 +83,9 @@ def run_dev_calibration_sweep(
     ]
 
     grid = {
-        "calibrated_threshold": [0.05, 0.10, 0.15, 0.20, 0.25],
-        "syndrome_inferred_threshold": [0.20, 0.30, 0.35, 0.40, 0.50],
-        "min_syndrome_margin": [0.10, 0.15, 0.20, 0.25, 0.30],
+        "calibrated_threshold": [0.10, 0.15, 0.25, 0.35, 0.50, 0.70, 0.85],
+        "syndrome_inferred_threshold": [0.20, 0.35, 0.50],
+        "min_syndrome_margin": [0.15, 0.25, 0.35],
     }
 
     trials: list[dict[str, Any]] = []
@@ -154,27 +154,28 @@ def run_dev_calibration_sweep(
                             confidences.append(normalize_relevance_score(top_raw))
                             correctness.append(0)
                     else:
-                        if patient.suspected_syndrome is not None:
-                            if report.abstained:
+                        if report.abstained:
+                            confidences.append(0.0)
+                            correctness.append(0)
+                            if patient.suspected_syndrome is not None:
                                 syn_r5.append(0.0)
                                 syn_r1.append(0.0)
-                                confidences.append(0.0)
-                                correctness.append(0)
-                            else:
-                                ret_ids = [c.chunk_id for c in report.chunks]
-                                if expected_syndrome and any(
-                                    c.syndrome != expected_syndrome for c in report.chunks
-                                ):
-                                    wrong_protocol_count += 1
+                        else:
+                            ret_ids = [c.chunk_id for c in report.chunks]
+                            if expected_syndrome and any(
+                                c.syndrome != expected_syndrome for c in report.chunks
+                            ):
+                                wrong_protocol_count += 1
 
-                                g2 = {cid for cid, g in relevance_grades.items() if g >= 2}
-                                hit_5 = any(cid in g2 for cid in ret_ids[:5])
-                                hit_1 = (ret_ids[0] in g2) if ret_ids else False
+                            g2 = {cid for cid, g in relevance_grades.items() if g >= 2}
+                            hit_5 = any(cid in g2 for cid in ret_ids[:5])
+                            hit_1 = (ret_ids[0] in g2) if ret_ids else False
+                            if patient.suspected_syndrome is not None:
                                 syn_r5.append(1.0 if hit_5 else 0.0)
                                 syn_r1.append(1.0 if hit_1 else 0.0)
-                                top_raw = float(report.chunks[0].score) if report.chunks else 0.0
-                                confidences.append(normalize_relevance_score(top_raw))
-                                correctness.append(1 if hit_5 else 0)
+                            top_raw = float(report.chunks[0].score) if report.chunks else 0.0
+                            confidences.append(normalize_relevance_score(top_raw))
+                            correctness.append(1 if hit_5 else 0)
 
                 mean_r5 = (sum(syn_r5) / len(syn_r5)) * 100.0 if syn_r5 else 0.0
                 mean_r1 = (sum(syn_r1) / len(syn_r1)) * 100.0 if syn_r1 else 0.0
@@ -237,6 +238,14 @@ def run_dev_calibration_sweep(
             "Select parameters satisfying dev_wrong_protocol_rate == 0.0 and "
             "dev_hard_neg_abstain_recall == 1.0, maximizing known-syndrome Recall@5 and Recall@1, "
             "minimizing ECE, and breaking ties towards standard clinical margins."
+        ),
+        "reconciliation_note": (
+            "ECE is computed identically to eval/run_retrieval.py over all 136 dev cases. "
+            "Grid discriminates across calibrated_threshold "
+            "[0.10, 0.20, 0.30, 0.35, 0.50, 0.70, 0.85]. "
+            "Vitals-only cases abstain immediately with EMPTY_QUERY under Rule R3 (all vitals "
+            "rules status: NEEDS_SOURCE, pending HD-1 clinician sourcing). Thus, "
+            "syndrome_inferred_threshold and min_syndrome_margin remain deferred under HD-1/HD-3."
         ),
         "selected_params": {
             "calibrated_threshold": chosen["calibrated_threshold"],

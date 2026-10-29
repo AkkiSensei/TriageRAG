@@ -196,10 +196,6 @@ def verify_step_support(
     registry: ClinicalRegistry,
     *,
     data_dir: Path | None = None,
-    enable_clause_split: bool = True,
-    enable_negation_flip: bool = True,
-    use_cooccurrence_only: bool = False,
-    allow_unparsed_support: bool = False,
 ) -> tuple[bool, str]:
     """Verify deterministic clause-scoped drug and action-cue support in cited chunks.
 
@@ -215,35 +211,11 @@ def verify_step_support(
 
     if step.action_type in (ActionType.administer, ActionType.withhold) and step.drug_id:
         drug_id_lower = step.drug_id.lower()
-        drug_terms = drug_term_map.get(
-            drug_id_lower,
-            {drug_id_lower, drug_id_lower.replace("_", " ")},
-        )
-
-        if use_cooccurrence_only:
-            required_cues = (
-                cfg.administer_cues
-                if step.action_type == ActionType.administer
-                else cfg.withhold_cues
-            )
-            for chunk in cited_chunks:
-                chunk_lower = _normalize_whitespace(chunk.text).lower()
-                has_drug = any(
-                    re.search(rf"\b{re.escape(term)}\b", chunk_lower) for term in drug_terms
-                )
-                has_cue = any(
-                    re.search(rf"\b{re.escape(cue.lower())}\b", chunk_lower)
-                    for cue in required_cues
-                )
-                if has_drug and has_cue:
-                    return True, f"Co-occurrence support in '{chunk.chunk_id}'"
-            return False, "Co-occurrence check failed"
-
         saw_unparsed = False
         saw_opposite_polarity: str | None = None
 
         for chunk in cited_chunks:
-            if chunk.drug_actions and enable_clause_split and enable_negation_flip:
+            if chunk.drug_actions:
                 bound_actions = chunk.drug_actions
             else:
                 bound_actions = parse_clause_drug_actions(
@@ -251,8 +223,6 @@ def verify_step_support(
                     drug_term_map=drug_term_map,
                     cues_cfg=cfg,
                     data_dir=data_dir,
-                    enable_clause_split=enable_clause_split,
-                    enable_negation_flip=enable_negation_flip,
                 )
 
             matching_for_drug = [da for da in bound_actions if da.drug_id.lower() == drug_id_lower]
@@ -260,8 +230,6 @@ def verify_step_support(
                 continue
 
             if any(da.action == "unparsed" for da in matching_for_drug):
-                if allow_unparsed_support:
-                    return True, f"Unparsed drug clause allowed in '{chunk.chunk_id}'"
                 saw_unparsed = True
                 continue
 
@@ -297,9 +265,11 @@ def verify_step_support(
             f"'{step.drug_id}' or its verified aliases",
         )
 
-    # Non-drug steps (diagnostic, monitor, maneuver) require clinical action-verb binding (FG-16)
+    # Non-drug steps (diagnostic, monitor, maneuver) require clinical action-verb
+    # binding (FG-16, N2)
     inst_lower = _normalize_whitespace(step.narrative_instruction).lower()
     action_cues_lower = [c.lower() for c in cfg.non_drug_action_cues]
+    saw_any_chunk_action_verbs = False
 
     for chunk in cited_chunks:
         then_lower = _normalize_whitespace(extract_then_else_text(chunk.text)).lower()
@@ -307,12 +277,10 @@ def verify_step_support(
             cue for cue in action_cues_lower if re.search(rf"\b{re.escape(cue)}\b", then_lower)
         ]
         if not chunk_action_verbs:
-            return (
-                True,
-                f"Supported: verbatim span and lexical overlap verified in chunk "
-                f"'{chunk.chunk_id}'",
-            )
+            # N2: Missing binding evidence in THEN clause cannot support the action
+            continue
 
+        saw_any_chunk_action_verbs = True
         inst_action_verbs = [
             cue for cue in action_cues_lower if re.search(rf"\b{re.escape(cue)}\b", inst_lower)
         ]
@@ -327,6 +295,13 @@ def verify_step_support(
                 True,
                 f"Supported: non-drug action verb bound in chunk '{chunk.chunk_id}'",
             )
+
+    if not saw_any_chunk_action_verbs:
+        return (
+            False,
+            "NON_DRUG_NO_ACTION_VERBS: cited chunk(s) THEN clause contains no verifiable "
+            "action verbs (fail closed)",
+        )
 
     return (
         False,

@@ -22,7 +22,9 @@ Audit flags `FG-06` and `FG-07` identified two critical evaluation flaws:
    - Under Gate G2 / `HD-1`, all vitals flag thresholds are `status: NEEDS_SOURCE`, causing no vitals flags to fire. As a result, vitals-only queries fail closed to `EMPTY_QUERY` (Recall@1 = 0.0%). Per `fixgate_spec.md` and R10, this lower honest number is reported directly with its 95% CI rather than hidden behind an aggregate 100% figure.
 
 3. **Deterministic Dev-Split Sweep (`eval/retrieval/calibrate.py`, `FG-07`):**
-   - Grid sweep over candidate thresholds (`calibrated_threshold` ∈ [0.05, 0.25], `syndrome_inferred_threshold` ∈ [0.20, 0.50], `min_syndrome_margin` ∈ [0.10, 0.30]).
+   - Grid sweep over candidate thresholds (`calibrated_threshold` ∈ [0.10, 0.85], `syndrome_inferred_threshold` ∈ [0.20, 0.50], `min_syndrome_margin` ∈ [0.15, 0.35]).
+   - Outcomes discriminate along `calibrated_threshold` (Recall@5 ranges 18.03% to 100.0%, ECE ranges 0.0247 to 0.1447).
+   - ECE computation is unified across the full dev set (136 cases), reconciling the dev sweep ECE (0.1447) with `eval/reports/retrieval.json` (0.1447).
    - Emits an immutable JSON record to `eval/reports/calibration_run_<id>.json` capturing all trials, safety constraints, and selection rationale.
    - `data/retrieval/config.yaml::calibration_run_id` links directly to `CALIB_FG4_DEV_SWEEP_V1`.
 

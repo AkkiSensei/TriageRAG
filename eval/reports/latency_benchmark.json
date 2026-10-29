@@ -2,11 +2,11 @@
   "disclaimer": "Research prototype. Synthetic data only. Not a medical device. Not for clinical use.",
   "total_chunks": 10000,
   "num_queries": 100,
-  "index_build_ms": 559.25,
-  "mean_latency_ms": 5.553,
-  "p50_latency_ms": 5.303,
-  "p95_latency_ms": 8.157,
-  "p99_latency_ms": 9.249,
+  "index_build_ms": 591.96,
+  "mean_latency_ms": 5.036,
+  "p50_latency_ms": 4.962,
+  "p95_latency_ms": 6.57,
+  "p99_latency_ms": 7.741,
   "target_p95_ms": 50.0,
   "passed": true
 }

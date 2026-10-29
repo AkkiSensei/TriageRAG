@@ -374,6 +374,33 @@ class FakeLLM(LLMProvider):
                     ],
                 )
             )
+        elif "asthma" in syndrome and "salbutamol" in context.allowed_drug_ids:
+            sup_chunk, span = _select_supporting_chunk_and_span(
+                context.retrieved_chunks,
+                (
+                    "administer nebulized salbutamol continuous bronchodilator "
+                    "therapy with high-flow oxygen"
+                ),
+                ["salbutamol", "administer"],
+            )
+            steps.append(
+                PlanStepDraft(
+                    step_number=1,
+                    action_type=ActionType.administer,
+                    narrative_instruction=("Administer nebulized therapy with high-flow oxygen"),
+                    drug_id="salbutamol",
+                    requested_dose=ExplicitDose(amount=Decimal("5"), unit=DoseUnit.mg),
+                    route=Route.nebulized,
+                    citations=[
+                        SpanCitation(
+                            doc_id=sup_chunk.doc_id,
+                            section=sup_chunk.section,
+                            chunk_id=sup_chunk.chunk_id,
+                            quoted_span=span,
+                        )
+                    ],
+                )
+            )
         else:
             sup_chunk, span = _select_supporting_chunk_and_span(
                 context.retrieved_chunks,

@@ -80,9 +80,9 @@ def test_four_arm_retrieval_ablation_and_architecture_docs() -> None:
 
     report = json.loads(json_path.read_text(encoding="utf-8"))
     arms = report.get("arms", {})
-    for arm_key in ("bm25", "dense", "hybrid_rrf", "hybrid_rrf_rerank"):
+    for arm_key in ("bm25", "char_ngram", "hybrid_rrf", "hybrid_rrf_rerank"):
         assert arm_key in arms
-        assert arms[arm_key]["recall_at_5"] >= 0.90
+        assert arms[arm_key]["recall_at_5"] >= 65.0
         assert arms[arm_key]["wrong_protocol_rate"] == 0.0
         assert arms[arm_key]["hard_negative_abstain_recall"] >= 0.95
 

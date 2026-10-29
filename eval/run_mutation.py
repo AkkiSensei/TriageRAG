@@ -1280,7 +1280,7 @@ def build_code_mutants() -> list[CodeMutant]:
         )
         node_text = (
             "1. IF the adult patient presents with hypotension:\n"
-            "   THEN administer intravenous fluid volume resuscitation."
+            "   THEN initiate intravenous fluid volume resuscitation."
         )
         chunk = RetrievedChunk(
             doc_id="EMERG_SHOCK",
@@ -1298,13 +1298,13 @@ def build_code_mutants() -> list[CodeMutant]:
                 PlanStepDraft(
                     step_number=1,
                     action_type=ActionType.maneuver,
-                    narrative_instruction="Administer intravenous fluid volume resuscitation",
+                    narrative_instruction="Initiate intravenous fluid volume resuscitation",
                     citations=[
                         SpanCitation(
                             doc_id="EMERG_SHOCK",
                             section="Shock Management",
                             chunk_id="SHOCK_01_NODE_1",
-                            quoted_span="administer intravenous fluid volume resuscitation",
+                            quoted_span="THEN initiate intravenous fluid volume resuscitation.",
                         )
                     ],
                 )
@@ -1400,6 +1400,47 @@ def build_code_mutants() -> list[CodeMutant]:
             "M39_ALWAYS_USE_CALIBRATED_THRESHOLD",
             "Always using calibrated_threshold even when syndrome is inferred from vitals",
             test_always_use_calibrated_threshold_mutant,
+        )
+    )
+
+    # 40. Non-drug check fails open when cited chunk THEN clause has no action verbs (N2)
+    def test_non_drug_fail_open_mutant(reg: ClinicalRegistry) -> None:
+        chunk = RetrievedChunk(
+            doc_id="EMERG_CHEST_PAIN",
+            section="Acute Coronary Syndromes Screening",
+            chunk_id="CHEST_PAIN_01_NODE_98",
+            parent_id="CHEST_PAIN_01",
+            text=(
+                "1. IF telemetry review is completed:\n"
+                "   THEN standard protocol references and documentation guidelines apply."
+            ),
+            population="adult",
+            syndrome="chest_pain",
+        )
+        step = PlanStepDraft(
+            step_number=1,
+            action_type=ActionType.diagnostic,
+            narrative_instruction="Perform comprehensive diagnostic telemetry review",
+            citations=[
+                SpanCitation(
+                    doc_id="EMERG_CHEST_PAIN",
+                    section="Acute Coronary Syndromes Screening",
+                    chunk_id="CHEST_PAIN_01_NODE_98",
+                    quoted_span=(
+                        "THEN standard protocol references and documentation guidelines apply."
+                    ),
+                )
+            ],
+        )
+        ok, reason = verify_step_support(step, [chunk], reg)
+        assert ok is False
+        assert "NON_DRUG_NO_ACTION_VERBS" in reason
+
+    mutants.append(
+        CodeMutant(
+            "M40_NON_DRUG_FAIL_OPEN_ON_MISSING_VERB",
+            "Failing open when a non-drug step cites a THEN clause with no verifiable action verbs",
+            test_non_drug_fail_open_mutant,
         )
     )
 

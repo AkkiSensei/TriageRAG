@@ -107,3 +107,64 @@ def test_no_phantom_claims_in_report(report_text: str) -> None:
     assert "HD-3" in report_text
     assert "HD-4" in report_text
     assert "HD-5" in report_text
+
+
+def test_stratified_case_counts_match_retrieval_json(report_text: str) -> None:
+    """N3: Stratified table case counts must match retrieval.json positive_cases exactly."""
+    repo_root = get_repo_root()
+    retrieval_data = json.loads(
+        (repo_root / "eval" / "reports" / "retrieval.json").read_text(encoding="utf-8")
+    )
+    test_split = retrieval_data["test"]
+    sp_cases = test_split["syndrome_provided"]["positive_cases"]
+    vo_cases = test_split["vitals_only"]["positive_cases"]
+
+    assert f"| **Syndrome Provided** | {sp_cases} |" in report_text
+    assert f"| **Vitals Only (Inferred)** | {vo_cases} |" in report_text
+
+
+def test_error_codes_and_ece_consistency_in_report(report_text: str) -> None:
+    """N3: Error codes must cite EMPTY_QUERY for HD-1, and ECE must be identical across sections."""
+    repo_root = get_repo_root()
+    retrieval_data = json.loads(
+        (repo_root / "eval" / "reports" / "retrieval.json").read_text(encoding="utf-8")
+    )
+    ece_str = f"{retrieval_data['test']['ece']:.4f}"
+
+    # HD-1 must cite EMPTY_QUERY
+    assert "AbstainCode.EMPTY_QUERY" in report_text
+    # Section 4 cited test ECE must match Section 3 test ECE
+    assert f"Observed test ECE = {ece_str}" in report_text
+    assert "0.1501" not in report_text
+
+
+def test_four_distinct_ablation_arms_without_duplicates(report_text: str) -> None:
+    """N3: Exactly four distinct ablation arms appear in the report table."""
+    repo_root = get_repo_root()
+    ablation_data = json.loads(
+        (repo_root / "eval" / "reports" / "retrieval_ablation.json").read_text(encoding="utf-8")
+    )
+    arms = ablation_data["arms"]
+    assert len(arms) == 4
+    for arm_id in ("bm25", "char_ngram", "hybrid_rrf", "hybrid_rrf_rerank"):
+        assert f"| `{arm_id}` |" in report_text
+    assert "| `dense` |" not in report_text
+
+
+def test_finding_statuses_accurate_for_hd_and_container(report_text: str) -> None:
+    """N3 / P2: HD-blocked items are marked DEFERRED/PENDING HD, and container is NOT VERIFIED."""
+    expected_fg02 = (
+        "| **FG-02** | Unsourced paediatric thresholds left ACTIVE; single paediatric band "
+        "| CLOSED (FAIL-CLOSED, PENDING HD-1) |"
+    )
+    expected_fg07 = (
+        "| **FG-07** | Calibration not a calibration (no sweep, uncommitted ID, unverified ECE) "
+        "| DEFERRED (FAIL-CLOSED, PENDING HD-3) |"
+    )
+    expected_fg18 = (
+        "| **FG-18** | Ops (multi-stage non-root Dockerfile, compose web+api, drop rank_bm25) "
+        "| NOT VERIFIED (SMOKE-TESTED IN CI) |"
+    )
+    assert expected_fg02 in report_text
+    assert expected_fg07 in report_text
+    assert expected_fg18 in report_text

@@ -124,8 +124,6 @@ def run_retrieval_ablation_suite() -> int:
             "test_split": test_metrics,
         }
         arms_report[backend_key] = arm_entry
-        if backend_key == "char_ngram":
-            arms_report["dense"] = arm_entry
         print(
             f"  [{backend_key}] Test R@5={test_metrics['recall_at_5']:.2f}% "
             f"(95% CI: {test_metrics['recall_at_5_ci95']}) | "

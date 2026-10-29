@@ -16,19 +16,19 @@ from triagerag.config import get_data_dir, get_repo_root
 from triagerag.rag.service import RetrievalService
 
 
-def test_retrieval_dataset_structure_and_150_cases() -> None:
-    """WP5 Gate: Dataset has >= 150 cases, 60/40 dev/test split, and all 10 mandatory families."""
+def test_retrieval_dataset_structure_and_224_cases() -> None:
+    """WP5 Gate: Dataset has 224 cases, 136/88 dev/test split, and all 10 mandatory families."""
     dataset_path = get_repo_root() / "eval" / "retrieval" / "dataset.yaml"
     assert dataset_path.exists(), "Missing eval/retrieval/dataset.yaml"
 
     raw = yaml.safe_load(dataset_path.read_text(encoding="utf-8"))
     cases = raw.get("cases", [])
-    assert len(cases) >= 150
+    assert len(cases) >= 224
 
     dev_cases = [c for c in cases if c.get("split") == "dev"]
     test_cases = [c for c in cases if c.get("split") == "test"]
-    assert len(dev_cases) >= 85
-    assert len(test_cases) >= 55
+    assert len(dev_cases) == 136
+    assert len(test_cases) == 88
 
     families = {c.get("family") for c in cases}
     required_families = {

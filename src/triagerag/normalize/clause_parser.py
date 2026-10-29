@@ -292,17 +292,17 @@ def parse_clause_drug_actions(
         if not clause_lower:
             continue
 
-        # Identify all drug occurrences in this clause
+        # Identify all drug occurrences in this clause (including multiple mentions)
         drug_hits: list[tuple[str, int, int]] = []
+        claimed_drug_spans: list[tuple[int, int]] = []
         for drug_id, terms in sorted(d_map.items()):
-            best_match: tuple[int, int] | None = None
             for term in sorted(terms, key=len, reverse=True):
-                m = re.search(rf"\b{re.escape(term)}\b", clause_lower)
-                if m is not None:
-                    best_match = (m.start(), m.end())
-                    break
-            if best_match is not None:
-                drug_hits.append((drug_id, best_match[0], best_match[1]))
+                for m in re.finditer(rf"\b{re.escape(term)}\b", clause_lower):
+                    s, e = m.start(), m.end()
+                    if any(not (e <= cs or s >= ce) for cs, ce in claimed_drug_spans):
+                        continue
+                    claimed_drug_spans.append((s, e))
+                    drug_hits.append((drug_id, s, e))
 
         if not drug_hits:
             continue

@@ -517,3 +517,46 @@ def test_span_must_cover_then_clause() -> None:
     assert ok is False
     assert reason is not None
     assert "THEN_CLAUSE_COVERAGE" in reason
+
+
+def test_non_drug_step_with_no_action_verbs_in_chunk_fails_closed() -> None:
+    """N2: Non-drug step citing a THEN clause with NO verified action verbs must fail closed."""
+    registry = ClinicalRegistry.load_from_directory(get_data_dir())
+    chunk = RetrievedChunk(
+        doc_id="EMERG_CHEST_PAIN",
+        section="Acute Coronary Syndromes Screening",
+        chunk_id="CHEST_PAIN_01_NODE_98",
+        parent_id="CHEST_PAIN_01",
+        text=(
+            "1. IF telemetry review is completed:\n"
+            "   THEN standard protocol references and documentation guidelines apply."
+        ),
+        population="adult",
+        syndrome="chest_pain",
+    )
+    step = PlanStepDraft(
+        step_number=1,
+        action_type=ActionType.diagnostic,
+        narrative_instruction="Perform comprehensive diagnostic telemetry review",
+        citations=[
+            SpanCitation(
+                doc_id="EMERG_CHEST_PAIN",
+                section="Acute Coronary Syndromes Screening",
+                chunk_id="CHEST_PAIN_01_NODE_98",
+                quoted_span="THEN standard protocol references and documentation guidelines apply.",
+            )
+        ],
+    )
+    ok, reason = verify_step_support(step, [chunk], registry)
+    assert ok is False
+    assert "NON_DRUG_NO_ACTION_VERBS" in reason
+
+
+def test_clause_parser_binds_multiple_occurrences_of_same_drug() -> None:
+    """P2: parse_clause_drug_actions binds all occurrences of a drug mentioned repeatedly."""
+    from triagerag.normalize.clause_parser import parse_clause_drug_actions
+
+    clause = "give epinephrine with repeat epinephrine in 5 minutes"
+    actions = parse_clause_drug_actions(clause, enable_clause_split=False)
+    epi_actions = [a for a in actions if a.drug_id == "epinephrine"]
+    assert len(epi_actions) == 2

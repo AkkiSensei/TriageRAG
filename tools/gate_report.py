@@ -55,7 +55,7 @@ POSTMORTEM_FINDINGS: list[dict[str, Any]] = [
     {
         "id": "RAG-03",
         "title": "Unsourced, adult-only clinical thresholds hard-coded in retrieval layer",
-        "status": "CLOSED",
+        "status": "CLOSED (FAIL-CLOSED, PENDING HD-1)",
         "commit": "f8577df",
         "gate": "G2 / WP3",
         "tests": (
@@ -129,7 +129,7 @@ POSTMORTEM_FINDINGS: list[dict[str, Any]] = [
     {
         "id": "RAG-09",
         "title": "Lexical normalization is thin (case-insensitive acronyms, morphology)",
-        "status": "CLOSED",
+        "status": "DEFERRED (FAIL-CLOSED, PENDING HD-3)",
         "commit": "f24e978",
         "gate": "G5 / WP4",
         "tests": (
@@ -144,7 +144,7 @@ POSTMORTEM_FINDINGS: list[dict[str, Any]] = [
         "commit": "64476a7",
         "gate": "G4 / WP5",
         "tests": (
-            "tests/unit/test_rag_wp5_eval.py::test_retrieval_dataset_structure_and_150_cases",
+            "tests/unit/test_rag_wp5_eval.py::test_retrieval_dataset_structure_and_224_cases",
             "tests/unit/test_fg4_eval_and_calibration.py::test_dataset_matches_frozen_commit",
             "tests/unit/test_fg4_eval_and_calibration.py::test_retrieval_reports_recall_at_1_and_split",
             "tests/unit/test_fg4_eval_and_calibration.py::test_permutation_check_collapses_recall",
@@ -238,7 +238,7 @@ FIXGATE_FLAGS: list[dict[str, Any]] = [
     {
         "id": "FG-02",
         "title": "Unsourced paediatric thresholds left ACTIVE; single paediatric band",
-        "status": "CLOSED",
+        "status": "CLOSED (FAIL-CLOSED, PENDING HD-1)",
         "commit": "f8577df",
         "gate": "G2",
         "tests": (
@@ -297,7 +297,7 @@ FIXGATE_FLAGS: list[dict[str, Any]] = [
     {
         "id": "FG-07",
         "title": "Calibration not a calibration (no sweep, uncommitted ID, unverified ECE)",
-        "status": "CLOSED",
+        "status": "DEFERRED (FAIL-CLOSED, PENDING HD-3)",
         "commit": "64476a7",
         "gate": "G4",
         "tests": (
@@ -395,6 +395,8 @@ FIXGATE_FLAGS: list[dict[str, Any]] = [
             "tests/unit/test_fg1_grounding.py::test_diagnostic_step_requires_action_binding",
             "tests/unit/test_fg1_grounding.py::test_generic_word_overlap_insufficient",
             "tests/unit/test_fg1_grounding.py::test_span_must_cover_then_clause",
+            "tests/unit/test_fg1_grounding.py::test_non_drug_step_with_no_action_verbs_in_chunk_fails_closed",
+            "tests/unit/test_fg1_grounding.py::test_clause_parser_binds_multiple_occurrences_of_same_drug",
         ),
     },
     {
@@ -410,7 +412,7 @@ FIXGATE_FLAGS: list[dict[str, Any]] = [
     {
         "id": "FG-18",
         "title": "Ops (multi-stage non-root Dockerfile, compose web+api, drop rank_bm25)",
-        "status": "CLOSED",
+        "status": "NOT VERIFIED (SMOKE-TESTED IN CI)",
         "commit": "Gate G6",
         "gate": "G6",
         "tests": (
@@ -597,6 +599,10 @@ def generate_gate_report() -> str:
             f"- **Calibration ECE (Test):** {ece:.4f} "
             "(observed research diagnostic under ADR 0008).",
             f"- **Query Latency (Test):** p50 = {p50_ms:.3f} ms, p95 = {p95_ms:.3f} ms.",
+            "- *Latency Note:* Benchmark test query p50 is 0.018 ms because 55% of cases "
+            "(hard negatives and vitals-only under HD-1) fail closed immediately on validation "
+            "(~0.010 ms) on the 100-chunk synthetic corpus, while the 10,000-chunk scale index "
+            "benchmark measures full inverted-index retrieval at 5.3 ms.",
             "",
             "### Stratified Retrieval Breakdown (Syndrome-Provided vs Vitals-Only)",
             "",
@@ -607,14 +613,16 @@ def generate_gate_report() -> str:
 
     sp = test_split.get("syndrome_provided", {})
     vo = test_split.get("vitals_only", {})
+    sp_cases = sp.get("positive_cases", sp.get("cases", 0))
+    vo_cases = vo.get("positive_cases", vo.get("cases", 0))
     lines.append(
-        f"| **Syndrome Provided** | {sp.get('cases', 32)} | "
+        f"| **Syndrome Provided** | {sp_cases} | "
         f"{sp.get('recall_at_1', 0.0):.2f}% | {sp.get('recall_at_3', 0.0):.2f}% | "
         f"{sp.get('recall_at_5', 0.0):.2f}% | {sp.get('mrr', 0.0):.4f} | "
         "Hard syndrome filter active |"
     )
     lines.append(
-        f"| **Vitals Only (Inferred)** | {vo.get('cases', 24)} | "
+        f"| **Vitals Only (Inferred)** | {vo_cases} | "
         f"{vo.get('recall_at_1', 0.0):.2f}% | {vo.get('recall_at_3', 0.0):.2f}% | "
         f"{vo.get('recall_at_5', 0.0):.2f}% | {vo.get('mrr', 0.0):.4f} | "
         "Fail-Closed (HD-1: vitals flag thresholds NEEDS_SOURCE) |"
@@ -670,7 +678,7 @@ def generate_gate_report() -> str:
             "   - *Implementation:* All 50 vitals flag rules in `data/retrieval/vitals_flags.yaml` "
             "set to `status: NEEDS_SOURCE, threshold: null`. Retrieval without explicit "
             "`suspected_syndrome` fails closed to `UNVERIFIED` abstention with "
-            "`AbstainCode.NO_POPULATION_COVERAGE`. Zero invented numbers.",
+            "`AbstainCode.EMPTY_QUERY`. Zero invented numbers.",
             "2. **HD-2 (Paediatric age discretization):**",
             "   - *Status:* Open in `BACKLOG.md` Item 21.",
             "   - *Implementation:* Ages normalized to calendar days; partitioned into 4 distinct "
@@ -680,7 +688,7 @@ def generate_gate_report() -> str:
             "   - *Status:* Open in `BACKLOG.md` Item 12 (`[IN PROGRESS]`).",
             "   - *Implementation:* Authored ADR 0008. Target ECE <= 0.15 is documented as "
             "a research aspirational target, not a clinical device guarantee. Observed test "
-            "ECE = 0.1501 is reported transparently without unqualified PASS badge.",
+            f"ECE = {ece:.4f} is reported transparently without unqualified PASS badge.",
             "4. **HD-4 (LLM plan generation under inferred syndrome):**",
             "   - *Status:* Open in `BACKLOG.md` Item 20.",
             "   - *Implementation:* Authored ADR 0007. Steps derived from inferred syndrome "
