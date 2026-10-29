@@ -11,7 +11,7 @@
 
 ## Held-Out Test Split vs Dev Split Metrics (Stratified)
 
-| Metric | Dev Split (n=136) | Held-Out Test Split (n=88) | 95% Bootstrap CI (Test) |
+| Metric | Dev Split (n=136) | Held-Out Test (n=88) | 95% Bootstrap CI (Test) |
 |:---|---:|---:|---:|
 | **Overall Node Recall@1** | 24.44% | **39.29%** | [26.79%, 53.57%] |
 | **Overall Node Recall@5** | 67.78% | **73.21%** | [60.71%, 83.93%] |
@@ -21,7 +21,7 @@
 | **Hard-Negative Abstain Recall** | 1.0000 | **1.0000** | Gate: == 1.0000 |
 | **Abstain Precision / Recall** | 0.6133 / 1.0000 | **0.6809 / 1.0000** | - |
 | **Expected Calibration Error (ECE)** | 0.1447 | **0.1453** | Observational (ADR-0008 / HD-3) |
-| **Latency p50 / p95 (ms)** | 0.019 / 0.117 | **0.018 / 0.058** | Budget: p95 < 50 ms |
+| **Latency p50 / p95 (ms)** | 0.060 / 0.308 | **0.069 / 0.207** | Budget: p95 < 50 ms |
 
 ## Stratified Performance Breakdown (FG-06 / HD-1)
 
@@ -30,4 +30,4 @@
 | **Syndrome Provided** | 41 | 53.66% [39.02%, 68.29%] | **100.00%** [100.00%, 100.00%] | 0.7398 |
 | **Vitals Only (HD-1)** | 15 | 0.00% [0.00%, 0.00%] | 0.00% [0.00%, 0.00%] | 0.0000 |
 
-> **Clinical Transparency Note (HD-1 / HD-3):** Vitals-only Recall@1 is currently 0.0% because all unverified vitals flag cut-offs are marked `status: NEEDS_SOURCE` under Gate G2 and fail closed (`EMPTY_QUERY`). This prevents unverified inference until clinician threshold sourcing is completed (`HD-1`). ECE is tracked as an observational research metric without an unqualified clinical PASS claim (`ADR-0008` / `HD-3`).
+> **Clinical Transparency Note (HD-1 / HD-3):** Vitals-only Recall@1 is 0.0% because all unverified vitals flag cut-offs are marked `status: NEEDS_SOURCE` under Gate G2 and fail closed (`EMPTY_QUERY`). This prevents unverified inference until clinician threshold sourcing is completed (`HD-1`). ECE is tracked as an observational research metric without an unqualified clinical PASS claim (`ADR-0008` / `HD-3`).

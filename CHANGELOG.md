@@ -5,6 +5,37 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-10-29
+
+### Fixed
+- **Hard BLOCK Rule Check & Fail-Closed Safety Interlock (Rule R11, R2):**
+  - Resolved `AllergyCrossReactivityRule` alert mapping: populates `Alert.drug_ids` with all active/proposed medications in `rule.target_class`, ensuring contraindications properly strike proposed administer steps.
+  - Resolved `ClassInteractionRule` alert mapping: populates `Alert.drug_ids` with all active/proposed medications in `rule.class_a` or `rule.class_b`.
+  - Resolved `DuplicationRule` alert mapping: cross-checks proposed plan administer steps against active medications to catch multi-agent class duplication.
+  - Enforced `Verdict.BLOCKED` on unapproved formulary drugs: generates a synthetic `Severity.BLOCK` alert for unknown formulary agents in `plan_verifier.py`, forcing the lattice priority to `BLOCKED`.
+  - Hardened `has_block` resolution in `orchestrator.py`: accounts for `BLOCKED_STRUCK_THROUGH` verified steps alongside alerts.
+  - Strictly eliminated any override path for `BLOCK`: raises `PermissionError` when clinician overrides are attempted on `BLOCK` severity rules or blocked steps.
+  - Added `ClinicalRegistry.get_rule(rule_id)` helper for rule lookup.
+- **Missing, Unknown & Unresolved Data Fail-Closed Safety (Rule R2):**
+  - Fail closed on missing/unscored vitals: when vital signs are missing or unscored in EWS scoring, `orchestrator.py` generates a `SkippedCheck` for physiological scoring and forces `Verdict.UNVERIFIED` (preventing false clearances).
+  - Fail closed on unknown intake status: patient history with `medication_history_status` or `allergy_history_status` in (`"incomplete"`, `"unknown_unobtainable"`) generates explicit `SkippedCheck` entries and forces `Verdict.UNVERIFIED`.
+  - Fail closed on unknown pregnancy in female/other patients: generates `INTAKE_PREGNANCY_STATUS` `SkippedCheck` and forces `Verdict.UNVERIFIED`.
+  - Fail closed on unknown patient weight: unmeasured weight generates `INTAKE_PATIENT_WEIGHT` `SkippedCheck` and forces `Verdict.UNVERIFIED`.
+  - Fail closed on unknown allergy reaction types: documented allergies with `reaction_type="unknown"` emit a `SkippedCheck` and resolve to `Verdict.UNVERIFIED`.
+  - Fail closed on unresolved clinical entities: unmapped medications and allergens generate explicit `SkippedCheck` records and force `Verdict.UNVERIFIED`.
+  - Fail closed on documented organ impairment coverage gaps: documented renal or hepatic impairment emits explicit `SkippedCheck` coverage gap records (`COVERAGE_GAP_RENAL_IMPAIRMENT`, `COVERAGE_GAP_HEPATIC_IMPAIRMENT`) and forces `Verdict.UNVERIFIED`.
+  - Fail closed on ungrounded/unverified plan steps: `has_unverified_steps` checks for `CITATION_UNVERIFIED` and `UNVERIFIED_MISSING_DATA` steps, guaranteeing plan ungroundedness forces top-level `Verdict.UNVERIFIED`.
+  - Accumulated plan skips from initial and repaired drafts into `checks_skipped` in `EngineReport`.
+  - Enhanced UI transparency: Streamlit `render_unverified_section` explicitly enumerates all skipped checks with their rule ID, rule type, clinical reason, and missing fields.
+- **Test Suite:**
+  - Added comprehensive fail-closed regression tests in `tests/unit/test_fail_closed_checks.py` (13 tests). Total pytest suite passes at 213/213 (100% green).
+- **Plan Grounding & Citation Verification Hardening:**
+  - Case-preserving verbatim substring verification: eliminates case-insensitive bypasses so citations must match chunk text exactly.
+  - Corpus-wide parent-only citation rejection: rejects parent whole-document citations even if child decision nodes are omitted from the retrieved subset.
+  - Fail-closed drug action-cue binding: missing `drug_id` on administer/withhold steps immediately yields `MISSING_DRUG_ID` (`CITATION_UNVERIFIED`).
+- **Test Suite:**
+  - Added comprehensive test coverage in `tests/unit/test_block_and_citations_fixes.py` (7 tests). Total suite passes at 200/200.
+
 ## [0.2.0] - 2026-10-27
 
 ### Added
