@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -439,8 +440,7 @@ FIXGATE_FLAGS: list[dict[str, Any]] = [
 
 def collect_pytest_tests() -> set[str]:
     """Collect all test node IDs via pytest --collect-only -q."""
-    venv_pytest = _REPO_ROOT / ".venv" / "Scripts" / "pytest.exe"
-    cmd = [str(venv_pytest) if venv_pytest.exists() else "pytest", "--collect-only", "-q"]
+    cmd = [sys.executable, "-m", "pytest", "--collect-only", "-q"]
     proc = subprocess.run(cmd, cwd=str(_REPO_ROOT), capture_output=True, text=True, check=True)
     tests = {
         line.strip().replace("\\", "/")
