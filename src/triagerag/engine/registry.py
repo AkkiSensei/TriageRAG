@@ -71,6 +71,13 @@ class ClinicalRegistry:
         """Lookup formulary drug by ID."""
         return self.formulary_drugs.get(drug_id)
 
+    def get_rule(self, rule_id: str) -> ClinicalRule | None:
+        """Lookup clinical rule by ID."""
+        for r in self.rules:
+            if r.id == rule_id:
+                return r
+        return None
+
     def get_classes_for_ingredient(self, ingredient_id: str) -> list[str]:
         """Lookup clinical classes for an ingredient."""
         return self.classes.ingredient_to_classes.get(ingredient_id, [])

@@ -230,6 +230,19 @@ def _evaluate_single_rule(
 
     elif isinstance(rule, ClassInteractionRule):
         if rule.class_a in active_classes and rule.class_b in active_classes:
+            affected_class_drugs: set[str] = set()
+            for drug_cand in active_drugs:
+                cand_drug = registry.get_drug(drug_cand)
+                if cand_drug and (
+                    rule.class_a in cand_drug.classes or rule.class_b in cand_drug.classes
+                ):
+                    affected_class_drugs.add(cand_drug.drug_id)
+                    for c_ing in cand_drug.ingredient_ids:
+                        affected_class_drugs.add(c_ing)
+                classes = registry.get_classes_for_ingredient(drug_cand)
+                if rule.class_a in classes or rule.class_b in classes:
+                    affected_class_drugs.add(drug_cand)
+
             if rule.lookback_hours_by_ingredient:
                 lookback_triggered = False
                 lookback_missing_timestamp = False
@@ -261,11 +274,13 @@ def _evaluate_single_rule(
                     )
 
                 if lookback_triggered:
+                    if matched_ing:
+                        affected_class_drugs.add(matched_ing)
                     return Alert(
                         rule_id=rule.id,
                         severity=rule.severity,
                         rule_type="class_interaction",
-                        drug_ids=[matched_ing] if matched_ing else [],
+                        drug_ids=sorted(affected_class_drugs),
                         consequence=rule.consequence,
                         action=rule.action,
                         provenance=rule.provenance,
@@ -276,7 +291,7 @@ def _evaluate_single_rule(
                     rule_id=rule.id,
                     severity=rule.severity,
                     rule_type="class_interaction",
-                    drug_ids=[],
+                    drug_ids=sorted(affected_class_drugs),
                     consequence=rule.consequence,
                     action=rule.action,
                     provenance=rule.provenance,
@@ -311,11 +326,21 @@ def _evaluate_single_rule(
                     allergy.reaction_type in rule.reaction_types or "unknown" in rule.reaction_types
                 )
                 if reaction_match and rule.target_class in active_classes:
+                    affected_allergy_drugs = {allergen_id}
+                    for drug_cand in active_drugs:
+                        cand_drug = registry.get_drug(drug_cand)
+                        if cand_drug and rule.target_class in cand_drug.classes:
+                            affected_allergy_drugs.add(cand_drug.drug_id)
+                            for c_ing in cand_drug.ingredient_ids:
+                                affected_allergy_drugs.add(c_ing)
+                        elif rule.target_class in registry.get_classes_for_ingredient(drug_cand):
+                            affected_allergy_drugs.add(drug_cand)
+
                     return Alert(
                         rule_id=rule.id,
                         severity=rule.severity,
                         rule_type="allergy_crossreactivity",
-                        drug_ids=[allergen_id],
+                        drug_ids=sorted(affected_allergy_drugs),
                         consequence=rule.consequence,
                         action=rule.action,
                         provenance=rule.provenance,
@@ -427,12 +452,22 @@ def _evaluate_single_rule(
             if matched:
                 count += 1
 
+        matching_drugs_set = set(matching_drugs)
+        for drug_cand in active_drugs:
+            cand_drug = registry.get_drug(drug_cand)
+            is_class_match = (cand_drug is not None and rule.class_name in cand_drug.classes) or (
+                rule.class_name in registry.get_classes_for_ingredient(drug_cand)
+            )
+            if is_class_match and drug_cand not in matching_drugs_set:
+                matching_drugs_set.add(drug_cand)
+                count += 1
+
         if count > rule.max_concurrent:
             return Alert(
                 rule_id=rule.id,
                 severity=rule.severity,
                 rule_type="duplication",
-                drug_ids=matching_drugs,
+                drug_ids=sorted(matching_drugs_set),
                 consequence=rule.consequence,
                 action=rule.action,
                 provenance=rule.provenance,
