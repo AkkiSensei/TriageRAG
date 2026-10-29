@@ -1,12 +1,41 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Activity, ChevronRight, Stethoscope, FileSpreadsheet } from 'lucide-react'
+import {
+  Activity,
+  Stethoscope,
+  FileSpreadsheet,
+  Shield,
+  BookOpen,
+  FileCode2,
+  LineChart,
+  Hash,
+  Menu,
+  X,
+  Sparkles,
+} from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 
+interface NavItem {
+  to: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  badge?: string
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { to: '/intake', label: 'Intake Station', icon: Stethoscope },
+  { to: '/report', label: 'Clinical Report', icon: FileSpreadsheet },
+  { to: '/redteam', label: 'Red Team', icon: Shield, badge: 'R7' },
+  { to: '/rules', label: 'Ruleset', icon: BookOpen },
+  { to: '/protocols', label: 'Protocols', icon: FileCode2 },
+  { to: '/evidence', label: 'Evidence', icon: LineChart },
+  { to: '/audit', label: 'Audit Chain', icon: Hash },
+]
+
 export const Navbar: React.FC = () => {
   const location = useLocation()
-  const isReport = location.pathname.startsWith('/report')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const { isSuccess } = useQuery({
     queryKey: ['health'],
@@ -16,76 +45,139 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full px-3 sm:px-6 lg:px-8 py-2.5">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3.5 sm:px-5 rounded-2xl bg-[#1A2421]/95 backdrop-blur-md border border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.12)] text-white">
-        {/* Left: Hospital-grade Brand & Workflow Steps */}
-        <div className="flex items-center gap-4 sm:gap-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 rounded-2xl bg-white/90 backdrop-blur-md border border-[#d9e8e6] shadow-soft text-slate-800 transition-all">
+        {/* Brand */}
+        <div className="flex items-center gap-4 lg:gap-6">
           <Link
             to="/intake"
-            className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
-            title="TriageRAG Clinical Decision Support"
+            className="group flex items-center gap-3 transition-transform hover:scale-[1.01]"
+            title="TriageRAG Emergency Decision Support"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2D6A4F] text-white shadow-sm">
-              <Activity className="h-4 w-4" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0f766e] to-[#115e59] text-white shadow-[0_4px_12px_rgba(15,118,110,0.25)] ring-2 ring-[#99f6e4]/40">
+              <Activity className="h-5 w-5 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5 leading-tight">
-                TriageRAG <span className="text-[10px] uppercase tracking-wider font-bold bg-[#2D6A4F] text-white px-1.5 py-0.5 rounded-full">Station</span>
-              </span>
-              <span className="text-[10px] text-[#A3B0A9] font-mono leading-tight">
-                Clinical Decision Support
+              <div className="flex items-center gap-1.5">
+                <span className="text-base font-extrabold tracking-tight text-slate-900 leading-tight">
+                  Triage<span className="text-[#0f766e]">RAG</span>
+                </span>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-teal-50 text-[#0f766e] border border-teal-200 px-2 py-0.5 rounded-full">
+                  Console
+                </span>
+              </div>
+              <span className="text-[11px] text-slate-500 font-medium leading-tight">
+                Deterministic Decision Support
               </span>
             </div>
           </Link>
 
-          {/* Workflow Step Indicators */}
-          <nav className="hidden sm:flex items-center gap-1 pl-4 border-l border-white/15 text-xs font-medium">
-            <Link
-              to="/intake"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
-                !isReport
-                  ? 'bg-[#2D6A4F] text-white font-semibold shadow-xs'
-                  : 'text-[#A3B0A9] hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <Stethoscope className="h-3.5 w-3.5" />
-              <span>1. Patient Intake</span>
-            </Link>
-
-            <ChevronRight className="h-3.5 w-3.5 text-white/40" />
-
-            <Link
-              to="/report"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
-                isReport
-                  ? 'bg-[#2D6A4F] text-white font-semibold shadow-xs'
-                  : 'text-[#A3B0A9] hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <FileSpreadsheet className="h-3.5 w-3.5" />
-              <span>2. Clinical Report</span>
-            </Link>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-1 pl-4 border-l border-slate-200 text-xs font-medium">
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon
+              const isActive = location.pathname.startsWith(item.to)
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all ${
+                    isActive
+                      ? 'bg-teal-700 text-white font-semibold shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                  }`}
+                >
+                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-teal-200' : 'text-slate-400'}`} />
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span
+                      className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
+                        isActive
+                          ? 'bg-teal-800 text-teal-100'
+                          : 'bg-coral-50 text-coral-600 border border-coral-200'
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
           </nav>
         </div>
 
-        {/* Right: Disclaimer and API Health */}
+        {/* Right: Disclaimer Badge, API Status, and Mobile Toggle */}
         <div className="flex items-center gap-2.5 sm:gap-3">
-          <span className="hidden md:inline rounded-full bg-amber-400/10 border border-amber-400/25 px-2.5 py-0.5 text-[10px] font-mono text-amber-300">
-            Research Prototype • Synthetic Data
-          </span>
+          <div className="hidden md:flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-medium text-amber-800 shadow-soft-sm">
+            <Sparkles className="h-3 w-3 text-amber-600 shrink-0" />
+            <span>Research Prototype • Synthetic Data</span>
+          </div>
 
           <div
-            className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-2.5 py-1 text-[11px] font-mono text-white/90"
-            title={isSuccess ? 'Backend API Connected' : 'Connecting to API...'}
+            className="flex items-center gap-1.5 rounded-full bg-slate-50 border border-slate-200 px-3 py-1 text-[11px] font-mono text-slate-700 shadow-soft-sm"
+            title={isSuccess ? 'Deterministic API connected' : 'Connecting to API...'}
           >
             <span
               className={`h-2 w-2 rounded-full ${
-                isSuccess ? 'bg-[#43A047] shadow-[0_0_6px_rgba(67,160,71,0.8)]' : 'bg-amber-400'
+                isSuccess
+                  ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] animate-pulse'
+                  : 'bg-amber-400'
               }`}
             />
-            <span className="hidden sm:inline font-bold">{isSuccess ? 'ONLINE' : 'CONNECTING'}</span>
+            <span className="font-semibold">{isSuccess ? 'ONLINE' : 'CONNECTING'}</span>
           </div>
+
+          {/* Mobile menu button */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="flex lg:hidden items-center justify-center h-9 w-9 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Drawer */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden mt-2 mx-auto max-w-7xl rounded-2xl bg-white/95 backdrop-blur-md border border-[#d9e8e6] p-3 shadow-soft-lg transition-all">
+          <div className="flex flex-col gap-1">
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon
+              const isActive = location.pathname.startsWith(item.to)
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-teal-700 text-white font-semibold'
+                      : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Icon className={`h-4 w-4 ${isActive ? 'text-teal-200' : 'text-slate-400'}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.badge && (
+                    <span
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
+                        isActive ? 'bg-teal-800 text-teal-100' : 'bg-coral-50 text-coral-600'
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+          <div className="mt-2 pt-2 border-t border-slate-100 text-[11px] text-amber-800 bg-amber-50 rounded-xl p-2 text-center font-medium">
+            Synthetic data only. Not a medical device. Not for clinical use.
+          </div>
+        </div>
+      )}
     </header>
   )
 }

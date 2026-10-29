@@ -15,6 +15,7 @@ import {
   Clock,
   Loader2,
   AlertCircle,
+  ShieldAlert,
 } from 'lucide-react'
 
 type AgeUnit = components['schemas']['AgeUnit']
@@ -249,29 +250,30 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       consciousnessStatus: (p.vitals.consciousness?.source as MeasurementStatus) || 'unknown',
       consciousnessValue: validConsciousness,
 
-      medicationStatus: p.medication_history_status as HistoryStatus,
-      medications: p.medications
-        ? p.medications.map((m) => {
-            let hoursAgo: number | null = 12
-            if (m.last_dose_time) {
-              const diff = Date.now() - new Date(m.last_dose_time).getTime()
-              hoursAgo = Math.max(1, Math.round(diff / (3600 * 1000)))
-            }
-            return { raw_string: m.raw_text, last_dose_hours_ago: hoursAgo }
-          })
-        : [],
+      medicationStatus: (p.medication_history_status as HistoryStatus) || 'confirmed_none',
+      medications: (p.medications || []).map((m) => {
+        let hoursAgo: number | null = null
+        if (m.last_dose_time) {
+          const doseDate = new Date(m.last_dose_time)
+          const assessDate = new Date(p.assessed_at)
+          const diffMs = assessDate.getTime() - doseDate.getTime()
+          hoursAgo = Math.max(0, Math.round(diffMs / (1000 * 60 * 60)))
+        }
+        return {
+          raw_string: m.raw_text,
+          last_dose_hours_ago: hoursAgo,
+        }
+      }),
 
-      allergyStatus: p.allergy_history_status as HistoryStatus,
-      allergies: p.allergies
-        ? p.allergies.map((a) => ({
-            raw_substance: a.raw_substance,
-            reaction_type: (a.reaction_type as ReactionType) || 'unknown',
-          }))
-        : [],
+      allergyStatus: (p.allergy_history_status as HistoryStatus) || 'confirmed_nkda',
+      allergies: (p.allergies || []).map((a) => ({
+        raw_substance: a.raw_substance,
+        reaction_type: (a.reaction_type as ReactionType) || 'unknown',
+      })),
 
-      suspectedSyndrome: p.suspected_syndrome || '',
-      renalImpairment: (p.renal_impairment as Impairment) || 'unknown',
-      hepaticImpairment: (p.hepatic_impairment as Impairment) || 'unknown',
+      suspectedSyndrome: p.suspected_syndrome || 'chest_pain',
+      renalImpairment: (p.renal_impairment as Impairment) || 'no',
+      hepaticImpairment: (p.hepatic_impairment as Impairment) || 'no',
 
       chiefComplaint: p.chief_complaint_untrusted || '',
       includeComplaintInLlm: false,
@@ -330,75 +332,55 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       consciousnessStatus: (p.vitals.consciousness?.source as MeasurementStatus) || 'unknown',
       consciousnessValue: validConsciousness,
 
-      medicationStatus: p.medication_history_status as HistoryStatus,
-      medications: p.medications
-        ? p.medications.map((m) => {
-            let hoursAgo: number | null = 12
-            if (m.last_dose_time) {
-              const diff = Date.now() - new Date(m.last_dose_time).getTime()
-              hoursAgo = Math.max(1, Math.round(diff / (3600 * 1000)))
-            }
-            return { raw_string: m.raw_text, last_dose_hours_ago: hoursAgo }
-          })
-        : [],
+      medicationStatus: (p.medication_history_status as HistoryStatus) || 'confirmed_none',
+      medications: (p.medications || []).map((m) => {
+        let hoursAgo: number | null = null
+        if (m.last_dose_time) {
+          const doseDate = new Date(m.last_dose_time)
+          const assessDate = new Date(p.assessed_at)
+          const diffMs = assessDate.getTime() - doseDate.getTime()
+          hoursAgo = Math.max(0, Math.round(diffMs / (1000 * 60 * 60)))
+        }
+        return {
+          raw_string: m.raw_text,
+          last_dose_hours_ago: hoursAgo,
+        }
+      }),
 
-      allergyStatus: p.allergy_history_status as HistoryStatus,
-      allergies: p.allergies
-        ? p.allergies.map((a) => ({
-            raw_substance: a.raw_substance,
-            reaction_type: (a.reaction_type as ReactionType) || 'unknown',
-          }))
-        : [],
+      allergyStatus: (p.allergy_history_status as HistoryStatus) || 'confirmed_nkda',
+      allergies: (p.allergies || []).map((a) => ({
+        raw_substance: a.raw_substance,
+        reaction_type: (a.reaction_type as ReactionType) || 'unknown',
+      })),
 
-      suspectedSyndrome: p.suspected_syndrome || '',
-      renalImpairment: (p.renal_impairment as Impairment) || 'unknown',
-      hepaticImpairment: (p.hepatic_impairment as Impairment) || 'unknown',
+      suspectedSyndrome: p.suspected_syndrome || 'chest_pain',
+      renalImpairment: (p.renal_impairment as Impairment) || 'no',
+      hepaticImpairment: (p.hepatic_impairment as Impairment) || 'no',
 
       chiefComplaint: p.chief_complaint_untrusted || '',
-      includeComplaintInLlm: req.include_complaint_in_llm ?? false,
-      llmProfile: req.llm_profile ?? 'COMPLIANT',
+      includeComplaintInLlm: req.include_complaint_in_llm || false,
+      llmProfile: (req.llm_profile as LLMProfile) || 'COMPLIANT',
     })
   }
 
-  const cleanMeasuredDecimal = (
-    val: number | string | null | undefined,
-    source: MeasurementStatus
-  ): components['schemas']['Measured_Decimal_-Input'] => {
-    if (source === 'unknown' || val === null || val === undefined) {
+  const cleanMeasuredDecimal = (valStr: string, status: MeasurementStatus): { value: string | null; source: MeasurementStatus } => {
+    if (status === 'unknown' || !valStr.trim()) {
       return { value: null, source: 'unknown' }
     }
-    const strVal = String(val).trim()
-    if (strVal === '') {
-      return { value: null, source: 'unknown' }
-    }
-    const num = Number(strVal)
-    if (isNaN(num)) {
-      return { value: null, source: 'unknown' }
-    }
+    const num = parseFloat(valStr)
     return {
-      value: strVal,
-      source,
+      value: isNaN(num) ? null : valStr.trim(),
+      source: status,
     }
   }
 
-  const cleanMeasuredInt = (
-    val: number | string | null | undefined,
-    source: MeasurementStatus
-  ): components['schemas']['Measured_int_'] => {
-    if (source === 'unknown' || val === null || val === undefined) {
-      return { value: null, source: 'unknown' }
-    }
-    const strVal = String(val).trim()
-    if (strVal === '') {
-      return { value: null, source: 'unknown' }
-    }
-    const num = Number(strVal)
-    if (isNaN(num)) {
+  const cleanMeasuredInt = (val: number | null, status: MeasurementStatus): { value: number | null; source: MeasurementStatus } => {
+    if (status === 'unknown' || val === null || val === undefined || isNaN(val)) {
       return { value: null, source: 'unknown' }
     }
     return {
-      value: Math.round(num),
-      source,
+      value: Math.round(val),
+      source: status,
     }
   }
 
@@ -406,26 +388,23 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
     const assessedAt = new Date().toISOString()
     const assessedMs = new Date(assessedAt).getTime()
 
-    // 1. Sanitize sex and biological pregnancy invariant
-    const sex = form.sex || 'male'
-    const pregnancy = sex === 'male' ? 'no' : (form.pregnancy || 'no')
+    // 1. Biological age
+    const validAge = form.ageValue && !isNaN(parseFloat(form.ageValue)) ? form.ageValue : '62'
 
-    // 2. Sanitize age
-    const ageNum = Number(form.ageValue)
-    const validAge = !isNaN(ageNum) && ageNum >= 0 ? String(ageNum) : '62'
+    // 2. Sex and pregnancy lock
+    const sex = form.sex
+    const pregnancy = sex === 'male' ? 'no' : form.pregnancy
 
-    // 3. Sanitize supplemental O2
-    let o2Payload: components['schemas']['Measured_Literal__yes____no____unknown___']
+    // 3. Supplemental O2
+    let o2Payload: { value: 'yes' | 'no' | 'unknown' | null; source: MeasurementStatus }
     if (form.o2Status === 'unknown') {
       o2Payload = { value: null, source: 'unknown' }
-    } else if (form.o2Value === 'yes' || form.o2Value === 'no') {
-      o2Payload = { value: form.o2Value, source: form.o2Status }
     } else {
-      o2Payload = { value: null, source: 'unknown' }
+      o2Payload = { value: form.o2Value, source: form.o2Status }
     }
 
-    // 4. Sanitize consciousness
-    let consciousnessPayload: components['schemas']['Measured_Consciousness_']
+    // 4. Consciousness
+    let consciousnessPayload: { value: Consciousness | null; source: MeasurementStatus }
     if (form.consciousnessStatus === 'unknown') {
       consciousnessPayload = { value: null, source: 'unknown' }
     } else if (['A', 'C', 'V', 'P', 'U'].includes(form.consciousnessValue)) {
@@ -569,97 +548,134 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      {/* CARD 1: PRESENTING SYNDROME & CLINICAL NARRATIVE */}
-      <div className="rounded-xl border border-[#E1E7E1] bg-white p-4 sm:p-5 shadow-xs">
-        <div className="flex items-center justify-between border-b border-[#E1E7E1] pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-[#2D6A4F]" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#1A2421]">
-              1. Presenting Clinical Syndrome & Narrative
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      {/* CARD 1: PRESENTING CLINICAL SYNDROME */}
+      <div className="rounded-2xl border border-[#d9e8e6] bg-white p-5 sm:p-6 shadow-soft">
+        <div className="flex items-center justify-between border-b border-[#d9e8e6] pb-3 mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+              <Activity className="h-4 w-4" />
+            </div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+              1. Presenting Clinical Syndrome
             </h3>
           </div>
           <button
             type="button"
             onClick={() => setForm(INITIAL_FORM_STATE)}
-            className="flex items-center gap-1 text-[11px] font-mono text-[#5C6B64] hover:text-[#1A2421] transition-colors"
+            className="flex items-center gap-1 text-[11px] font-mono text-slate-500 hover:text-teal-800 transition-colors"
             title="Reset to default baseline"
           >
             <RotateCcw className="h-3 w-3" />
-            <span>Reset</span>
+            <span>Reset Form</span>
           </button>
         </div>
 
         <div className="flex flex-col gap-3.5">
           {/* Syndrome Dropdown */}
           <div>
-            <label className="text-xs font-semibold text-[#1A2421] flex items-center justify-between">
+            <label className="text-xs font-semibold text-slate-800 flex items-center justify-between">
               <span>Suspected Clinical Syndrome</span>
-              <span className="text-[10px] text-[#2D6A4F] font-mono font-medium">Guides Protocol Retrieval</span>
+              <span className="text-[10px] text-teal-700 font-mono font-medium">
+                Partitions Emergency Protocols
+              </span>
             </label>
             <select
               value={form.suspectedSyndrome}
               onChange={(e) => setForm({ ...form, suspectedSyndrome: e.target.value })}
-              className="mt-1 h-9 w-full rounded-lg border border-[#E1E7E1] bg-white px-3 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20"
+              className="mt-1 h-10 w-full rounded-xl border border-[#d9e8e6] bg-white px-3 text-xs font-medium text-slate-900 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             >
               <option value="">None / Unspecified (General Vitals Screening)</option>
-              <option value="chest_pain">Acute Chest Pain & Suspected Coronary Syndrome</option>
+              <option value="chest_pain">Acute Chest Pain &amp; Suspected Coronary Syndrome</option>
               <option value="anaphylaxis">Acute Anaphylaxis / Severe Systemic Allergic Reaction</option>
-              <option value="severe_asthma">Severe Acute Asthma & Bronchospasm</option>
+              <option value="severe_asthma">Severe Acute Asthma &amp; Bronchospasm</option>
               <option value="hypoglycemia">Acute Symptomatic Hypoglycemia</option>
-              <option value="paediatric_sepsis">Pediatric Sepsis & Febrile Shock</option>
+              <option value="paediatric_sepsis">Pediatric Sepsis &amp; Febrile Shock</option>
               <option value="altered_mental_status">Altered Mental Status / Acute Confusion</option>
             </select>
-          </div>
-
-          {/* Chief Complaint / Triage Narrative */}
-          <div>
-            <label className="text-xs font-semibold text-[#1A2421] flex items-center justify-between">
-              <span>Clinical Notes / Triage Narrative</span>
-              <span className="text-[10px] text-[#5C6B64] font-mono">
-                Patient-reported • Quarantined from decision engine
-              </span>
-            </label>
-            <textarea
-              rows={2}
-              value={form.chiefComplaint}
-              onChange={(e) => setForm({ ...form, chiefComplaint: e.target.value })}
-              placeholder="Enter patient-reported narrative or paramedic handoff notes..."
-              className="mt-1 w-full rounded-lg border border-[#E1E7E1] bg-white p-2.5 text-xs text-[#1A2421] placeholder-[#8A9991] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20 resize-none font-sans leading-relaxed"
-            />
           </div>
         </div>
       </div>
 
-      {/* CARD 2: DEMOGRAPHICS & PHYSIOLOGICAL VITALS */}
-      <div className="rounded-xl border border-[#E1E7E1] bg-white p-4 sm:p-5 shadow-xs">
-        <div className="flex items-center justify-between border-b border-[#E1E7E1] pb-3 mb-4">
+      {/* QUARANTINED CHIEF COMPLAINT (RULE R7 QUARANTINE CONTAINER) */}
+      <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50/70 via-white to-amber-50/40 p-5 shadow-soft">
+        <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-amber-200">
           <div className="flex items-center gap-2">
-            <Stethoscope className="h-4 w-4 text-[#2D6A4F]" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#1A2421]">
-              2. Demographics & Physiological Vitals
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-100 text-amber-800">
+              <ShieldAlert className="h-3.5 w-3.5" />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-900">
+              Rule R7 Quarantine: Patient-Reported Chief Complaint
+            </span>
+          </div>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-200/80 text-amber-950 font-bold">
+            UNTRUSTED NARRATIVE
+          </span>
+        </div>
+
+        <p className="text-[11px] text-amber-900/80 mb-2.5 leading-relaxed">
+          <strong>Security Boundary:</strong> Text entered here is quarantined and strictly excluded from rule evaluation, dose math, and retrieval indexes. It will never be rendered as executable markup.
+        </p>
+
+        <textarea
+          rows={2}
+          value={form.chiefComplaint}
+          onChange={(e) => setForm({ ...form, chiefComplaint: e.target.value })}
+          placeholder="Enter patient narrative or paramedic handoff notes (e.g. 'Sudden onset chest tightness radiating to jaw')..."
+          className="w-full rounded-xl border border-amber-300 bg-white p-3 text-xs text-slate-900 placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none font-sans leading-relaxed"
+        />
+
+        <div className="mt-2.5 flex items-center justify-between text-[11px]">
+          <label className="flex items-center gap-2 text-slate-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.includeComplaintInLlm}
+              onChange={(e) => setForm({ ...form, includeComplaintInLlm: e.target.checked })}
+              className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+            />
+            <span className="font-medium text-slate-600">
+              Pass to LLM in delimited context block only (disabled by default)
+            </span>
+          </label>
+          <span className="text-[10px] font-mono text-slate-400">
+            {form.chiefComplaint.length}/500 chars
+          </span>
+        </div>
+      </div>
+
+      {/* CARD 2: DEMOGRAPHICS & PHYSIOLOGICAL VITALS */}
+      <div className="rounded-2xl border border-[#d9e8e6] bg-white p-5 sm:p-6 shadow-soft">
+        <div className="flex items-center justify-between border-b border-[#d9e8e6] pb-3 mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+              <Stethoscope className="h-4 w-4" />
+            </div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+              2. Demographics &amp; Physiological Vitals
             </h3>
           </div>
-          <span className="text-[10px] font-mono text-[#5C6B64]">NEWS2 Standard</span>
+          <span className="text-[11px] font-mono text-teal-700 font-semibold bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+            NEWS2 / PEWS Input
+          </span>
         </div>
 
         {/* Demographics Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
           {/* Age */}
           <div>
-            <label className="text-[11px] font-semibold text-[#1A2421]">Age</label>
+            <label className="text-[11px] font-semibold text-slate-800">Age</label>
             <div className="mt-1 flex gap-1.5">
               <input
                 type="text"
                 value={form.ageValue}
                 onChange={(e) => setForm({ ...form, ageValue: e.target.value })}
                 placeholder="62"
-                className="h-8.5 w-2/3 rounded-lg border border-[#E1E7E1] bg-white px-2.5 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20"
+                className="h-10 w-2/3 rounded-xl border border-[#d9e8e6] bg-white px-3 text-xs font-medium text-slate-900 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
               />
               <select
                 value={form.ageUnit}
                 onChange={(e) => setForm({ ...form, ageUnit: e.target.value as AgeUnit })}
-                className="h-8.5 w-1/3 rounded-lg border border-[#E1E7E1] bg-white px-1 text-[11px] text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20"
+                className="h-10 w-1/3 rounded-xl border border-[#d9e8e6] bg-white px-1.5 text-[11px] font-mono font-medium text-slate-800 focus:border-teal-600 focus:outline-none"
               >
                 <option value="years">yr</option>
                 <option value="months">mo</option>
@@ -670,11 +686,11 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
           {/* Biological Sex */}
           <div>
-            <label className="text-[11px] font-semibold text-[#1A2421]">Biological Sex</label>
+            <label className="text-[11px] font-semibold text-slate-800">Biological Sex</label>
             <select
               value={form.sex}
               onChange={(e) => handleSexChange(e.target.value as Sex)}
-              className="mt-1 h-8.5 w-full rounded-lg border border-[#E1E7E1] bg-white px-2 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20"
+              className="mt-1 h-10 w-full rounded-xl border border-[#d9e8e6] bg-white px-3 text-xs font-medium text-slate-900 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             >
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -686,15 +702,15 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
           {/* Pregnancy Status (Strictly locked to No for Male) */}
           <div>
             <div className="flex items-center justify-between">
-              <label className="text-[11px] font-semibold text-[#1A2421]">Pregnancy</label>
+              <label className="text-[11px] font-semibold text-slate-800">Pregnancy</label>
               {form.sex === 'male' && (
-                <span className="text-[10px] text-[#5C6B64] font-mono">Auto-Locked</span>
+                <span className="text-[10px] text-slate-400 font-mono">Auto-Locked</span>
               )}
             </div>
             {form.sex === 'male' ? (
               <div
-                className="mt-1 flex h-8.5 w-full items-center rounded-lg border border-[#E1E7E1] bg-[#F4F6F4] px-2.5 text-xs text-[#5C6B64] font-mono cursor-not-allowed select-none"
-                title="Biological invariant: Male patients are not pregnant"
+                className="mt-1 flex h-10 w-full items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs text-slate-500 font-mono cursor-not-allowed select-none"
+                title="Biological invariant: Male patients are locked to No"
               >
                 No (N/A)
               </div>
@@ -702,7 +718,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               <select
                 value={form.pregnancy}
                 onChange={(e) => setForm({ ...form, pregnancy: e.target.value as Pregnancy })}
-                className="mt-1 h-8.5 w-full rounded-lg border border-[#2D6A4F]/40 bg-white px-2 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none"
+                className="mt-1 h-10 w-full rounded-xl border border-teal-300 bg-white px-3 text-xs font-medium text-slate-900 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
               >
                 <option value="no">Not Pregnant (No)</option>
                 <option value="yes">Pregnant (Yes)</option>
@@ -713,24 +729,24 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
           {/* Weight */}
           <div>
-            <label className="text-[11px] font-semibold text-[#1A2421]">Weight (kg)</label>
+            <label className="text-[11px] font-semibold text-slate-800">Weight (kg)</label>
             <input
               type="text"
               value={form.weightValue}
               onChange={(e) => setForm({ ...form, weightValue: e.target.value })}
               placeholder="82.0"
-              className="mt-1 h-8.5 w-full rounded-lg border border-[#E1E7E1] bg-white px-2.5 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none focus:ring-1 focus:ring-[#2D6A4F]/20"
+              className="mt-1 h-10 w-full rounded-xl border border-[#d9e8e6] bg-white px-3 text-xs font-medium text-slate-900 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             />
           </div>
         </div>
 
         {/* 7 Physiological Vitals Grid */}
-        <div className="flex flex-col gap-2 pt-3 border-t border-[#E1E7E1]">
-          <span className="text-[11px] font-bold text-[#1A2421] uppercase tracking-wider">
+        <div className="flex flex-col gap-3 pt-4 border-t border-[#d9e8e6]">
+          <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wider">
             Physiological Measurements
           </span>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             <MeasuredInput
               label="Heart Rate"
               unit="bpm"
@@ -800,13 +816,13 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               onValueChange={(val) => setForm({ ...form, glucoseValue: val || '' })}
             />
             <div>
-              <label className="text-[11px] font-semibold text-[#1A2421]">Supplemental O2</label>
+              <label className="text-xs font-semibold text-slate-800">Supplemental O2</label>
               <select
                 value={form.o2Value}
                 onChange={(e) =>
                   setForm({ ...form, o2Value: e.target.value as 'yes' | 'no' | 'unknown' })
                 }
-                className="mt-1 h-8.5 w-full rounded-lg border border-[#E1E7E1] bg-white px-2 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none"
+                className="mt-1.5 h-10 w-full rounded-xl border border-[#d9e8e6] bg-white px-3 text-xs font-medium text-slate-900 focus:border-teal-600 focus:outline-none"
               >
                 <option value="no">Room Air (No)</option>
                 <option value="yes">On Supplemental O2 (+2 pts)</option>
@@ -817,7 +833,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
           {/* Consciousness */}
           <div className="pt-2">
-            <label className="text-[11px] font-semibold text-[#1A2421]">
+            <label className="text-xs font-semibold text-slate-800">
               Consciousness Level (AVPU+C)
             </label>
             <select
@@ -825,7 +841,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               onChange={(e) =>
                 setForm({ ...form, consciousnessValue: e.target.value as Consciousness })
               }
-              className="mt-1 h-8.5 w-full rounded-lg border border-[#E1E7E1] bg-white px-3 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none"
+              className="mt-1.5 h-10 w-full rounded-xl border border-[#d9e8e6] bg-white px-3 text-xs font-medium text-slate-900 focus:border-teal-600 focus:outline-none"
             >
               <option value="A">Alert (A) - Fully oriented, normal (0 points)</option>
               <option value="C">New Confusion (C) - Acute altered mental state (3 points - Critical)</option>
@@ -838,31 +854,33 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       </div>
 
       {/* CARD 3: HOME MEDICATIONS & ALLERGIES */}
-      <div className="rounded-xl border border-[#E1E7E1] bg-white p-4 sm:p-5 shadow-xs">
-        <div className="flex items-center justify-between border-b border-[#E1E7E1] pb-3 mb-4">
-          <div className="flex items-center gap-2">
-            <Pill className="h-4 w-4 text-[#2D6A4F]" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#1A2421]">
-              3. Home Medications & Documented Allergies
+      <div className="rounded-2xl border border-[#d9e8e6] bg-white p-5 sm:p-6 shadow-soft">
+        <div className="flex items-center justify-between border-b border-[#d9e8e6] pb-3 mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+              <Pill className="h-4 w-4" />
+            </div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+              3. Home Medications &amp; Documented Allergies
             </h3>
           </div>
-          <span className="text-[10px] font-mono text-[#5C6B64]">
-            {form.medications.length} meds • {form.allergies.length} allergies
+          <span className="text-[11px] font-mono text-slate-500">
+            {form.medications.length} meds &bull; {form.allergies.length} allergies
           </span>
         </div>
 
         {/* Medication History */}
-        <div className="flex flex-col gap-3 mb-5">
+        <div className="flex flex-col gap-3 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-[#1A2421]">Current Medications</span>
+            <span className="text-xs font-semibold text-slate-800">Current Medications</span>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-[#5C6B64]">History Status:</span>
+              <span className="text-[11px] text-slate-500">History Status:</span>
               <select
                 value={form.medicationStatus}
                 onChange={(e) =>
                   setForm({ ...form, medicationStatus: e.target.value as HistoryStatus })
                 }
-                className="h-7 rounded-md border border-[#E1E7E1] bg-white px-2 text-[11px] text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none font-mono"
+                className="h-8 rounded-lg border border-[#d9e8e6] bg-white px-2.5 text-[11px] font-mono text-slate-800 focus:border-teal-600 focus:outline-none"
               >
                 <option value="confirmed_list">Confirmed List</option>
                 <option value="confirmed_none">Confirmed None (No Meds)</option>
@@ -873,26 +891,26 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
           </div>
 
           {/* Active Meds List */}
-          <div className="flex flex-wrap gap-2 min-h-[40px] items-center p-2.5 rounded-lg bg-[#F4F6F4] border border-[#E1E7E1]">
+          <div className="flex flex-wrap gap-2 min-h-[44px] items-center p-3 rounded-xl bg-slate-50 border border-slate-200">
             {form.medications.length === 0 ? (
-              <span className="text-xs text-[#5C6B64] italic">
+              <span className="text-xs text-slate-400 italic">
                 No active home medications recorded.
               </span>
             ) : (
               form.medications.map((m, idx) => (
                 <span
                   key={idx}
-                  className="flex items-center gap-2 rounded-lg bg-white border border-[#C4CEBD] px-2.5 py-1 text-xs text-[#1A2421] font-mono shadow-xs"
+                  className="flex items-center gap-2 rounded-xl bg-white border border-teal-200 px-3 py-1.5 text-xs text-slate-900 font-mono shadow-soft-sm"
                 >
-                  <span className="font-bold text-[#2D6A4F]">{m.raw_string}</span>
-                  <span className="text-[10px] text-[#5C6B64] flex items-center gap-0.5">
-                    <Clock className="h-2.5 w-2.5" />
+                  <span className="font-bold text-teal-800">{m.raw_string}</span>
+                  <span className="text-[10px] text-slate-500 flex items-center gap-0.5">
+                    <Clock className="h-2.5 w-2.5 text-slate-400" />
                     {m.last_dose_hours_ago !== null ? `${m.last_dose_hours_ago}h ago` : 'Time unk'}
                   </span>
                   <button
                     type="button"
                     onClick={() => removeMedication(idx)}
-                    className="text-[#8A9991] hover:text-red-600 transition-colors ml-1"
+                    className="text-slate-400 hover:text-rose-600 transition-colors ml-1"
                     title="Remove medication"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -902,7 +920,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             )}
           </div>
 
-          {/* Add Medication Input Bar with Autocomplete & Last Taken Window */}
+          {/* Add Medication Bar */}
           <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
@@ -915,8 +933,8 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
                   addMedication(newMedName, newMedLastDose)
                 }
               }}
-              placeholder="Select or type medication (e.g. Metoprolol, Lisinopril, Amoxicillin)..."
-              className="h-8.5 flex-1 rounded-lg border border-[#E1E7E1] bg-white px-3 text-xs text-[#1A2421] placeholder-[#8A9991] focus:border-[#2D6A4F] focus:outline-none"
+              placeholder="Type drug name (e.g. Sildenafil, Metoprolol, Lisinopril, Nitroglycerin)..."
+              className="h-10 flex-1 rounded-xl border border-[#d9e8e6] bg-white px-3 text-xs text-slate-900 placeholder-slate-400 focus:border-teal-600 focus:outline-none"
             />
             <datalist id="formulary-suggestions">
               {COMMON_DRUGS.map((d) => (
@@ -929,7 +947,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               onChange={(e) =>
                 setNewMedLastDose(e.target.value === 'unknown' ? null : Number(e.target.value))
               }
-              className="h-8.5 rounded-lg border border-[#E1E7E1] bg-white px-2 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none font-mono"
+              className="h-10 rounded-xl border border-[#d9e8e6] bg-white px-3 text-xs text-slate-800 focus:border-teal-600 focus:outline-none font-mono"
             >
               <option value="12">Taken within 12h</option>
               <option value="24">Taken ~24h ago</option>
@@ -942,7 +960,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             <button
               type="button"
               onClick={() => addMedication(newMedName, newMedLastDose)}
-              className="flex items-center justify-center gap-1.5 rounded-lg bg-[#EEF3EE] hover:bg-[#E1E7E1] border border-[#C4CEBD] px-3.5 h-8.5 text-xs font-bold text-[#1A2421] transition-colors"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 border border-teal-200 px-4 h-10 text-xs font-bold text-teal-800 transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Add Med</span>
@@ -951,20 +969,20 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
         </div>
 
         {/* Allergies History */}
-        <div className="flex flex-col gap-3 pt-3 border-t border-[#E1E7E1]">
+        <div className="flex flex-col gap-3 pt-4 border-t border-[#d9e8e6]">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-[#1A2421] flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-[#2D6A4F]" />
+            <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-teal-600" />
               Documented Substance Allergies
             </span>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-[#5C6B64]">Allergy Status:</span>
+              <span className="text-[11px] text-slate-500">Allergy Status:</span>
               <select
                 value={form.allergyStatus}
                 onChange={(e) =>
                   setForm({ ...form, allergyStatus: e.target.value as HistoryStatus })
                 }
-                className="h-7 rounded-md border border-[#E1E7E1] bg-white px-2 text-[11px] text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none font-mono"
+                className="h-8 rounded-lg border border-[#d9e8e6] bg-white px-2.5 text-[11px] font-mono text-slate-800 focus:border-teal-600 focus:outline-none"
               >
                 <option value="confirmed_nkda">No Known Drug Allergies (NKDA)</option>
                 <option value="confirmed_list">Confirmed Allergy List</option>
@@ -974,9 +992,9 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
           </div>
 
           {/* Active Allergies List */}
-          <div className="flex flex-wrap gap-2 min-h-[40px] items-center p-2.5 rounded-lg bg-[#F4F6F4] border border-[#E1E7E1]">
+          <div className="flex flex-wrap gap-2 min-h-[44px] items-center p-3 rounded-xl bg-slate-50 border border-slate-200">
             {form.allergies.length === 0 ? (
-              <span className="text-xs text-[#5C6B64] italic">
+              <span className="text-xs text-slate-400 italic">
                 {form.allergyStatus === 'confirmed_nkda'
                   ? 'No Known Drug Allergies (NKDA Confirmed).'
                   : 'No allergies recorded.'}
@@ -985,14 +1003,14 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               form.allergies.map((a, idx) => (
                 <span
                   key={idx}
-                  className="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-300 px-2.5 py-1 text-xs text-amber-900 font-mono shadow-xs"
+                  className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-300 px-3 py-1.5 text-xs text-amber-950 font-mono shadow-soft-sm"
                 >
-                  <span className="font-bold text-amber-800">{a.raw_substance}</span>
+                  <span className="font-bold text-amber-900">{a.raw_substance}</span>
                   <span className="text-[10px] text-amber-700">({a.reaction_type})</span>
                   <button
                     type="button"
                     onClick={() => removeAllergy(idx)}
-                    className="text-amber-600 hover:text-red-600 transition-colors ml-1"
+                    className="text-amber-500 hover:text-rose-600 transition-colors ml-1"
                     title="Remove allergy"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -1014,13 +1032,13 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
                   addAllergy(newAllergySubstance, newAllergyReaction)
                 }
               }}
-              placeholder="Allergen name (e.g. Penicillin, Cephalosporins, Amoxicillin)..."
-              className="h-8.5 flex-1 rounded-lg border border-[#E1E7E1] bg-white px-3 text-xs text-[#1A2421] placeholder-[#8A9991] focus:border-[#2D6A4F] focus:outline-none"
+              placeholder="Allergen name (e.g. Penicillin, Ceftriaxone, Amoxicillin)..."
+              className="h-10 flex-1 rounded-xl border border-[#d9e8e6] bg-white px-3 text-xs text-slate-900 placeholder-slate-400 focus:border-teal-600 focus:outline-none"
             />
             <select
               value={newAllergyReaction}
               onChange={(e) => setNewAllergyReaction(e.target.value as ReactionType)}
-              className="h-8.5 rounded-lg border border-[#E1E7E1] bg-white px-2 text-xs text-[#1A2421] focus:border-[#2D6A4F] focus:outline-none"
+              className="h-10 rounded-xl border border-[#d9e8e6] bg-white px-3 text-xs text-slate-800 focus:border-teal-600 focus:outline-none"
             >
               <option value="anaphylaxis_ige">IgE Anaphylaxis / Airway Compromise</option>
               <option value="severe_cutaneous_scar">Severe Cutaneous (SCAR / DRESS / SJS)</option>
@@ -1031,7 +1049,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             <button
               type="button"
               onClick={() => addAllergy(newAllergySubstance, newAllergyReaction)}
-              className="flex items-center justify-center gap-1.5 rounded-lg bg-[#EEF3EE] hover:bg-[#E1E7E1] border border-[#C4CEBD] px-3.5 h-8.5 text-xs font-bold text-[#1A2421] transition-colors"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 px-4 h-10 text-xs font-bold text-amber-900 transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Add Allergy</span>
@@ -1041,34 +1059,34 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       </div>
 
       {/* PRIMARY CTA: EVALUATE PATIENT */}
-      <div className="sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-[#C4CEBD] bg-white/95 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.1)] backdrop-blur-md">
+      <div className="sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-teal-200 bg-white/95 p-4 sm:p-5 shadow-soft-xl backdrop-blur-md">
         {errorMessage && (
-          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-2.5 text-xs text-red-800">
-            <AlertCircle className="h-4 w-4 shrink-0 text-red-600" />
+          <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+            <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
             <span className="font-semibold">{errorMessage}</span>
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs text-[#5C6B64]">
-            <FileText className="h-4 w-4 text-[#2D6A4F]" />
-            <span>Form ready for deterministic safety verification</span>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs text-slate-500">
+            <FileText className="h-4 w-4 text-teal-600" />
+            <span>Ready for Pass 1 Deterministic Safety Evaluation</span>
           </div>
 
           <button
             type="submit"
             onClick={handleSubmit}
             disabled={isLoading}
-            className="flex items-center gap-2 rounded-lg bg-[#2D6A4F] hover:bg-[#1B4D39] px-6 py-2.5 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-teal-800 hover:from-teal-800 hover:to-teal-900 px-7 py-3 text-sm font-bold text-white shadow-soft hover:shadow-soft-lg transition-all disabled:opacity-50 cursor-pointer"
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Evaluating Patient...</span>
+                <Loader2 className="h-4 w-4 animate-spin text-teal-200" />
+                <span>Running Deterministic Engine...</span>
               </>
             ) : (
               <>
-                <span>Evaluate Patient & Generate Report</span>
+                <span>Evaluate Patient &amp; View Report</span>
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -1078,5 +1096,5 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
     </form>
   )
 }
-export default PatientIntakeForm
 
+export default PatientIntakeForm

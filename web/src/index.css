@@ -3,65 +3,71 @@
 @tailwind utilities;
 
 /* =====================================================
-   TriageRAG — Whisper Sage Design System (BedLink Palette)
-   Clinical Restfulness: calm authority, high readability
+   TriageRAG — Modern Healthcare Aesthetic
+   Deep Teal, Aqua/Mint, Warm Coral, and Bright Surfaces
    ===================================================== */
 
 :root {
   /* Canvas & Surfaces */
-  --bg-canvas: #F4F6F4;
-  --bg-surface: #FFFFFF;
-  --bg-hover: #EEF3EE;
+  --bg-canvas: #f6faf9;
+  --bg-surface: #ffffff;
+  --bg-hover: #eef7f6;
+  --bg-muted: #f0f7f6;
 
-  /* Primary (Sage Green) */
-  --primary: #2D6A4F;
-  --primary-dark: #1B4D39;
-  --primary-soft: #E8F5E9;
+  /* Primary Deep Teal */
+  --primary: #0f766e;
+  --primary-dark: #134e4a;
+  --primary-soft: #f0fdfa;
+
+  /* Accent Coral */
+  --coral-accent: #ff6f59;
+  --coral-soft: #fff5f3;
 
   /* Borders */
-  --border: #E1E7E1;
-  --border-focus: #2D6A4F;
-  --border-strong: #C4CEBD;
+  --border: #d9e8e6;
+  --border-focus: #0f766e;
+  --border-strong: #b5d5d0;
 
   /* Typography */
-  --text-primary: #1A2421;
-  --text-muted: #5C6B64;
-  --text-inverse: #FFFFFF;
+  --text-primary: #0f172a;
+  --text-muted: #475569;
+  --text-subtle: #64748b;
+  --text-inverse: #ffffff;
 
-  /* Clinical Status & Warning Colors (Preserved) */
+  /* Clinical Status & Warning Colors */
   --clinical-bg: var(--bg-canvas);
   --clinical-surface: var(--bg-surface);
   --clinical-surface-muted: var(--bg-hover);
   --clinical-border: var(--border);
 
-  --clinical-block: #E11D48;
-  --clinical-block-bg: #FFF1F2;
-  --clinical-block-border: #FECDD3;
+  --clinical-block: #e11d48;
+  --clinical-block-bg: #fff1f2;
+  --clinical-block-border: #fecdd3;
 
-  --clinical-high: #EA580C;
-  --clinical-high-bg: #FFF7ED;
-  --clinical-high-border: #FED7AA;
+  --clinical-high: #ea580c;
+  --clinical-high-bg: #fff7ed;
+  --clinical-high-border: #fed7aa;
 
-  --clinical-moderate: #D97706;
-  --clinical-moderate-bg: #FFFBEB;
-  --clinical-moderate-border: #FDE68A;
+  --clinical-moderate: #d97706;
+  --clinical-moderate-bg: #fffbeb;
+  --clinical-moderate-border: #fde68a;
 
-  --clinical-info: #1D4ED8;
-  --clinical-info-bg: #EFF6FF;
-  --clinical-info-border: #BFDBFE;
+  --clinical-info: #0284c7;
+  --clinical-info-bg: #f0f9ff;
+  --clinical-info-border: #bae6fd;
 
-  --clinical-unverified: #7C3AED;
-  --clinical-unverified-bg: #FAF5FF;
-  --clinical-unverified-border: #DDD6FE;
+  --clinical-unverified: #7c3aed;
+  --clinical-unverified-bg: #faf5ff;
+  --clinical-unverified-border: #ddd6fe;
 
-  --clinical-checked: #2E7D32;
-  --clinical-checked-bg: #E8F5E9;
-  --clinical-checked-border: #A5D6A7;
+  --clinical-checked: #0f766e;
+  --clinical-checked-bg: #f0fdfa;
+  --clinical-checked-border: #99f6e4;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', Helvetica, Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--bg-canvas);
   color: var(--text-primary);
   line-height: 1.55;
@@ -74,7 +80,7 @@ code, pre, .font-mono {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-/* Clinical Whisper Sage Scrollbar */
+/* Polished Clinical Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -90,43 +96,42 @@ code, pre, .font-mono {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: var(--primary);
 }
 
 /* Clinical Status Badges & Pills */
 .badge-block {
-  background-color: #FFF1F2;
-  border: 1px solid #FECDD3;
-  color: #E11D48;
+  background-color: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #e11d48;
 }
 
 .badge-high {
-  background-color: #FFF7ED;
-  border: 1px solid #FED7AA;
-  color: #EA580C;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #ea580c;
 }
 
 .badge-moderate {
-  background-color: #FFFBEB;
-  border: 1px solid #FDE68A;
-  color: #D97706;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #d97706;
 }
 
 .badge-info {
-  background-color: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  color: #1D4ED8;
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0284c7;
 }
 
 .badge-unverified {
-  background-color: #FAF5FF;
-  border: 1px solid #DDD6FE;
-  color: #7C3AED;
+  background-color: #faf5ff;
+  border: 1px solid #ddd6fe;
+  color: #7c3aed;
 }
 
 .badge-checked {
-  background-color: #E8F5E9;
-  border: 1px solid #A5D6A7;
-  color: #2E7D32;
+  background-color: #f0fdfa;
+  border: 1px solid #99f6e4;
+  color: #0f766e;
 }
-

@@ -1,4 +1,4 @@
-// Tri-state measured input component
+// Tri-state measured input component with polished clinical aesthetic
 
 export type MeasurementStatus = 'measured' | 'estimated' | 'unknown'
 
@@ -35,18 +35,20 @@ export function MeasuredInput<T extends string | number>({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold text-[#1A2421]">
-          {label} {unit && <span className="text-[#5C6B64] font-mono">({unit})</span>}
+        <label className="text-xs font-semibold text-slate-800">
+          {label} {unit && <span className="text-teal-700 font-mono text-[11px]">({unit})</span>}
         </label>
+
         {/* Tri-state selector: Measured / Estimated / Unknown */}
-        <div className="flex rounded-md bg-[#F4F6F4] p-0.5 border border-[#E1E7E1] text-[10px] font-mono">
+        <div className="flex rounded-lg bg-slate-100 p-0.5 border border-slate-200 text-[10px] font-mono">
           <button
             type="button"
             onClick={() => onStatusChange('measured')}
-            className={`px-1.5 py-0.5 rounded transition-colors ${
+            title="Objectively measured clinical value"
+            className={`px-2 py-0.5 rounded-md transition-all ${
               status === 'measured'
-                ? 'bg-white text-[#2D6A4F] font-bold shadow-xs border border-[#C4CEBD]'
-                : 'text-[#5C6B64] hover:text-[#1A2421]'
+                ? 'bg-white text-teal-800 font-bold shadow-soft-sm border border-teal-200'
+                : 'text-slate-500 hover:text-slate-900'
             }`}
           >
             Meas
@@ -54,10 +56,11 @@ export function MeasuredInput<T extends string | number>({
           <button
             type="button"
             onClick={() => onStatusChange('estimated')}
-            className={`px-1.5 py-0.5 rounded transition-colors ${
+            title="Clinically estimated value"
+            className={`px-2 py-0.5 rounded-md transition-all ${
               status === 'estimated'
-                ? 'bg-amber-100 text-amber-900 font-bold shadow-xs border border-amber-300'
-                : 'text-[#5C6B64] hover:text-[#1A2421]'
+                ? 'bg-amber-100 text-amber-900 font-bold shadow-soft-sm border border-amber-300'
+                : 'text-slate-500 hover:text-slate-900'
             }`}
           >
             Est
@@ -68,10 +71,11 @@ export function MeasuredInput<T extends string | number>({
               onStatusChange('unknown')
               onValueChange(null)
             }}
-            className={`px-1.5 py-0.5 rounded transition-colors ${
+            title="Unknown or unobtainable value (fails closed)"
+            className={`px-2 py-0.5 rounded-md transition-all ${
               status === 'unknown'
-                ? 'bg-purple-100 text-purple-900 font-bold shadow-xs border border-purple-300'
-                : 'text-[#5C6B64] hover:text-[#1A2421]'
+                ? 'bg-violet-100 text-violet-900 font-bold shadow-soft-sm border border-violet-300'
+                : 'text-slate-500 hover:text-slate-900'
             }`}
           >
             Unk
@@ -80,7 +84,7 @@ export function MeasuredInput<T extends string | number>({
       </div>
 
       {status === 'unknown' ? (
-        <div className="flex h-9 items-center rounded-lg border border-purple-200 bg-purple-50/70 px-3 text-xs italic text-purple-900 font-mono">
+        <div className="flex h-10 items-center rounded-xl border border-violet-200 bg-violet-50/70 px-3 text-xs italic text-violet-900 font-mono">
           Unknown / Unmeasured (Fail Closed)
         </div>
       ) : (
@@ -101,22 +105,23 @@ export function MeasuredInput<T extends string | number>({
               }
             }}
             placeholder={placeholder}
-            className={`h-9 w-full rounded-lg border bg-white px-3 text-xs text-[#1A2421] placeholder-[#8A9991] focus:outline-none focus:ring-2 ${
+            className={`h-10 w-full rounded-xl border px-3 text-xs font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 ${
               status === 'estimated'
-                ? 'border-amber-300 focus:border-amber-500 focus:ring-amber-500/20'
-                : 'border-[#E1E7E1] focus:border-[#2D6A4F] focus:ring-[#2D6A4F]/20'
+                ? 'border-amber-300 bg-amber-50/40 text-amber-950'
+                : 'border-[#d9e8e6] bg-white'
             }`}
           />
           {unit && (
-            <span className="pointer-events-none absolute right-3 text-xs text-[#5C6B64] font-mono">
+            <span className="pointer-events-none absolute right-3 text-[11px] font-mono font-medium text-slate-400">
               {unit}
             </span>
           )}
         </div>
       )}
 
-      {helperText && <span className="text-[10px] text-[#5C6B64]">{helperText}</span>}
+      {helperText && <span className="text-[10px] text-slate-400 leading-tight">{helperText}</span>}
     </div>
   )
 }
 
+export default MeasuredInput

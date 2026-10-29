@@ -1,5 +1,14 @@
 import React, { useState } from 'react'
-import { CheckCircle2, AlertOctagon, AlertTriangle, HelpCircle, FileCheck, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  CheckCircle2,
+  AlertOctagon,
+  AlertTriangle,
+  HelpCircle,
+  FileCheck,
+  ChevronDown,
+  ChevronUp,
+  Quote,
+} from 'lucide-react'
 import type { VerifiedStep } from '@/lib/api'
 
 interface VerifiedPlanViewProps {
@@ -11,7 +20,7 @@ export const VerifiedPlanView: React.FC<VerifiedPlanViewProps> = ({ steps }) => 
 
   if (!steps || steps.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-xs text-slate-400">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 text-xs text-slate-500 shadow-soft">
         No machine-verified plan steps generated.
       </div>
     )
@@ -25,60 +34,62 @@ export const VerifiedPlanView: React.FC<VerifiedPlanViewProps> = ({ steps }) => 
     switch (status) {
       case 'APPROVED':
         return (
-          <span className="flex items-center gap-1 rounded-full bg-[#E8F5E9] border border-[#A5D6A7] px-2.5 py-0.5 text-[11px] font-mono font-bold text-[#2E7D32]">
-            <CheckCircle2 className="h-3 w-3" /> APPROVED
+          <span className="flex items-center gap-1 rounded-full bg-teal-100 border border-teal-300 px-3 py-0.5 text-[11px] font-mono font-bold text-teal-900 shadow-soft-sm">
+            <CheckCircle2 className="h-3 w-3 text-teal-700" /> APPROVED
           </span>
         )
       case 'BLOCKED_STRUCK_THROUGH':
         return (
-          <span className="flex items-center gap-1 rounded-full bg-red-100 border border-red-300 px-2.5 py-0.5 text-[11px] font-mono font-bold text-red-800">
-            <AlertOctagon className="h-3 w-3" /> BLOCKED (STRUCK THROUGH)
+          <span className="flex items-center gap-1 rounded-full bg-rose-100 border border-rose-300 px-3 py-0.5 text-[11px] font-mono font-bold text-rose-900 shadow-soft-sm">
+            <AlertOctagon className="h-3 w-3 text-rose-700" /> BLOCKED (STRUCK THROUGH)
           </span>
         )
       case 'FLAGGED_HIGH':
         return (
-          <span className="flex items-center gap-1 rounded-full bg-orange-100 border border-orange-300 px-2.5 py-0.5 text-[11px] font-mono font-bold text-orange-900">
-            <AlertTriangle className="h-3 w-3" /> FLAGGED HIGH
+          <span className="flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-3 py-0.5 text-[11px] font-mono font-bold text-amber-950 shadow-soft-sm">
+            <AlertTriangle className="h-3 w-3 text-amber-700" /> FLAGGED HIGH
           </span>
         )
       case 'FLAGGED_MODERATE':
         return (
-          <span className="flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-[11px] font-mono font-bold text-amber-900">
-            <AlertTriangle className="h-3 w-3" /> FLAGGED MODERATE
+          <span className="flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-3 py-0.5 text-[11px] font-mono font-bold text-amber-900">
+            <AlertTriangle className="h-3 w-3 text-amber-600" /> FLAGGED MODERATE
           </span>
         )
       case 'REQUIRES_CLINICIAN_CONFIRMATION':
         return (
-          <span className="flex items-center gap-1 rounded-full bg-amber-100 border border-amber-400 px-2.5 py-0.5 text-[11px] font-mono font-bold text-amber-950">
-            <AlertTriangle className="h-3 w-3" /> REQUIRES CLINICIAN CONFIRMATION
+          <span className="flex items-center gap-1 rounded-full bg-amber-100 border border-amber-400 px-3 py-0.5 text-[11px] font-mono font-bold text-amber-950">
+            <AlertTriangle className="h-3 w-3" /> REQUIRES CONFIRMATION
           </span>
         )
       case 'CITATION_UNVERIFIED':
         return (
-          <span className="flex items-center gap-1 rounded-full bg-purple-100 border border-purple-300 px-2.5 py-0.5 text-[11px] font-mono font-bold text-purple-900">
-            <HelpCircle className="h-3 w-3" /> CITATION UNVERIFIED
+          <span className="flex items-center gap-1 rounded-full bg-violet-100 border border-violet-300 px-3 py-0.5 text-[11px] font-mono font-bold text-violet-900">
+            <HelpCircle className="h-3 w-3 text-violet-700" /> CITATION UNVERIFIED
           </span>
         )
       case 'UNVERIFIED_MISSING_DATA':
       default:
         return (
-          <span className="flex items-center gap-1 rounded-full bg-purple-100 border border-purple-300 px-2.5 py-0.5 text-[11px] font-mono font-bold text-purple-900">
-            <HelpCircle className="h-3 w-3" /> UNVERIFIED
+          <span className="flex items-center gap-1 rounded-full bg-violet-100 border border-violet-300 px-3 py-0.5 text-[11px] font-mono font-bold text-violet-900">
+            <HelpCircle className="h-3 w-3 text-violet-700" /> UNVERIFIED
           </span>
         )
     }
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between border-b border-[#E1E7E1] pb-2">
+    <div className="flex flex-col gap-3.5">
+      <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
         <div className="flex items-center gap-2">
-          <FileCheck className="h-4 w-4 text-[#2D6A4F]" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#1A2421]">
-            Machine-Verified Protocol Plan ({steps.length} Steps)
+          <FileCheck className="h-4 w-4 text-teal-700" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+            Machine-Verified Protocol Orders ({steps.length} Steps)
           </h3>
         </div>
-        <span className="text-[10px] font-mono text-[#5C6B64]">Deterministic Verifier Verified</span>
+        <span className="text-[11px] font-mono text-teal-800 font-semibold bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+          Pass 2 Machine Gate Verified
+        </span>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -92,29 +103,29 @@ export const VerifiedPlanView: React.FC<VerifiedPlanViewProps> = ({ steps }) => 
           return (
             <div
               key={`${draft.step_number}-${idx}`}
-              className={`rounded-2xl border p-4 transition-colors shadow-xs ${
+              className={`rounded-2xl border p-4 sm:p-5 transition-all shadow-soft ${
                 isBlocked
-                  ? 'border-red-300 bg-red-50/50'
+                  ? 'border-rose-300/80 bg-rose-50/40'
                   : isApproved
-                  ? 'border-[#E1E7E1] bg-white'
-                  : 'border-amber-300 bg-amber-50/50'
+                  ? 'border-[#d9e8e6] bg-white'
+                  : 'border-amber-300/80 bg-amber-50/40'
               }`}
             >
               {/* Header: step number, action type, status */}
-              <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap mb-2.5">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#EEF3EE] text-[11px] font-mono font-bold text-[#1A2421]">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-xl bg-teal-50 text-[11px] font-mono font-bold text-teal-800 border border-teal-200">
                     {draft.step_number}
                   </span>
-                  <span className="font-mono text-xs uppercase px-2 py-0.5 rounded-md bg-[#F4F6F4] text-[#5C6B64] border border-[#E1E7E1]">
+                  <span className="font-mono text-xs uppercase px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 font-semibold">
                     {draft.action_type}
                   </span>
                   {draft.drug_id && (
                     <span
-                      className={`font-mono text-xs font-bold px-2 py-0.5 rounded-md ${
+                      className={`font-mono text-xs font-bold px-2.5 py-0.5 rounded-lg ${
                         isBlocked
-                          ? 'line-through text-red-800 bg-red-100 border border-red-300'
-                          : 'text-[#2D6A4F] bg-[#E8F5E9] border border-[#A5D6A7]'
+                          ? 'line-through text-rose-900 bg-rose-100 border border-rose-300'
+                          : 'text-teal-900 bg-teal-100 border border-teal-300'
                       }`}
                     >
                       {draft.drug_id}
@@ -126,8 +137,8 @@ export const VerifiedPlanView: React.FC<VerifiedPlanViewProps> = ({ steps }) => 
 
               {/* Narrative Instruction */}
               <div
-                className={`text-xs leading-relaxed my-2 ${
-                  isBlocked ? 'line-through text-[#8A9991] font-medium' : 'text-[#1A2421] font-normal'
+                className={`text-xs sm:text-sm leading-relaxed my-2 ${
+                  isBlocked ? 'line-through text-slate-400 font-medium' : 'text-slate-800 font-normal'
                 }`}
               >
                 {draft.narrative_instruction}
@@ -135,37 +146,38 @@ export const VerifiedPlanView: React.FC<VerifiedPlanViewProps> = ({ steps }) => 
 
               {/* Rejection reasons if blocked or flagged */}
               {step.rejection_reasons && step.rejection_reasons.length > 0 && (
-                <div className="mt-2 rounded-xl bg-red-100 border border-red-200 p-2.5 text-xs text-red-900">
-                  <strong className="text-red-950 font-bold">Rejection Reason: </strong>
+                <div className="mt-2.5 rounded-xl bg-rose-100 border border-rose-200 p-3 text-xs text-rose-950 font-medium leading-relaxed">
+                  <strong className="text-rose-900 font-bold">Rejection Reason: </strong>
                   {step.rejection_reasons.join('; ')}
                 </div>
               )}
 
               {/* Citations Toggle & Drawer */}
               {hasCitations && (
-                <div className="mt-3 border-t border-[#E1E7E1] pt-2">
+                <div className="mt-3 border-t border-slate-100 pt-2.5">
                   <button
                     type="button"
                     onClick={() => toggleCitation(idx)}
-                    className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-[#2D6A4F] hover:text-[#1B4D39] transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-mono font-bold text-teal-700 hover:text-teal-900 transition-colors"
                   >
+                    <Quote className="h-3.5 w-3.5 text-teal-600" />
                     <span>
-                      Verbatim Citations ({draft.citations.length} chunk{draft.citations.length > 1 ? 's' : ''})
+                      Verbatim Protocol Citations ({draft.citations.length} chunk{draft.citations.length > 1 ? 's' : ''})
                     </span>
-                    {isCitationOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                    {isCitationOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                   </button>
 
                   {isCitationOpen && (
-                    <div className="mt-2 flex flex-col gap-2 rounded-xl border border-[#E1E7E1] bg-[#F4F6F4] p-3 text-xs">
+                    <div className="mt-2.5 flex flex-col gap-2.5 rounded-xl border border-teal-200 bg-teal-50/40 p-3.5 text-xs">
                       {draft.citations.map((c, cIdx) => (
-                        <div key={cIdx} className="flex flex-col gap-1 border-b border-[#E1E7E1] pb-2 last:border-0 last:pb-0">
-                          <div className="flex items-center justify-between text-[10px] font-mono text-[#5C6B64]">
+                        <div key={cIdx} className="flex flex-col gap-1 border-b border-teal-100 pb-2.5 last:border-0 last:pb-0">
+                          <div className="flex items-center justify-between text-[11px] font-mono text-slate-600">
                             <span>
-                              Doc: <strong className="text-[#2D6A4F]">{c.doc_id}</strong> &bull; Chunk: {c.chunk_id}
+                              Guideline: <strong className="text-teal-900">{c.doc_id}</strong> &bull; Chunk: {c.chunk_id}
                             </span>
-                            <span>Section: {c.section}</span>
+                            <span className="text-slate-400">Section: {c.section}</span>
                           </div>
-                          <blockquote className="rounded-lg border-l-2 border-[#2D6A4F] bg-white p-2.5 italic text-[#1A2421] text-[11px] shadow-xs">
+                          <blockquote className="rounded-xl border-l-4 border-teal-600 bg-white p-3 italic text-slate-800 text-xs shadow-soft-sm leading-relaxed">
                             &ldquo;{c.quoted_span}&rdquo;
                           </blockquote>
                         </div>
@@ -182,3 +194,4 @@ export const VerifiedPlanView: React.FC<VerifiedPlanViewProps> = ({ steps }) => 
   )
 }
 
+export default VerifiedPlanView
