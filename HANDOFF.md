@@ -4,9 +4,9 @@
 
 ## Current State
 
-- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`), and Part D Fix Gates `fg-0` (Re-baseline), `fg-1` (Grounding Soundness), `fg-2` (Clinical Inputs Fail Closed), `fg-3` (Abstention Logic & Context Hygiene), `fg-4` (Evaluation That Can Fail), and `fg-5` (Retrieval Honesty & Hardening: FG-08, FG-13, FG-14, FG-17, FG-19, HD-5) **COMPLETE**. Next gate: `fg-6` (Reporting Integrity & Ops: FG-09–12, FG-18, FG-20).
+- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`), and Part D Fix Gates `fg-0` through `fg-6` (Re-baseline, Grounding Soundness, Clinical Inputs Fail Closed, Abstention & Context Hygiene, Evaluation That Can Fail, Retrieval Honesty & Hardening, and Reporting Integrity & Ops) **COMPLETE**. All 20 audit flags (FG-01..20) and 16 original findings (RAG-01..16) closed with failing-first tests and zero regressions.
 - **Verification:** All gates green:
-  - 182/182 Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, FG-1 grounding, FG-2 clinical inputs, FG-3 abstention/context, FG-4 eval/calibration, and FG-5 retrieval hardening).
+  - 187/187 Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, FG-1..FG-5 test suites, and report integrity suite).
   - 8/8 Vitest frontend unit & component tests green.
   - 51/51 mutants killed (100% kill score: 12 rule mutants + 39 code mutants, including M34–M39).
   - 65/65 Golden cases green (100%).
@@ -17,6 +17,7 @@
   - Permutation sanity check collapses Recall@1 to 0.0000 (< 0.05).
   - 10,000-chunk Synthetic Scale Benchmark green (`p95 < 50.0 ms`).
   - 4-Arm Retrieval Ablation Suite on held-out test split with bootstrap CIs and codified deterministic `decide_backend()` rule selecting `bm25`.
+  - Deterministic report generator `tools/gate_report.py` emits `Postmortem-Response.MD` with zero phantom tests and zero discrepancy from committed artefacts.
   - 0 lint / format errors (Python ruff & TypeScript eslint).
   - 0 type errors (Python mypy strict & TypeScript tsc).
   - 0 import isolation contract violations (import-linter).

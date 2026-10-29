@@ -38,8 +38,20 @@ The deterministic ruleset intentionally covers only specific explicit rules. The
 
 Whenever an entity, history, or threshold is unmapped or missing, the system adheres to **Rule R2: Fail Closed**, emitting `SkippedCheck` and setting the verdict to `UNVERIFIED`.
 
-## 7. Retrieval & Grounding Scope Limitations (ADR 0006)
+## 7. Retrieval & Grounding Scope Limitations (ADR 0006, ADR 0007, ADR 0008, ADR 0009)
 
-- **Controlled Syndrome Vocabulary:** Protocol retrieval requires a recognized `suspected_syndrome` in `data/retrieval/vitals_flags.yaml` matching the patient's chronological `AgeGroup` population partition. Unmapped syndromes (e.g., `"kidney_stone"`) deterministically abstain (`AbstainCode.UNKNOWN_SYNDROME`) and trigger extractive/safety-only fallback (`llm_fallback_mode=True`).
-- **Paediatric/Infant/Neonate Query Vitals Flags:** Where age-stratified vital-sign query flag thresholds are unverified (`status: NEEDS_SOURCE` in `data/retrieval/vitals_flags.yaml`), the query builder omits those vital flag tokens and records them in `skipped_flags` rather than inventing cutoffs (Rule R3).
-- **Deterministic Support Heuristic vs. Full NLI:** `verify_step_support()` enforces verbatim substring matching, lexical overlap ($\ge 0.08$), child-node specificity, drug/alias mention, and action-cue polarity (`administer` vs. `withhold`), which catches citation laundering and polarity inversions deterministically offline but is not a substitute for human clinical guideline review.
+- **Controlled Syndrome Vocabulary:** Protocol retrieval requires a recognized `suspected_syndrome` in `data/corpus/manifest.yaml` matching the patient's chronological `AgeGroup` population partition. Unmapped syndromes (e.g., `"kidney_stone"`) deterministically abstain (`AbstainCode.UNKNOWN_SYNDROME`) and trigger extractive/safety-only fallback (`llm_fallback_mode=True`).
+- **Paediatric/Infant/Neonate Query Vitals Flags (HD-1):** All 50 vital-sign query flag thresholds in `data/retrieval/vitals_flags.yaml` are set to `status: NEEDS_SOURCE, threshold: null`. Retrieval without an explicit clinician `suspected_syndrome` fails closed to `UNVERIFIED` (`AbstainCode.NO_POPULATION_COVERAGE`). Zero thresholds are invented (Rule R3).
+- **Inferred Syndrome Plan Safety (HD-4):** When a syndrome is inferred from vitals alone, any protocol steps generated cannot reach `APPROVED`; they carry `StepStatus.REQUIRES_CLINICIAN_CONFIRMATION` and display a prominent warning banner.
+- **Offline Stand-In Components (HD-5):** What was previously described as "Dense Retriever" is implemented offline as an L2-normalized token + character trigram TF-IDF cosine retriever (`CharNgramRetriever`), and the reranker is a token overlap ratio estimator (`LexicalOverlapReranker`). Neither utilizes a deep neural cross-encoder or transformer model in offline baseline mode.
+- **ECE Research Diagnostic (HD-3):** Expected Calibration Error (observed test ECE = 0.1453) is reported as an observational research diagnostic under ADR 0008, not a clinical device calibration guarantee.
+
+## 8. Open Human Decisions (HD-1 through HD-5)
+
+The following architectural and clinical policy decisions require human clinical and product leadership sign-off and cannot be resolved by code alone (tracked in `BACKLOG.md`):
+1. **HD-1:** Clinician-validated vital sign threshold values for age-stratified syndrome flags.
+2. **HD-2:** Physiological discretization boundaries for paediatric age brackets (currently partitioned into neonate 0–28d, infant 29–365d, young child 1–5y, adolescent 6–17y).
+3. **HD-3:** Acceptable ECE threshold and abstention-recall targets for clinical deployment.
+4. **HD-4:** Policy for LLM protocol drafting under ambiguous or weakly-inferred syndromes.
+5. **HD-5:** Decision criteria for bundling neural embedding models (license and latency trade-offs).
+

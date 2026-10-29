@@ -101,6 +101,10 @@ def run_scale_benchmark(
         ("paediatric_sepsis fever tachycardia", "paediatric", "paediatric_sepsis"),
     ]
 
+    # Warmup
+    for q_text, pop, syn in queries[:2]:
+        index.search(query=q_text, population=pop, top_k=5, syndrome=syn)
+
     latencies_ms: list[float] = []
     for i in range(num_queries):
         q_text, pop, syn = queries[i % len(queries)]

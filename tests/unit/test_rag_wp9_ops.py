@@ -70,10 +70,18 @@ def test_10k_chunk_scale_latency_benchmark() -> None:
 
 
 def test_ops_container_and_ui_inspector_artifacts_exist() -> None:
-    """WP9: Dockerfile, docker-compose.yml, devcontainer.json, and RetrievalView inspector exist."""
+    """WP9 & FG-18: Dockerfile, docker-compose.yml, devcontainer.json, and RetrievalView exist."""
     repo_root = get_repo_root()
-    assert (repo_root / "Dockerfile").exists()
-    assert (repo_root / "docker-compose.yml").exists()
+    dockerfile_text = (repo_root / "Dockerfile").read_text(encoding="utf-8")
+    assert "USER appuser" in dockerfile_text
+    assert "HEALTHCHECK" in dockerfile_text
+
+    assert (repo_root / "Dockerfile.web").exists()
+
+    compose_text = (repo_root / "docker-compose.yml").read_text(encoding="utf-8")
+    assert "triagerag-api:" in compose_text
+    assert "triagerag-web:" in compose_text
+
     assert (repo_root / ".devcontainer" / "devcontainer.json").exists()
 
     rv_text = (repo_root / "web" / "src" / "features" / "results" / "RetrievalView.tsx").read_text(

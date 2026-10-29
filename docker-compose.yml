@@ -11,4 +11,20 @@ services:
     volumes:
       - ./var:/app/var
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
+  triagerag-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "3000:80"
+    depends_on:
+      triagerag-api:
+        condition: service_healthy
+    restart: unless-stopped

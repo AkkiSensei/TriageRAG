@@ -395,10 +395,35 @@
   5. Updated `eval/run_retrieval_ablation.py` to evaluate the 88 held-out test split cases with 95% bootstrap confidence intervals for Recall@5 and MRR, and codified the deterministic decision rule `decide_backend()` selecting `bm25`.
 - **Tests (`tests/unit/test_fg5_retrieval_hardening.py`):**
   - `test_tokenizer_two_char_case_sensitivity`
-  - `test_bm25_global_corpus_stats_and_cross_population_stability`
+  - `test_bm25_global_idf_statistics`
   - `test_sanitizer_unicode_nfkc_and_adversarial_corpus`
   - `test_char_ngram_and_lexical_reranker_naming`
-  - `test_ablation_held_out_split_with_bootstrap_cis`
+  - `test_ablation_reports_held_out_test_split_with_cis_and_decide_backend`
+
+
+### Fix Gate G6 — Reporting Integrity & Ops (`fg-6`)
+- **Flags Addressed:**
+  - **FG-09 (P1):** Report numbers != artefacts (eliminated discrepancies between JSON reports and Markdown text).
+  - **FG-10 (P1):** Cited tests that do not exist (eliminated all phantom test names, resolved dynamically against `pytest --collect-only`).
+  - **FG-11 (P1):** Findings renumbered / invented (restored strict 1:1 trace to POSTMORTEM.md RAG-01..16 and audit flags FG-01..20).
+  - **FG-12 (P1):** Phantom claims (removed references to 'infant' partition, phantom AbstainCodes, or fake guarantees).
+  - **FG-18 (P2):** Ops (multi-stage non-root Dockerfile, docker-compose with web and api services, healthchecks, dropped dead `rank_bm25` dependency).
+  - **FG-20 (P2):** Drift & small gaps (verified dataset case counts 136 dev / 88 test; enforced manifest `content_hash` check during protocol ingestion).
+- **Remediation:**
+  1. Updated `src/triagerag/rag/ingest.py` to verify `parent.content_hash == entry.content_hash` when manifest is present, quarantining documents with hash mismatch. Added `test_ingest_rejects_hash_mismatch` in `tests/unit/test_rag_wp1_ingestion.py`.
+  2. Dropped dead dependency `rank-bm25` from `pyproject.toml` dependencies and mypy overrides.
+  3. Hardened Dockerfile: multi-stage build, unprivileged non-root user `appuser` (UID 10001), runtime-only dependencies (no dev, no tests copied to runtime), and built-in Python urllib healthcheck. Authored `Dockerfile.web` and updated `docker-compose.yml` to include both `triagerag-api` and `triagerag-web`.
+  4. Updated `.github/workflows/ci.yml` with `container-smoke` and `quickstart-smoke` CI jobs.
+  5. Implemented `tools/gate_report.py` generating `Postmortem-Response.MD` deterministically from committed artefacts (`eval/reports/*.json`, git tags, `pytest --collect-only`).
+  6. Implemented `tests/unit/test_report_integrity.py` asserting zero missing tests, zero number discrepancies, and complete finding closure.
+- **Tests (`tests/unit/test_report_integrity.py` & `tests/unit/test_rag_wp9_ops.py`):**
+  - `test_report_numbers_match_committed_artefacts`
+  - `test_all_cited_tests_exist_in_pytest_collection`
+  - `test_finding_ids_match_postmortem_and_fixgate_spec`
+  - `test_no_phantom_claims_in_report`
+  - `test_ops_container_and_ui_inspector_artifacts_exist`
+  - `test_ingest_rejects_hash_mismatch`
+
 
 
 

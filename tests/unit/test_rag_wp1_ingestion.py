@@ -123,3 +123,57 @@ def test_corpus_validate_cli_passes_on_bundled_and_fails_on_bad(tmp_path: Path) 
     res_bad = runner.invoke(app, ["corpus", "validate", "--data-dir", str(bad_dir)])
     assert res_bad.exit_code != 0
     assert "QUARANTINED" in res_bad.output.upper() or "FAILED" in res_bad.output.upper()
+
+
+def test_ingest_rejects_hash_mismatch(tmp_path: Path) -> None:
+    """FG-20: Ingestion itself must quarantine a document whose content hash != manifest."""
+    corpus_dir = tmp_path / "corpus"
+    corpus_dir.mkdir(parents=True)
+    synth_dir = tmp_path / "protocols_synthetic"
+    synth_dir.mkdir(parents=True)
+
+    manifest_yaml = """
+manifest_version: "1.0.0"
+controlled_syndromes: ["chest_pain"]
+syndrome_aliases: {}
+documents:
+  - doc_id: "EMERG_CHEST_PAIN"
+    path: "protocols_synthetic/chest_pain.md"
+    population: "adult"
+    syndrome: "chest_pain"
+    title: "Chest Pain Protocol"
+    synthetic: true
+    content_hash: "0000000000000000000000000000000000000000000000000000000000000000"
+    license: null
+    attribution: "TriageRAG Research Prototype"
+    source_url: null
+    version: "1.0.0"
+    retrieved_at: null
+    status: "PLACEHOLDER_UNRETRIEVED"
+"""
+    (corpus_dir / "manifest.yaml").write_text(manifest_yaml.strip(), encoding="utf-8")
+
+    doc_md = """---
+doc_id: "EMERG_CHEST_PAIN"
+title: "Chest Pain Protocol"
+section: "Initial Triage"
+population: "adult"
+syndrome: "chest_pain"
+chunk_id: "CHEST_PAIN_01"
+synthetic: true
+license: "Synthetic Research Corpus License v1.0"
+attribution: "TriageRAG Research Prototype"
+source_url: "https://triagerag.local/protocols/chest_pain"
+version: "1.0.0"
+retrieved_at: "2026-10-01"
+status: "PLACEHOLDER_UNRETRIEVED"
+---
+1. IF patient has chest pain:
+   THEN assess immediately.
+"""
+    (synth_dir / "chest_pain.md").write_text(doc_md.strip(), encoding="utf-8")
+
+    report = ingest_protocols_with_report(tmp_path)
+    assert "EMERG_CHEST_PAIN" not in report.loaded_docs
+    assert len(report.quarantined) == 1
+    assert "Content hash mismatch" in report.quarantined[0].reason

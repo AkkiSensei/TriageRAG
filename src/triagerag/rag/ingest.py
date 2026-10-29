@@ -194,8 +194,18 @@ def ingest_protocols_with_report(
                 chunk = chunk.model_copy(update={"suspicious_patterns": suspicious})
             checked_chunks.append(chunk)
 
-        # Block status REVIEWED if document has flagged prompt injection patterns (FG-17)
         entry = manifest_map.get(parent.doc_id)
+        # Refuse document if content hash does not match manifest entry (FG-20)
+        if entry is not None and entry.content_hash != parent.content_hash:
+            reason = (
+                f"Content hash mismatch for {parent.doc_id}: "
+                f"manifest={entry.content_hash} vs actual={parent.content_hash}"
+            )
+            logger.warning("Quarantining protocol %s: %s", md_file.name, reason)
+            quarantined.append(QuarantinedDocument(path=str(md_file), reason=reason))
+            continue
+
+        # Block status REVIEWED if document has flagged prompt injection patterns (FG-17)
         if entry is not None and entry.status == SourceStatus.REVIEWED and doc_has_flagged:
             reason = (
                 f"Document {parent.doc_id} contains flagged prompt-injection patterns "

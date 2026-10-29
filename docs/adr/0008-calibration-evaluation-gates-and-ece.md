@@ -39,3 +39,4 @@ Audit flags `FG-06` and `FG-07` identified two critical evaluation flaws:
 - Evaluation is falsifiable: changes that disrupt node ranking or protocol boundaries immediately fail CI.
 - Full provenance chain connects production config (`config.yaml`) to the dev sweep record (`calibration_run_CALIB_FG4_DEV_SWEEP_V1.json`).
 - Open clinical decisions (`HD-1`, `HD-3`) remain transparently recorded in `BACKLOG.md`.
+

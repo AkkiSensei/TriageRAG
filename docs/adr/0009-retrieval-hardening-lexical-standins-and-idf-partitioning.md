@@ -39,3 +39,4 @@ Audit flags identified five retrieval and lexical normalization discrepancies:
 - Cross-population isolation is strictly verified without metric drift.
 - Sanitization is centralized with Unicode robustness and review-blocking enforcement.
 - Ablation backend selection is deterministic and automated.
+

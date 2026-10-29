@@ -66,15 +66,22 @@ TriageRAG separates clinical decision authority from generative text generation:
 ## Retrieval & Grounding Architecture (`src/triagerag/rag/` & `src/triagerag/verify/`)
 
 1. **`@runtime_checkable class Retriever(Protocol)`:**
-   - Implemented by `BM25ClinicalIndex` (`bm25`, default), `DenseRetriever` (`dense`), and `HybridRRFRetriever` (`hybrid_rrf` and `hybrid_rrf_rerank`).
+   - Implemented by `BM25ClinicalIndex` (`bm25`, default), `CharNgramRetriever` (`char_ngram` / `dense`), and `HybridRRFRetriever` (`hybrid_rrf` and `hybrid_rrf_rerank` with `LexicalOverlapReranker`).
    - Managed through a single thread-safe factory `RetrievalService.create_default(data_dir, backend=...)` shared across FastAPI, CLI, Streamlit, Orchestrator, and Evaluation suites.
 2. **Query-Time Hard Safety Gates:**
    - **Hard Population Filter:** `adult`, `paediatric`, and `neonate` slices are strictly isolated; `neonate` abstains (`NO_POPULATION_COVERAGE`) when no neonate protocol exists.
    - **Hard Syndrome Filter:** `suspected_syndrome` is normalized against the controlled vocabulary in `data/corpus/manifest.yaml` and `data/retrieval/synonyms.yaml`. Unknown syndromes abstain immediately (`UNKNOWN_SYNDROME`) regardless of abnormal vitals flags.
+   - **Vitals-Only Fail-Closed Gate (HD-1):** In the absence of an explicit syndrome, unverified vital flags (`status: NEEDS_SOURCE`) omit tokens, failing closed to `UNVERIFIED` abstention.
 3. **4-Arm Retrieval Ablation (`eval/run_retrieval_ablation.py`):**
-   - Evaluates `bm25`, `dense`, `hybrid_rrf`, and `hybrid_rrf_rerank` across 160 node-level graded cases (`eval/reports/retrieval_ablation.md`). Because queries are synthesized deterministically from canonical syndrome tokens and YAML-driven physiological flags (`data/retrieval/vitals_flags.yaml`), `BM25ClinicalIndex` achieves 100% Recall@5 and 0.00% Wrong-Protocol Rate with minimal latency, and is retained as the default offline backend.
+   - Evaluates `bm25`, `char_ngram`, `hybrid_rrf`, and `hybrid_rrf_rerank` on the held-out test split (88 cases) with 95% bootstrap confidence intervals for Recall@5 and MRR (`eval/reports/retrieval_ablation.md`).
+   - A codified deterministic rule `decide_backend()` selects `bm25` as the default production backend because alternative arms do not meet the mandatory `+0.05` MRR improvement threshold over pure lexical BM25 with global corpus statistics.
 4. **Deterministic Citation Support Verification (`verify_step_support`):**
-   - Every `administer` or `withhold` step must cite a child decision node (`_NODE_`) whose text contains both (a) the step's `drug_id` (or a verified alias) and (b) a matching action cue (`administer_cues` vs `withhold_cues` from `data/retrieval/action_cues.yaml`), with lexical overlap `>= 0.08`.
+   - Structural clause parsing extracts `(action, drug_id)` pairs at chunking time.
+   - Negation detection (`do not give`, `never administer`) flips polarity to `withhold`.
+   - Administer steps citing a withheld drug in mixed-polarity nodes are strictly rejected.
+   - Non-drug steps (`monitor`, `diagnostic`, `maneuver`) require action-verb binding and THEN-clause coverage.
+5. **Corpus & Prompt Sanitization (`src/triagerag/normalize/sanitizer.py`):**
+   - Centralized sanitizer enforces Unicode NFKC normalization, zero-width stripping, and pattern detection against 18 injection categories across 32 adversarial test attacks. Documents with injection patterns are quarantined and cannot achieve `status: REVIEWED`.
 
 ## Layer Isolation
 
