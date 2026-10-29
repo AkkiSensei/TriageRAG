@@ -103,14 +103,105 @@ def _get_active_classes(patient: Patient, registry: ClinicalRegistry) -> set[str
     return classes
 
 
+def _is_rule_relevant(
+    rule: ClinicalRule,
+    active_drugs: set[str],
+    active_classes: set[str],
+    patient: Patient,
+    registry: ClinicalRegistry,
+    proposed_drugs: set[str] | None = None,
+) -> bool:
+    """Relevance gate: returns True only if the rule could potentially apply.
+
+    Prevents emitting rule-specific SkippedCheck noise for completely un-involved rules (ENG-07).
+    """
+    if proposed_drugs is not None:
+        # In Plan Evaluation (Pass 2): rule is relevant only if at least one proposed drug
+        # is involved in the rule's target drugs or classes.
+        def _drug_has_class(drug_id: str, target_class: str) -> bool:
+            cand_drug = registry.get_drug(drug_id)
+            if cand_drug and target_class in cand_drug.classes:
+                return True
+            return target_class in registry.get_classes_for_ingredient(drug_id)
+
+        if isinstance(rule, VitalsInterlockRule):
+            return rule.drug_id in proposed_drugs
+        if isinstance(rule, PopulationRule):
+            return rule.drug_id in proposed_drugs
+        if isinstance(rule, PairRule):
+            return rule.drug_a in proposed_drugs or rule.drug_b in proposed_drugs
+        if isinstance(rule, ClassInteractionRule):
+            return any(
+                _drug_has_class(d, rule.class_a) or _drug_has_class(d, rule.class_b)
+                for d in proposed_drugs
+            )
+        if isinstance(rule, DuplicationRule):
+            return any(_drug_has_class(d, rule.class_name) for d in proposed_drugs)
+        if isinstance(rule, AllergyCrossReactivityRule):
+            return any(_drug_has_class(d, rule.target_class) for d in proposed_drugs)
+        return True
+
+    # In Baseline Evaluation (Pass 1):
+    med_history_unresolved = patient.medication_history_status in (
+        "incomplete",
+        "unknown_unobtainable",
+    ) or any(not m.resolved for m in patient.medications)
+    allergy_history_unresolved = patient.allergy_history_status in (
+        "incomplete",
+        "unknown_unobtainable",
+    ) or any(not a.resolved for a in patient.allergies)
+
+    if isinstance(rule, VitalsInterlockRule):
+        return rule.drug_id in active_drugs or (
+            med_history_unresolved and "medications" in (rule.requires_fields or [])
+        )
+    if isinstance(rule, PopulationRule):
+        return rule.drug_id in active_drugs or (
+            med_history_unresolved and "medications" in (rule.requires_fields or [])
+        )
+    if isinstance(rule, PairRule):
+        return (
+            rule.drug_a in active_drugs
+            or rule.drug_b in active_drugs
+            or (med_history_unresolved and "medications" in (rule.requires_fields or []))
+        )
+    if isinstance(rule, ClassInteractionRule):
+        return (
+            rule.class_a in active_classes
+            or rule.class_b in active_classes
+            or (med_history_unresolved and "medications" in (rule.requires_fields or []))
+        )
+    if isinstance(rule, DuplicationRule):
+        return rule.class_name in active_classes or (
+            med_history_unresolved and "medications" in (rule.requires_fields or [])
+        )
+    if isinstance(rule, AllergyCrossReactivityRule):
+        return rule.target_class in active_classes or (
+            allergy_history_unresolved and "allergies" in (rule.requires_fields or [])
+        )
+    return True
+
+
 def _evaluate_single_rule(
     rule: ClinicalRule,
     patient: Patient,
     active_drugs: set[str],
     active_classes: set[str],
     registry: ClinicalRegistry,
+    proposed_drugs: set[str] | None = None,
 ) -> tuple[Alert | None, SkippedCheck | None]:
     """Evaluate a single clinical rule against patient and active medication state."""
+    # 0. Relevance gate first: rule only evaluated if target drugs/classes could apply (ENG-07)
+    if not _is_rule_relevant(
+        rule=rule,
+        active_drugs=active_drugs,
+        active_classes=active_classes,
+        patient=patient,
+        registry=registry,
+        proposed_drugs=proposed_drugs,
+    ):
+        return None, None
+
     # 1. Check requires_fields first
     if rule.requires_fields:
         if "medications" in rule.requires_fields:
@@ -246,33 +337,33 @@ def _evaluate_single_rule(
             if rule.lookback_hours_by_ingredient:
                 lookback_triggered = False
                 lookback_missing_timestamp = False
+                missing_lookback_entry = False
+                unconfigured_ing = ""
                 matched_ing = ""
 
+                # Evaluate all medications for confirmed in-window triggers (ENG-01)
                 for med in patient.medications:
                     for ing in med.ingredients:
                         ing_id = ing.ingredient_id
-                        if ing_id in rule.lookback_hours_by_ingredient:
-                            lookback_limit = rule.lookback_hours_by_ingredient[ing_id]
-                            if med.last_dose_time is None:
-                                lookback_missing_timestamp = True
-                                break
-                            elapsed_hours = (
-                                patient.assessed_at - med.last_dose_time
-                            ).total_seconds() / 3600.0
-                            if Decimal(str(elapsed_hours)) <= lookback_limit:
-                                lookback_triggered = True
-                                matched_ing = ing_id
-                                break
+                        classes = registry.get_classes_for_ingredient(ing_id)
+                        if rule.class_a in classes or rule.class_b in classes:
+                            if ing_id in rule.lookback_hours_by_ingredient:
+                                lookback_limit = rule.lookback_hours_by_ingredient[ing_id]
+                                if med.last_dose_time is None:
+                                    lookback_missing_timestamp = True
+                                else:
+                                    elapsed_hours = (
+                                        patient.assessed_at - med.last_dose_time
+                                    ).total_seconds() / 3600.0
+                                    if Decimal(str(elapsed_hours)) <= lookback_limit:
+                                        lookback_triggered = True
+                                        matched_ing = ing_id
+                            else:
+                                # Class member with no lookback entry in rule (ENG-08)
+                                missing_lookback_entry = True
+                                unconfigured_ing = ing_id
 
-                if lookback_missing_timestamp:
-                    return None, SkippedCheck(
-                        rule_id=rule.id,
-                        rule_type="class_interaction",
-                        reason="Medication last_dose_time is unknown for lookback check",
-                        missing_fields=["last_dose_time"],
-                        provenance=rule.provenance,
-                    )
-
+                # Confirmed in-window trigger ALWAYS wins over missing timestamp (ENG-01)
                 if lookback_triggered:
                     if matched_ing:
                         affected_class_drugs.add(matched_ing)
@@ -286,6 +377,29 @@ def _evaluate_single_rule(
                         provenance=rule.provenance,
                         unverified=not rule.provenance.verified,
                     ), None
+
+                # Only if no confirmed trigger, check for missing timestamp (conservative skip)
+                if lookback_missing_timestamp:
+                    return None, SkippedCheck(
+                        rule_id=rule.id,
+                        rule_type="class_interaction",
+                        reason="Medication last_dose_time is unknown for lookback check",
+                        missing_fields=["last_dose_time"],
+                        provenance=rule.provenance,
+                    )
+
+                # In-class drug with missing lookback entry must skip (ENG-08)
+                if missing_lookback_entry:
+                    return None, SkippedCheck(
+                        rule_id=rule.id,
+                        rule_type="class_interaction",
+                        reason=(
+                            f"In-class medication ingredient '{unconfigured_ing}' "
+                            f"has no configured lookback window in rule '{rule.id}'"
+                        ),
+                        missing_fields=[f"lookback_hours_by_ingredient.{unconfigured_ing}"],
+                        provenance=rule.provenance,
+                    )
             else:
                 return Alert(
                     rule_id=rule.id,
@@ -299,6 +413,9 @@ def _evaluate_single_rule(
                 ), None
 
     elif isinstance(rule, AllergyCrossReactivityRule):
+        matched_alert: Alert | None = None
+        matched_skip: SkippedCheck | None = None
+
         for allergy in patient.allergies:
             allergen_id = allergy.normalized_allergen_id or allergy.raw_substance.lower()
             allergen_classes = set(registry.get_classes_for_ingredient(allergen_id))
@@ -313,15 +430,6 @@ def _evaluate_single_rule(
                     allergen_classes.add(c)
 
             if rule.allergen_class in allergen_classes:
-                if allergy.reaction_type == "unknown" and "unknown" not in rule.reaction_types:
-                    return None, SkippedCheck(
-                        rule_id=rule.id,
-                        rule_type="allergy_crossreactivity",
-                        reason=f"Allergy reaction type for '{allergy.raw_substance}' is unknown",
-                        missing_fields=["reaction_type"],
-                        provenance=rule.provenance,
-                    )
-
                 reaction_match = (
                     allergy.reaction_type in rule.reaction_types or "unknown" in rule.reaction_types
                 )
@@ -336,7 +444,7 @@ def _evaluate_single_rule(
                         elif rule.target_class in registry.get_classes_for_ingredient(drug_cand):
                             affected_allergy_drugs.add(drug_cand)
 
-                    return Alert(
+                    matched_alert = Alert(
                         rule_id=rule.id,
                         severity=rule.severity,
                         rule_type="allergy_crossreactivity",
@@ -345,7 +453,24 @@ def _evaluate_single_rule(
                         action=rule.action,
                         provenance=rule.provenance,
                         unverified=not rule.provenance.verified,
-                    ), None
+                    )
+                    break
+                elif allergy.reaction_type == "unknown" and "unknown" not in rule.reaction_types:
+                    if matched_skip is None:
+                        matched_skip = SkippedCheck(
+                            rule_id=rule.id,
+                            rule_type="allergy_crossreactivity",
+                            reason=(
+                                f"Allergy reaction type for '{allergy.raw_substance}' is unknown"
+                            ),
+                            missing_fields=["reaction_type"],
+                            provenance=rule.provenance,
+                        )
+
+        if matched_alert is not None:
+            return matched_alert, None
+        if matched_skip is not None:
+            return None, matched_skip
 
     elif isinstance(rule, VitalsInterlockRule):
         if rule.drug_id in active_drugs:
@@ -544,10 +669,12 @@ def evaluate_plan(
                     drug_id=step.drug_id,
                     requested_dose=step.requested_dose,
                     registry=registry,
+                    step_number=step.step_number,
                 )
                 dose_reports.append(dose_report)
+                prov = drug.provenance if drug else registry.rules[0].provenance
+                # Exhaustive dose status handling (ENG-03)
                 if dose_report.status == "EXCEEDS_CEILING":
-                    prov = drug.provenance if drug else registry.rules[0].provenance
                     alerts.append(
                         Alert(
                             rule_id=f"DOSE_LIMIT_{step.drug_id.upper()}",
@@ -558,6 +685,70 @@ def evaluate_plan(
                             action="Reduce dose to within verified formulary maximum ceiling",
                             provenance=prov,
                             unverified=True,
+                            step_number=step.step_number,
+                        )
+                    )
+                elif dose_report.status == "MAGNITUDE_WARNING":
+                    alerts.append(
+                        Alert(
+                            rule_id=f"DOSE_MAGNITUDE_{step.drug_id.upper()}",
+                            severity=Severity.HIGH,
+                            rule_type="dose_limit",
+                            drug_ids=[step.drug_id],
+                            consequence=dose_report.notes,
+                            action="Review dose magnitude for decimal slip or unit error",
+                            provenance=prov,
+                            unverified=True,
+                            step_number=step.step_number,
+                        )
+                    )
+                elif dose_report.status == "BELOW_MINIMUM":
+                    sev = (
+                        Severity.HIGH
+                        if dose_report.magnitude_tripwire_triggered
+                        else Severity.MODERATE
+                    )
+                    alerts.append(
+                        Alert(
+                            rule_id=f"DOSE_MINIMUM_{step.drug_id.upper()}",
+                            severity=sev,
+                            rule_type="dose_limit",
+                            drug_ids=[step.drug_id],
+                            consequence=dose_report.notes,
+                            action="Adjust dose to meet minimum effective formulary threshold",
+                            provenance=prov,
+                            unverified=True,
+                            step_number=step.step_number,
+                        )
+                    )
+                elif dose_report.status == "UNVERIFIED_MISSING_CAP":
+                    missing_field = (
+                        "weight_kg"
+                        if "weight" in dose_report.notes.lower()
+                        else "formulary_dose_limit"
+                    )
+                    skipped_checks.append(
+                        SkippedCheck(
+                            rule_id=f"DOSE_CHECK_{step.drug_id.upper()}",
+                            rule_type="dose_limit",
+                            reason=dose_report.notes,
+                            missing_fields=[missing_field],
+                            provenance=prov,
+                        )
+                    )
+                elif dose_report.status == "OK":
+                    pass
+                else:
+                    skipped_checks.append(
+                        SkippedCheck(
+                            rule_id=f"DOSE_CHECK_{step.drug_id.upper()}",
+                            rule_type="dose_limit",
+                            reason=(
+                                f"Unknown dose report status '{dose_report.status}': "
+                                f"{dose_report.notes}"
+                            ),
+                            missing_fields=["dose_status"],
+                            provenance=prov,
                         )
                     )
 
@@ -576,9 +767,17 @@ def evaluate_plan(
             active_drugs=combined_drugs,
             active_classes=combined_classes,
             registry=registry,
+            proposed_drugs=proposed_administer_drugs,
         )
-        if alert and not any(ba.rule_id == alert.rule_id for ba in baseline_alerts):
-            alerts.append(alert)
+        if alert:
+            # ENG-02: Only suppress if an existing baseline alert already covers the exact same
+            # rule and drug_ids (purely among home medications, no proposed drug involved).
+            already_covered = any(
+                ba.rule_id == alert.rule_id and frozenset(ba.drug_ids) == frozenset(alert.drug_ids)
+                for ba in baseline_alerts
+            )
+            if not already_covered:
+                alerts.append(alert)
         if skip and not any(bs.rule_id == skip.rule_id for bs in skipped_checks):
             skipped_checks.append(skip)
 

@@ -7,6 +7,8 @@ CI fails immediately on any missed BLOCK/HIGH case.
 
 from __future__ import annotations
 
+import dataclasses
+import json
 import sys
 from typing import Any
 
@@ -14,10 +16,16 @@ from triagerag.config import get_data_dir
 from triagerag.contracts.schemas import (
     Patient,
 )
-from triagerag.engine.registry import load_registry
+from triagerag.engine.registry import ClinicalRegistry, load_registry
 from triagerag.engine.rule_engine import evaluate_baseline
 from triagerag.normalize.validators import build_patient_from_case
 from triagerag.normalize.yaml_loader import load_yaml_decimal
+
+
+def only_rules(reg: ClinicalRegistry, *rule_ids: str) -> ClinicalRegistry:
+    """Registry containing ONLY the named rules (defeats rule redundancy masking, ENG-09)."""
+    kept = tuple(r for r in reg.rules if r.id in rule_ids)
+    return dataclasses.replace(reg, rules=type(reg.rules)(kept))
 
 
 def _build_patient_from_case(case: dict[str, Any], registry: Any) -> Patient:
@@ -68,7 +76,29 @@ def run_golden_suite() -> int:
                 err_details.append(f"Fired prohibited must_not_fire: {false_fires}")
             failed_cases.append(f"[{case_id}] {', '.join(err_details)}")
         else:
-            passed_count += 1
+            # Rule Isolation Harness (ENG-09, WP-0): test each must_fire rule in isolation
+            isolation_failed = False
+            for rule_id in must_fire:
+                if any(r.id == rule_id for r in registry.rules):
+                    iso_reg = only_rules(registry, rule_id)
+                    iso_alerts, _, _, _ = evaluate_baseline(patient, iso_reg)
+                    if not any(a.rule_id == rule_id for a in iso_alerts):
+                        failed_cases.append(
+                            f"[{case_id}] Rule '{rule_id}' failed in isolation "
+                            "(masked by redundancy)"
+                        )
+                        isolation_failed = True
+
+            for rule_id in must_skip:
+                if any(r.id == rule_id for r in registry.rules):
+                    iso_reg = only_rules(registry, rule_id)
+                    _, iso_skips, _, _ = evaluate_baseline(patient, iso_reg)
+                    if not any(s.rule_id == rule_id for s in iso_skips):
+                        failed_cases.append(f"[{case_id}] Skip '{rule_id}' failed in isolation")
+                        isolation_failed = True
+
+            if not isolation_failed:
+                passed_count += 1
 
     print(f"\nGolden Suite Results: {passed_count}/{len(cases)} passed.")
     reports_dir = data_dir.parent / "eval" / "reports"
@@ -81,7 +111,6 @@ def run_golden_suite() -> int:
         "status": "PASS" if not failed_cases else "FAIL",
         "failed_cases": failed_cases,
     }
-    import json
 
     (reports_dir / "golden.json").write_text(json.dumps(report_json, indent=2), encoding="utf-8")
 

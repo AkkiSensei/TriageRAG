@@ -5,6 +5,26 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-10-30
+
+### Fixed
+- **Engine Defect Sweep & Deterministic Safety Interlocks (WP-0: ENG-01..ENG-08):**
+  - **ENG-01 (Lookback Precedence):** In `ClassInteractionRule` lookback loops, confirmed in-window triggers (`lookback_triggered`) strictly take precedence and emit `Severity.BLOCK` alerts. Timestamp evaluation evaluates all medications/ingredients first; missing timestamps only emit `SkippedCheck` if no confirmed trigger fired.
+  - **ENG-02 (Plan Alert Identity & Deduplication):** `evaluate_plan` deduplicates alerts on `(rule_id, frozenset(alert.drug_ids))`. A baseline hit no longer hides a newly proposed drug matching the same rule, ensuring contraindications strike proposed plan steps.
+  - **ENG-03 (Exhaustive Dose Status Handling):** Handled all dose statuses in `evaluate_plan` and `verify_plan`: `BELOW_MINIMUM` and `MAGNITUDE_WARNING` emit alerts and flag steps (`DOSE_BELOW_MIN` and `DOSE_MAGNITUDE_WARNING`); `UNVERIFIED_MISSING_CAP` fails closed to `SkippedCheck`.
+  - **ENG-04 (Gross Overdose Policy):** Documented and preserved strict `xfail` regression test pending human clinical decision `HD-6` (hard-ceiling multiple for non-overridable BLOCK).
+  - **ENG-05 (Step-Keyed Dose Reports):** Added `step_number` to `CalculatedDoseReport` and `Alert`. Keyed dose evaluations in `verify_plan` on `(step.step_number, step.drug_id)`, preventing multi-step collisions when repeat doses of the same drug are administered.
+  - **ENG-07 (Relevance-Gated Rule Skips):** Gated plan-evaluation rule skips via `_is_rule_relevant`, preventing baseline DDI or intake skips from clumping unrelated plan steps (e.g. dextrose) and reducing alert fatigue.
+  - **ENG-08 (Lookback In-Class Omission Guard):** Added fail-closed `SkippedCheck` when an in-class drug lacks an entry in `lookback_hours_by_ingredient`, and added data-lint in `tools/validate_data.py` enforcing lookback coverage for all class members.
+  - **Allergy Precedence Fix:** Confirmed IgE anaphylaxis alerts take strict precedence over unknown reaction types on secondary class allergens.
+
+### Added
+- **WP-0 Evaluation & Verification Hardening:**
+  - **Rule-Isolation Harness:** Added `only_rules` isolation harness to `eval/run_golden.py`. Evaluates all 65 golden cases in complete isolation from redundant rules (100% pass).
+  - **Differential Property Testing:** Implemented independent reference interpreter and Hypothesis test suite in `tests/property/test_engine_differential.py` running 1,000 synthetic patient permutations with 0 divergences.
+  - **ADR-0010:** Documented architectural decisions in `docs/adr/0010-engine-defect-sweep-and-rule-isolation.md`.
+  - **Audit Regressions Suite:** Added `tests/unit/test_audit_regressions.py` covering ENG-01..ENG-08.
+
 ## [0.2.1] - 2026-10-29
 
 ### Fixed

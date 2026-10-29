@@ -1,13 +1,13 @@
 # TriageRAG Fix-Gate Report (generated)
 
-Generated: 2026-10-29T13:21:29Z   Commit: cb09c459   Tags: fg-0, fg-1, fg-2, fg-3, fg-4, fg-5, fg-6
+Generated: 2026-10-29T18:48:43Z   Commit: 03343edf   Tags: fg-0, fg-1, fg-2, fg-3, fg-4, fg-5, fg-6
 Source artefacts: eval/reports/*.json, mutation.json, latency_benchmark.json, retrieval_ablation.json, pytest --collect-only
 
 > **Disclaimer:** Research prototype. Synthetic data only. Not a medical device. Not for clinical use.
 
 ## 1. Observed verification
 
-- **Pytest Suites:** 213 passed / 213 collected (100% green).
+- **Pytest Suites:** 223 passed / 223 collected (100% green).
 - **Linters & Style:** Python ruff clean (116 files checked/formatted), zero warnings.
 - **Type Safety:** Python mypy strict mode clean (112 source files, 0 errors).
 - **Layer Contracts:** Import-linter clean (1 contract enforced, 0 broken).
@@ -87,10 +87,10 @@ Source artefacts: eval/reports/*.json, mutation.json, latency_benchmark.json, re
 
 | Arm ID | Backend Architecture | Test Recall@5 (95% CI) | Test MRR (95% CI) | Wrong-Protocol | p95 Latency |
 |:---|:---|:---:|:---:|:---:|:---:|
-| `bm25` | Arm 1: Lexical BM25 (Default) | 73.21% [60.71, 83.93] | 0.5417 [0.4375, 0.6577] | 0.0000 | 0.17 ms |
-| `char_ngram` | Arm 2: Char-Trigram TF-IDF Vector Retriever (CharNgramRetriever) | 73.21% [60.71, 83.93] | 0.5045 [0.4107, 0.6205] | 0.0000 | 0.24 ms |
-| `hybrid_rrf` | Arm 3: Hybrid Reciprocal Rank Fusion (BM25 + CharNgram) | 73.21% [60.71, 83.93] | 0.5491 [0.4464, 0.6607] | 0.0000 | 0.39 ms |
-| `hybrid_rrf_rerank` | Arm 4: Hybrid RRF + Lexical Overlap Reranker (LexicalOverlapReranker) | 73.21% [60.71, 83.93] | 0.5491 [0.4464, 0.6607] | 0.0000 | 0.68 ms |
+| `bm25` | Arm 1: Lexical BM25 (Default) | 73.21% [60.71, 83.93] | 0.5417 [0.4375, 0.6577] | 0.0000 | 0.12 ms |
+| `char_ngram` | Arm 2: Char-Trigram TF-IDF Vector Retriever (CharNgramRetriever) | 73.21% [60.71, 83.93] | 0.5045 [0.4107, 0.6205] | 0.0000 | 0.15 ms |
+| `hybrid_rrf` | Arm 3: Hybrid Reciprocal Rank Fusion (BM25 + CharNgram) | 73.21% [60.71, 83.93] | 0.5491 [0.4464, 0.6607] | 0.0000 | 0.11 ms |
+| `hybrid_rrf_rerank` | Arm 4: Hybrid RRF + Lexical Overlap Reranker (LexicalOverlapReranker) | 73.21% [60.71, 83.93] | 0.5491 [0.4464, 0.6607] | 0.0000 | 0.38 ms |
 
 Deterministic decision rule (`decide_backend`) selected default backend: **`bm25`**.
 
@@ -98,10 +98,10 @@ Deterministic decision rule (`decide_backend`) selected default backend: **`bm25
 
 - Total Protocol Chunks: **10000**
 - Number of Queries: **100**
-- Index Build Time: **1159.15 ms**
-- Mean Latency: **12.009 ms**
-- Median Latency (p50): **11.628 ms**
-- 95th Percentile Latency (p95): **15.921 ms** (Target: < 50.0 ms) -> **PASS**
+- Index Build Time: **504.12 ms**
+- Mean Latency: **4.434 ms**
+- Median Latency (p50): **4.031 ms**
+- 95th Percentile Latency (p95): **6.738 ms** (Target: < 50.0 ms) -> **PASS**
 
 ## 4. NOT VERIFIED / open human decisions (HD-n)
 

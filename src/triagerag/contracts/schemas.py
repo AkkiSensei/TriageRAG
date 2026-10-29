@@ -411,6 +411,7 @@ class Alert(BaseModel):
     action: str
     provenance: Provenance
     unverified: bool = False
+    step_number: int | None = None
 
 
 class SkippedCheck(BaseModel):
@@ -439,6 +440,7 @@ class CalculatedDoseReport(BaseModel):
         "OK", "EXCEEDS_CEILING", "BELOW_MINIMUM", "UNVERIFIED_MISSING_CAP", "MAGNITUDE_WARNING"
     ]
     notes: str = ""
+    step_number: int | None = None
 
 
 class ScoreResult(BaseModel):

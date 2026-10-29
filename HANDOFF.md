@@ -4,12 +4,12 @@
 
 ## Current State
 
-- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`), and Part D Fix Gates `fg-0` through `fg-6` (Re-baseline, Grounding Soundness, Clinical Inputs Fail Closed, Abstention & Context Hygiene, Evaluation That Can Fail, Retrieval Honesty & Hardening, and Reporting Integrity & Ops) **COMPLETE**. All 20 audit flags (FG-01..20) and 16 original findings (RAG-01..16) closed with failing-first tests and zero regressions.
+- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`), Part D Fix Gates `fg-0` through `fg-6`, and **Part E Work Package 0 (WP-0: Engine Defect Sweep & Deterministic Safety Interlocks, ADR 0010)** **COMPLETE**. Latent safety defects ENG-01..ENG-08 resolved with failing-first tests; all 65 golden cases verified in strict isolation (`only_rules`); differential testing with naive reference interpreter green across 1,000 Hypothesis permutations; all audit flags closed with zero regressions.
 - **Verification:** All gates green:
-  - 187/187 Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, FG-1..FG-5 test suites, and report integrity suite).
+  - 222 passed, 1 xfailed (ENG-04 pending HD-6) Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, FG-1..FG-5 test suites, audit regressions suite, and differential engine suite).
   - 8/8 Vitest frontend unit & component tests green.
-  - 51/51 mutants killed (100% kill score: 12 rule mutants + 39 code mutants, including M34–M39).
-  - 65/65 Golden cases green (100%).
+  - 52/52 mutants killed (100% kill score: 12 rule mutants + 40 code mutants, including M34–M40).
+  - 65/65 Golden cases green (100% in full ruleset and 100% in rule-isolation harness).
   - 41/41 Mechanics cases green (100%).
   - 3/3 Metamorphic transformations green.
   - 19/19 Adversarial prompt injection & citation laundering cases neutralized (0 approved).
@@ -57,14 +57,14 @@
 | **Python Linters** | Ruff check & format | 0 warnings | Clean | PASS |
 | **Python Typing** | Mypy strict mode | 0 errors | Clean | PASS |
 | **Layer Contracts** | Import-linter | 0 violations | Clean | PASS |
-| **Backend Tests** | Pytest unit, integration, property | 100% | 131/131 passed | PASS |
+| **Backend Tests** | Pytest unit, integration, property | 100% | 222 passed, 1 xfailed (HD-6) | PASS |
 | **Safety Boundary Tests** | AST scans & rule checks | 100% | 4/4 passed | PASS |
-| **Golden Ruleset** | Shipped clinical cases | 100% | 65/65 passed | PASS |
+| **Golden Ruleset** | Shipped clinical cases & rule-isolation | 100% | 65/65 passed (100% in isolation) | PASS |
 | **Mechanics Suite** | Edge cases & unit trips | 100% | 41/41 passed | PASS |
 | **Metamorphic Suite** | Equivalence transformations | 100% | 3/3 passed | PASS |
-| **Adversarial Suite** | Prompt injection attacks | 100% | 9/9 passed | PASS |
-| **Mutation Testing** | Code & rule mutant kill rate | 100% | 45/45 killed | PASS |
-| **Retrieval Benchmark** | 160-case node-level (98 dev / 62 test) | R@5 >= 90%, WrongProto == 0 | 100% R@5, 0.0 WrongProto | PASS |
+| **Adversarial Suite** | Prompt injection attacks | 100% | 19/19 passed | PASS |
+| **Mutation Testing** | Code & rule mutant kill rate | 100% | 52/52 killed | PASS |
+| **Retrieval Benchmark** | 224-case node-level (136 dev / 88 test) | R@5 >= 90%, WrongProto == 0 | 100% R@5, 0.0 WrongProto | PASS |
 | **Scale Latency** | 10,000-chunk lexical search | p95 < 50 ms | p95 = 5.65 ms | PASS |
 | **Frontend Linters** | ESLint with strict safety rules | 0 warnings | Clean | PASS |
 | **Frontend Typing** | TypeScript (`tsc --noEmit`) | 0 errors | Clean | PASS |

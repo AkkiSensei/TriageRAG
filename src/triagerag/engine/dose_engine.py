@@ -34,6 +34,7 @@ def verify_dose(
     drug_id: str,
     requested_dose: ExplicitDose,
     registry: ClinicalRegistry,
+    step_number: int | None = None,
 ) -> CalculatedDoseReport:
     """Verify a proposed medication dose against formulary population limits and tripwires."""
     drug = registry.get_drug(drug_id)
@@ -46,6 +47,7 @@ def verify_dose(
             magnitude_tripwire_triggered=False,
             status="UNVERIFIED_MISSING_CAP",
             notes=f"Drug '{drug_id}' not found in formulary registry",
+            step_number=step_number,
         )
 
     pop_cat = str(patient.age.population_category)
@@ -64,6 +66,7 @@ def verify_dose(
             magnitude_tripwire_triggered=False,
             status="UNVERIFIED_MISSING_CAP",
             notes=f"Missing or unverified formulary dosage limits for population '{pop_cat}'",
+            step_number=step_number,
         )
 
     # Calculate limits based on dosing basis (weight vs fixed)
@@ -77,6 +80,7 @@ def verify_dose(
                 magnitude_tripwire_triggered=False,
                 status="UNVERIFIED_MISSING_CAP",
                 notes=("Weight-based dose verification cannot proceed: patient weight is unknown"),
+                step_number=step_number,
             )
 
         weight = patient.weight_kg.value
@@ -118,6 +122,7 @@ def verify_dose(
                 magnitude_tripwire_triggered=False,
                 status="UNVERIFIED_MISSING_CAP",
                 notes="Weight-based dose verification cannot proceed: patient weight is unknown",
+                step_number=step_number,
             )
         actual_requested = ExplicitDose(
             amount=requested_dose.amount * patient.weight_kg.value, unit=DoseUnit.mg
@@ -132,6 +137,7 @@ def verify_dose(
                 magnitude_tripwire_triggered=False,
                 status="UNVERIFIED_MISSING_CAP",
                 notes="Weight-based dose verification cannot proceed: patient weight is unknown",
+                step_number=step_number,
             )
         actual_requested = ExplicitDose(
             amount=requested_dose.amount * patient.weight_kg.value, unit=DoseUnit.mcg
@@ -148,6 +154,7 @@ def verify_dose(
             magnitude_tripwire_triggered=False,
             status="UNVERIFIED_MISSING_CAP",
             notes=f"Unit conversion failed: {e}",
+            step_number=step_number,
         )
 
     tripwire = check_magnitude_tripwire(req_converted.amount, calculated_ceiling.amount)
@@ -186,4 +193,5 @@ def verify_dose(
         magnitude_tripwire_triggered=tripwire,
         status=status,
         notes=notes,
+        step_number=step_number,
     )

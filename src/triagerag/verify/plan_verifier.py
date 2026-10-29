@@ -60,6 +60,10 @@ def verify_plan(
 
     all_alerts = baseline_alerts + plan_alerts
     all_skips = plan_skips
+    # Key dose reports by (step_number, drug_id) to prevent multi-step collisions (ENG-05)
+    dose_by_step = {
+        (r.step_number, r.drug_id): r for r in dose_reports if r.step_number is not None
+    }
     dose_by_drug = {r.drug_id: r for r in dose_reports}
     chunk_map = {c.chunk_id: c for c in retrieved_chunks}
 
@@ -167,6 +171,9 @@ def verify_plan(
 
             # Check for alerts matching this drug or its active ingredients
             for alert in all_alerts:
+                # If alert is specific to a particular step, only match that step (ENG-05)
+                if alert.step_number is not None and alert.step_number != step.step_number:
+                    continue
                 alert_drug_ids = {did.lower() for did in alert.drug_ids}
                 if step_drug_identifiers & alert_drug_ids:
                     triggered_rule_ids.append(alert.rule_id)
@@ -190,17 +197,32 @@ def verify_plan(
                         ):
                             status = StepStatus.FLAGGED_MODERATE
 
-            # Check dose report for this drug
-            if step.drug_id in dose_by_drug:
-                d_rep = dose_by_drug[step.drug_id]
-                if d_rep.status == "EXCEEDS_CEILING":
+            # Check dose report for this specific step (step-keyed lookup, ENG-05)
+            d_rep = dose_by_step.get((step.step_number, step.drug_id)) or dose_by_drug.get(
+                step.drug_id
+            )
+            if d_rep:
+                # Exhaustive handling of all dose calculation statuses (ENG-03)
+                if d_rep.status in ("EXCEEDS_CEILING", "MAGNITUDE_WARNING"):
                     if status != StepStatus.BLOCKED_STRUCK_THROUGH:
                         status = StepStatus.FLAGGED_HIGH
+                    rejection_reasons.append(d_rep.notes)
+                elif d_rep.status == "BELOW_MINIMUM":
+                    if status not in (
+                        StepStatus.BLOCKED_STRUCK_THROUGH,
+                        StepStatus.FLAGGED_HIGH,
+                    ):
+                        status = (
+                            StepStatus.FLAGGED_HIGH
+                            if d_rep.magnitude_tripwire_triggered
+                            else StepStatus.FLAGGED_MODERATE
+                        )
                     rejection_reasons.append(d_rep.notes)
                 elif d_rep.status == "UNVERIFIED_MISSING_CAP":
                     if status not in (
                         StepStatus.BLOCKED_STRUCK_THROUGH,
                         StepStatus.FLAGGED_HIGH,
+                        StepStatus.FLAGGED_MODERATE,
                     ):
                         status = StepStatus.UNVERIFIED_MISSING_DATA
                     rejection_reasons.append(d_rep.notes)

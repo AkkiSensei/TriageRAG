@@ -11,6 +11,56 @@ Prioritized engineering and clinical verification backlog (ordered by safety pri
 - **HD-3 [P0-CLINICAL] Clinical ECE Calibration Target & Acceptance Policy (`FG-07`, ADR 0008)**: Clinical governance consensus on acceptable Expected Calibration Error (ECE) and abstention-recall targets on real patient distributions. **Fail-closed default active:** Synthetic prototype ECE is reported as an observational metric with 95% bootstrap CIs; no clinical PASS label is claimed without prospective real-world calibration data.
 - **HD-4 [P0-CLINICAL] Downstream Approval Policy for Vitals-Inferred Syndromes (`FG-03`, ADR 0007)**: Clinical governance decision on whether `AbstainCode.SYNDROME_INFERRED` may ever permit auto-approved plan steps without explicit clinician syndrome entry. **Fail-closed default active:** when `abstain_code == SYNDROME_INFERRED`, no step may reach `StepStatus.APPROVED`; maximum permitted step status is `StepStatus.REQUIRES_CLINICIAN_CONFIRMATION`.
 - **HD-5 [P1-EVAL] Neural Embedding & Cross-Encoder Model Selection & Licensing (`FG-14`, ADR 0009)**: Choice of offline local embedding model and license review (e.g., BGE-small, MiniLM) for neural dense retrieval and reranking. **Fail-closed default active:** prototype retains pure-Python `CharNgramRetriever` and `LexicalOverlapReranker` with zero network calls and honest naming.
+- **HD-6 [P0-CLINICAL] Hard-Ceiling Multiple for Non-Overridable Overdose BLOCK (ENG-04)**: Define hard-ceiling threshold multiple (e.g., requested > 2x ceiling or magnitude tripwire true) at which an overdose transitions from overridable `HIGH` alert to non-overridable `BLOCK` alert. **Fail-closed default active:** `ENG-04` test remains strict `xfail`; overdoses > ceiling currently produce `Severity.HIGH` with mandatory logged clinical justification until human clinical decision is formalized.
+- **HD-7 [P0-GOVERNANCE] Clinical Reviewer Sign-Off Procedure & Dual Control for BLOCK Rules**: Clinical governance protocol for onboarded clinician/pharmacist verification of candidate rules, with mandatory dual sign-off (two reviewers or author + reviewer) for non-overridable `Severity.BLOCK` rules. **Fail-closed default active:** no candidate rule is marked `verified: true` without explicit human reviewer ID and verification timestamp.
+- **HD-8 [P1-CLINICAL] Reaction Type BLOCK vs HIGH for Unknown Penicillin Reactions (ENG-13)**: Governance decision on whether documented penicillin allergy with `reaction_type: "unknown"` should remain non-overridable `BLOCK` on 1st-gen cephalosporins or convert to `HIGH` (requiring documented clinician override). **Fail-closed default active:** conservative `BLOCK` retained for unknown reaction types.
+- **HD-9 [P1-LEGAL] Evidence Corpus Adoption & Repository License Split**: Legal review and boundary specification for bundling openFDA label chunks (Tier 2) and open guideline text (Tier 3: WHO / ICMR). **Fail-closed default active:** synthetic corpus + openFDA only; raw guidelines and index caches git-ignored with scripted ingestion only.
+- **HD-10 [P1-EVAL] Neural Dense Model Licensing & Offline Architecture**: Extends HD-5 to establish vetted open-weights embedding models (e.g. BGE-small / MiniLM) and cross-encoders for retrieval surfaces R-2 and R-3. **Fail-closed default active:** lexical implementations remain active with honest naming.
+- **HD-11 [P2-CLINICAL] Obstetric Emergency Module Inclusion**: Scope decision on incorporating obstetric emergency rules (e.g., carboprost/ergometrine/oxytocin/MgSO4 contraindications). **Fail-closed default active:** out of scope for baseline emergency triage ruleset.
+- **HD-12 [P2-I18N] Hinglish & Indian Brand Scope**: Depth of Hinglish colloquial triage complaint normalization and Indian multi-ingredient FDC mapping. **Fail-closed default active:** alias-level normalization only; no unverified colloquial phrasing triggers clinical routing.
+- **HD-13 [P2-OPS] Streamlit UI Lifecycle**: Decision to retain Streamlit interface alongside modern React/FastAPI console. **Fail-closed default active:** Streamlit maintained as internal developer and clinical debugging tool (`tools/tasks.py ui`).
+
+### Active Roadmap (Audit 2026-10-29 Work Packages)
+
+- **[COMPLETED] WP-0: Engine Defect Sweep & Deterministic Safety Interlocks**:
+  - Closed ENG-01 (confirmed lookback precedence over missing timestamps).
+  - Closed ENG-02 (plan alert deduplication on `(rule_id, frozenset(drug_ids))` preserving proposed drug coverage).
+  - Closed ENG-03 (exhaustive dose status handling for `BELOW_MINIMUM` and `MAGNITUDE_WARNING`).
+  - Preserved ENG-04 as strict `xfail` pending `HD-6`.
+  - Closed ENG-05 (step-keyed dose reports preventing repeat-dose collisions).
+  - Closed ENG-07 (relevance-gating skips in Pass 2 plan verification).
+  - Closed ENG-08 (fail-closed skip on lookback class omission + data-lint).
+  - Added golden isolation harness `only_rules` (65/65 passed).
+  - Implemented differential reference interpreter + Hypothesis property suite (1,000 cases, 0 divergences).
+- **[NEXT] WP-1: Evaluation Integrity & Falsifiable Benchmarks**:
+  - Add random-baseline validity gate to retrieval benchmark (CI failure if random Recall@5 >= 0.6).
+  - Separate oracle-routed and unrouted tracks.
+  - Implement leave-one-document-out split.
+  - Replace git-SHA dependency with content-hash lock file (`dataset.lock`, OPS-02).
+  - Generate README and HANDOFF metrics directly from artifact JSON files.
+- **WP-2: Schema v2 (Conditions, Labs, Route/Concentration, New Rule Types)**:
+  - Add `conditions`, `labs`, `route`, `product_concentration`, `diluent`, and `rate` to schema.
+  - Implement 3-valued Kleene condition evaluation and route/concentration interlocks.
+- **WP-3: Synthetic Corpus Generator (Tier 1)**:
+  - Generate >=40 syndromes covering pediatric/neonate, near-duplicates, and distractors (>=600 chunks).
+- **WP-4: Evidence Corpus (Tier 2 - openFDA Drug Labels)**:
+  - Rate-limited, cached openFDA label ingestion with SPL section chunking (>=150 generics, >=1,500 chunks).
+- **WP-5: Real Dense Retrieval & Reranker**:
+  - Deploy vetted offline neural embeddings and cross-encoder behind existing retriever protocol.
+- **WP-6: Retrieval Surfaces R-2 (Evidence-for-Alert) & R-3 (Ask-the-Corpus)**:
+  - Add label evidence drawer in UI and extractive, cited, abstaining open-domain Q&A endpoint.
+- **WP-7: RAG-Grounded Rule Mining Pipeline**:
+  - Automated rule proposition from label chunks with deterministic quote, number, and schema validators.
+- **WP-8: Rule Catalogue Batches**:
+  - Implement candidate rules from catalogue in verified batches with golden and mutation test coverage.
+- **WP-9: Real-LLM Hardening & Multi-Model Ablation**:
+  - Production provider hardening (timeouts, bounded retries, telemetry) and 3-arm real-model ablation study.
+- **WP-10: Indian-Context Layer**:
+  - >=150 Indian brand/FDC aliases, Fahrenheit conversion, and localized LASA lookups.
+- **WP-11: Security/Ops Hardening & Docs-as-Code**:
+  - API rate-limiting, audit head cryptographic anchoring, dependency cleanup, and automated doc sync.
+- **WP-12: Interactive Demo & Portfolio Showcase**:
+  - 5-minute automated walkthrough, architecture diagrams, and published reliability plots.
 
 ### Prioritized Backlog Items
 

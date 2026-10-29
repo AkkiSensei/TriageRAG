@@ -49,12 +49,16 @@ def validate_all() -> None:
 
     # 2. Validate classes.yaml
     classes_path = data_dir / "classes.yaml"
+    class_to_ingredients: dict[str, set[str]] = {}
     if not classes_path.exists():
         errors.append(f"Missing {classes_path}")
     else:
         try:
             data = load_yaml_decimal(classes_path)
             ClassesMapping.model_validate(data)
+            for ing, clist in data.get("ingredient_to_classes", {}).items():
+                for c in clist:
+                    class_to_ingredients.setdefault(c, set()).add(ing)
             print("  [OK] data/classes.yaml")
         except Exception as e:
             errors.append(f"classes.yaml validation failed: {e}")
@@ -117,6 +121,21 @@ def validate_all() -> None:
                         continue
                     rule_model = rule_type_map[rtype]
                     rule_model.model_validate(r)
+                    if rtype == "class_interaction":
+                        lookbacks = r.get("lookback_hours_by_ingredient")
+                        if lookbacks:
+                            # Verify every member of lookback class has an entry (ENG-08)
+                            for cls_cand in (r.get("class_a"), r.get("class_b")):
+                                class_ings = class_to_ingredients.get(str(cls_cand), set())
+                                if class_ings & set(lookbacks.keys()):
+                                    missing_ings = class_ings - set(lookbacks.keys())
+                                    if missing_ings:
+                                        err_msg = (
+                                            f"Rule {r.get('id')} in {rule_file.name} violates "
+                                            f"ENG-08: missing lookback entries for class "
+                                            f"{cls_cand} ingredients: {sorted(missing_ings)}"
+                                        )
+                                        errors.append(err_msg)
                     total_rules += 1
             except Exception as e:
                 errors.append(f"Rule file {rule_file.name} failed: {e}")
