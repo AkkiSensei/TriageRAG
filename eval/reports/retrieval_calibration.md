@@ -1,22 +1,33 @@
-# Retrieval Calibration & Evaluation Report (WP5)
+# Retrieval Calibration & Evaluation Report (WP5 / FG-06 / FG-07)
 
 > Research prototype. Synthetic data only. Not a medical device. Not for clinical use.
 
-- **Dataset:** `eval/retrieval/dataset.yaml` (160 cases: 98 dev [60%], 62 test [40%])
+- **Dataset:** `eval/retrieval/dataset.yaml` (224 cases: 136 dev [61%], 88 test [39%])
 - **Corpus Hash:** `591c6cd10f3067be`
 - **Index Version:** `2.0.0`
-- **Config Hash:** `b1efcb3502204f8d`
+- **Config Hash:** `ffb6892cc1524c60`
+- **Calibration Run ID:** `CALIB_FG4_DEV_SWEEP_V1`
 - **Calibrated Threshold (dev):** `0.15` (Syndrome-Inferred Threshold: `0.35`, Min Margin: `0.25`)
 
-## Held-Out Test Split vs Dev Split Metrics (Node-Level)
+## Held-Out Test Split vs Dev Split Metrics (Stratified)
 
-| Metric | Dev Split (n=98) | Held-Out Test Split (n=62) | 95% Bootstrap CI (Test) |
+| Metric | Dev Split (n=136) | Held-Out Test Split (n=88) | 95% Bootstrap CI (Test) |
 |:---|---:|---:|---:|
-| **Node Recall@5** | 100.00% | **100.00%** | [100.00%, 100.00%] |
-| **Node MRR** | 0.8995 | **0.8590** | [0.7821, 0.9316] |
-| **Node nDCG@5** | 0.9305 | **0.9140** | [0.8776, 0.9476] |
+| **Overall Node Recall@1** | 24.44% | **39.29%** | [26.79%, 53.57%] |
+| **Overall Node Recall@5** | 67.78% | **73.21%** | [60.71%, 83.93%] |
+| **Overall Node MRR** | 0.4278 | **0.5417** | [0.4375, 0.6577] |
+| **Overall Node nDCG@5** | 0.5712 | **0.6340** | [0.5339, 0.7323] |
 | **Wrong-Protocol Rate** | 0.0000 | **0.0000** | Gate: == 0.0000 |
 | **Hard-Negative Abstain Recall** | 1.0000 | **1.0000** | Gate: == 1.0000 |
-| **Abstain Precision / Recall** | 1.0000 / 1.0000 | **1.0000 / 1.0000** | - |
-| **Expected Calibration Error (ECE)** | 0.1577 | **0.1456** | - |
-| **Latency p50 / p95 (ms)** | 11.629 / 14.119 | **11.128 / 11.651** | Budget: p95 < 50 ms |
+| **Abstain Precision / Recall** | 0.6133 / 1.0000 | **0.6809 / 1.0000** | - |
+| **Expected Calibration Error (ECE)** | 0.1447 | **0.1453** | Observational (ADR-0008 / HD-3) |
+| **Latency p50 / p95 (ms)** | 0.019 / 0.117 | **0.018 / 0.058** | Budget: p95 < 50 ms |
+
+## Stratified Performance Breakdown (FG-06 / HD-1)
+
+| Stratum | Cases (Test) | Recall@1 (95% CI) | Recall@5 (95% CI) | MRR (95% CI) |
+|:---|---:|---:|---:|---:|
+| **Syndrome Provided** | 41 | 53.66% [39.02%, 68.29%] | **100.00%** [100.00%, 100.00%] | 0.7398 |
+| **Vitals Only (HD-1)** | 15 | 0.00% [0.00%, 0.00%] | 0.00% [0.00%, 0.00%] | 0.0000 |
+
+> **Clinical Transparency Note (HD-1 / HD-3):** Vitals-only Recall@1 is currently 0.0% because all unverified vitals flag cut-offs are marked `status: NEEDS_SOURCE` under Gate G2 and fail closed (`EMPTY_QUERY`). This prevents unverified inference until clinician threshold sourcing is completed (`HD-1`). ECE is tracked as an observational research metric without an unqualified clinical PASS claim (`ADR-0008` / `HD-3`).

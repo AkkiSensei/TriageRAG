@@ -4,103 +4,303 @@
   "dataset_version": "2.0.0",
   "corpus_hash": "591c6cd10f3067be58abf29ecbda0d5dd2b46eee6d09d99e36057de25aed763b",
   "index_version": "2.0.0",
-  "config_hash": "b1efcb3502204f8d66b0fb505098f22d305c3d9cfef33885470f6c495b18ae69",
-  "index_build_time_ms": 14.505,
+  "config_hash": "ffb6892cc1524c60cb9b354c2718da1f4ea504be36376fcb57fea32de6c5f44b",
+  "index_build_time_ms": 75.97,
   "deterministic": true,
-  "benchmark_pairs": 102,
-  "total_cases": 160,
-  "recall_at_5": 100.0,
-  "mrr": 0.859,
-  "ndcg_at_5": 0.914,
-  "abstain_accuracy": 100.0,
+  "benchmark_pairs": 146,
+  "total_cases": 224,
+  "recall_at_1": 39.29,
+  "recall_at_3": 73.21,
+  "recall_at_5": 73.21,
+  "mrr": 0.5417,
+  "ndcg_at_5": 0.634,
+  "abstain_accuracy": 82.95,
   "wrong_protocol_rate": 0.0,
-  "ece": 0.1456,
+  "ece": 0.1453,
   "dev": {
-    "total_cases": 98,
-    "positive_cases": 63,
-    "abstain_cases": 35,
-    "recall_at_5": 100.0,
+    "total_cases": 136,
+    "positive_cases": 90,
+    "abstain_cases": 46,
+    "recall_at_1": 24.44,
+    "recall_at_1_ci95": [
+      15.56,
+      34.44
+    ],
+    "recall_at_3": 67.78,
+    "recall_at_3_ci95": [
+      57.78,
+      77.78
+    ],
+    "recall_at_5": 67.78,
     "recall_at_5_ci95": [
-      100.0,
-      100.0
+      57.78,
+      77.78
     ],
-    "mrr": 0.8995,
+    "mrr": 0.4278,
     "mrr_ci95": [
-      0.8439,
-      0.9524
+      0.3481,
+      0.5093
     ],
-    "ndcg_at_5": 0.9305,
+    "ndcg_at_5": 0.5712,
     "ndcg_at_5_ci95": [
-      0.8972,
-      0.9572
+      0.4805,
+      0.6556
     ],
-    "abstain_precision": 1.0,
+    "abstain_precision": 0.6133,
     "abstain_recall": 1.0,
-    "abstain_accuracy": 100.0,
-    "abstain_code_accuracy": 100.0,
+    "abstain_accuracy": 78.68,
+    "abstain_code_accuracy": 77.21,
     "abstain_recall_hard_negatives": 1.0,
     "wrong_protocol_rate": 0.0,
-    "ece": 0.1577,
-    "latency_p50_ms": 11.629,
-    "latency_p95_ms": 14.119
+    "ece": 0.1447,
+    "latency_p50_ms": 0.019,
+    "latency_p95_ms": 0.117,
+    "syndrome_provided": {
+      "positive_cases": 61,
+      "recall_at_1": 36.07,
+      "recall_at_1_ci95": [
+        24.59,
+        49.18
+      ],
+      "recall_at_3": 100.0,
+      "recall_at_3_ci95": [
+        100.0,
+        100.0
+      ],
+      "recall_at_5": 100.0,
+      "recall_at_5_ci95": [
+        100.0,
+        100.0
+      ],
+      "mrr": 0.6311,
+      "mrr_ci95": [
+        0.5601,
+        0.7049
+      ],
+      "ndcg_at_5": 0.8428,
+      "ndcg_at_5_ci95": [
+        0.8115,
+        0.8727
+      ]
+    },
+    "vitals_only": {
+      "positive_cases": 29,
+      "recall_at_1": 0.0,
+      "recall_at_1_ci95": [
+        0.0,
+        0.0
+      ],
+      "recall_at_3": 0.0,
+      "recall_at_3_ci95": [
+        0.0,
+        0.0
+      ],
+      "recall_at_5": 0.0,
+      "recall_at_5_ci95": [
+        0.0,
+        0.0
+      ],
+      "mrr": 0.0,
+      "mrr_ci95": [
+        0.0,
+        0.0
+      ],
+      "ndcg_at_5": 0.0,
+      "ndcg_at_5_ci95": [
+        0.0,
+        0.0
+      ]
+    }
   },
   "test": {
-    "total_cases": 62,
-    "positive_cases": 39,
-    "abstain_cases": 23,
-    "recall_at_5": 100.0,
+    "total_cases": 88,
+    "positive_cases": 56,
+    "abstain_cases": 32,
+    "recall_at_1": 39.29,
+    "recall_at_1_ci95": [
+      26.79,
+      53.57
+    ],
+    "recall_at_3": 73.21,
+    "recall_at_3_ci95": [
+      60.71,
+      83.93
+    ],
+    "recall_at_5": 73.21,
     "recall_at_5_ci95": [
-      100.0,
-      100.0
+      60.71,
+      83.93
     ],
-    "mrr": 0.859,
+    "mrr": 0.5417,
     "mrr_ci95": [
-      0.7821,
-      0.9316
+      0.4375,
+      0.6577
     ],
-    "ndcg_at_5": 0.914,
+    "ndcg_at_5": 0.634,
     "ndcg_at_5_ci95": [
-      0.8776,
-      0.9476
+      0.5339,
+      0.7323
     ],
-    "abstain_precision": 1.0,
+    "abstain_precision": 0.6809,
     "abstain_recall": 1.0,
-    "abstain_accuracy": 100.0,
-    "abstain_code_accuracy": 100.0,
+    "abstain_accuracy": 82.95,
+    "abstain_code_accuracy": 78.41,
     "abstain_recall_hard_negatives": 1.0,
     "wrong_protocol_rate": 0.0,
-    "ece": 0.1456,
-    "latency_p50_ms": 11.128,
-    "latency_p95_ms": 11.651
+    "ece": 0.1453,
+    "latency_p50_ms": 0.018,
+    "latency_p95_ms": 0.058,
+    "syndrome_provided": {
+      "positive_cases": 41,
+      "recall_at_1": 53.66,
+      "recall_at_1_ci95": [
+        39.02,
+        68.29
+      ],
+      "recall_at_3": 100.0,
+      "recall_at_3_ci95": [
+        100.0,
+        100.0
+      ],
+      "recall_at_5": 100.0,
+      "recall_at_5_ci95": [
+        100.0,
+        100.0
+      ],
+      "mrr": 0.7398,
+      "mrr_ci95": [
+        0.6585,
+        0.8252
+      ],
+      "ndcg_at_5": 0.866,
+      "ndcg_at_5_ci95": [
+        0.8331,
+        0.9009
+      ]
+    },
+    "vitals_only": {
+      "positive_cases": 15,
+      "recall_at_1": 0.0,
+      "recall_at_1_ci95": [
+        0.0,
+        0.0
+      ],
+      "recall_at_3": 0.0,
+      "recall_at_3_ci95": [
+        0.0,
+        0.0
+      ],
+      "recall_at_5": 0.0,
+      "recall_at_5_ci95": [
+        0.0,
+        0.0
+      ],
+      "mrr": 0.0,
+      "mrr_ci95": [
+        0.0,
+        0.0
+      ],
+      "ndcg_at_5": 0.0,
+      "ndcg_at_5_ci95": [
+        0.0,
+        0.0
+      ]
+    }
   },
   "overall": {
-    "total_cases": 160,
-    "positive_cases": 102,
-    "abstain_cases": 58,
-    "recall_at_5": 100.0,
+    "total_cases": 224,
+    "positive_cases": 146,
+    "abstain_cases": 78,
+    "recall_at_1": 30.14,
+    "recall_at_1_ci95": [
+      23.29,
+      37.67
+    ],
+    "recall_at_3": 69.86,
+    "recall_at_3_ci95": [
+      63.01,
+      77.4
+    ],
+    "recall_at_5": 69.86,
     "recall_at_5_ci95": [
-      100.0,
-      100.0
+      63.01,
+      77.4
     ],
-    "mrr": 0.884,
+    "mrr": 0.4715,
     "mrr_ci95": [
-      0.8382,
-      0.9248
+      0.411,
+      0.5354
     ],
-    "ndcg_at_5": 0.9242,
+    "ndcg_at_5": 0.5953,
     "ndcg_at_5_ci95": [
-      0.9012,
-      0.9453
+      0.533,
+      0.6573
     ],
-    "abstain_precision": 1.0,
+    "abstain_precision": 0.6393,
     "abstain_recall": 1.0,
-    "abstain_accuracy": 100.0,
-    "abstain_code_accuracy": 100.0,
+    "abstain_accuracy": 80.36,
+    "abstain_code_accuracy": 77.68,
     "abstain_recall_hard_negatives": 1.0,
     "wrong_protocol_rate": 0.0,
-    "ece": 0.1531,
-    "latency_p50_ms": 11.596,
-    "latency_p95_ms": 16.874
+    "ece": 0.1449,
+    "latency_p50_ms": 0.016,
+    "latency_p95_ms": 0.055,
+    "syndrome_provided": {
+      "positive_cases": 102,
+      "recall_at_1": 43.14,
+      "recall_at_1_ci95": [
+        33.33,
+        52.94
+      ],
+      "recall_at_3": 100.0,
+      "recall_at_3_ci95": [
+        100.0,
+        100.0
+      ],
+      "recall_at_5": 100.0,
+      "recall_at_5_ci95": [
+        100.0,
+        100.0
+      ],
+      "mrr": 0.6748,
+      "mrr_ci95": [
+        0.6193,
+        0.7304
+      ],
+      "ndcg_at_5": 0.8521,
+      "ndcg_at_5_ci95": [
+        0.8308,
+        0.8743
+      ]
+    },
+    "vitals_only": {
+      "positive_cases": 44,
+      "recall_at_1": 0.0,
+      "recall_at_1_ci95": [
+        0.0,
+        0.0
+      ],
+      "recall_at_3": 0.0,
+      "recall_at_3_ci95": [
+        0.0,
+        0.0
+      ],
+      "recall_at_5": 0.0,
+      "recall_at_5_ci95": [
+        0.0,
+        0.0
+      ],
+      "mrr": 0.0,
+      "mrr_ci95": [
+        0.0,
+        0.0
+      ],
+      "ndcg_at_5": 0.0,
+      "ndcg_at_5_ci95": [
+        0.0,
+        0.0
+      ]
+    }
   },
   "status": "PASS"
 }

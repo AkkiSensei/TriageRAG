@@ -1,5 +1,5 @@
 version: "1.0.0"
-calibration_run_id: "CALIB_WP5_SYNTHETIC_DEV_SPLIT_V1"
+calibration_run_id: "CALIB_FG4_DEV_SWEEP_V1"
 
 top_k: 5
 calibrated_threshold: 0.15

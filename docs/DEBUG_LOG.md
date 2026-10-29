@@ -354,5 +354,32 @@
   - `test_no_get_data_dir_calls_in_retrieval_hot_path`
 
 
+### Fix Gate G4 — Evaluation That Can Fail (`fg-4`)
+- **Flags Addressed:**
+  - **FG-06 (P1):** Benchmark vacuity (94 of 102 positives provided `suspected_syndrome`, guaranteeing Recall@5 = 100% under hard syndrome filtering); `corpus_poisoned_chunk` and `scale_latency` lacked real index backing; labels authored by same agent without freeze commit.
+  - **FG-07 (P1):** Calibration was not a calibration (`config.yaml` cited uncommitted run `CALIB_WP5_SYNTHETIC_DEV_SPLIT_V1`; no dev-split sweep code; ECE reported "PASS" without clinical gate; `BACKLOG.md` item 12 prematurely marked COMPLETED).
+  - **HD-3:** Acceptable ECE and abstention-recall targets.
+- **Root Cause:**
+  1. The original 160-case dataset overwhelmingly supplied `suspected_syndrome`, masking vitals-only inference and ranking failures.
+  2. No automated script performed parameter sweeps on the `dev` split or committed grid trial records.
+  3. ECE was treated as a passing test gate rather than an observational research metric.
+- **Remediation:**
+  1. Expanded evaluation dataset to 224 cases (136 dev [61%], 88 test [39%]) in `eval/retrieval/dataset.yaml`, adding 44 vitals-only positives, 24 conflicting syndrome-vs-vitals cases, and 20 near-duplicate hard negatives with `reviewed_by: "AGENT_AUTHORED_UNREVIEWED"`.
+  2. Froze labels in dedicated commit `69fa952b4921e649450a49c46b9927fcca2fe53d` recorded in `eval/retrieval/LABELS_FROZEN_AT`.
+  3. Implemented deterministic dev-split grid sweep `eval/retrieval/calibrate.py` searching 125 parameter combinations across `calibrated_threshold`, `syndrome_inferred_threshold`, and `min_syndrome_margin` subject to hard safety constraints (`wrong_protocol_rate == 0.0`, `hard_neg_abstain == 1.0`). Output committed to `eval/reports/calibration_run_CALIB_FG4_DEV_SWEEP_V1.json`.
+  4. Updated `data/retrieval/config.yaml::calibration_run_id` to `CALIB_FG4_DEV_SWEEP_V1` matching selected grid parameters (`calibrated_threshold: 0.15`, `syndrome_inferred_threshold: 0.35`, `min_syndrome_margin: 0.25`).
+  5. Authored ADR 0008 (`docs/adr/0008-calibration-evaluation-gates-and-ece.md`) documenting ECE target policy, stratified metrics, and hard safety gates (`HD-3`). Re-opened `BACKLOG.md` item 12 as `[IN PROGRESS]` with `HD-3` documented.
+  6. Updated `eval/run_retrieval.py` to evaluate real poisoned chunk for `corpus_poisoned_chunk` cases and 10,000 synthetic chunk corpus for `scale_latency` cases. Reported Recall@1, Recall@3, and Recall@5 with 95% bootstrap CIs stratified by `syndrome_provided` vs `vitals_only`. Honestly disclosed vitals-only Recall@1 = 0.0% (fail-closed under Gate G2 / `HD-1`).
+  7. Implemented `run_permutation_sanity_check()` in `eval/run_retrieval.py`, confirming that shuffled node relevance targets collapse Recall@1 to near zero (0.0000).
+- **Tests (`tests/unit/test_fg4_eval_and_calibration.py`):**
+  - `test_dataset_matches_frozen_commit`
+  - `test_calibration_run_record_exists_and_matches_config`
+  - `test_retrieval_reports_recall_at_1_and_split`
+  - `test_permutation_check_collapses_recall`
+  - `test_ece_reported_without_unqualified_pass_without_adr`
+  - `test_backlog_item_12_reopened_as_in_progress`
+
+
+
 
 

@@ -1,0 +1,1301 @@
+{
+  "run_id": "CALIB_FG4_DEV_SWEEP_V1",
+  "timestamp": "2026-10-29T10:00:15.593215+00:00",
+  "dataset_path": "eval/retrieval/dataset.yaml",
+  "dataset_hash": "fdce9c040a0b269e3e64adc3ba0e6216e6379e66f1b175d7aa8c818f9af1925e",
+  "corpus_hash": "591c6cd10f3067be58abf29ecbda0d5dd2b46eee6d09d99e36057de25aed763b",
+  "dev_cases_count": 136,
+  "total_trials": 125,
+  "grid": {
+    "calibrated_threshold": [
+      0.05,
+      0.1,
+      0.15,
+      0.2,
+      0.25
+    ],
+    "syndrome_inferred_threshold": [
+      0.2,
+      0.3,
+      0.35,
+      0.4,
+      0.5
+    ],
+    "min_syndrome_margin": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3
+    ]
+  },
+  "selection_rule": "Select parameters satisfying dev_wrong_protocol_rate == 0.0 and dev_hard_neg_abstain_recall == 1.0, maximizing known-syndrome Recall@5 and Recall@1, minimizing ECE, and breaking ties towards standard clinical margins.",
+  "selected_params": {
+    "calibrated_threshold": 0.15,
+    "syndrome_inferred_threshold": 0.35,
+    "min_syndrome_margin": 0.25
+  },
+  "dev_metrics_at_selected": {
+    "calibrated_threshold": 0.15,
+    "syndrome_inferred_threshold": 0.35,
+    "min_syndrome_margin": 0.25,
+    "dev_recall_at_5_known_syndrome": 100.0,
+    "dev_recall_at_1_known_syndrome": 36.07,
+    "dev_hard_neg_abstain_recall": 1.0,
+    "dev_wrong_protocol_rate": 0.0,
+    "dev_ece": 0.184
+  },
+  "valid_trials_count": 125,
+  "all_trials": [
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.05,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.1,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.15,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.2,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.2,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.3,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.35,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.4,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.1,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.15,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.2,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.25,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    },
+    {
+      "calibrated_threshold": 0.25,
+      "syndrome_inferred_threshold": 0.5,
+      "min_syndrome_margin": 0.3,
+      "dev_recall_at_5_known_syndrome": 100.0,
+      "dev_recall_at_1_known_syndrome": 36.07,
+      "dev_hard_neg_abstain_recall": 1.0,
+      "dev_wrong_protocol_rate": 0.0,
+      "dev_ece": 0.184
+    }
+  ]
+}

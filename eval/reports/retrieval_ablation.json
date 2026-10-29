@@ -1,179 +1,443 @@
 {
   "suite": "retrieval_ablation",
-  "total_cases": 160,
-  "test_cases": 62,
+  "total_cases": 224,
+  "test_cases": 88,
   "default_production_backend": "bm25",
   "arms": {
     "bm25": {
       "backend": "bm25",
       "label": "Arm 1: Lexical BM25 (Default)",
-      "recall_at_5": 92.16,
-      "mrr": 0.6193,
-      "ndcg_at_5": 0.7848,
+      "recall_at_5": 69.86,
+      "mrr": 0.4715,
+      "ndcg_at_5": 0.5953,
       "wrong_protocol_rate": 0.0,
       "hard_negative_abstain_recall": 1.0,
-      "abstain_precision": 0.8788,
+      "abstain_precision": 0.6393,
       "abstain_recall": 1.0,
-      "ece": 0.1833,
-      "latency_p50_ms": 0.037,
-      "latency_p95_ms": 0.051,
+      "ece": 0.1449,
+      "latency_p50_ms": 0.016,
+      "latency_p95_ms": 0.075,
       "test_split": {
-        "total_cases": 62,
-        "positive_cases": 39,
-        "abstain_cases": 23,
-        "recall_at_5": 92.31,
+        "total_cases": 88,
+        "positive_cases": 56,
+        "abstain_cases": 32,
+        "recall_at_1": 39.29,
+        "recall_at_1_ci95": [
+          26.79,
+          53.57
+        ],
+        "recall_at_3": 73.21,
+        "recall_at_3_ci95": [
+          60.71,
+          83.93
+        ],
+        "recall_at_5": 73.21,
         "recall_at_5_ci95": [
-          82.05,
-          100.0
+          60.71,
+          83.93
         ],
-        "mrr": 0.6026,
+        "mrr": 0.5417,
         "mrr_ci95": [
-          0.5043,
-          0.6966
+          0.4375,
+          0.6577
         ],
-        "ndcg_at_5": 0.7835,
+        "ndcg_at_5": 0.634,
         "ndcg_at_5_ci95": [
-          0.6961,
-          0.8548
+          0.5339,
+          0.7323
         ],
-        "abstain_precision": 0.8846,
+        "abstain_precision": 0.6809,
         "abstain_recall": 1.0,
-        "abstain_accuracy": 95.16,
-        "abstain_code_accuracy": 91.94,
+        "abstain_accuracy": 82.95,
+        "abstain_code_accuracy": 78.41,
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
-        "ece": 0.1724,
-        "latency_p50_ms": 0.04,
-        "latency_p95_ms": 0.067
+        "ece": 0.1451,
+        "latency_p50_ms": 0.032,
+        "latency_p95_ms": 0.103,
+        "syndrome_provided": {
+          "positive_cases": 41,
+          "recall_at_1": 53.66,
+          "recall_at_1_ci95": [
+            39.02,
+            68.29
+          ],
+          "recall_at_3": 100.0,
+          "recall_at_3_ci95": [
+            100.0,
+            100.0
+          ],
+          "recall_at_5": 100.0,
+          "recall_at_5_ci95": [
+            100.0,
+            100.0
+          ],
+          "mrr": 0.7398,
+          "mrr_ci95": [
+            0.6585,
+            0.8252
+          ],
+          "ndcg_at_5": 0.866,
+          "ndcg_at_5_ci95": [
+            0.8331,
+            0.9009
+          ]
+        },
+        "vitals_only": {
+          "positive_cases": 15,
+          "recall_at_1": 0.0,
+          "recall_at_1_ci95": [
+            0.0,
+            0.0
+          ],
+          "recall_at_3": 0.0,
+          "recall_at_3_ci95": [
+            0.0,
+            0.0
+          ],
+          "recall_at_5": 0.0,
+          "recall_at_5_ci95": [
+            0.0,
+            0.0
+          ],
+          "mrr": 0.0,
+          "mrr_ci95": [
+            0.0,
+            0.0
+          ],
+          "ndcg_at_5": 0.0,
+          "ndcg_at_5_ci95": [
+            0.0,
+            0.0
+          ]
+        }
       }
     },
     "dense": {
       "backend": "dense",
       "label": "Arm 2: Dense Vector Cosine (Char 3-gram + Token TF-IDF)",
-      "recall_at_5": 92.16,
-      "mrr": 0.5588,
-      "ndcg_at_5": 0.7597,
+      "recall_at_5": 69.86,
+      "mrr": 0.4281,
+      "ndcg_at_5": 0.5776,
       "wrong_protocol_rate": 0.0,
       "hard_negative_abstain_recall": 1.0,
-      "abstain_precision": 0.8788,
+      "abstain_precision": 0.6393,
       "abstain_recall": 1.0,
-      "ece": 0.2905,
-      "latency_p50_ms": 0.07,
-      "latency_p95_ms": 0.273,
+      "ece": 0.2284,
+      "latency_p50_ms": 0.022,
+      "latency_p95_ms": 0.095,
       "test_split": {
-        "total_cases": 62,
-        "positive_cases": 39,
-        "abstain_cases": 23,
-        "recall_at_5": 92.31,
+        "total_cases": 88,
+        "positive_cases": 56,
+        "abstain_cases": 32,
+        "recall_at_1": 30.36,
+        "recall_at_1_ci95": [
+          19.64,
+          44.64
+        ],
+        "recall_at_3": 67.86,
+        "recall_at_3_ci95": [
+          55.36,
+          80.36
+        ],
+        "recall_at_5": 73.21,
         "recall_at_5_ci95": [
-          82.05,
-          100.0
+          60.71,
+          83.93
         ],
-        "mrr": 0.5577,
+        "mrr": 0.5045,
         "mrr_ci95": [
-          0.4679,
-          0.641
+          0.4107,
+          0.6205
         ],
-        "ndcg_at_5": 0.7645,
+        "ndcg_at_5": 0.6199,
         "ndcg_at_5_ci95": [
-          0.6787,
-          0.8321
+          0.5231,
+          0.718
         ],
-        "abstain_precision": 0.8846,
+        "abstain_precision": 0.6809,
         "abstain_recall": 1.0,
-        "abstain_accuracy": 95.16,
-        "abstain_code_accuracy": 91.94,
+        "abstain_accuracy": 82.95,
+        "abstain_code_accuracy": 78.41,
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
-        "ece": 0.2848,
-        "latency_p50_ms": 0.112,
-        "latency_p95_ms": 0.152
+        "ece": 0.2304,
+        "latency_p50_ms": 0.025,
+        "latency_p95_ms": 0.095,
+        "syndrome_provided": {
+          "positive_cases": 41,
+          "recall_at_1": 41.46,
+          "recall_at_1_ci95": [
+            26.83,
+            58.54
+          ],
+          "recall_at_3": 92.68,
+          "recall_at_3_ci95": [
+            85.37,
+            100.0
+          ],
+          "recall_at_5": 100.0,
+          "recall_at_5_ci95": [
+            100.0,
+            100.0
+          ],
+          "mrr": 0.689,
+          "mrr_ci95": [
+            0.6098,
+            0.7805
+          ],
+          "ndcg_at_5": 0.8467,
+          "ndcg_at_5_ci95": [
+            0.8127,
+            0.8848
+          ]
+        },
+        "vitals_only": {
+          "positive_cases": 15,
+          "recall_at_1": 0.0,
+          "recall_at_1_ci95": [
+            0.0,
+            0.0
+          ],
+          "recall_at_3": 0.0,
+          "recall_at_3_ci95": [
+            0.0,
+            0.0
+          ],
+          "recall_at_5": 0.0,
+          "recall_at_5_ci95": [
+            0.0,
+            0.0
+          ],
+          "mrr": 0.0,
+          "mrr_ci95": [
+            0.0,
+            0.0
+          ],
+          "ndcg_at_5": 0.0,
+          "ndcg_at_5_ci95": [
+            0.0,
+            0.0
+          ]
+        }
       }
     },
     "hybrid_rrf": {
       "backend": "hybrid_rrf",
       "label": "Arm 3: Hybrid Reciprocal Rank Fusion (BM25 + Dense)",
-      "recall_at_5": 92.16,
-      "mrr": 0.6324,
-      "ndcg_at_5": 0.7859,
+      "recall_at_5": 69.86,
+      "mrr": 0.4829,
+      "ndcg_at_5": 0.5972,
       "wrong_protocol_rate": 0.0,
       "hard_negative_abstain_recall": 1.0,
-      "abstain_precision": 0.8788,
+      "abstain_precision": 0.6393,
       "abstain_recall": 1.0,
-      "ece": 0.1833,
-      "latency_p50_ms": 0.066,
-      "latency_p95_ms": 0.156,
+      "ece": 0.1449,
+      "latency_p50_ms": 0.016,
+      "latency_p95_ms": 0.087,
       "test_split": {
-        "total_cases": 62,
-        "positive_cases": 39,
-        "abstain_cases": 23,
-        "recall_at_5": 92.31,
+        "total_cases": 88,
+        "positive_cases": 56,
+        "abstain_cases": 32,
+        "recall_at_1": 39.29,
+        "recall_at_1_ci95": [
+          26.79,
+          53.57
+        ],
+        "recall_at_3": 67.86,
+        "recall_at_3_ci95": [
+          55.36,
+          80.36
+        ],
+        "recall_at_5": 73.21,
         "recall_at_5_ci95": [
-          82.05,
-          100.0
+          60.71,
+          83.93
         ],
-        "mrr": 0.6218,
+        "mrr": 0.5491,
         "mrr_ci95": [
-          0.5256,
-          0.7115
+          0.4464,
+          0.6607
         ],
-        "ndcg_at_5": 0.7874,
+        "ndcg_at_5": 0.6359,
         "ndcg_at_5_ci95": [
-          0.6977,
-          0.8571
+          0.5366,
+          0.7373
         ],
-        "abstain_precision": 0.8846,
+        "abstain_precision": 0.6809,
         "abstain_recall": 1.0,
-        "abstain_accuracy": 95.16,
-        "abstain_code_accuracy": 91.94,
+        "abstain_accuracy": 82.95,
+        "abstain_code_accuracy": 78.41,
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
-        "ece": 0.1724,
-        "latency_p50_ms": 0.069,
-        "latency_p95_ms": 0.146
+        "ece": 0.1451,
+        "latency_p50_ms": 0.021,
+        "latency_p95_ms": 0.095,
+        "syndrome_provided": {
+          "positive_cases": 41,
+          "recall_at_1": 53.66,
+          "recall_at_1_ci95": [
+            39.02,
+            68.29
+          ],
+          "recall_at_3": 92.68,
+          "recall_at_3_ci95": [
+            85.37,
+            100.0
+          ],
+          "recall_at_5": 100.0,
+          "recall_at_5_ci95": [
+            100.0,
+            100.0
+          ],
+          "mrr": 0.75,
+          "mrr_ci95": [
+            0.6707,
+            0.8354
+          ],
+          "ndcg_at_5": 0.8685,
+          "ndcg_at_5_ci95": [
+            0.834,
+            0.906
+          ]
+        },
+        "vitals_only": {
+          "positive_cases": 15,
+          "recall_at_1": 0.0,
+          "recall_at_1_ci95": [
+            0.0,
+            0.0
+          ],
+          "recall_at_3": 0.0,
+          "recall_at_3_ci95": [
+            0.0,
+            0.0
+          ],
+          "recall_at_5": 0.0,
+          "recall_at_5_ci95": [
+            0.0,
+            0.0
+          ],
+          "mrr": 0.0,
+          "mrr_ci95": [
+            0.0,
+            0.0
+          ],
+          "ndcg_at_5": 0.0,
+          "ndcg_at_5_ci95": [
+            0.0,
+            0.0
+          ]
+        }
       }
     },
     "hybrid_rrf_rerank": {
       "backend": "hybrid_rrf_rerank",
       "label": "Arm 4: Hybrid RRF + Lexical Overlap Reranker",
-      "recall_at_5": 92.16,
-      "mrr": 0.6324,
-      "ndcg_at_5": 0.7859,
+      "recall_at_5": 69.86,
+      "mrr": 0.4829,
+      "ndcg_at_5": 0.5972,
       "wrong_protocol_rate": 0.0,
       "hard_negative_abstain_recall": 1.0,
-      "abstain_precision": 0.8788,
+      "abstain_precision": 0.6393,
       "abstain_recall": 1.0,
-      "ece": 0.146,
-      "latency_p50_ms": 0.132,
-      "latency_p95_ms": 0.37,
+      "ece": 0.116,
+      "latency_p50_ms": 0.031,
+      "latency_p95_ms": 0.316,
       "test_split": {
-        "total_cases": 62,
-        "positive_cases": 39,
-        "abstain_cases": 23,
-        "recall_at_5": 92.31,
+        "total_cases": 88,
+        "positive_cases": 56,
+        "abstain_cases": 32,
+        "recall_at_1": 39.29,
+        "recall_at_1_ci95": [
+          26.79,
+          53.57
+        ],
+        "recall_at_3": 67.86,
+        "recall_at_3_ci95": [
+          55.36,
+          80.36
+        ],
+        "recall_at_5": 73.21,
         "recall_at_5_ci95": [
-          82.05,
-          100.0
+          60.71,
+          83.93
         ],
-        "mrr": 0.6218,
+        "mrr": 0.5491,
         "mrr_ci95": [
-          0.5256,
-          0.7115
+          0.4464,
+          0.6607
         ],
-        "ndcg_at_5": 0.7874,
+        "ndcg_at_5": 0.6359,
         "ndcg_at_5_ci95": [
-          0.6977,
-          0.8571
+          0.5366,
+          0.7373
         ],
-        "abstain_precision": 0.8846,
+        "abstain_precision": 0.6809,
         "abstain_recall": 1.0,
-        "abstain_accuracy": 95.16,
-        "abstain_code_accuracy": 91.94,
+        "abstain_accuracy": 82.95,
+        "abstain_code_accuracy": 78.41,
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
-        "ece": 0.1369,
-        "latency_p50_ms": 0.147,
-        "latency_p95_ms": 0.301
+        "ece": 0.1151,
+        "latency_p50_ms": 0.044,
+        "latency_p95_ms": 0.409,
+        "syndrome_provided": {
+          "positive_cases": 41,
+          "recall_at_1": 53.66,
+          "recall_at_1_ci95": [
+            39.02,
+            68.29
+          ],
+          "recall_at_3": 92.68,
+          "recall_at_3_ci95": [
+            85.37,
+            100.0
+          ],
+          "recall_at_5": 100.0,
+          "recall_at_5_ci95": [
+            100.0,
+            100.0
+          ],
+          "mrr": 0.75,
+          "mrr_ci95": [
+            0.6707,
+            0.8354
+          ],
+          "ndcg_at_5": 0.8685,
+          "ndcg_at_5_ci95": [
+            0.834,
+            0.906
+          ]
+        },
+        "vitals_only": {
+          "positive_cases": 15,
+          "recall_at_1": 0.0,
+          "recall_at_1_ci95": [
+            0.0,
+            0.0
+          ],
+          "recall_at_3": 0.0,
+          "recall_at_3_ci95": [
+            0.0,
+            0.0
+          ],
+          "recall_at_5": 0.0,
+          "recall_at_5_ci95": [
+            0.0,
+            0.0
+          ],
+          "mrr": 0.0,
+          "mrr_ci95": [
+            0.0,
+            0.0
+          ],
+          "ndcg_at_5": 0.0,
+          "ndcg_at_5_ci95": [
+            0.0,
+            0.0
+          ]
+        }
       }
     }
   },
