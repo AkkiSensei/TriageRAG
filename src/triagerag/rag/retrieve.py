@@ -23,13 +23,14 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from triagerag.config import get_data_dir
 from triagerag.contracts.enums import AbstainCode, PopulationCategory, RuleStatus
 from triagerag.contracts.schemas import Age, Provenance, RetrievalReport, RetrievedChunk
+from triagerag.normalize.clause_parser import ActionCuesConfig, load_action_cues
 from triagerag.normalize.yaml_loader import load_yaml_decimal
 from triagerag.rag.abstain import (
-    DEFAULT_MIN_RETRIEVAL_THRESHOLD,
+    RetrievalConfig,
     evaluate_abstention_with_code,
     load_retrieval_config,
 )
-from triagerag.rag.ingest import load_corpus_manifest
+from triagerag.rag.ingest import CorpusManifest, load_corpus_manifest
 
 if TYPE_CHECKING:
     from triagerag.contracts.schemas import Patient
@@ -110,15 +111,39 @@ class VitalsFlagsConfig(BaseModel):
     populations: dict[str, list[VitalsFlagRule]]
 
 
+class RetrievalContext(BaseModel):
+    """Immutable retrieval context scoping configs and lexicons to a data_dir (FG-15)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    data_dir: Path
+    config: RetrievalConfig
+    vitals_flags: VitalsFlagsConfig
+    manifest: CorpusManifest
+    action_cues: ActionCuesConfig
+
+
 @lru_cache
 def load_vitals_flags_config(data_dir: Path | None = None) -> VitalsFlagsConfig:
     """Load and validate per-population vitals flag rules using Decimal YAML loader."""
-    target_dir = data_dir or get_data_dir()
+    target_dir = data_dir if data_dir is not None else get_data_dir()
     flags_path = target_dir / "retrieval" / "vitals_flags.yaml"
     if not flags_path.exists():
         flags_path = get_data_dir() / "retrieval" / "vitals_flags.yaml"
     raw_data: Any = load_yaml_decimal(flags_path)
     return VitalsFlagsConfig.model_validate(raw_data)
+
+
+def build_retrieval_context(data_dir: Path | None = None) -> RetrievalContext:
+    """Build an immutable RetrievalContext for the specified data_dir (FG-15)."""
+    target_dir = (data_dir if data_dir is not None else get_data_dir()).resolve()
+    return RetrievalContext(
+        data_dir=target_dir,
+        config=load_retrieval_config(target_dir),
+        vitals_flags=load_vitals_flags_config(target_dir),
+        manifest=load_corpus_manifest(target_dir),
+        action_cues=load_action_cues(target_dir),
+    )
 
 
 def resolve_vitals_population_band(
@@ -152,6 +177,8 @@ def resolve_vitals_population_band(
 def normalize_syndrome(
     raw_syndrome: str | None,
     data_dir: Path | None = None,
+    manifest: CorpusManifest | None = None,
+    context: RetrievalContext | None = None,
 ) -> str | None:
     """Normalize a syndrome string and resolve aliases against the corpus manifest."""
     if raw_syndrome is None:
@@ -159,14 +186,17 @@ def normalize_syndrome(
     cleaned = _NON_ALNUM_RE.sub("_", raw_syndrome.strip().lower()).strip("_")
     if not cleaned:
         return None
-    manifest = load_corpus_manifest(data_dir or get_data_dir())
-    return manifest.syndrome_aliases.get(cleaned, cleaned)
+    eff_manifest = manifest or (
+        context.manifest if context is not None else load_corpus_manifest(data_dir)
+    )
+    return eff_manifest.syndrome_aliases.get(cleaned, cleaned)
 
 
 def derive_vitals_flags_with_trace(
     patient: Patient,
     data_dir: Path | None = None,
     config: VitalsFlagsConfig | None = None,
+    context: RetrievalContext | None = None,
 ) -> tuple[list[str], list[str], str | None]:
     """Derive standardized categorical physiological flags and skipped-flag trace.
 
@@ -176,7 +206,11 @@ def derive_vitals_flags_with_trace(
     - Rules with status != ACTIVE or threshold is None fail closed and are recorded in
       skipped_flags so the Retrieval Inspector shows why no flag was emitted.
     """
-    cfg = config if config is not None else load_vitals_flags_config(data_dir)
+    cfg = (
+        config
+        if config is not None
+        else (context.vitals_flags if context is not None else load_vitals_flags_config(data_dir))
+    )
     resolved_band = resolve_vitals_population_band(patient.age, cfg)
     skipped_flags: list[str] = []
 
@@ -236,10 +270,11 @@ def derive_vitals_flags(
     patient: Patient,
     data_dir: Path | None = None,
     config: VitalsFlagsConfig | None = None,
+    context: RetrievalContext | None = None,
 ) -> list[str]:
     """Derive standardized categorical physiological flags from measured vitals."""
     flags, _skipped, _band = derive_vitals_flags_with_trace(
-        patient, data_dir=data_dir, config=config
+        patient, data_dir=data_dir, config=config, context=context
     )
     return flags
 
@@ -248,16 +283,19 @@ def build_retrieval_query(
     patient: Patient,
     data_dir: Path | None = None,
     config: VitalsFlagsConfig | None = None,
+    context: RetrievalContext | None = None,
 ) -> tuple[str, list[str]]:
     """Build a search query from structured clinical attributes.
 
     Rule R7: chief_complaint_untrusted is explicitly forbidden from query construction.
     RAG-07: No arbitrary ×3 token repetition; syndrome is enforced as a hard metadata filter.
     """
-    flags = derive_vitals_flags(patient, data_dir=data_dir, config=config)
+    flags = derive_vitals_flags(patient, data_dir=data_dir, config=config, context=context)
     query_parts: list[str] = []
 
-    norm_syndrome = normalize_syndrome(patient.suspected_syndrome, data_dir=data_dir)
+    norm_syndrome = normalize_syndrome(
+        patient.suspected_syndrome, data_dir=data_dir, context=context
+    )
     if norm_syndrome:
         query_parts.append(norm_syndrome)
 
@@ -269,19 +307,28 @@ def build_retrieval_query(
 def retrieve_protocol_chunks(
     patient: Patient,
     index: Retriever,
-    threshold: float = DEFAULT_MIN_RETRIEVAL_THRESHOLD,
+    threshold: float | None = None,
     top_k: int | None = None,
     vitals_flags_config: VitalsFlagsConfig | None = None,
+    context: RetrievalContext | None = None,
 ) -> RetrievalReport:
     """Retrieve verified protocol chunks matching patient population and controlled syndrome."""
-    cfg = load_retrieval_config()
+    ctx_from_index: RetrievalContext | None = getattr(index, "retrieval_context", None)
+    ctx: RetrievalContext = (
+        context
+        if context is not None
+        else (ctx_from_index if ctx_from_index is not None else build_retrieval_context())
+    )
+    cfg = ctx.config
+    vf_cfg = vitals_flags_config if vitals_flags_config is not None else ctx.vitals_flags
+    manifest = ctx.manifest
     eff_top_k = top_k if top_k is not None else cfg.top_k
 
     pop = str(patient.age.population_category).lower().strip()
     flags, skipped_flags, resolved_band = derive_vitals_flags_with_trace(
-        patient, config=vitals_flags_config
+        patient, config=vf_cfg, context=ctx
     )
-    norm_syndrome = normalize_syndrome(patient.suspected_syndrome)
+    norm_syndrome = normalize_syndrome(patient.suspected_syndrome, manifest=manifest, context=ctx)
     query_parts: list[str] = []
     if norm_syndrome:
         query_parts.append(norm_syndrome)
@@ -331,7 +378,6 @@ def retrieve_protocol_chunks(
 
     # RAG-01: When suspected_syndrome is provided, validate against controlled vocabulary
     if norm_syndrome is not None:
-        manifest = load_corpus_manifest(get_data_dir())
         known_global = set(manifest.controlled_syndromes) | index.known_syndromes()
         if norm_syndrome not in known_global:
             return RetrievalReport(
@@ -402,6 +448,7 @@ def retrieve_protocol_chunks(
         population_available=pop_available,
         threshold=threshold,
         syndrome_provided=(norm_syndrome is not None),
+        config=cfg,
     )
 
     if abstained:

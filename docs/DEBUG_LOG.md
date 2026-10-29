@@ -324,5 +324,35 @@
   - `test_population_category_monotone_in_age` (200 Hypothesis examples)
 
 
+### Fix Gate G3 — Abstention Logic & Context Hygiene (`fg-3`)
+- **Flags Addressed:**
+  - **FG-03 (P0):** `SYNDROME_INFERRED` / `AMBIGUOUS_MARGIN` had no downstream enforcement in plan verification; inferred syndrome could reach `StepStatus.APPROVED` without clinician confirmation.
+  - **FG-05 (P0):** `DEFAULT_MIN_RETRIEVAL_THRESHOLD` loaded YAML at import time; `syndrome_inferred_threshold` in config was dead code because service callers always passed non-None `calibrated_threshold`; `if eff_threshold > 1.0` was test-only logic.
+  - **FG-15 (P1):** `RetrievalService.reload()` failed to clear `@lru_cache` on config and lexicon loaders; retrieval hot path functions called `get_data_dir()`, causing cross-contamination between custom `data_dir` and default.
+  - **HD-4:** Open human decision regarding whether `SYNDROME_INFERRED` may ever permit approved steps.
+- **Root Cause:**
+  1. Missing safety status lattice state for inferred syndrome requiring clinician confirmation.
+  2. Hardcoded parameter defaults in wrapper signatures shadowing the underlying config selection logic.
+  3. Uncoordinated LRU caches across modules with implicit global path resolution.
+- **Remediation:**
+  1. Authored ADR 0007 (`docs/adr/0007-syndrome-inferred-confirmation-gate.md`) and added `StepStatus.REQUIRES_CLINICIAN_CONFIRMATION`. In `verify_plan`, when `retrieval_abstain_code == AbstainCode.SYNDROME_INFERRED`, steps cannot reach `APPROVED`, capped at `REQUIRES_CLINICIAN_CONFIRMATION`. Overrides cannot convert inferred steps to `APPROVED`. Recorded **HD-4** in `BACKLOG.md`.
+  2. Removed `DEFAULT_MIN_RETRIEVAL_THRESHOLD` and import-time YAML parse. Threshold defaults to `None` down the call stack. Mode (`syndrome_provided` vs inferred) selects `calibrated_threshold` vs `syndrome_inferred_threshold`. Removed `> 1.0` branch.
+  3. Created immutable frozen `RetrievalContext` holding resolved `data_dir`, `config`, `vitals_flags`, `manifest`, and `action_cues`. `RetrievalService.reload()` clears all config and lexicon caches before rebuilding. Hot-path functions take `context: RetrievalContext` with 0 `get_data_dir()` calls.
+  4. Updated UI components (`format_step_status_display`), CLI, and React `VerifiedPlanView` to handle `REQUIRES_CLINICIAN_CONFIRMATION`.
+  5. Added mutants `M38_IGNORE_SYNDROME_INFERRED` and `M39_ALWAYS_USE_CALIBRATED_THRESHOLD` to `eval/run_mutation.py` (both killed, 51/51 killed, 100%).
+- **Tests (`tests/unit/test_fg3_abstention_and_context.py`):**
+  - `test_inferred_syndrome_never_approves_any_step`
+  - `test_inferred_syndrome_banner_in_api_and_ui_payload`
+  - `test_ambiguous_margin_returns_planless_with_reason`
+  - `test_audit_records_syndrome_inferred_code`
+  - `test_inferred_mode_uses_inferred_threshold`
+  - `test_known_syndrome_threshold_boundary`
+  - `test_every_config_key_is_read`
+  - `test_no_import_time_config_load`
+  - `test_reload_picks_up_edited_config`
+  - `test_custom_data_dir_isolated_from_default`
+  - `test_no_get_data_dir_calls_in_retrieval_hot_path`
+
+
 
 

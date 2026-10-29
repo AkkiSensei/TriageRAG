@@ -192,6 +192,7 @@ def run_triage(
             baseline_alerts=baseline_alerts,
             retrieved_chunks=retrieval_report.chunks,
             registry=registry,
+            retrieval_abstain_code=retrieval_report.abstain_code,
         )
         verified_steps = v_steps
         plan_alerts = p_alerts
@@ -204,7 +205,10 @@ def run_triage(
         while repair_attempts < cfg.max_repair_cycles:
             raw_violations: list[str] = []
             for s in verified_steps:
-                if s.status != StepStatus.APPROVED:
+                if s.status not in (
+                    StepStatus.APPROVED,
+                    StepStatus.REQUIRES_CLINICIAN_CONFIRMATION,
+                ):
                     raw_violations.extend(s.rejection_reasons)
 
             if not raw_violations or llm is None:
@@ -229,6 +233,7 @@ def run_triage(
                     baseline_alerts=baseline_alerts,
                     retrieved_chunks=retrieval_report.chunks,
                     registry=registry,
+                    retrieval_abstain_code=retrieval_report.abstain_code,
                 )
                 verified_steps = v_steps
                 plan_alerts = p_alerts
@@ -251,17 +256,27 @@ def run_triage(
                             f"{override.clinician_id}"
                         )
                         raise PermissionError(msg)
-                    if v_step.status == StepStatus.FLAGGED_HIGH:
+                    if v_step.status in (
+                        StepStatus.FLAGGED_HIGH,
+                        StepStatus.REQUIRES_CLINICIAN_CONFIRMATION,
+                    ):
                         # HIGH override is permitted when logged
+                        # FG-03 / HD-4: Inferred syndrome can never reach APPROVED
+                        new_status = (
+                            StepStatus.REQUIRES_CLINICIAN_CONFIRMATION
+                            if retrieval_report.abstain_code == AbstainCode.SYNDROME_INFERRED
+                            else StepStatus.APPROVED
+                        )
                         verified_steps[i] = VerifiedStep(
                             draft=v_step.draft,
-                            status=StepStatus.APPROVED,
+                            status=new_status,
                             triggered_rule_ids=v_step.triggered_rule_ids,
                             rejection_reasons=[
                                 f"OVERRIDDEN by {override.clinician_id}: {override.reason}"
                             ],
                             citation_verified=v_step.citation_verified,
                             citation_overlap_score=v_step.citation_overlap_score,
+                            support_reason=v_step.support_reason,
                         )
 
     # 8. Verdict Lattice Resolution (Section 4)

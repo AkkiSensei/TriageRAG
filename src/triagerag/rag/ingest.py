@@ -15,12 +15,14 @@ from __future__ import annotations
 import hashlib
 import logging
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
+from triagerag.config import get_data_dir
 from triagerag.contracts.enums import SourceStatus
 from triagerag.rag.chunking import ProtocolChunk, chunk_protocol_markdown
 
@@ -140,16 +142,18 @@ def compute_corpus_hash(chunks: list[ProtocolChunk]) -> str:
     return hasher.hexdigest()
 
 
-def load_corpus_manifest(data_dir: Path) -> CorpusManifest:
+@lru_cache
+def load_corpus_manifest(data_dir: Path | None = None) -> CorpusManifest:
     """Load data/corpus/manifest.yaml if present, or derive from ingested chunks."""
-    manifest_path = data_dir / "corpus" / "manifest.yaml"
+    target_dir = (data_dir if data_dir is not None else get_data_dir()).resolve()
+    manifest_path = target_dir / "corpus" / "manifest.yaml"
     if manifest_path.exists():
         raw = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
         if isinstance(raw, dict):
             return CorpusManifest.model_validate(raw)
 
     # Fallback derivation when operating on a temporary test data_dir without manifest.yaml
-    report = ingest_protocols_with_report(data_dir, strict_unparsed=False)
+    report = ingest_protocols_with_report(target_dir, strict_unparsed=False)
     syndromes = sorted({c.syndrome for c in report.chunks if c.syndrome})
     return CorpusManifest(
         manifest_version="1.0.0",

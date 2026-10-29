@@ -15,6 +15,7 @@ Safety Properties (Rules R1, R2, R3, FG-01, FG-16):
 from __future__ import annotations
 
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
@@ -110,6 +111,7 @@ class ActionCuesConfig(BaseModel):
     provenance: Provenance
 
 
+@lru_cache
 def load_action_cues(data_dir: Path | None = None) -> ActionCuesConfig:
     """Load action cue lexicon and citation verification thresholds from YAML."""
     resolved_dir = data_dir if data_dir is not None else get_data_dir()
@@ -118,6 +120,7 @@ def load_action_cues(data_dir: Path | None = None) -> ActionCuesConfig:
     return ActionCuesConfig.model_validate(raw)
 
 
+@lru_cache
 def load_default_drug_term_map(data_dir: Path | None = None) -> dict[str, set[str]]:
     """Build mapping from canonical drug_id to lowercase surface forms from formulary & aliases."""
     resolved_dir = data_dir if data_dir is not None else get_data_dir()

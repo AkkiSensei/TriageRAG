@@ -49,6 +49,8 @@ def format_step_status_display(status: StepStatus) -> str:
     """Format step status for display."""
     if status == StepStatus.BLOCKED_STRUCK_THROUGH:
         return "[BLOCKED - STRUCK THROUGH]"
+    if status == StepStatus.REQUIRES_CLINICIAN_CONFIRMATION:
+        return "[REQUIRES CLINICIAN CONFIRMATION]"
     return status.value
 
 
@@ -152,6 +154,8 @@ def render_verified_plan(verified_steps: list[VerifiedStep]) -> None:
             status_badge = "🟠 FLAGGED HIGH"
         elif status == StepStatus.FLAGGED_MODERATE:
             status_badge = "🟡 FLAGGED MODERATE"
+        elif status == StepStatus.REQUIRES_CLINICIAN_CONFIRMATION:
+            status_badge = "🟠 REQUIRES CLINICIAN CONFIRMATION"
         else:
             status_badge = f"⚪ {status.value}"
 

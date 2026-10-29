@@ -47,6 +47,12 @@ export const VerifiedPlanView: React.FC<VerifiedPlanViewProps> = ({ steps }) => 
             <AlertTriangle className="h-3 w-3" /> FLAGGED MODERATE
           </span>
         )
+      case 'REQUIRES_CLINICIAN_CONFIRMATION':
+        return (
+          <span className="flex items-center gap-1 rounded-full bg-amber-100 border border-amber-400 px-2.5 py-0.5 text-[11px] font-mono font-bold text-amber-950">
+            <AlertTriangle className="h-3 w-3" /> REQUIRES CLINICIAN CONFIRMATION
+          </span>
+        )
       case 'CITATION_UNVERIFIED':
         return (
           <span className="flex items-center gap-1 rounded-full bg-purple-100 border border-purple-300 px-2.5 py-0.5 text-[11px] font-mono font-bold text-purple-900">

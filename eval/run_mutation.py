@@ -1252,6 +1252,157 @@ def build_code_mutants() -> list[CodeMutant]:
         )
     )
 
+    # 38. Ignore SYNDROME_INFERRED confirmation gate in verify_plan (FG-03, HD-4)
+    def test_ignore_syndrome_inferred_mutant(reg: ClinicalRegistry) -> None:
+        from triagerag.contracts.enums import AbstainCode, StepStatus
+        from triagerag.contracts.schemas import (
+            PlanDraft,
+            PlanStepDraft,
+            RetrievedChunk,
+            SpanCitation,
+        )
+        from triagerag.normalize.clause_parser import parse_clause_drug_actions
+        from triagerag.verify.plan_verifier import verify_plan
+
+        now = datetime(2026, 10, 26, 12, 0, tzinfo=UTC)
+        p = Patient(
+            assessed_at=now,
+            age=Age(value=Decimal("40"), unit=AgeUnit.years),
+            sex="female",
+            pregnancy="no",
+            weight_kg=Measured[Decimal](value=Decimal("65.0"), source="measured"),
+            vitals=Vitals(
+                heart_rate_bpm=Measured[int](value=120, source="measured"),
+                systolic_bp_mmhg=Measured[int](value=85, source="measured"),
+            ),
+            medication_history_status="confirmed_none",
+            allergy_history_status="confirmed_none",
+        )
+        node_text = (
+            "1. IF the adult patient presents with hypotension:\n"
+            "   THEN administer intravenous fluid volume resuscitation."
+        )
+        chunk = RetrievedChunk(
+            doc_id="EMERG_SHOCK",
+            section="Shock Management",
+            chunk_id="SHOCK_01_NODE_1",
+            parent_id="SHOCK_01",
+            text=node_text,
+            population="adult",
+            syndrome="septic_shock",
+            drug_actions=parse_clause_drug_actions(node_text),
+        )
+        draft = PlanDraft(
+            matched_protocol_title="Shock Management",
+            steps=[
+                PlanStepDraft(
+                    step_number=1,
+                    action_type=ActionType.maneuver,
+                    narrative_instruction="Administer intravenous fluid volume resuscitation",
+                    citations=[
+                        SpanCitation(
+                            doc_id="EMERG_SHOCK",
+                            section="Shock Management",
+                            chunk_id="SHOCK_01_NODE_1",
+                            quoted_span="administer intravenous fluid volume resuscitation",
+                        )
+                    ],
+                )
+            ],
+        )
+        # Production behavior: Must be REQUIRES_CLINICIAN_CONFIRMATION, never APPROVED
+        steps_prod, _, _, _ = verify_plan(
+            patient=p,
+            draft=draft,
+            baseline_alerts=[],
+            retrieved_chunks=[chunk],
+            registry=reg,
+            retrieval_abstain_code=AbstainCode.SYNDROME_INFERRED,
+            ignore_syndrome_inferred=False,
+        )
+        assert steps_prod[0].status == StepStatus.REQUIRES_CLINICIAN_CONFIRMATION
+        assert steps_prod[0].status != StepStatus.APPROVED
+
+        # Mutant behavior: mutating to ignore_syndrome_inferred=True inappropriately approves
+        steps_mutant, _, _, _ = verify_plan(
+            patient=p,
+            draft=draft,
+            baseline_alerts=[],
+            retrieved_chunks=[chunk],
+            registry=reg,
+            retrieval_abstain_code=AbstainCode.SYNDROME_INFERRED,
+            ignore_syndrome_inferred=True,
+        )
+        msg = "Mutant did not exhibit mutated approval"
+        assert steps_mutant[0].status == StepStatus.APPROVED, msg
+
+    mutants.append(
+        CodeMutant(
+            "M38_IGNORE_SYNDROME_INFERRED",
+            "Ignoring SYNDROME_INFERRED downstream and approving inferred-syndrome plan steps",
+            test_ignore_syndrome_inferred_mutant,
+        )
+    )
+
+    # 39. Always use calibrated_threshold even when syndrome is inferred (FG-05)
+    def test_always_use_calibrated_threshold_mutant(reg: ClinicalRegistry) -> None:
+        from triagerag.contracts.enums import AbstainCode
+        from triagerag.rag.abstain import (
+            evaluate_abstention_with_code,
+            load_retrieval_config,
+        )
+        from triagerag.rag.chunking import ProtocolChunk
+
+        cfg = load_retrieval_config().model_copy(
+            update={"calibrated_threshold": 0.05, "syndrome_inferred_threshold": 0.60}
+        )
+        # Create a mock scored chunk with raw score 0.25 -> normalized score 0.20
+        # 0.20 is above calibrated_threshold (0.05) but below syndrome_inferred_threshold (0.60)
+        chunk = ProtocolChunk(
+            doc_id="D1",
+            section="S1",
+            chunk_id="C1",
+            text="text",
+            population="adult",
+            syndrome="chest_pain",
+            content_hash="h1",
+        )
+        scored = [(chunk, 0.25)]
+
+        # Production behavior: with syndrome_provided=False, eff_threshold is 0.60 -> LOW_CONFIDENCE
+        abstained_prod, code_prod, _ = evaluate_abstention_with_code(
+            scored_chunks=scored,
+            population="adult",
+            population_available=True,
+            threshold=None,
+            syndrome_provided=False,
+            config=cfg,
+            use_calibrated_for_inferred=False,
+        )
+        assert abstained_prod is True
+        assert code_prod == AbstainCode.LOW_CONFIDENCE
+
+        # Mutant: with use_calibrated_for_inferred=True, eff_threshold is 0.05 -> NOT abstained
+        abstained_mut, code_mut, _ = evaluate_abstention_with_code(
+            scored_chunks=scored,
+            population="adult",
+            population_available=True,
+            threshold=None,
+            syndrome_provided=False,
+            config=cfg,
+            use_calibrated_for_inferred=True,
+        )
+        assert abstained_mut is False, "Mutant did not exhibit mutated clearance"
+        assert code_mut == AbstainCode.SYNDROME_INFERRED
+
+    mutants.append(
+        CodeMutant(
+            "M39_ALWAYS_USE_CALIBRATED_THRESHOLD",
+            "Always using calibrated_threshold even when syndrome is inferred from vitals",
+            test_always_use_calibrated_threshold_mutant,
+        )
+    )
+
     return mutants
 
 

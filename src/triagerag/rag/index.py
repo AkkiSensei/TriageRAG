@@ -26,7 +26,7 @@ from pydantic import BaseModel, ConfigDict
 
 from triagerag.config import get_data_dir
 from triagerag.contracts.schemas import Provenance
-from triagerag.rag.abstain import load_retrieval_config
+from triagerag.rag.abstain import RetrievalConfig, load_retrieval_config
 from triagerag.rag.chunking import ProtocolChunk
 from triagerag.rag.ingest import compute_corpus_hash
 
@@ -144,6 +144,7 @@ class Retriever(Protocol):
     corpus_hash: str
     index_version: str
     index_by_population: dict[str, list[int]]
+    retrieval_context: Any
 
     def known_syndromes(self, population: str | None = None) -> set[str]: ...
 
@@ -194,17 +195,21 @@ class BM25ClinicalIndex:
         self,
         chunks: list[ProtocolChunk],
         acronyms: dict[str, str] | None = None,
+        synonyms: dict[str, list[str]] | None = None,
+        config: RetrievalConfig | None = None,
+        retrieval_context: Any = None,
     ) -> None:
-        cfg = load_retrieval_config()
+        cfg = config if config is not None else load_retrieval_config()
         self.k1: float = cfg.bm25_k1
         self.b: float = cfg.bm25_b
         self.score_decimal_places: int = cfg.score_decimal_places
         self.default_top_k: int = cfg.top_k
-        self.tokenizer = ClinicalTokenizer(acronyms=acronyms)
+        self.tokenizer = ClinicalTokenizer(acronyms=acronyms, synonyms=synonyms)
         self.all_chunks: tuple[ProtocolChunk, ...] = tuple(chunks)
         self.corpus_hash: str = compute_corpus_hash(chunks)
         self.index_version: str = "2.0.0"
         self.backend: str = "bm25"
+        self.retrieval_context: Any = retrieval_context
 
         self.parents_by_id: dict[str, ProtocolChunk] = {
             c.chunk_id: c for c in self.all_chunks if c.parent_id is None

@@ -15,8 +15,8 @@
       "abstain_precision": 0.8788,
       "abstain_recall": 1.0,
       "ece": 0.1833,
-      "latency_p50_ms": 7.38,
-      "latency_p95_ms": 14.27,
+      "latency_p50_ms": 0.037,
+      "latency_p95_ms": 0.051,
       "test_split": {
         "total_cases": 62,
         "positive_cases": 39,
@@ -43,8 +43,8 @@
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
         "ece": 0.1724,
-        "latency_p50_ms": 7.323,
-        "latency_p95_ms": 12.967
+        "latency_p50_ms": 0.04,
+        "latency_p95_ms": 0.067
       }
     },
     "dense": {
@@ -58,8 +58,8 @@
       "abstain_precision": 0.8788,
       "abstain_recall": 1.0,
       "ece": 0.2905,
-      "latency_p50_ms": 7.35,
-      "latency_p95_ms": 12.731,
+      "latency_p50_ms": 0.07,
+      "latency_p95_ms": 0.273,
       "test_split": {
         "total_cases": 62,
         "positive_cases": 39,
@@ -86,8 +86,8 @@
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
         "ece": 0.2848,
-        "latency_p50_ms": 7.464,
-        "latency_p95_ms": 13.318
+        "latency_p50_ms": 0.112,
+        "latency_p95_ms": 0.152
       }
     },
     "hybrid_rrf": {
@@ -101,8 +101,8 @@
       "abstain_precision": 0.8788,
       "abstain_recall": 1.0,
       "ece": 0.1833,
-      "latency_p50_ms": 8.003,
-      "latency_p95_ms": 12.09,
+      "latency_p50_ms": 0.066,
+      "latency_p95_ms": 0.156,
       "test_split": {
         "total_cases": 62,
         "positive_cases": 39,
@@ -129,8 +129,8 @@
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
         "ece": 0.1724,
-        "latency_p50_ms": 8.385,
-        "latency_p95_ms": 11.323
+        "latency_p50_ms": 0.069,
+        "latency_p95_ms": 0.146
       }
     },
     "hybrid_rrf_rerank": {
@@ -144,8 +144,8 @@
       "abstain_precision": 0.8788,
       "abstain_recall": 1.0,
       "ece": 0.146,
-      "latency_p50_ms": 7.552,
-      "latency_p95_ms": 11.289,
+      "latency_p50_ms": 0.132,
+      "latency_p95_ms": 0.37,
       "test_split": {
         "total_cases": 62,
         "positive_cases": 39,
@@ -172,8 +172,8 @@
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
         "ece": 0.1369,
-        "latency_p50_ms": 8.417,
-        "latency_p95_ms": 11.327
+        "latency_p50_ms": 0.147,
+        "latency_p95_ms": 0.301
       }
     }
   },

@@ -48,7 +48,7 @@ class RetrievalConfig(BaseModel):
 @lru_cache
 def load_retrieval_config(data_dir: Path | None = None) -> RetrievalConfig:
     """Load and validate calibrated retrieval configuration from YAML."""
-    target_dir = data_dir or get_data_dir()
+    target_dir = data_dir if data_dir is not None else get_data_dir()
     cfg_path = target_dir / "retrieval" / "config.yaml"
     if not cfg_path.exists():
         cfg_path = get_data_dir() / "retrieval" / "config.yaml"
@@ -60,9 +60,6 @@ def load_retrieval_config(data_dir: Path | None = None) -> RetrievalConfig:
         raise ValueError(f"Invalid retrieval config in {cfg_path}")
     parsed["config_hash"] = cfg_hash
     return RetrievalConfig.model_validate(parsed)
-
-
-DEFAULT_MIN_RETRIEVAL_THRESHOLD: float = load_retrieval_config().calibrated_threshold
 
 
 def normalize_relevance_score(raw_score: float) -> float:
@@ -79,13 +76,20 @@ def evaluate_abstention_with_code(
     threshold: float | None = None,
     syndrome_provided: bool = True,
     min_margin: float | None = None,
+    config: RetrievalConfig | None = None,
+    *,
+    use_calibrated_for_inferred: bool = False,
 ) -> tuple[bool, AbstainCode, str | None]:
     """Evaluate calibrated abstention and top-1/top-2 syndrome margin rules."""
-    cfg = load_retrieval_config()
+    cfg = config if config is not None else load_retrieval_config()
     eff_threshold = (
         threshold
         if threshold is not None
-        else (cfg.calibrated_threshold if syndrome_provided else cfg.syndrome_inferred_threshold)
+        else (
+            cfg.calibrated_threshold
+            if (syndrome_provided or use_calibrated_for_inferred)
+            else cfg.syndrome_inferred_threshold
+        )
     )
     eff_margin = min_margin if min_margin is not None else cfg.min_syndrome_margin
 
@@ -99,11 +103,9 @@ def evaluate_abstention_with_code(
     best_score = float(scored_chunks[0][1])
     norm_best = normalize_relevance_score(best_score)
 
-    # Support explicit caller-supplied high thresholds (e.g. threshold > 1.0 in unit tests)
-    compare_val = best_score if eff_threshold > 1.0 else norm_best
-    if compare_val < eff_threshold or best_score <= 0.0:
+    if norm_best < eff_threshold or best_score <= 0.0:
         msg = (
-            f"Top retrieval relevance {compare_val:.2f} (raw {best_score:.2f}) is below "
+            f"Top retrieval relevance {norm_best:.2f} (raw {best_score:.2f}) is below "
             f"calibrated threshold {eff_threshold:.2f}"
         )
         return True, AbstainCode.LOW_CONFIDENCE, msg
@@ -145,7 +147,8 @@ def evaluate_abstention(
     scored_chunks: list[tuple[ProtocolChunk, float]],
     population: str,
     population_available: bool,
-    threshold: float = DEFAULT_MIN_RETRIEVAL_THRESHOLD,
+    threshold: float | None = None,
+    config: RetrievalConfig | None = None,
 ) -> tuple[bool, str | None]:
     """Backwards-compatible abstention tuple (abstained, reason)."""
     abstained, _code, reason = evaluate_abstention_with_code(
@@ -154,5 +157,6 @@ def evaluate_abstention(
         population_available=population_available,
         threshold=threshold,
         syndrome_provided=True,
+        config=config,
     )
     return abstained, reason

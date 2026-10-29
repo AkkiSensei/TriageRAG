@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import math
 from collections import Counter
+from typing import Any
 
 from triagerag.rag.abstain import load_retrieval_config
 from triagerag.rag.chunking import ProtocolChunk
@@ -45,6 +46,7 @@ class DenseRetriever:
         self.corpus_hash: str = compute_corpus_hash(chunks)
         self.index_version: str = "2.0.0"
         self.backend: str = "dense"
+        self.retrieval_context: Any = None
 
         self.parents_by_id: dict[str, ProtocolChunk] = {
             c.chunk_id: c for c in self.all_chunks if c.parent_id is None
@@ -160,6 +162,7 @@ class HybridRRFRetriever:
         self.index_version: str = "2.0.0"
         self.backend: str = "hybrid_rrf_rerank" if rerank else "hybrid_rrf"
         self.index_by_population: dict[str, list[int]] = self.bm25.index_by_population
+        self.retrieval_context: Any = None
 
     def known_syndromes(self, population: str | None = None) -> set[str]:
         return self.bm25.known_syndromes(population=population)

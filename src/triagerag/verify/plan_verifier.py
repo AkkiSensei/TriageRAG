@@ -14,7 +14,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from triagerag.contracts.enums import ActionType, Severity, StepStatus
+from triagerag.contracts.enums import AbstainCode, ActionType, Severity, StepStatus
 from triagerag.contracts.schemas import (
     Alert,
     CalculatedDoseReport,
@@ -38,6 +38,9 @@ def verify_plan(
     baseline_alerts: list[Alert],
     retrieved_chunks: list[RetrievedChunk],
     registry: ClinicalRegistry,
+    retrieval_abstain_code: AbstainCode = AbstainCode.NONE,
+    *,
+    ignore_syndrome_inferred: bool = False,
 ) -> tuple[list[VerifiedStep], list[Alert], list[SkippedCheck], list[CalculatedDoseReport]]:
     """Machine-verify all steps in a drafted protocol plan.
 
@@ -172,6 +175,18 @@ def verify_plan(
         # 5. Citation status overrides if not already blocked
         if not citations_ok and status != StepStatus.BLOCKED_STRUCK_THROUGH:
             status = StepStatus.CITATION_UNVERIFIED
+
+        # 6. Syndrome inferred confirmation gate (FG-03, HD-4, ADR 0007)
+        if (
+            status == StepStatus.APPROVED
+            and retrieval_abstain_code == AbstainCode.SYNDROME_INFERRED
+            and not ignore_syndrome_inferred
+        ):
+            status = StepStatus.REQUIRES_CLINICIAN_CONFIRMATION
+            rejection_reasons.append(
+                "Syndrome inferred from physiological flags (SYNDROME_INFERRED); "
+                "requires explicit clinician confirmation before approval"
+            )
 
         # Final verified step record
         verified_steps.append(
