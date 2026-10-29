@@ -18,11 +18,11 @@ from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from triagerag.config import get_data_dir
-from triagerag.contracts.enums import AbstainCode, RuleStatus
-from triagerag.contracts.schemas import Provenance, RetrievalReport, RetrievedChunk
+from triagerag.contracts.enums import AbstainCode, PopulationCategory, RuleStatus
+from triagerag.contracts.schemas import Age, Provenance, RetrievalReport, RetrievedChunk
 from triagerag.normalize.yaml_loader import load_yaml_decimal
 from triagerag.rag.abstain import (
     DEFAULT_MIN_RETRIEVAL_THRESHOLD,
@@ -38,8 +38,35 @@ if TYPE_CHECKING:
 _NON_ALNUM_RE = re.compile(r"[^a-zA-Z0-9]+")
 
 
+class PaediatricAgeBandSpec(BaseModel):
+    """Age band specification in days for paediatric vitals flag selection (FG-02, HD-1)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    band_id: str
+    min_days_exclusive: Decimal
+    max_days_inclusive: Decimal
+
+
+class AgeClassificationConfig(BaseModel):
+    """Chronological age normalization and boundary configuration (FG-04, HD-2)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    days_per_month: Decimal
+    days_per_year: Decimal
+    neonate_max_days: Decimal
+    adult_min_years: Decimal
+    adult_min_days: Decimal
+    max_days_input: Decimal
+    max_months_input: Decimal
+    max_years_input: Decimal
+    paediatric_bands: list[PaediatricAgeBandSpec] = Field(default_factory=list)
+    provenance: Provenance
+
+
 class VitalsFlagRule(BaseModel):
-    """Per-population physiological flag rule with Provenance (RAG-03)."""
+    """Per-population physiological flag rule with Provenance (RAG-03, FG-02)."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -52,6 +79,26 @@ class VitalsFlagRule(BaseModel):
     status: RuleStatus
     provenance: Provenance
 
+    @model_validator(mode="after")
+    def validate_active_requires_verified_provenance(self) -> VitalsFlagRule:
+        if self.status == RuleStatus.ACTIVE:
+            if not self.provenance.verified:
+                raise ValueError(
+                    f"VitalsFlagRule '{self.id}' cannot have status=ACTIVE with "
+                    "provenance.verified=False (FG-02 / Rule R3: unsourced rules must be "
+                    "NEEDS_SOURCE)"
+                )
+            if self.operator != "in" and self.threshold is None:
+                raise ValueError(
+                    f"VitalsFlagRule '{self.id}' with status=ACTIVE requires a non-None threshold"
+                )
+            if self.operator == "in" and not self.allowed_values:
+                raise ValueError(
+                    f"VitalsFlagRule '{self.id}' with status=ACTIVE and operator='in' "
+                    "requires non-empty allowed_values"
+                )
+        return self
+
 
 class VitalsFlagsConfig(BaseModel):
     """Per-population vitals flag configuration loaded from data/retrieval/vitals_flags.yaml."""
@@ -59,6 +106,7 @@ class VitalsFlagsConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     version: str
+    age_classification: AgeClassificationConfig
     populations: dict[str, list[VitalsFlagRule]]
 
 
@@ -71,6 +119,34 @@ def load_vitals_flags_config(data_dir: Path | None = None) -> VitalsFlagsConfig:
         flags_path = get_data_dir() / "retrieval" / "vitals_flags.yaml"
     raw_data: Any = load_yaml_decimal(flags_path)
     return VitalsFlagsConfig.model_validate(raw_data)
+
+
+def resolve_vitals_population_band(
+    age: Age,
+    cfg: VitalsFlagsConfig,
+) -> str | None:
+    """Resolve the vitals flag population/age band key for a given chronological Age.
+
+    Safety (FG-02):
+    - Adult -> 'adult' (if present in cfg.populations).
+    - Neonate -> 'neonate' (if present in cfg.populations).
+    - Paediatric -> selects age-specific band from cfg.age_classification.paediatric_bands
+      using normalized age in days; fails closed (returns None) if no band matches.
+    """
+    pop = age.population_category
+    if pop == PopulationCategory.neonate:
+        return "neonate" if "neonate" in cfg.populations else None
+    if pop == PopulationCategory.adult:
+        return "adult" if "adult" in cfg.populations else None
+
+    age_days = age.to_days()
+    for band in cfg.age_classification.paediatric_bands:
+        if (
+            band.min_days_exclusive < age_days <= band.max_days_inclusive
+            and band.band_id in cfg.populations
+        ):
+            return band.band_id
+    return None
 
 
 def normalize_syndrome(
@@ -87,26 +163,44 @@ def normalize_syndrome(
     return manifest.syndrome_aliases.get(cleaned, cleaned)
 
 
-def derive_vitals_flags(
+def derive_vitals_flags_with_trace(
     patient: Patient,
     data_dir: Path | None = None,
-) -> list[str]:
-    """Derive standardized categorical physiological flags from measured vitals.
+    config: VitalsFlagsConfig | None = None,
+) -> tuple[list[str], list[str], str | None]:
+    """Derive standardized categorical physiological flags and skipped-flag trace.
 
-    Safety (RAG-03, Rules R2, R3):
-    - Uses only rules for the patient's own population category (never falls back to adult).
-    - Rules with status == NEEDS_SOURCE or threshold is None fail closed and emit nothing.
-    - Vitals that are unknown or missing never trigger spurious flags.
+    Safety (RAG-03, FG-02, Rules R2, R3):
+    - Uses only rules for the patient's own population / paediatric age band
+      (never falls back to adult or another band).
+    - Rules with status != ACTIVE or threshold is None fail closed and are recorded in
+      skipped_flags so the Retrieval Inspector shows why no flag was emitted.
     """
-    cfg = load_vitals_flags_config(data_dir)
-    pop = str(patient.age.population_category).lower().strip()
-    pop_rules = cfg.populations.get(pop, [])
+    cfg = config if config is not None else load_vitals_flags_config(data_dir)
+    resolved_band = resolve_vitals_population_band(patient.age, cfg)
+    skipped_flags: list[str] = []
 
+    if patient.age.is_ambiguous_boundary:
+        skipped_flags.append(
+            f"AMBIGUOUS_ZERO_AGE_UNIT:{patient.age.value}_{patient.age.unit.value}"
+        )
+        return [], skipped_flags, resolved_band
+
+    if resolved_band is None:
+        pop_name = str(patient.age.population_category.value)
+        if patient.age.population_category == PopulationCategory.paediatric:
+            skipped_flags.append(f"UNMATCHED_PAEDIATRIC_AGE_BAND:{patient.age.to_days()}d")
+        else:
+            skipped_flags.append(f"UNMATCHED_POPULATION_BAND:{pop_name}")
+        return [], skipped_flags, None
+
+    pop_rules = cfg.populations.get(resolved_band, [])
     flags: list[str] = []
     v = patient.vitals
 
     for rule in pop_rules:
         if rule.status != RuleStatus.ACTIVE:
+            skipped_flags.append(f"{rule.id}:{rule.flag}:{rule.status.value}")
             continue
 
         measured_field = getattr(v, rule.field, None)
@@ -122,6 +216,7 @@ def derive_vitals_flags(
                 triggered = True
         else:
             if rule.threshold is None:
+                skipped_flags.append(f"{rule.id}:{rule.flag}:NULL_THRESHOLD")
                 continue
             dec_val = Decimal(str(raw_val))
             triggered = (
@@ -134,19 +229,35 @@ def derive_vitals_flags(
         if triggered and rule.flag not in flags:
             flags.append(rule.flag)
 
+    return flags, skipped_flags, resolved_band
+
+
+def derive_vitals_flags(
+    patient: Patient,
+    data_dir: Path | None = None,
+    config: VitalsFlagsConfig | None = None,
+) -> list[str]:
+    """Derive standardized categorical physiological flags from measured vitals."""
+    flags, _skipped, _band = derive_vitals_flags_with_trace(
+        patient, data_dir=data_dir, config=config
+    )
     return flags
 
 
-def build_retrieval_query(patient: Patient) -> tuple[str, list[str]]:
+def build_retrieval_query(
+    patient: Patient,
+    data_dir: Path | None = None,
+    config: VitalsFlagsConfig | None = None,
+) -> tuple[str, list[str]]:
     """Build a search query from structured clinical attributes.
 
     Rule R7: chief_complaint_untrusted is explicitly forbidden from query construction.
     RAG-07: No arbitrary ×3 token repetition; syndrome is enforced as a hard metadata filter.
     """
-    flags = derive_vitals_flags(patient)
+    flags = derive_vitals_flags(patient, data_dir=data_dir, config=config)
     query_parts: list[str] = []
 
-    norm_syndrome = normalize_syndrome(patient.suspected_syndrome)
+    norm_syndrome = normalize_syndrome(patient.suspected_syndrome, data_dir=data_dir)
     if norm_syndrome:
         query_parts.append(norm_syndrome)
 
@@ -160,16 +271,27 @@ def retrieve_protocol_chunks(
     index: Retriever,
     threshold: float = DEFAULT_MIN_RETRIEVAL_THRESHOLD,
     top_k: int | None = None,
+    vitals_flags_config: VitalsFlagsConfig | None = None,
 ) -> RetrievalReport:
     """Retrieve verified protocol chunks matching patient population and controlled syndrome."""
     cfg = load_retrieval_config()
     eff_top_k = top_k if top_k is not None else cfg.top_k
 
     pop = str(patient.age.population_category).lower().strip()
-    query_str, _flags = build_retrieval_query(patient)
+    flags, skipped_flags, resolved_band = derive_vitals_flags_with_trace(
+        patient, config=vitals_flags_config
+    )
     norm_syndrome = normalize_syndrome(patient.suspected_syndrome)
+    query_parts: list[str] = []
+    if norm_syndrome:
+        query_parts.append(norm_syndrome)
+    query_parts.extend(flags)
+    query_str = " ".join(query_parts).strip()
 
-    filters: dict[str, str] = {"population": pop}
+    filters: dict[str, str] = {
+        "population": pop,
+        "vitals_band": resolved_band or "unmatched",
+    }
     if norm_syndrome:
         filters["syndrome"] = norm_syndrome
 
@@ -185,6 +307,7 @@ def retrieve_protocol_chunks(
             reason="No verified protocol chunks available in empty index",
             query=query_str,
             filters=filters,
+            skipped_flags=skipped_flags,
             corpus_hash=corpus_hash,
             index_version=index_version,
             config_hash=cfg.config_hash,
@@ -200,6 +323,7 @@ def retrieve_protocol_chunks(
             reason=f"No verified protocol chunks available for population '{pop}'",
             query=query_str,
             filters=filters,
+            skipped_flags=skipped_flags,
             corpus_hash=corpus_hash,
             index_version=index_version,
             config_hash=cfg.config_hash,
@@ -221,6 +345,7 @@ def retrieve_protocol_chunks(
                 ),
                 query=query_str,
                 filters=filters,
+                skipped_flags=skipped_flags,
                 corpus_hash=corpus_hash,
                 index_version=index_version,
                 config_hash=cfg.config_hash,
@@ -236,6 +361,7 @@ def retrieve_protocol_chunks(
                 reason=(f"No protocol chunks for syndrome '{norm_syndrome}' in population '{pop}'"),
                 query=query_str,
                 filters=filters,
+                skipped_flags=skipped_flags,
                 corpus_hash=corpus_hash,
                 index_version=index_version,
                 config_hash=cfg.config_hash,
@@ -250,6 +376,7 @@ def retrieve_protocol_chunks(
             reason="Empty clinical query: no suspected syndrome or abnormal vitals flags",
             query=query_str,
             filters=filters,
+            skipped_flags=skipped_flags,
             corpus_hash=corpus_hash,
             index_version=index_version,
             config_hash=cfg.config_hash,
@@ -286,6 +413,7 @@ def retrieve_protocol_chunks(
             reason=reason,
             query=query_str,
             filters=filters,
+            skipped_flags=skipped_flags,
             stage_scores=stage_scores,
             corpus_hash=corpus_hash,
             index_version=index_version,
@@ -327,6 +455,7 @@ def retrieve_protocol_chunks(
         reason=reason,
         query=query_str,
         filters=filters,
+        skipped_flags=skipped_flags,
         stage_scores=stage_scores,
         corpus_hash=corpus_hash,
         index_version=index_version,

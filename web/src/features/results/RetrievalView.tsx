@@ -91,6 +91,12 @@ export const RetrievalView: React.FC<RetrievalViewProps> = ({ triage }) => {
                 <span className="font-semibold">Corpus SHA-256:</span>{' '}
                 <span title={retrieval.corpus_hash}>{corpusHash}</span>
               </div>
+              {retrieval.skipped_flags && retrieval.skipped_flags.length > 0 && (
+                <div className="sm:col-span-2 mt-1">
+                  <span className="font-semibold">Skipped Flags (NEEDS_SOURCE / Unmatched):</span>{' '}
+                  <span className="text-amber-800">{retrieval.skipped_flags.join(', ')}</span>
+                </div>
+              )}
             </div>
           </div>
 

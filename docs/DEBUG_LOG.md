@@ -300,4 +300,29 @@
   - `test_span_must_cover_then_clause`
 
 
+### Fix Gate G2 — Clinical Inputs Fail Closed (`fg-2`)
+- **Flags Addressed:**
+  - **FG-02 (P0):** Unsourced adult and paediatric vitals thresholds were left `ACTIVE` with `verified: false`, and a single flat `paediatric` bucket spanned 1 month to 17 years.
+  - **FG-04 (P0):** `Age.population_category` returned `paediatric` unconditionally for `unit == AgeUnit.months`, classifying `0.5 months` (~15 days) as `paediatric` rather than `neonate` and allowing ambiguous `0 months` / `0 years` inputs.
+- **Root Cause:**
+  1. `VitalsFlagRule` had no schema validator enforcing `provenance.verified == True` when `status == RuleStatus.ACTIVE`, and `data/retrieval/vitals_flags.yaml` shipped unverified cut-offs as `ACTIVE` with a single `paediatric` bucket.
+  2. `Age.population_category` branched by `AgeUnit` without normalizing chronological age to days first.
+- **Remediation:**
+  1. Added `validate_active_requires_verified_provenance` model validator on `VitalsFlagRule` in `src/triagerag/rag/retrieve.py` rejecting any rule with `status == RuleStatus.ACTIVE` and `provenance.verified == False` at load time.
+  2. Split paediatric vitals configuration in `data/retrieval/vitals_flags.yaml` into age-specific bands (`paediatric_1m_1y`, `paediatric_1_5y`, `paediatric_5_12y`, `paediatric_12_18y`) and set all unverified rules across `adult`, paediatric bands, and `neonate` to `status: NEEDS_SOURCE` with `threshold: null` (HD-1 fail-closed default).
+  3. Implemented `resolve_vitals_population_band()` and `derive_vitals_flags_with_trace()`, failing closed when no band matches and recording skipped rules in `RetrievalReport.skipped_flags`.
+  4. Added `age_classification` to `data/retrieval/vitals_flags.yaml` and updated `Age.to_days()` / `Age.population_category` in `src/triagerag/contracts/schemas.py` to normalize chronological age to days before classification and reject ambiguous `0 months` / `0 years` inputs (HD-2 fail-closed default).
+  5. Recorded **HD-1** and **HD-2** in `BACKLOG.md` as `[P0-CLINICAL]`.
+- **Tests (`tests/unit/test_fg2_clinical_inputs.py`):**
+  - `test_unverified_provenance_rule_emits_nothing`
+  - `test_paediatric_age_band_required`
+  - `test_no_flag_from_other_band_or_population`
+  - `test_no_active_rule_without_verified_provenance`
+  - `test_vitals_only_retrieval_degrades_to_abstain_when_flags_needs_source`
+  - `test_age_boundary_matrix` (12 parametrized boundary cases)
+  - `test_months_below_neonate_cutoff_is_neonate`
+  - `test_population_category_monotone_in_age` (200 Hypothesis examples)
+
+
+
 

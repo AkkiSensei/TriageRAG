@@ -14,13 +14,17 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from triagerag.config import get_repo_root
-from triagerag.contracts.schemas import Age, Measured, Patient, Vitals
+from triagerag.config import get_data_dir, get_repo_root
+from triagerag.contracts.enums import ContentOrigin, RuleStatus, SourceStatus
+from triagerag.contracts.schemas import Age, Measured, Patient, Provenance, Vitals
 from triagerag.rag.chunking import chunk_protocol_markdown
 from triagerag.rag.index import BM25ClinicalIndex, ClinicalTokenizer
 from triagerag.rag.ingest import ingest_protocols
 from triagerag.rag.retrieve import (
+    VitalsFlagRule,
+    VitalsFlagsConfig,
     build_retrieval_query,
+    load_vitals_flags_config,
     retrieve_protocol_chunks,
 )
 
@@ -108,8 +112,35 @@ def test_untrusted_complaint_strictly_excluded_from_query() -> None:
         ),
     )
 
-    query_benign, flags_benign = build_retrieval_query(p_benign)
-    query_malicious, flags_malicious = build_retrieval_query(p_malicious)
+    base_cfg = load_vitals_flags_config(get_data_dir())
+    verified_cfg = VitalsFlagsConfig(
+        version="2.0.0",
+        age_classification=base_cfg.age_classification,
+        populations={
+            "adult": [
+                VitalsFlagRule(
+                    id="VF_TEST_ADULT_HYPOTENSION",
+                    flag="hypotension",
+                    field="systolic_bp_mmhg",
+                    operator="<",
+                    threshold=Decimal("90"),
+                    status=RuleStatus.ACTIVE,
+                    provenance=Provenance(
+                        source_doc="TEST_VERIFIED_FIXTURE",
+                        section_ref="SEC_1",
+                        version_or_date="2026-01",
+                        source_status=SourceStatus.REVIEWED,
+                        content_origin=ContentOrigin.SOURCE_EXTRACT,
+                        verified=True,
+                        reviewer="clinician_test_fixture",
+                    ),
+                )
+            ]
+        },
+    )
+
+    query_benign, flags_benign = build_retrieval_query(p_benign, config=verified_cfg)
+    query_malicious, flags_malicious = build_retrieval_query(p_malicious, config=verified_cfg)
 
     assert query_benign == query_malicious
     assert flags_benign == flags_malicious

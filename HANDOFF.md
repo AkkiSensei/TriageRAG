@@ -4,9 +4,9 @@
 
 ## Current State
 
-- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`), and Part D Fix Gates `fg-0` (Re-baseline) and `fg-1` (Grounding Soundness: FG-01, FG-16) **COMPLETE**. Next gate: `fg-2` (Clinical Inputs Fail Closed: FG-02, FG-04).
+- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`), and Part D Fix Gates `fg-0` (Re-baseline), `fg-1` (Grounding Soundness: FG-01, FG-16), and `fg-2` (Clinical Inputs Fail Closed: FG-02, FG-04, HD-1, HD-2) **COMPLETE**. Next gate: `fg-3` (Abstention Logic & Context Hygiene: FG-03, FG-05, FG-15, HD-4).
 - **Verification:** All gates green:
-  - 141/141 Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, and FG-1 grounding suite).
+  - 160/160 Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, FG-1 grounding suite, and FG-2 clinical inputs suite).
   - 8/8 Vitest frontend unit & component tests green.
   - 49/49 mutants killed (100% kill score: 12 rule mutants + 37 code mutants, including M34–M37).
   - 65/65 Golden cases green (100%).

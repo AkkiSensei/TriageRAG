@@ -714,6 +714,8 @@ export interface components {
       filters?: {
         [key: string]: string | null;
       };
+      /** Skipped Flags */
+      skipped_flags?: string[];
       /** Stage Scores */
       stage_scores?: {
         [key: string]: {

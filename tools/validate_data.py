@@ -175,6 +175,17 @@ def validate_all() -> None:
 
         print(f"  [OK] data/protocols_synthetic/ ({len(md_files)} protocols validated)")
 
+    # 8. Validate retrieval/vitals_flags.yaml (FG-02 / Rule R3)
+    from triagerag.rag.retrieve import load_vitals_flags_config
+
+    try:
+        load_vitals_flags_config.cache_clear()
+        vf_cfg = load_vitals_flags_config(data_dir)
+        vf_rules_count = sum(len(rules) for rules in vf_cfg.populations.values())
+        print(f"  [OK] data/retrieval/vitals_flags.yaml ({vf_rules_count} rules validated)")
+    except Exception as e:
+        errors.append(f"vitals_flags.yaml validation failed: {e}")
+
     if errors:
         print("\nDATA VALIDATION FAILED WITH ERRORS:")
         for err in errors:

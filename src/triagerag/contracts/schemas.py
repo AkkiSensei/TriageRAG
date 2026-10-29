@@ -9,11 +9,14 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
+from functools import lru_cache
 from pathlib import Path
-from typing import Generic, Literal, Protocol, TypeVar
+from typing import Any, Generic, Literal, Protocol, TypeVar
 
+import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from triagerag.config import get_data_dir
 from triagerag.contracts.enums import (
     AbstainCode,
     ActionType,
@@ -73,8 +76,29 @@ class Measured(BaseModel, Generic[T]):
         return self
 
 
+@lru_cache
+def _load_age_classification_bounds(data_dir: Path | None = None) -> dict[str, Decimal]:
+    """Load chronological age normalization bounds from data/retrieval/vitals_flags.yaml."""
+    target_dir = data_dir or get_data_dir()
+    flags_path = target_dir / "retrieval" / "vitals_flags.yaml"
+    if not flags_path.exists():
+        flags_path = get_data_dir() / "retrieval" / "vitals_flags.yaml"
+    raw_data: Any = yaml.safe_load(flags_path.read_text(encoding="utf-8")) or {}
+    age_cfg: dict[str, Any] = raw_data.get("age_classification") or {}
+    return {
+        "days_per_month": Decimal(str(age_cfg["days_per_month"])),
+        "days_per_year": Decimal(str(age_cfg["days_per_year"])),
+        "neonate_max_days": Decimal(str(age_cfg["neonate_max_days"])),
+        "adult_min_years": Decimal(str(age_cfg["adult_min_years"])),
+        "adult_min_days": Decimal(str(age_cfg["adult_min_days"])),
+        "max_days_input": Decimal(str(age_cfg["max_days_input"])),
+        "max_months_input": Decimal(str(age_cfg["max_months_input"])),
+        "max_years_input": Decimal(str(age_cfg["max_years_input"])),
+    }
+
+
 class Age(BaseModel):
-    """Patient chronological age with population classification."""
+    """Patient chronological age with population classification (FG-04, HD-2)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -85,26 +109,36 @@ class Age(BaseModel):
     def validate_age_bounds(self) -> Age:
         if self.value < Decimal("0"):
             raise ValueError("Age value must be non-negative")
-        if self.unit == AgeUnit.days and self.value > Decimal("365"):
+        bounds = _load_age_classification_bounds()
+        if self.unit == AgeUnit.days and self.value > bounds["max_days_input"]:
             raise ValueError("Age in days exceeds 365; use months or years")
-        if self.unit == AgeUnit.months and self.value > Decimal("48"):
+        if self.unit == AgeUnit.months and self.value > bounds["max_months_input"]:
             raise ValueError("Age in months exceeds 48; use years")
-        if self.unit == AgeUnit.years and self.value > Decimal("130"):
+        if self.unit == AgeUnit.years and self.value > bounds["max_years_input"]:
             raise ValueError("Age in years exceeds maximum bound of 130")
         return self
 
     @property
-    def population_category(self) -> PopulationCategory:
+    def is_ambiguous_boundary(self) -> bool:
+        """Flag ambiguous zero ages in coarse units (0 months, 0 years) (FG-04, HD-2)."""
+        return self.unit in (AgeUnit.months, AgeUnit.years) and self.value == Decimal("0")
+
+    def to_days(self) -> Decimal:
+        """Normalize chronological age to days using configured conversion factors."""
+        bounds = _load_age_classification_bounds()
         if self.unit == AgeUnit.days:
-            return (
-                PopulationCategory.neonate
-                if self.value <= Decimal("28")
-                else PopulationCategory.paediatric
-            )
+            return self.value
         if self.unit == AgeUnit.months:
-            return PopulationCategory.paediatric
-        # years
-        if self.value < Decimal("18"):
+            return self.value * bounds["days_per_month"]
+        return self.value * bounds["days_per_year"]
+
+    @property
+    def population_category(self) -> PopulationCategory:
+        bounds = _load_age_classification_bounds()
+        age_days = self.to_days()
+        if age_days <= bounds["neonate_max_days"]:
+            return PopulationCategory.neonate
+        if age_days < bounds["adult_min_days"]:
             return PopulationCategory.paediatric
         return PopulationCategory.adult
 
@@ -344,6 +378,7 @@ class RetrievalReport(BaseModel):
     reason: str | None = None
     query: str = ""
     filters: dict[str, str] = Field(default_factory=dict)
+    skipped_flags: list[str] = Field(default_factory=list)
     stage_scores: dict[str, dict[str, float]] = Field(default_factory=dict)
     corpus_hash: str = ""
     index_version: str = "1.0.0"

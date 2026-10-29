@@ -4,6 +4,13 @@
 
 Prioritized engineering and clinical verification backlog (ordered by safety priority):
 
+### Open Human Decisions (Fail-Closed Defaults Active)
+
+- **HD-1 [P0-CLINICAL] Vitals Flag Thresholds, Sources & Age Bands (`FG-02`)**: Authoritative clinical source, numerical cut-offs, and paediatric age-band definitions (`paediatric_1m_1y`, `paediatric_1_5y`, `paediatric_5_12y`, `paediatric_12_18y`) for every vitals flag across adult, paediatric, and neonate populations in `data/retrieval/vitals_flags.yaml`. **Fail-closed default active:** all rules are `status: NEEDS_SOURCE` with `threshold: null` and `verified: false`; zero flags are emitted until human clinician signoff.
+- **HD-2 [P0-CLINICAL] Chronological Age Population Boundaries & Months-to-Days Convention (`FG-04`)**: Authoritative neonate/paediatric/adult chronological age cut-offs and months→days conversion factor in `data/retrieval/vitals_flags.yaml::age_classification`. **Fail-closed default active:** ages are normalized to days (`days_per_month: 30`, `days_per_year: 365`, `neonate_max_days: 28`, `adult_min_days: 6570`); ambiguous `0 months` / `0 years` inputs are rejected at validation time, and sub-month ages `<= 28 days` (e.g. `0.5 months` = `15 days`) classify into the more restrictive `neonate` population.
+
+### Prioritized Backlog Items
+
 1. **[P0-CLINICAL] Human Clinician Review of Seed Ruleset**: Review and replace `PLACEHOLDER_UNRETRIEVED` provenance on all 10 seed rules with real peer-reviewed literature citations and verified reviewer signoffs.
 2. **[P0-CLINICAL] Formulary Ceiling & Dose Sourcing**: Review and source adult/paediatric per-dose, daily maximums, and concentration limits currently marked `status: NEEDS_SOURCE`.
 3. **[P0-SAFETY] Golden Set Expansion to 150+ Cases**: Expand `data/golden/shipped_ruleset_cases.yaml` from 60 to ≥150 adversarial, edge-case, and boundary scenarios covering all age groups.

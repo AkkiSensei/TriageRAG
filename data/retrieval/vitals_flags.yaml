@@ -1,13 +1,47 @@
-version: "1.0.0"
+version: "2.0.0"
 
+# HUMAN DECISION HD-2: Authoritative neonate/paediatric/adult boundaries and months->days convention.
+age_classification:
+  days_per_month: 30
+  days_per_year: 365
+  neonate_max_days: 28
+  adult_min_years: 18
+  adult_min_days: 6570
+  max_days_input: 365
+  max_months_input: 48
+  max_years_input: 130
+  paediatric_bands:
+    - band_id: "paediatric_1m_1y"
+      min_days_exclusive: 28
+      max_days_inclusive: 365
+    - band_id: "paediatric_1_5y"
+      min_days_exclusive: 365
+      max_days_inclusive: 1825
+    - band_id: "paediatric_5_12y"
+      min_days_exclusive: 1825
+      max_days_inclusive: 4380
+    - band_id: "paediatric_12_18y"
+      min_days_exclusive: 4380
+      max_days_inclusive: 6570
+  provenance:
+    source_doc: "HUMAN_DECISION_HD2_PENDING"
+    section_ref: "TO_BE_RESOLVED"
+    version_or_date: "2026-DRAFT"
+    source_status: "PLACEHOLDER_UNRETRIEVED"
+    content_origin: "AGENT_DRAFT_UNSOURCED"
+    verified: false
+    reviewer: null
+
+# HUMAN DECISION HD-1: Source, values, and age bands for every vitals flag (adult, paediatric, neonate).
+# Fail-closed default until HD-1 is resolved: all rules are NEEDS_SOURCE with threshold: null.
 populations:
   adult:
     - id: "VF_ADULT_HYPOTENSION"
       flag: "hypotension"
       field: "systolic_bp_mmhg"
       operator: "<"
-      threshold: 90
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -21,8 +55,8 @@ populations:
       flag: "severe_hypertension"
       field: "systolic_bp_mmhg"
       operator: ">="
-      threshold: 180
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -36,8 +70,8 @@ populations:
       flag: "tachycardia"
       field: "heart_rate_bpm"
       operator: ">"
-      threshold: 100
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -51,8 +85,8 @@ populations:
       flag: "bradycardia"
       field: "heart_rate_bpm"
       operator: "<"
-      threshold: 60
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -66,8 +100,8 @@ populations:
       flag: "tachypnea"
       field: "respiratory_rate_bpm"
       operator: ">"
-      threshold: 22
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -81,8 +115,8 @@ populations:
       flag: "hypoxia"
       field: "spo2_percent"
       operator: "<"
-      threshold: 92
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -96,8 +130,8 @@ populations:
       flag: "fever"
       field: "temperature_c"
       operator: ">"
-      threshold: 38.0
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -111,8 +145,8 @@ populations:
       flag: "hypothermia"
       field: "temperature_c"
       operator: "<"
-      threshold: 35.5
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -126,8 +160,8 @@ populations:
       flag: "hypoglycemia"
       field: "blood_glucose_mg_dl"
       operator: "<"
-      threshold: 70
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -141,8 +175,8 @@ populations:
       flag: "confusion"
       field: "consciousness"
       operator: "in"
-      allowed_values: ["C"]
-      status: "ACTIVE"
+      allowed_values: []
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -156,8 +190,8 @@ populations:
       flag: "depressed_consciousness"
       field: "consciousness"
       operator: "in"
-      allowed_values: ["V", "P", "U"]
-      status: "ACTIVE"
+      allowed_values: []
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_EWS_ADULT_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -167,13 +201,13 @@ populations:
         verified: false
         reviewer: null
 
-  paediatric:
-    - id: "VF_PAED_TACHYCARDIA"
+  paediatric_1m_1y:
+    - id: "VF_PAED_1M_1Y_TACHYCARDIA"
       flag: "tachycardia"
       field: "heart_rate_bpm"
       operator: ">"
-      threshold: 140
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_PEWS_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -183,12 +217,12 @@ populations:
         verified: false
         reviewer: null
 
-    - id: "VF_PAED_BRADYCARDIA"
+    - id: "VF_PAED_1M_1Y_BRADYCARDIA"
       flag: "bradycardia"
       field: "heart_rate_bpm"
       operator: "<"
-      threshold: 60
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_PEWS_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -198,12 +232,12 @@ populations:
         verified: false
         reviewer: null
 
-    - id: "VF_PAED_TACHYPNEA"
+    - id: "VF_PAED_1M_1Y_TACHYPNEA"
       flag: "tachypnea"
       field: "respiratory_rate_bpm"
       operator: ">"
-      threshold: 30
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_PEWS_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -213,12 +247,12 @@ populations:
         verified: false
         reviewer: null
 
-    - id: "VF_PAED_HYPOXIA"
+    - id: "VF_PAED_1M_1Y_HYPOXIA"
       flag: "hypoxia"
       field: "spo2_percent"
       operator: "<"
-      threshold: 92
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_PEWS_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -228,12 +262,12 @@ populations:
         verified: false
         reviewer: null
 
-    - id: "VF_PAED_FEVER"
+    - id: "VF_PAED_1M_1Y_FEVER"
       flag: "fever"
       field: "temperature_c"
       operator: ">"
-      threshold: 38.0
-      status: "ACTIVE"
+      threshold: null
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_PEWS_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -243,7 +277,7 @@ populations:
         verified: false
         reviewer: null
 
-    - id: "VF_PAED_HYPOTENSION"
+    - id: "VF_PAED_1M_1Y_HYPOTENSION"
       flag: "hypotension"
       field: "systolic_bp_mmhg"
       operator: "<"
@@ -258,7 +292,7 @@ populations:
         verified: false
         reviewer: null
 
-    - id: "VF_PAED_HYPOGLYCEMIA"
+    - id: "VF_PAED_1M_1Y_HYPOGLYCEMIA"
       flag: "hypoglycemia"
       field: "blood_glucose_mg_dl"
       operator: "<"
@@ -273,12 +307,12 @@ populations:
         verified: false
         reviewer: null
 
-    - id: "VF_PAED_CONFUSION"
+    - id: "VF_PAED_1M_1Y_CONFUSION"
       flag: "confusion"
       field: "consciousness"
       operator: "in"
-      allowed_values: ["C"]
-      status: "ACTIVE"
+      allowed_values: []
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_PEWS_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -288,12 +322,420 @@ populations:
         verified: false
         reviewer: null
 
-    - id: "VF_PAED_DEPRESSED_CONSCIOUSNESS"
+    - id: "VF_PAED_1M_1Y_DEPRESSED_CONSCIOUSNESS"
       flag: "depressed_consciousness"
       field: "consciousness"
       operator: "in"
-      allowed_values: ["V", "P", "U"]
-      status: "ACTIVE"
+      allowed_values: []
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+  paediatric_1_5y:
+    - id: "VF_PAED_1_5Y_TACHYCARDIA"
+      flag: "tachycardia"
+      field: "heart_rate_bpm"
+      operator: ">"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_1_5Y_BRADYCARDIA"
+      flag: "bradycardia"
+      field: "heart_rate_bpm"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_1_5Y_TACHYPNEA"
+      flag: "tachypnea"
+      field: "respiratory_rate_bpm"
+      operator: ">"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_1_5Y_HYPOXIA"
+      flag: "hypoxia"
+      field: "spo2_percent"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_1_5Y_FEVER"
+      flag: "fever"
+      field: "temperature_c"
+      operator: ">"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_1_5Y_HYPOTENSION"
+      flag: "hypotension"
+      field: "systolic_bp_mmhg"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_1_5Y_HYPOGLYCEMIA"
+      flag: "hypoglycemia"
+      field: "blood_glucose_mg_dl"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_1_5Y_CONFUSION"
+      flag: "confusion"
+      field: "consciousness"
+      operator: "in"
+      allowed_values: []
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_1_5Y_DEPRESSED_CONSCIOUSNESS"
+      flag: "depressed_consciousness"
+      field: "consciousness"
+      operator: "in"
+      allowed_values: []
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+  paediatric_5_12y:
+    - id: "VF_PAED_5_12Y_TACHYCARDIA"
+      flag: "tachycardia"
+      field: "heart_rate_bpm"
+      operator: ">"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_5_12Y_BRADYCARDIA"
+      flag: "bradycardia"
+      field: "heart_rate_bpm"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_5_12Y_TACHYPNEA"
+      flag: "tachypnea"
+      field: "respiratory_rate_bpm"
+      operator: ">"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_5_12Y_HYPOXIA"
+      flag: "hypoxia"
+      field: "spo2_percent"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_5_12Y_FEVER"
+      flag: "fever"
+      field: "temperature_c"
+      operator: ">"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_5_12Y_HYPOTENSION"
+      flag: "hypotension"
+      field: "systolic_bp_mmhg"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_5_12Y_HYPOGLYCEMIA"
+      flag: "hypoglycemia"
+      field: "blood_glucose_mg_dl"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_5_12Y_CONFUSION"
+      flag: "confusion"
+      field: "consciousness"
+      operator: "in"
+      allowed_values: []
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_5_12Y_DEPRESSED_CONSCIOUSNESS"
+      flag: "depressed_consciousness"
+      field: "consciousness"
+      operator: "in"
+      allowed_values: []
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+  paediatric_12_18y:
+    - id: "VF_PAED_12_18Y_TACHYCARDIA"
+      flag: "tachycardia"
+      field: "heart_rate_bpm"
+      operator: ">"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_12_18Y_BRADYCARDIA"
+      flag: "bradycardia"
+      field: "heart_rate_bpm"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_12_18Y_TACHYPNEA"
+      flag: "tachypnea"
+      field: "respiratory_rate_bpm"
+      operator: ">"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_12_18Y_HYPOXIA"
+      flag: "hypoxia"
+      field: "spo2_percent"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_12_18Y_FEVER"
+      flag: "fever"
+      field: "temperature_c"
+      operator: ">"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_12_18Y_HYPOTENSION"
+      flag: "hypotension"
+      field: "systolic_bp_mmhg"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_12_18Y_HYPOGLYCEMIA"
+      flag: "hypoglycemia"
+      field: "blood_glucose_mg_dl"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_12_18Y_CONFUSION"
+      flag: "confusion"
+      field: "consciousness"
+      operator: "in"
+      allowed_values: []
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_PEWS_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
+    - id: "VF_PAED_12_18Y_DEPRESSED_CONSCIOUSNESS"
+      flag: "depressed_consciousness"
+      field: "consciousness"
+      operator: "in"
+      allowed_values: []
+      status: "NEEDS_SOURCE"
       provenance:
         source_doc: "SYNTHETIC_PEWS_DRAFT"
         section_ref: "TO_BE_RESOLVED"
@@ -304,6 +746,21 @@ populations:
         reviewer: null
 
   neonate:
+    - id: "VF_NEONATE_HYPOTENSION"
+      flag: "hypotension"
+      field: "systolic_bp_mmhg"
+      operator: "<"
+      threshold: null
+      status: "NEEDS_SOURCE"
+      provenance:
+        source_doc: "SYNTHETIC_NEONATE_DRAFT"
+        section_ref: "TO_BE_RESOLVED"
+        version_or_date: "2026-DRAFT"
+        source_status: "PLACEHOLDER_UNRETRIEVED"
+        content_origin: "AGENT_DRAFT_UNSOURCED"
+        verified: false
+        reviewer: null
+
     - id: "VF_NEONATE_TACHYCARDIA"
       flag: "tachycardia"
       field: "heart_rate_bpm"
@@ -333,19 +790,3 @@ populations:
         content_origin: "AGENT_DRAFT_UNSOURCED"
         verified: false
         reviewer: null
-
-    - id: "VF_NEONATE_HYPOTENSION"
-      flag: "hypotension"
-      field: "systolic_bp_mmhg"
-      operator: "<"
-      threshold: null
-      status: "NEEDS_SOURCE"
-      provenance:
-        source_doc: "SYNTHETIC_NEONATE_DRAFT"
-        section_ref: "TO_BE_RESOLVED"
-        version_or_date: "2026-DRAFT"
-        source_status: "PLACEHOLDER_UNRETRIEVED"
-        content_origin: "AGENT_DRAFT_UNSOURCED"
-        verified: false
-        reviewer: null
-

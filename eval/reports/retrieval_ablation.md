@@ -6,10 +6,10 @@
 
 | Arm / Backend | Recall@5 | MRR | nDCG@5 | Wrong-Protocol Rate | Hard-Neg Abstain Recall | ECE | Latency p95 (ms) |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Arm 1: Lexical BM25 (Default)** (`bm25`) | 100.00% | 0.8840 | 0.9242 | 0.0000 | 1.0000 | 0.1531 | 19.16 |
-| **Arm 2: Dense Vector Cosine (Char 3-gram + Token TF-IDF)** (`dense`) | 99.02% | 0.8873 | 0.9174 | 0.0000 | 1.0000 | 0.3575 | 18.98 |
-| **Arm 3: Hybrid Reciprocal Rank Fusion (BM25 + Dense)** (`hybrid_rrf`) | 96.08% | 0.8578 | 0.8973 | 0.0000 | 1.0000 | 0.1460 | 17.98 |
-| **Arm 4: Hybrid RRF + Lexical Overlap Reranker** (`hybrid_rrf_rerank`) | 100.00% | 0.8971 | 0.9297 | 0.0000 | 1.0000 | 0.1255 | 13.58 |
+| **Arm 1: Lexical BM25 (Default)** (`bm25`) | 92.16% | 0.6193 | 0.7848 | 0.0000 | 1.0000 | 0.1833 | 14.27 |
+| **Arm 2: Dense Vector Cosine (Char 3-gram + Token TF-IDF)** (`dense`) | 92.16% | 0.5588 | 0.7597 | 0.0000 | 1.0000 | 0.2905 | 12.73 |
+| **Arm 3: Hybrid Reciprocal Rank Fusion (BM25 + Dense)** (`hybrid_rrf`) | 92.16% | 0.6324 | 0.7859 | 0.0000 | 1.0000 | 0.1833 | 12.09 |
+| **Arm 4: Hybrid RRF + Lexical Overlap Reranker** (`hybrid_rrf_rerank`) | 92.16% | 0.6324 | 0.7859 | 0.0000 | 1.0000 | 0.1460 | 11.29 |
 
 ## 2. Architectural Decision & Findings
 

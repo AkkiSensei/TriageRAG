@@ -18,11 +18,23 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 from triagerag.config import get_data_dir, get_repo_root
-from triagerag.contracts.enums import AbstainCode, AgeUnit
-from triagerag.contracts.schemas import Age, Measured, Patient, Vitals
+from triagerag.contracts.enums import (
+    AbstainCode,
+    AgeUnit,
+    ContentOrigin,
+    RuleStatus,
+    SourceStatus,
+)
+from triagerag.contracts.schemas import Age, Measured, Patient, Provenance, Vitals
 from triagerag.rag.index import BM25ClinicalIndex
 from triagerag.rag.ingest import ingest_protocols
-from triagerag.rag.retrieve import derive_vitals_flags, retrieve_protocol_chunks
+from triagerag.rag.retrieve import (
+    VitalsFlagRule,
+    VitalsFlagsConfig,
+    derive_vitals_flags,
+    load_vitals_flags_config,
+    retrieve_protocol_chunks,
+)
 
 _ALLOWED_STRUCTURAL_NUMBERS: set[int | float] = {-1, 0, 1, 2, 0.5}
 
@@ -107,6 +119,32 @@ def test_no_syndrome_requires_margin() -> None:
         allergy_history_status="confirmed_none",
         suspected_syndrome=None,
     )
-    report = retrieve_protocol_chunks(ambiguous_patient, index)
+    base_cfg = load_vitals_flags_config(data_dir)
+    verified_cfg = VitalsFlagsConfig(
+        version="2.0.0",
+        age_classification=base_cfg.age_classification,
+        populations={
+            "adult": [
+                VitalsFlagRule(
+                    id="VF_TEST_ADULT_HYPOTENSION",
+                    flag="hypotension",
+                    field="systolic_bp_mmhg",
+                    operator="<",
+                    threshold=Decimal("90"),
+                    status=RuleStatus.ACTIVE,
+                    provenance=Provenance(
+                        source_doc="TEST_VERIFIED_FIXTURE",
+                        section_ref="SEC_1",
+                        version_or_date="2026-01",
+                        source_status=SourceStatus.REVIEWED,
+                        content_origin=ContentOrigin.SOURCE_EXTRACT,
+                        verified=True,
+                        reviewer="clinician_test_fixture",
+                    ),
+                )
+            ]
+        },
+    )
+    report = retrieve_protocol_chunks(ambiguous_patient, index, vitals_flags_config=verified_cfg)
     assert report.abstained is True
     assert report.abstain_code in (AbstainCode.AMBIGUOUS_MARGIN, AbstainCode.LOW_CONFIDENCE)
