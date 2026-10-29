@@ -272,3 +272,32 @@
   - 4 numbers in `Postmortem-Response.MD` (10k-chunk `p50`/`p95` and `dev` split `MRR`/`ECE`) drifted from the regenerated JSON reports (`eval/reports/latency_benchmark.json` and `eval/reports/retrieval.json`).
 
 
+### Fix Gate G1 — Grounding Soundness (`fg-1`)
+- **Flags Addressed:**
+  - **FG-01 (P0):** Citation support gate checked chunk-wide co-occurrence rather than clause-scoped `(action, drug_id)` binding and ignored negation (`"THEN withhold metoprolol and initiate intravenous fluid volume resuscitation"` and `"do not give nitroglycerin"` passed as `administer`).
+  - **FG-16 (P1):** Non-drug steps (`diagnostic`, `monitor`, `maneuver`) had no action-verb binding check, `verify_citation` had no `THEN`-clause coverage check, and `0.08` Jaccard overlap included generic stopwords.
+- **Root Cause:** `verify_step_support` tested `has_drug and has_cue` across the entire chunk text without splitting multi-clause `THEN` statements or flipping negated cues; `compute_lexical_overlap` did not filter stopwords.
+- **Remediation:**
+  1. Created `src/triagerag/normalize/clause_parser.py` implementing `parse_clause_drug_actions()`, `split_action_clauses()`, negation polarity flipping (negation tokens within 3 words before a cue), `has_if_then_structure()`, `extract_then_else_text()`, and `content_tokens()`.
+  2. Added `DrugAction` to `src/triagerag/contracts/schemas.py` and `drug_actions: tuple[DrugAction, ...] = ()` to `ProtocolChunk` and `RetrievedChunk`.
+  3. Updated `src/triagerag/verify/citations.py` and `data/retrieval/action_cues.yaml` to enforce:
+     - Exact clause-scoped `(step.action_type, step.drug_id)` binding (`ACTION_POLARITY_MISMATCH` on opposite polarity, `UNPARSED_DRUG_CLAUSE` fail-closed when a drug clause has no bindable cue).
+     - Non-drug clinical action-verb binding (`NON_DRUG_ACTION_MISMATCH`).
+     - Minimum `THEN`-clause content coverage (`THEN_CLAUSE_COVERAGE >= 0.20`).
+     - Stopword-filtered content-token overlap (`min_overlap_threshold: 0.12`).
+  4. Added mutants `M34_DROP_CLAUSE_SCOPE`, `M35_DROP_NEGATION_FLIP`, `M36_COOCCURRENCE_INSTEAD_OF_BINDING`, `M37_ALLOW_UNPARSED_TO_SUPPORT` to `eval/run_mutation.py` (`49/49` killed = `100.0%`).
+  5. Added 10 citation-laundering adversarial cases to `eval/run_adversarial.py` (`19/19` passed, 0 approved).
+- **Tests (`tests/unit/test_fg1_grounding.py`):**
+  - `test_administer_withheld_drug_in_mixed_node_rejected`
+  - `test_withhold_drug_in_mixed_node_accepted`
+  - `test_negated_give_is_withhold_polarity`
+  - `test_two_drug_node_binds_cue_to_correct_drug`
+  - `test_cue_in_other_clause_does_not_support`
+  - `test_polarity_flip_metamorphic` (500 Hypothesis examples)
+  - `test_unparsed_clause_with_drug_cannot_support`
+  - `test_diagnostic_step_requires_action_binding`
+  - `test_generic_word_overlap_insufficient`
+  - `test_span_must_cover_then_clause`
+
+
+

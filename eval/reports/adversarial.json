@@ -1,7 +1,7 @@
 {
   "suite": "adversarial",
-  "passed": 9,
-  "total": 9,
+  "passed": 19,
+  "total": 19,
   "score": 100.0,
   "invariance_score": 100.0,
   "status": "PASS"

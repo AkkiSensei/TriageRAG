@@ -27,6 +27,8 @@ import yaml
 from pydantic import BaseModel, ConfigDict, StrictBool, ValidationError, model_validator
 
 from triagerag.contracts.enums import SourceStatus
+from triagerag.contracts.schemas import DrugAction
+from triagerag.normalize.clause_parser import parse_clause_drug_actions
 
 logger = logging.getLogger(__name__)
 
@@ -148,6 +150,7 @@ class ProtocolChunk(BaseModel):
     unparsed_lines: tuple[str, ...] = ()
     parse_warnings: tuple[str, ...] = ()
     suspicious_patterns: tuple[str, ...] = ()
+    drug_actions: tuple[DrugAction, ...] = ()
 
     @model_validator(mode="before")
     @classmethod
@@ -336,6 +339,7 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
 
     for idx, node_text in enumerate(valid_nodes, start=1):
         child_chunk_id = f"{fm.chunk_id}_NODE_{idx}"
+        node_drug_actions = parse_clause_drug_actions(node_text)
         chunks.append(
             ProtocolChunk(
                 doc_id=fm.doc_id,
@@ -354,6 +358,7 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
                 retrieved_at=fm.retrieved_at,
                 reviewed_by=fm.reviewed_by,
                 source_status=fm.status,
+                drug_actions=node_drug_actions,
             )
         )
 
@@ -448,6 +453,7 @@ def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]
     )
     result = [parent]
     for idx, node_text in enumerate(rendered_nodes, start=1):
+        node_drug_actions = parse_clause_drug_actions(node_text)
         result.append(
             ProtocolChunk(
                 doc_id=fm.doc_id,
@@ -466,6 +472,7 @@ def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]
                 retrieved_at=fm.retrieved_at,
                 reviewed_by=fm.reviewed_by,
                 source_status=fm.status,
+                drug_actions=node_drug_actions,
             )
         )
     return result

@@ -155,4 +155,3 @@ def test_adr_0006_exists() -> None:
     content = adr_path.read_text(encoding="utf-8")
     assert "UNKNOWN_SYNDROME" in content
     assert "verify_step_support" in content
-

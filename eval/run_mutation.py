@@ -57,7 +57,7 @@ from triagerag.normalize.units import convert_dose
 from triagerag.normalize.validators import build_patient_from_case
 from triagerag.normalize.yaml_loader import load_yaml_decimal
 from triagerag.orchestrator import run_triage
-from triagerag.verify.citations import verify_citation
+from triagerag.verify.citations import verify_citation, verify_step_support
 from triagerag.verify.drug_scan import scan_narrative_for_drug_leaks
 from triagerag.verify.plan_verifier import verify_plan
 
@@ -1082,6 +1082,173 @@ def build_code_mutants() -> list[CodeMutant]:
             "M33_DROP_UNKNOWN_SYNDROME_ABSTAIN",
             "Dropping hard syndrome filter abstention on unknown suspected_syndrome",
             test_unknown_syndrome_abstain,
+        )
+    )
+
+    # 34. Drop clause scope in drug action binding (FG-01)
+    def test_clause_scope_mutant(reg: ClinicalRegistry) -> None:
+        mixed_chunk = RetrievedChunk(
+            doc_id="EMERG_CHEST_PAIN",
+            section="Acute Coronary Syndromes Screening",
+            chunk_id="CHEST_PAIN_01_NODE_5",
+            parent_id="CHEST_PAIN_01",
+            text=(
+                "5. IF hypotension or bradycardia is observed:\n"
+                "   THEN withhold metoprolol and initiate intravenous fluid volume resuscitation."
+            ),
+            population="adult",
+            syndrome="chest_pain",
+        )
+        step = PlanStepDraft(
+            step_number=1,
+            action_type=ActionType.administer,
+            narrative_instruction="Initiate intravenous therapy and administer beta-blocker",
+            drug_id="metoprolol",
+            requested_dose=ExplicitDose(amount=Decimal("5"), unit=DoseUnit.mg),
+            route=Route.iv,
+            citations=[
+                SpanCitation(
+                    doc_id="EMERG_CHEST_PAIN",
+                    section="Acute Coronary Syndromes Screening",
+                    chunk_id="CHEST_PAIN_01_NODE_5",
+                    quoted_span=(
+                        "THEN withhold metoprolol and initiate intravenous fluid "
+                        "volume resuscitation."
+                    ),
+                )
+            ],
+        )
+        ok, reason = verify_step_support(step, [mixed_chunk], reg)
+        assert ok is False
+        assert "ACTION_POLARITY_MISMATCH" in reason
+
+    mutants.append(
+        CodeMutant(
+            "M34_DROP_CLAUSE_SCOPE",
+            "Dropping clause-level splitting in drug action binding (mixed-polarity node leak)",
+            test_clause_scope_mutant,
+        )
+    )
+
+    # 35. Drop negation polarity flip (FG-01)
+    def test_negation_flip_mutant(reg: ClinicalRegistry) -> None:
+        neg_chunk = RetrievedChunk(
+            doc_id="EMERG_CHEST_PAIN",
+            section="Acute Coronary Syndromes Screening",
+            chunk_id="CHEST_PAIN_01_NODE_99",
+            parent_id="CHEST_PAIN_01",
+            text="1. IF hypotension is present:\n   THEN do not give nitroglycerin.",
+            population="adult",
+            syndrome="chest_pain",
+        )
+        step = PlanStepDraft(
+            step_number=1,
+            action_type=ActionType.administer,
+            narrative_instruction="Give sublingual vasodilator",
+            drug_id="nitroglycerin",
+            requested_dose=ExplicitDose(amount=Decimal("0.4"), unit=DoseUnit.mg),
+            route=Route.sublingual,
+            citations=[
+                SpanCitation(
+                    doc_id="EMERG_CHEST_PAIN",
+                    section="Acute Coronary Syndromes Screening",
+                    chunk_id="CHEST_PAIN_01_NODE_99",
+                    quoted_span="THEN do not give nitroglycerin.",
+                )
+            ],
+        )
+        ok, reason = verify_step_support(step, [neg_chunk], reg)
+        assert ok is False
+        assert "ACTION_POLARITY_MISMATCH" in reason
+
+    mutants.append(
+        CodeMutant(
+            "M35_DROP_NEGATION_FLIP",
+            "Dropping negation token polarity flip ('do not give' treated as administer)",
+            test_negation_flip_mutant,
+        )
+    )
+
+    # 36. Co-occurrence instead of exact binding (FG-01)
+    def test_cooccurrence_vs_binding_mutant(reg: ClinicalRegistry) -> None:
+        two_drug_chunk = RetrievedChunk(
+            doc_id="EMERG_ANAPHYLAXIS",
+            section="Acute Airway & Hemodynamic Interventions",
+            chunk_id="ANAPHYLAXIS_01_NODE_99",
+            parent_id="ANAPHYLAXIS_01",
+            text="1. IF anaphylactic shock:\n   THEN give epinephrine; avoid metoprolol.",
+            population="adult",
+            syndrome="anaphylaxis",
+        )
+        step = PlanStepDraft(
+            step_number=1,
+            action_type=ActionType.administer,
+            narrative_instruction="Give beta-blocker intravenously",
+            drug_id="metoprolol",
+            requested_dose=ExplicitDose(amount=Decimal("5"), unit=DoseUnit.mg),
+            route=Route.iv,
+            citations=[
+                SpanCitation(
+                    doc_id="EMERG_ANAPHYLAXIS",
+                    section="Acute Airway & Hemodynamic Interventions",
+                    chunk_id="ANAPHYLAXIS_01_NODE_99",
+                    quoted_span="THEN give epinephrine; avoid metoprolol.",
+                )
+            ],
+        )
+        ok, reason = verify_step_support(step, [two_drug_chunk], reg)
+        assert ok is False
+        assert "ACTION_POLARITY_MISMATCH" in reason
+
+    mutants.append(
+        CodeMutant(
+            "M36_COOCCURRENCE_INSTEAD_OF_BINDING",
+            "Replacing exact (action, drug_id) clause binding with chunk-level co-occurrence",
+            test_cooccurrence_vs_binding_mutant,
+        )
+    )
+
+    # 37. Allow unparsed drug clause to support step (FG-01)
+    def test_unparsed_drug_clause_mutant(reg: ClinicalRegistry) -> None:
+        unparsed_chunk = RetrievedChunk(
+            doc_id="EMERG_CHEST_PAIN",
+            section="Acute Coronary Syndromes Screening",
+            chunk_id="CHEST_PAIN_01_NODE_97",
+            parent_id="CHEST_PAIN_01",
+            text=(
+                "1. IF telemetry is reviewed:\n"
+                "   THEN metoprolol receptor pharmacology is documented in reference notes."
+            ),
+            population="adult",
+            syndrome="chest_pain",
+        )
+        step = PlanStepDraft(
+            step_number=1,
+            action_type=ActionType.administer,
+            narrative_instruction="Document receptor pharmacology in reference notes",
+            drug_id="metoprolol",
+            requested_dose=ExplicitDose(amount=Decimal("5"), unit=DoseUnit.mg),
+            route=Route.iv,
+            citations=[
+                SpanCitation(
+                    doc_id="EMERG_CHEST_PAIN",
+                    section="Acute Coronary Syndromes Screening",
+                    chunk_id="CHEST_PAIN_01_NODE_97",
+                    quoted_span=(
+                        "THEN metoprolol receptor pharmacology is documented in reference notes."
+                    ),
+                )
+            ],
+        )
+        ok, reason = verify_step_support(step, [unparsed_chunk], reg)
+        assert ok is False
+        assert "UNPARSED_DRUG_CLAUSE" in reason
+
+    mutants.append(
+        CodeMutant(
+            "M37_ALLOW_UNPARSED_TO_SUPPORT",
+            "Allowing unparsed drug clause without bindable cue to support an administer step",
+            test_unparsed_drug_clause_mutant,
         )
     )
 

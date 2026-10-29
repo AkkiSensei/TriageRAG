@@ -4,15 +4,15 @@
 
 ## Current State
 
-- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), and Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`) **100% COMPLETE**.
+- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`), and Part D Fix Gates `fg-0` (Re-baseline) and `fg-1` (Grounding Soundness: FG-01, FG-16) **COMPLETE**. Next gate: `fg-2` (Clinical Inputs Fail Closed: FG-02, FG-04).
 - **Verification:** All gates green:
-  - 131/131 Pytest tests green (including unit, integration, property, UI smoke, safety boundary, and WP0–WP9 RAG suites).
+  - 141/141 Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, and FG-1 grounding suite).
   - 8/8 Vitest frontend unit & component tests green.
-  - 45/45 mutants killed (100% kill score: 12 rule mutants + 33 code mutants).
+  - 49/49 mutants killed (100% kill score: 12 rule mutants + 37 code mutants, including M34–M37).
   - 65/65 Golden cases green (100%).
   - 41/41 Mechanics cases green (100%).
   - 3/3 Metamorphic transformations green.
-  - 9/9 Adversarial prompt injection attacks neutralized.
+  - 19/19 Adversarial prompt injection & citation laundering cases neutralized (0 approved).
   - 160-case WP5 Node-Level Retrieval Benchmark green (100.0% Test Node Recall@5, 0.0000 Wrong-Protocol Rate, 100.0% Abstain Accuracy).
   - 10,000-chunk Synthetic Scale Benchmark green (`p95 = 5.648 ms < 50.0 ms`).
   - 0 lint / format errors (Python ruff & TypeScript eslint).

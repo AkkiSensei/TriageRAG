@@ -306,6 +306,16 @@ class PlanDraft(BaseModel):
     steps: list[PlanStepDraft] = Field(default_factory=list)
 
 
+class DrugAction(BaseModel):
+    """Clause-scoped binding between a clinical action polarity and a formulary drug (FG-01)."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    action: Literal["administer", "withhold", "unparsed"]
+    drug_id: str
+    clause_text: str
+
+
 class RetrievedChunk(BaseModel):
     """Retrieved document text chunk with metadata."""
 
@@ -319,6 +329,7 @@ class RetrievedChunk(BaseModel):
     population: str
     syndrome: str
     score: Decimal = Decimal("0.0")
+    drug_actions: tuple[DrugAction, ...] = ()
 
 
 class RetrievalReport(BaseModel):

@@ -4,12 +4,12 @@
   "rule_mutants_killed": 12,
   "rule_mutation_score": 100.0,
   "rule_survivors": [],
-  "code_mutants_total": 33,
-  "code_mutants_killed": 33,
+  "code_mutants_total": 37,
+  "code_mutants_killed": 37,
   "code_mutation_score": 100.0,
   "code_survivors": [],
-  "overall_mutants_total": 45,
-  "overall_mutants_killed": 45,
+  "overall_mutants_total": 49,
+  "overall_mutants_killed": 49,
   "overall_mutation_score": 100.0,
   "status": "PASS"
 }

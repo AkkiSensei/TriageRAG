@@ -315,6 +315,7 @@ def retrieve_protocol_chunks(
                 population=chunk.population,
                 syndrome=chunk.syndrome,
                 score=norm_score,
+                drug_actions=chunk.drug_actions,
             )
         )
 
