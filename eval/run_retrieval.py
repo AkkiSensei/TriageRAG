@@ -506,6 +506,62 @@ def run_permutation_sanity_check(seed: int = 42) -> float:
     return round(perm_r1, 4)
 
 
+def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) -> dict[str, float]:
+    """Evaluate a true random ranker within each query's eligible candidate pool (Section 5 review).
+
+    Demonstrates the baseline recall achievable when candidate sets are 4-6 chunks,
+    establishing that Recall@5 ≈ 80-100% is mathematically expected from candidate pool size.
+    """
+    dataset_path = _REPO_ROOT / "eval" / "retrieval" / "dataset.yaml"
+    raw_ds = yaml.safe_load(dataset_path.read_text(encoding="utf-8"))
+    test_cases = [c for c in raw_ds["cases"] if c["split"] == "test" and not c["expect_abstain"]]
+
+    service = RetrievalService.create_default(get_data_dir())
+    all_chunks = service.list_chunks()
+
+    rng = random.Random(seed)
+    r1_list: list[float] = []
+    r5_list: list[float] = []
+
+    for c in test_cases:
+        patient = build_patient_from_eval_case(c)
+        pop_cat = str(patient.age.population_category)
+        syndrome = patient.suspected_syndrome
+
+        candidates = [
+            chunk
+            for chunk in all_chunks
+            if chunk.population == pop_cat and (syndrome is None or chunk.syndrome == syndrome)
+        ]
+        targets = {cid for cid, g in (c.get("relevance_grades") or {}).items() if g >= 2}
+
+        if not candidates or not targets:
+            continue
+
+        cand_r1 = 0
+        cand_r5 = 0
+        for _ in range(num_trials):
+            shuffled = list(candidates)
+            rng.shuffle(shuffled)
+            top1 = shuffled[0].chunk_id
+            top5 = {ch.chunk_id for ch in shuffled[:5]}
+            if top1 in targets:
+                cand_r1 += 1
+            if targets & top5:
+                cand_r5 += 1
+
+        r1_list.append(float(cand_r1) / float(num_trials))
+        r5_list.append(float(cand_r5) / float(num_trials))
+
+    mean_r1 = sum(r1_list) / float(len(r1_list)) if r1_list else 0.0
+    mean_r5 = sum(r5_list) / float(len(r5_list)) if r5_list else 0.0
+
+    return {
+        "random_recall_at_1": round(mean_r1 * 100.0, 2),
+        "random_recall_at_5": round(mean_r5 * 100.0, 2),
+    }
+
+
 def run_retrieval_benchmark(
     backend: str = "bm25",
     write_reports: bool = True,
@@ -563,6 +619,7 @@ def run_retrieval_benchmark(
         "abstain_accuracy": test_metrics["abstain_accuracy"],
         "wrong_protocol_rate": test_metrics["wrong_protocol_rate"],
         "ece": test_metrics["ece"],
+        "random_candidate_baseline": run_candidate_pool_random_baseline(),
         "dev": dev_metrics,
         "test": test_metrics,
         "overall": all_metrics,

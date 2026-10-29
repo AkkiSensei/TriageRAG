@@ -8,7 +8,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111%2B-009688.svg?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
 [![React + Vite](https://img.shields.io/badge/React_18-Vite-61DAFB.svg?style=for-the-badge&logo=react)](https://vitejs.dev)
 [![CI Verification](https://img.shields.io/badge/CI%20Pipeline-100%25%20Green-emerald.svg?style=for-the-badge&logo=githubactions)](https://github.com/AkkiSensei/TriageRAG/actions)
-[![Mutant Kill Rate](https://img.shields.io/badge/Mutation%20Score-40%2F40%20(100%25)-purple.svg?style=for-the-badge)](https://github.com/AkkiSensei/TriageRAG)
+[![Mutant Kill Rate](https://img.shields.io/badge/Mutation%20Score-52%2F52%20(100%25)-purple.svg?style=for-the-badge)](https://github.com/AkkiSensei/TriageRAG)
 [![Math Precision](https://img.shields.io/badge/Precision-Exact%20Decimal%20Only-orange.svg?style=for-the-badge)](https://github.com/AkkiSensei/TriageRAG)
 
 <br/>
@@ -76,7 +76,7 @@ Safety rules, physiological scores (NEWS2), dose arithmetic, and contraindicatio
                        │    EngineReport & Audit Chain    │
                        │  • Safety Verdict Banner         │
                        │  • Fail-closed UNVERIFIED        │
-                       │  • SHA-256 Merkle Audit Seal     │
+                       │  • SHA-256 Hash-Chained Audit Log│
                        └──────────────────────────────────┘
 ```
 
@@ -91,7 +91,7 @@ Safety rules, physiological scores (NEWS2), dose arithmetic, and contraindicatio
 | **Missing Patient Data** | Hallucinates or assumes "normal" defaults | ❓ **Fails Closed to `UNVERIFIED`** (flags missing vitals explicitly) |
 | **Hallucinated Protocol Steps** | Invents ungrounded emergency procedures | 🔍 **Verbatim Chunk Citations** verified against guideline text |
 | **Adversarial Prompt Injection** | Leaks instructions via patient chief complaint | 🛡️ **Quarantined narrative**; never touches decision rules |
-| **Clinician Accountability** | Opaque black-box reasoning | ⛓️ **Cryptographic SHA-256 Merkle Audit Chain** on every run |
+| **Clinician Accountability** | Opaque black-box reasoning | ⛓️ **Cryptographic SHA-256 Hash-Chained Audit Log** on every run |
 
 ---
 
@@ -134,7 +134,7 @@ Certain drug-drug combinations (such as PDE5-inhibitors and nitrates, which trig
 ### 3. Exact Decimal Math & Magnitude Tripwires (Rule R8)
 * All pediatric and weight-based doses (mg/kg, mcg/kg) are calculated using pure `Decimal` arithmetic.
 * Every dose is cross-checked against formulary minimums, per-dose maximums, and daily ceilings.
-* A 10x magnitude tripwire intercepts ten-fold typographical errors before orders can be approved.
+* A 10x magnitude tripwire flags ten-fold dosage errors as Severity.HIGH (DOSE_MAGNITUDE_WARNING), requiring mandatory clinician justification and audit logging before approval.
 
 ---
 
@@ -146,15 +146,22 @@ The entire system is continuously measured across seven automated verification a
 ======================================================================
   SUITE NAME               SCOPE & OBJECTIVE             RESULT
 ======================================================================
-  Shipped Golden Cases     65/65 Clinical Test Cases     100% PASSED
+  Shipped Golden Cases     65/65 Ruleset Cases (isolated)100% PASSED
   Mechanics Suite          41/41 Edge-Case Patients      100% PASSED
-  Metamorphic Invariance   3/3 Transformation Tests      100% PASSED
-  Adversarial Injection    9/9 Prompt Hijacks Blocked    100% BLOCKED
-  Mutation Kill Score      40/40 Code & Rule Mutants     100% KILLED
-  Protocol Retrieval       32 Benchmark Pairs            100% R@5 (0.896 MRR)
-  Abstain Accuracy         3 Domain Abstention Cases     100% CORRECT
-  Pytest Unit/Integration  91 Test Suites                100% GREEN
+  Metamorphic Invariance   3/3 Equivalence Transforms    100% PASSED
+  Adversarial Injection    19/19 Hijacks & Laundering    100% BLOCKED
+  Mutation Kill Score      52/52 Code & Rule Mutants     100% KILLED
+  Differential Property    1,000 Hypothesis Permutations 100% GREEN (0 diff)
+  Retrieval: Routed Track  41 Test Cases (Syndrome Given)100% Recall@5 (0.73 MRR)
+  Retrieval: Unrouted Track15 Test Cases (Vitals Only)   0.0% Recall@1 (Fail-Closed HD-1)
+  Retrieval: Overall Test  56 Test Positive Cases        73.21% R@5 [60.7, 83.9]
+  Hard-Negative Abstention 14 Hard-Negative Cases        100% ABSTAINED (0 wrong proto)
+  Pytest Test Suite        223 Collected Tests           222 PASSED, 1 XFAIL (HD-6)
 ======================================================================
+
+> **Evaluation Honesty & Baseline Note:**
+> - **Routed Retrieval Track:** 100% Recall@5 is observed on syndrome-provided cases (ranking protocol chunks within known syndrome). A random ranker on these filtered 4–6 candidate sets achieves 79.92% Recall@5 and 21.37% Recall@1 as its baseline.
+> - **Unrouted Retrieval Track:** Achieves 0.0% Recall on vitals-only cases because physiological flag thresholds are unverified (marked status: NEEDS_SOURCE under fail-closed governance HD-1), refusing to hallucinate protocol matches without validated cut-offs.
 ```
 
 ---
@@ -237,7 +244,7 @@ TriageRAG/
 │   │   ├── citations.py        # Verbatim chunk substring verification
 │   │   └── drug_scan.py        # Prose drug leak scanner
 │   ├── audit/                  # Cryptographic audit logging
-│   │   └── chain.py            # SHA-256 append-only Merkle hash chain
+│   │   └── chain.py            # SHA-256 append-only hash chain
 │   └── api/                    # FastAPI presentation layer
 ├── web/                        # React 18 + Vite frontend
 │   └── src/

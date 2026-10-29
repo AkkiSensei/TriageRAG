@@ -18,10 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **ENG-08 (Lookback In-Class Omission Guard):** Added fail-closed `SkippedCheck` when an in-class drug lacks an entry in `lookback_hours_by_ingredient`, and added data-lint in `tools/validate_data.py` enforcing lookback coverage for all class members.
   - **Allergy Precedence Fix:** Confirmed IgE anaphylaxis alerts take strict precedence over unknown reaction types on secondary class allergens.
 
+  - **Formulary Route Validation:** `verify_plan` in `plan_verifier.py` strictly validates proposed administration routes against the drug's formulary-approved route options (`drug.routes`), flagging unapproved administration routes as `FLAGGED_HIGH`.
+  - **Gemini Provider Hardening:** Reconciled `TRIAGERAG_MODEL_NAME` with `GEMINI_MODEL`, enforced client request timeout `timeout_seconds`, and implemented bounded retries with exponential backoff on transient network failures.
+  - **Candidate-Pool Random Baseline:** Added `run_candidate_pool_random_baseline()` to `eval/run_retrieval.py` providing a true candidate-pool random ranking baseline (21.37% R@1, 79.92% R@5 on 4–6 candidate pools).
+  - **Empirical Metrics Alignment:** Updated `README.md` to accurately disclose current benchmark results (73.21% test / 69.86% overall Recall@5, 100% routed / 0% unrouted under HD-1, 19/19 adversarial, 52/52 mutants killed, SHA-256 hash-chained audit log, and 10x tripwire `Severity.HIGH` qualification).
+
 ### Added
 - **WP-0 Evaluation & Verification Hardening:**
   - **Rule-Isolation Harness:** Added `only_rules` isolation harness to `eval/run_golden.py`. Evaluates all 65 golden cases in complete isolation from redundant rules (100% pass).
   - **Differential Property Testing:** Implemented independent reference interpreter and Hypothesis test suite in `tests/property/test_engine_differential.py` running 1,000 synthetic patient permutations with 0 divergences.
+  - **Route Verification Suite:** Added `tests/unit/test_route_and_verification_hardening.py` testing route validation and order completeness.
+  - **Gemini Provider Suite:** Added `tests/unit/test_gemini_provider.py` testing model reconciliation, timeouts, and bounded retries.
   - **ADR-0010:** Documented architectural decisions in `docs/adr/0010-engine-defect-sweep-and-rule-isolation.md`.
   - **Audit Regressions Suite:** Added `tests/unit/test_audit_regressions.py` covering ENG-01..ENG-08.
 

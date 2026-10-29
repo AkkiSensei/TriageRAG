@@ -114,6 +114,17 @@ def verify_plan(
                     )
                 )
                 all_alerts = baseline_alerts + plan_alerts
+        elif step.action_type == ActionType.administer and step.drug_id and step.route:
+            drug_entry = registry.get_drug(step.drug_id)
+            if drug_entry:
+                allowed_routes = [r.lower() for r in drug_entry.routes]
+                if step.route.value.lower() not in allowed_routes:
+                    if status != StepStatus.BLOCKED_STRUCK_THROUGH:
+                        status = StepStatus.FLAGGED_HIGH
+                    rejection_reasons.append(
+                        f"Route '{step.route.value}' not approved for '{step.drug_id}'. "
+                        f"Allowed routes: {drug_entry.routes}"
+                    )
 
         # 2. Prose drug leak scan (Section 10)
         leaks = scan_narrative_for_drug_leaks(

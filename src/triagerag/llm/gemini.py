@@ -10,7 +10,8 @@ Never imported at module top level in non-LLM components.
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
+import time
+from typing import TYPE_CHECKING, Any
 
 from triagerag.contracts.schemas import PlanContext, PlanDraft
 from triagerag.llm.prompts import PLAN_DRAFT_SYSTEM_PROMPT, build_plan_draft_prompt
@@ -28,10 +29,17 @@ class GeminiProvider(LLMProvider):
         api_key: str | None = None,
         model_name: str | None = None,
         timeout_seconds: float = 15.0,
+        max_retries: int = 2,
     ) -> None:
         self.api_key = api_key or os.environ.get("GEMINI_API_KEY", "")
-        self.model_name = model_name or os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+        # Reconcile TRIAGERAG_MODEL_NAME (.env.example) and GEMINI_MODEL
+        self.model_name = (
+            model_name
+            or os.environ.get("TRIAGERAG_MODEL_NAME")
+            or os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+        )
         self.timeout_seconds = timeout_seconds
+        self.max_retries = max_retries
 
         if not self.api_key:
             raise ValueError("GEMINI_API_KEY environment variable is required for GeminiProvider")
@@ -40,18 +48,42 @@ class GeminiProvider(LLMProvider):
         try:
             from google import genai  # type: ignore[import-not-found]
 
-            self.client = genai.Client(api_key=self.api_key)
+            # Enforce timeout in client HTTP options
+            self.client = genai.Client(
+                api_key=self.api_key,
+                http_options={"timeout": int(self.timeout_seconds * 1000)},
+            )
         except ImportError as e:
             raise RuntimeError(
                 "google-genai extra is not installed. Install via: pip install 'triagerag[llm]'"
             ) from e
 
+    def _generate_with_retry(self, contents: str, config: dict[str, Any]) -> Any:
+        """Execute model content generation with bounded retries and timeout enforcement."""
+        # Include timeout in call config options
+        config["http_options"] = {"timeout": int(self.timeout_seconds * 1000)}
+
+        last_err: Exception | None = None
+        for attempt in range(self.max_retries + 1):
+            try:
+                return self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=contents,
+                    config=config,
+                )
+            except Exception as e:
+                last_err = e
+                if attempt < self.max_retries:
+                    time.sleep(0.5 * (2**attempt))
+        raise RuntimeError(
+            f"Gemini request failed after {self.max_retries + 1} attempts: {last_err}"
+        ) from last_err
+
     def draft_plan(self, context: PlanContext) -> PlanDraft:
         """Draft structured plan using Gemini JSON schema output."""
         prompt = build_plan_draft_prompt(context)
         try:
-            response = self.client.models.generate_content(
-                model=self.model_name,
+            response = self._generate_with_retry(
                 contents=prompt,
                 config={
                     "system_instruction": PLAN_DRAFT_SYSTEM_PROMPT,
@@ -82,8 +114,7 @@ class GeminiProvider(LLMProvider):
             "Emit a corrected PlanDraft JSON fixing all violations."
         )
         try:
-            response = self.client.models.generate_content(
-                model=self.model_name,
+            response = self._generate_with_retry(
                 contents=repair_prompt,
                 config={
                     "system_instruction": PLAN_DRAFT_SYSTEM_PROMPT,
