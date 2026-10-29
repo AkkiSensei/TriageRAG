@@ -380,6 +380,28 @@
   - `test_backlog_item_12_reopened_as_in_progress`
 
 
+### Fix Gate G5 — Retrieval Honesty & Hardening (`fg-5`)
+- **Flags Addressed:**
+  - **FG-08 (P1):** Ablation run on held-out split with bootstrap CIs; deterministic decision rule codified in Python.
+  - **FG-13 (P1):** BM25 global corpus statistics computed; cross-population score stability preserved.
+  - **FG-14 (P1) & HD-5:** Component naming honesty (`CharNgramRetriever`, `LexicalOverlapReranker`).
+  - **FG-17 (P1):** Unified Unicode NFKC / zero-width prompt-injection sanitizer tested against 32 attacks; blocks `status: REVIEWED`.
+  - **FG-19 (P2):** Tokenizer case sensitivity on <=2 char acronym expansion (`token == token.upper()`).
+- **Remediation:**
+  1. Updated `ClinicalTokenizer.tokenize` in `src/triagerag/rag/index.py` so that 2-letter tokens only expand against acronym registry if `token == token.upper()`.
+  2. Enhanced `BM25ClinicalIndex` to compute and expose global corpus statistics (`global_total_docs`, `global_doc_freqs`, `global_idf`), retaining local document-length normalization within population partitions to satisfy cross-population score stability invariants.
+  3. Created `src/triagerag/normalize/sanitizer.py` implementing Unicode NFKC normalization, invisible zero-width stripping, and 18 regex patterns across 32 adversarial test attacks. Integrated into both `src/triagerag/rag/ingest.py` and `src/triagerag/llm/prompts.py`. Documents with injection patterns cannot hold `status: REVIEWED`.
+  4. Renamed dense and reranker components to `CharNgramRetriever` and `LexicalOverlapReranker` in `src/triagerag/rag/hybrid.py` (with backward compatibility aliases). Authored ADR 0009 (`docs/adr/0009-retrieval-hardening-lexical-standins-and-idf-partitioning.md`) and recorded `HD-5` in `BACKLOG.md`.
+  5. Updated `eval/run_retrieval_ablation.py` to evaluate the 88 held-out test split cases with 95% bootstrap confidence intervals for Recall@5 and MRR, and codified the deterministic decision rule `decide_backend()` selecting `bm25`.
+- **Tests (`tests/unit/test_fg5_retrieval_hardening.py`):**
+  - `test_tokenizer_two_char_case_sensitivity`
+  - `test_bm25_global_corpus_stats_and_cross_population_stability`
+  - `test_sanitizer_unicode_nfkc_and_adversarial_corpus`
+  - `test_char_ngram_and_lexical_reranker_naming`
+  - `test_ablation_held_out_split_with_bootstrap_cis`
+
+
+
 
 
 

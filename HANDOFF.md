@@ -4,9 +4,9 @@
 
 ## Current State
 
-- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`), and Part D Fix Gates `fg-0` (Re-baseline), `fg-1` (Grounding Soundness), `fg-2` (Clinical Inputs Fail Closed), `fg-3` (Abstention Logic & Context Hygiene), and `fg-4` (Evaluation That Can Fail: FG-06, FG-07, HD-3) **COMPLETE**. Next gate: `fg-5` (Retrieval Honesty & Hardening: FG-08, FG-13, FG-14, FG-17, FG-19, HD-5).
+- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`), and Part D Fix Gates `fg-0` (Re-baseline), `fg-1` (Grounding Soundness), `fg-2` (Clinical Inputs Fail Closed), `fg-3` (Abstention Logic & Context Hygiene), `fg-4` (Evaluation That Can Fail), and `fg-5` (Retrieval Honesty & Hardening: FG-08, FG-13, FG-14, FG-17, FG-19, HD-5) **COMPLETE**. Next gate: `fg-6` (Reporting Integrity & Ops: FG-09–12, FG-18, FG-20).
 - **Verification:** All gates green:
-  - 177/177 Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, FG-1 grounding, FG-2 clinical inputs, FG-3 abstention/context, and FG-4 eval/calibration).
+  - 182/182 Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, FG-1 grounding, FG-2 clinical inputs, FG-3 abstention/context, FG-4 eval/calibration, and FG-5 retrieval hardening).
   - 8/8 Vitest frontend unit & component tests green.
   - 51/51 mutants killed (100% kill score: 12 rule mutants + 39 code mutants, including M34–M39).
   - 65/65 Golden cases green (100%).
@@ -16,6 +16,7 @@
   - 224-case WP5/FG-06 Node-Level Retrieval Benchmark green (100.0% Syndrome-Provided Recall@5 on test split, 0.0000 Wrong-Protocol Rate, 1.0000 Hard-Negative Abstain Recall, honestly disclosed 0.0% vitals-only Recall@1 under fail-closed HD-1).
   - Permutation sanity check collapses Recall@1 to 0.0000 (< 0.05).
   - 10,000-chunk Synthetic Scale Benchmark green (`p95 < 50.0 ms`).
+  - 4-Arm Retrieval Ablation Suite on held-out test split with bootstrap CIs and codified deterministic `decide_backend()` rule selecting `bm25`.
   - 0 lint / format errors (Python ruff & TypeScript eslint).
   - 0 type errors (Python mypy strict & TypeScript tsc).
   - 0 import isolation contract violations (import-linter).

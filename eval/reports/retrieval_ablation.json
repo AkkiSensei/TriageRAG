@@ -2,6 +2,7 @@
   "suite": "retrieval_ablation",
   "total_cases": 224,
   "test_cases": 88,
+  "selected_backend": "bm25",
   "default_production_backend": "bm25",
   "arms": {
     "bm25": {
@@ -15,8 +16,8 @@
       "abstain_precision": 0.6393,
       "abstain_recall": 1.0,
       "ece": 0.1449,
-      "latency_p50_ms": 0.016,
-      "latency_p95_ms": 0.075,
+      "latency_p50_ms": 0.042,
+      "latency_p95_ms": 0.219,
       "test_split": {
         "total_cases": 88,
         "positive_cases": 56,
@@ -53,8 +54,8 @@
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
         "ece": 0.1451,
-        "latency_p50_ms": 0.032,
-        "latency_p95_ms": 0.103,
+        "latency_p50_ms": 0.052,
+        "latency_p95_ms": 0.169,
         "syndrome_provided": {
           "positive_cases": 41,
           "recall_at_1": 53.66,
@@ -113,9 +114,9 @@
         }
       }
     },
-    "dense": {
-      "backend": "dense",
-      "label": "Arm 2: Dense Vector Cosine (Char 3-gram + Token TF-IDF)",
+    "char_ngram": {
+      "backend": "char_ngram",
+      "label": "Arm 2: Char-Trigram TF-IDF Vector Retriever (CharNgramRetriever)",
       "recall_at_5": 69.86,
       "mrr": 0.4281,
       "ndcg_at_5": 0.5776,
@@ -124,8 +125,8 @@
       "abstain_precision": 0.6393,
       "abstain_recall": 1.0,
       "ece": 0.2284,
-      "latency_p50_ms": 0.022,
-      "latency_p95_ms": 0.095,
+      "latency_p50_ms": 0.056,
+      "latency_p95_ms": 0.286,
       "test_split": {
         "total_cases": 88,
         "positive_cases": 56,
@@ -162,8 +163,117 @@
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
         "ece": 0.2304,
-        "latency_p50_ms": 0.025,
-        "latency_p95_ms": 0.095,
+        "latency_p50_ms": 0.101,
+        "latency_p95_ms": 0.415,
+        "syndrome_provided": {
+          "positive_cases": 41,
+          "recall_at_1": 41.46,
+          "recall_at_1_ci95": [
+            26.83,
+            58.54
+          ],
+          "recall_at_3": 92.68,
+          "recall_at_3_ci95": [
+            85.37,
+            100.0
+          ],
+          "recall_at_5": 100.0,
+          "recall_at_5_ci95": [
+            100.0,
+            100.0
+          ],
+          "mrr": 0.689,
+          "mrr_ci95": [
+            0.6098,
+            0.7805
+          ],
+          "ndcg_at_5": 0.8467,
+          "ndcg_at_5_ci95": [
+            0.8127,
+            0.8848
+          ]
+        },
+        "vitals_only": {
+          "positive_cases": 15,
+          "recall_at_1": 0.0,
+          "recall_at_1_ci95": [
+            0.0,
+            0.0
+          ],
+          "recall_at_3": 0.0,
+          "recall_at_3_ci95": [
+            0.0,
+            0.0
+          ],
+          "recall_at_5": 0.0,
+          "recall_at_5_ci95": [
+            0.0,
+            0.0
+          ],
+          "mrr": 0.0,
+          "mrr_ci95": [
+            0.0,
+            0.0
+          ],
+          "ndcg_at_5": 0.0,
+          "ndcg_at_5_ci95": [
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    "dense": {
+      "backend": "char_ngram",
+      "label": "Arm 2: Char-Trigram TF-IDF Vector Retriever (CharNgramRetriever)",
+      "recall_at_5": 69.86,
+      "mrr": 0.4281,
+      "ndcg_at_5": 0.5776,
+      "wrong_protocol_rate": 0.0,
+      "hard_negative_abstain_recall": 1.0,
+      "abstain_precision": 0.6393,
+      "abstain_recall": 1.0,
+      "ece": 0.2284,
+      "latency_p50_ms": 0.056,
+      "latency_p95_ms": 0.286,
+      "test_split": {
+        "total_cases": 88,
+        "positive_cases": 56,
+        "abstain_cases": 32,
+        "recall_at_1": 30.36,
+        "recall_at_1_ci95": [
+          19.64,
+          44.64
+        ],
+        "recall_at_3": 67.86,
+        "recall_at_3_ci95": [
+          55.36,
+          80.36
+        ],
+        "recall_at_5": 73.21,
+        "recall_at_5_ci95": [
+          60.71,
+          83.93
+        ],
+        "mrr": 0.5045,
+        "mrr_ci95": [
+          0.4107,
+          0.6205
+        ],
+        "ndcg_at_5": 0.6199,
+        "ndcg_at_5_ci95": [
+          0.5231,
+          0.718
+        ],
+        "abstain_precision": 0.6809,
+        "abstain_recall": 1.0,
+        "abstain_accuracy": 82.95,
+        "abstain_code_accuracy": 78.41,
+        "abstain_recall_hard_negatives": 1.0,
+        "wrong_protocol_rate": 0.0,
+        "ece": 0.2304,
+        "latency_p50_ms": 0.101,
+        "latency_p95_ms": 0.415,
         "syndrome_provided": {
           "positive_cases": 41,
           "recall_at_1": 41.46,
@@ -224,7 +334,7 @@
     },
     "hybrid_rrf": {
       "backend": "hybrid_rrf",
-      "label": "Arm 3: Hybrid Reciprocal Rank Fusion (BM25 + Dense)",
+      "label": "Arm 3: Hybrid Reciprocal Rank Fusion (BM25 + CharNgram)",
       "recall_at_5": 69.86,
       "mrr": 0.4829,
       "ndcg_at_5": 0.5972,
@@ -233,8 +343,8 @@
       "abstain_precision": 0.6393,
       "abstain_recall": 1.0,
       "ece": 0.1449,
-      "latency_p50_ms": 0.016,
-      "latency_p95_ms": 0.087,
+      "latency_p50_ms": 0.107,
+      "latency_p95_ms": 0.813,
       "test_split": {
         "total_cases": 88,
         "positive_cases": 56,
@@ -271,8 +381,8 @@
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
         "ece": 0.1451,
-        "latency_p50_ms": 0.021,
-        "latency_p95_ms": 0.095,
+        "latency_p50_ms": 0.121,
+        "latency_p95_ms": 0.453,
         "syndrome_provided": {
           "positive_cases": 41,
           "recall_at_1": 53.66,
@@ -333,7 +443,7 @@
     },
     "hybrid_rrf_rerank": {
       "backend": "hybrid_rrf_rerank",
-      "label": "Arm 4: Hybrid RRF + Lexical Overlap Reranker",
+      "label": "Arm 4: Hybrid RRF + Lexical Overlap Reranker (LexicalOverlapReranker)",
       "recall_at_5": 69.86,
       "mrr": 0.4829,
       "ndcg_at_5": 0.5972,
@@ -342,8 +452,8 @@
       "abstain_precision": 0.6393,
       "abstain_recall": 1.0,
       "ece": 0.116,
-      "latency_p50_ms": 0.031,
-      "latency_p95_ms": 0.316,
+      "latency_p50_ms": 0.055,
+      "latency_p95_ms": 0.62,
       "test_split": {
         "total_cases": 88,
         "positive_cases": 56,
@@ -380,8 +490,8 @@
         "abstain_recall_hard_negatives": 1.0,
         "wrong_protocol_rate": 0.0,
         "ece": 0.1151,
-        "latency_p50_ms": 0.044,
-        "latency_p95_ms": 0.409,
+        "latency_p50_ms": 0.056,
+        "latency_p95_ms": 0.696,
         "syndrome_provided": {
           "positive_cases": 41,
           "recall_at_1": 53.66,

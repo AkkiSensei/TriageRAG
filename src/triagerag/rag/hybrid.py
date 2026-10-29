@@ -33,8 +33,8 @@ def _extract_char_ngrams(text: str, tokenizer: ClinicalTokenizer) -> Counter[str
     return features
 
 
-class DenseRetriever:
-    """Offline dense vector retriever using L2-normalized token + char n-gram TF-IDF embeddings."""
+class CharNgramRetriever:
+    """Offline char n-gram TF-IDF vector retriever (FG-14 / HD-5)."""
 
     def __init__(
         self,
@@ -45,7 +45,7 @@ class DenseRetriever:
         self.all_chunks: tuple[ProtocolChunk, ...] = tuple(chunks)
         self.corpus_hash: str = compute_corpus_hash(chunks)
         self.index_version: str = "2.0.0"
-        self.backend: str = "dense"
+        self.backend: str = "char_ngram"
         self.retrieval_context: Any = None
 
         self.parents_by_id: dict[str, ProtocolChunk] = {
@@ -146,8 +146,29 @@ class DenseRetriever:
         return scored[:eff_top_k]
 
 
+# Backward-compatible alias for CharNgramRetriever (FG-14 / HD-5)
+DenseRetriever = CharNgramRetriever
+
+
+class LexicalOverlapReranker:
+    """Lexical overlap reranker computing token intersection ratio (FG-14 / HD-5)."""
+
+    def rerank(
+        self,
+        query_tokens: set[str],
+        doc_tokens: set[str],
+        base_score: float,
+        boost: float = 0.5,
+    ) -> float:
+        """Scale base score by token intersection ratio against query terms."""
+        if not query_tokens or base_score <= 0.0:
+            return float(base_score)
+        overlap_ratio = float(len(query_tokens & doc_tokens)) / float(len(query_tokens))
+        return float(base_score * (1.0 + boost * overlap_ratio))
+
+
 class HybridRRFRetriever:
-    """Reciprocal Rank Fusion (RRF) combining lexical BM25 and Dense retrievers."""
+    """Reciprocal Rank Fusion (RRF) combining lexical BM25 and CharNgram retrievers."""
 
     def __init__(
         self,
@@ -156,8 +177,9 @@ class HybridRRFRetriever:
         rerank: bool = False,
     ) -> None:
         self.bm25 = BM25ClinicalIndex(chunks, acronyms=acronyms)
-        self.dense = DenseRetriever(chunks, acronyms=acronyms)
+        self.dense = CharNgramRetriever(chunks, acronyms=acronyms)
         self.rerank = rerank
+        self.reranker = LexicalOverlapReranker() if rerank else None
         self.corpus_hash: str = self.bm25.corpus_hash
         self.index_version: str = "2.0.0"
         self.backend: str = "hybrid_rrf_rerank" if rerank else "hybrid_rrf"
@@ -219,10 +241,9 @@ class HybridRRFRetriever:
         for cid, rrf_val in rrf_scores.items():
             chunk = chunk_map[cid]
             scaled_score = float(rrf_val * scale)
-            if self.rerank and query_tokens and scaled_score > 0.0:
+            if self.reranker and query_tokens and scaled_score > 0.0:
                 doc_tokens = set(self.bm25.tokenizer.tokenize(chunk.indexed_text or chunk.text))
-                overlap_ratio = float(len(query_tokens & doc_tokens)) / float(len(query_tokens))
-                scaled_score = float(scaled_score * (1.0 + 0.5 * overlap_ratio))
+                scaled_score = self.reranker.rerank(query_tokens, doc_tokens, scaled_score)
             final_scored.append((chunk, scaled_score))
 
         final_scored.sort(key=lambda x: (-x[1], x[0].chunk_id))
@@ -234,12 +255,12 @@ def build_retriever_backend(
     chunks: list[ProtocolChunk],
     acronyms: dict[str, str] | None = None,
 ) -> Retriever:
-    """Factory helper constructing the requested Retriever implementation."""
+    """Factory helper constructing the requested Retriever implementation (FG-14)."""
     b_norm = backend.lower().strip()
     if b_norm == "bm25":
         return BM25ClinicalIndex(chunks, acronyms=acronyms)
-    if b_norm == "dense":
-        return DenseRetriever(chunks, acronyms=acronyms)
+    if b_norm in ("char_ngram", "dense"):
+        return CharNgramRetriever(chunks, acronyms=acronyms)
     if b_norm == "hybrid_rrf":
         return HybridRRFRetriever(chunks, acronyms=acronyms, rerank=False)
     if b_norm in ("hybrid_rrf_rerank", "hybrid_rerank"):

@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -24,56 +23,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from triagerag.config import get_data_dir
 from triagerag.contracts.enums import SourceStatus
+from triagerag.normalize.sanitizer import detect_suspicious_patterns
 from triagerag.rag.chunking import ProtocolChunk, chunk_protocol_markdown
 
 logger = logging.getLogger(__name__)
-
-_SUSPICIOUS_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    (
-        "ignore_instructions",
-        re.compile(r"ignore\s+(?:all\s+)?(?:previous|prior|above)\s+instructions", re.IGNORECASE),
-    ),
-    ("ignore_safety", re.compile(r"ignore\s+(?:all\s+)?safety\s+rules", re.IGNORECASE)),
-    ("system_override", re.compile(r"system\s+override", re.IGNORECASE)),
-    (
-        "disregard_rules",
-        re.compile(r"disregard\s+(?:all\s+)?(?:previous|safety|clinical)", re.IGNORECASE),
-    ),
-    (
-        "xml_tag_escape",
-        re.compile(
-            r"</?(?:instructions|system|prompt|untrusted_retrieved_protocol_data)>",
-            re.IGNORECASE,
-        ),
-    ),
-    ("role_hijack", re.compile(r"you\s+are\s+now\s+(?:an?\s+)?unrestricted", re.IGNORECASE)),
-)
-
-
-def detect_suspicious_patterns(text: str) -> tuple[str, ...]:
-    """Scan chunk text for instruction-like prompt injection patterns (RAG-11)."""
-    found: list[str] = []
-    for name, pattern in _SUSPICIOUS_PATTERNS:
-        if pattern.search(text):
-            found.append(name)
-    return tuple(found)
-
-
-def sanitize_chunk_for_prompt(text: str) -> str:
-    """Neutralize XML delimiter escapes and explicit override headers for LLM prompt framing."""
-    sanitized = re.sub(
-        r"</?(?:instructions|system|prompt|untrusted_retrieved_protocol_data)>",
-        "[STRIPPED_TAG]",
-        text,
-        flags=re.IGNORECASE,
-    )
-    sanitized = re.sub(
-        r"(?:SYSTEM\s+OVERRIDE|IGNORE\s+(?:ALL\s+)?(?:PREVIOUS\s+INSTRUCTIONS|SAFETY\s+RULES))",
-        "[FLAGGED_UNTRUSTED_DIRECTIVE]",
-        sanitized,
-        flags=re.IGNORECASE,
-    )
-    return sanitized
 
 
 class CorpusManifestEntry(BaseModel):
@@ -179,6 +132,13 @@ def ingest_protocols_with_report(
     unparsed_by_doc: dict[str, list[str]] = {}
     flagged_chunks: dict[str, list[str]] = {}
 
+    # Block status REVIEWED if document has flagged prompt injection patterns (FG-17)
+    manifest_map: dict[str, CorpusManifestEntry] = {}
+    manifest_file = data_dir / "corpus" / "manifest.yaml"
+    if manifest_file.exists():
+        manifest = load_corpus_manifest(data_dir)
+        manifest_map = {d.doc_id: d for d in manifest.documents}
+
     candidate_dirs = [
         data_dir / "protocols_synthetic",
         data_dir / "protocols_real",
@@ -223,14 +183,27 @@ def ingest_protocols_with_report(
                 quarantined.append(QuarantinedDocument(path=str(md_file), reason=reason))
                 continue
 
-        # Check for corpus-borne prompt injection patterns (RAG-11)
+        # Check for corpus-borne prompt injection patterns (RAG-11 / FG-17)
         checked_chunks: list[ProtocolChunk] = []
+        doc_has_flagged = False
         for chunk in doc_chunks:
             suspicious = detect_suspicious_patterns(chunk.text)
             if suspicious:
+                doc_has_flagged = True
                 flagged_chunks[chunk.chunk_id] = list(suspicious)
                 chunk = chunk.model_copy(update={"suspicious_patterns": suspicious})
             checked_chunks.append(chunk)
+
+        # Block status REVIEWED if document has flagged prompt injection patterns (FG-17)
+        entry = manifest_map.get(parent.doc_id)
+        if entry is not None and entry.status == SourceStatus.REVIEWED and doc_has_flagged:
+            reason = (
+                f"Document {parent.doc_id} contains flagged prompt-injection patterns "
+                "and cannot have status: REVIEWED"
+            )
+            logger.warning("Quarantining protocol %s: %s", md_file.name, reason)
+            quarantined.append(QuarantinedDocument(path=str(md_file), reason=reason))
+            continue
 
         loaded_docs.append(parent.doc_id)
         all_chunks.extend(checked_chunks)

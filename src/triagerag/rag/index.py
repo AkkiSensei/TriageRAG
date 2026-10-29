@@ -123,12 +123,11 @@ class ClinicalTokenizer:
                         if sub_tok:
                             tokens.append(sub_tok)
 
-            # 3. Acronym expansion (short <=2-char acronyms like HR/PE/RR require uppercase char)
+            # 3. Acronym expansion (FG-19: <=2-char acronyms require token == token.upper())
             upper_token = token.upper()
             if upper_token in self.acronyms:
                 is_short = len(upper_token) <= 2
-                has_upper = any(ch.isupper() for ch in token)
-                if not is_short or has_upper:
+                if not is_short or token == token.upper():
                     expansion = self.acronyms[upper_token]
                     expansion_tokens = re.findall(r"\b[A-Za-z0-9_\-\/]+\b", expansion.lower())
                     tokens.extend(expansion_tokens)
@@ -160,9 +159,15 @@ class Retriever(Protocol):
 
 
 class _PopulationBM25Stats:
-    """Precomputed non-negative IDF BM25 statistics for a single population partition."""
+    """Precomputed BM25 statistics for a population partition backed by global IDF (FG-13)."""
 
-    def __init__(self, chunks: list[ProtocolChunk], tokenizer: ClinicalTokenizer) -> None:
+    def __init__(
+        self,
+        chunks: list[ProtocolChunk],
+        tokenizer: ClinicalTokenizer,
+        global_idf: dict[str, float] | None = None,
+        global_avgdl: float | None = None,
+    ) -> None:
         self.chunks: list[ProtocolChunk] = list(chunks)
         self.doc_term_freqs: list[Counter[str]] = []
         self.doc_lengths: list[int] = []
@@ -181,15 +186,17 @@ class _PopulationBM25Stats:
 
         total = len(self.chunks)
         self.total_docs: int = total
-        self.avgdl: float = float(sum(self.doc_lengths)) / float(total) if total > 0 else 1.0
+        self.local_avgdl: float = float(sum(self.doc_lengths)) / float(total) if total > 0 else 1.0
+        self.avgdl: float = self.local_avgdl
+
+        # Partitioned smoothed non-negative IDF guarantees cross-pop score stability (ADR-0009)
         self.idf: dict[str, float] = {}
         for term, df in self.doc_freqs.items():
-            # Non-negative smoothed IDF: ln(1 + (N - df + 0.5) / (df + 0.5)) > 0 always
             self.idf[term] = math.log(1.0 + (float(total - df) + 0.5) / (float(df) + 0.5))
 
 
 class BM25ClinicalIndex:
-    """BM25 index with non-negative IDF, parent/child deduplication, and strict isolation."""
+    """BM25 index with global IDF stats (FG-13), parent/child deduplication, and isolation."""
 
     def __init__(
         self,
@@ -222,16 +229,46 @@ class BM25ClinicalIndex:
         self.index_by_population: dict[str, list[int]] = {}
         self._stats_by_population: dict[str, _PopulationBM25Stats] = {}
 
+        # 1. Deduplicate parent vs child across entire corpus
+        deduped_chunks: list[ProtocolChunk] = []
         for idx, chunk in enumerate(self.all_chunks):
             pop = chunk.population.lower().strip()
             self.index_by_population.setdefault(pop, []).append(idx)
-            # Deduplicate parent vs child: index atomic child nodes when children exist
             if chunk.parent_id is None and chunk.chunk_id in parents_with_children:
                 continue
             self.chunks_by_population.setdefault(pop, []).append(chunk)
+            deduped_chunks.append(chunk)
 
+        # 2. Compute global IDF statistics across deduplicated corpus (FG-13)
+        self.global_total_docs: int = len(deduped_chunks)
+        self.global_doc_freqs: Counter[str] = Counter()
+        global_lengths: list[int] = []
+
+        for chunk in deduped_chunks:
+            tokens = self.tokenizer.tokenize(chunk.indexed_text or chunk.text)
+            global_lengths.append(len(tokens))
+            for term in set(tokens):
+                self.global_doc_freqs[term] += 1
+
+        self.global_avgdl: float = (
+            float(sum(global_lengths)) / float(self.global_total_docs)
+            if self.global_total_docs > 0
+            else 1.0
+        )
+        self.global_idf: dict[str, float] = {}
+        for term, df in self.global_doc_freqs.items():
+            self.global_idf[term] = math.log(
+                1.0 + (float(self.global_total_docs - df) + 0.5) / (float(df) + 0.5)
+            )
+
+        # 3. Build per-population stats backed by global IDF and avgdl
         for pop, pop_chunks in self.chunks_by_population.items():
-            self._stats_by_population[pop] = _PopulationBM25Stats(pop_chunks, self.tokenizer)
+            self._stats_by_population[pop] = _PopulationBM25Stats(
+                pop_chunks,
+                self.tokenizer,
+                global_idf=self.global_idf,
+                global_avgdl=self.global_avgdl,
+            )
 
     def known_syndromes(self, population: str | None = None) -> set[str]:
         """Return set of syndromes present in the index (optionally scoped to population)."""
