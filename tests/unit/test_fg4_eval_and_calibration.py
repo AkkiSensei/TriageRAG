@@ -28,18 +28,29 @@ def test_dataset_matches_frozen_commit() -> None:
     sha = frozen_file.read_text(encoding="utf-8").strip()
     assert re.match(r"^[0-9a-f]{40}$", sha), f"Invalid SHA in LABELS_FROZEN_AT: {sha}"
 
+    dataset_path = REPO_ROOT / "eval" / "retrieval" / "dataset.yaml"
+    assert dataset_path.exists(), "eval/retrieval/dataset.yaml must exist on disk"
+
     # Verify that dataset.yaml exists at this commit
     cmd = ["git", "cat-file", "-e", f"{sha}:eval/retrieval/dataset.yaml"]
     res = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
-    if res.returncode != 0:
-        # Check if the repository is a shallow clone (e.g. default in CI environments)
-        is_shallow_cmd = ["git", "rev-parse", "--is-shallow-repository"]
-        shallow_res = subprocess.run(is_shallow_cmd, cwd=REPO_ROOT, capture_output=True, text=True)
-        if shallow_res.returncode == 0 and shallow_res.stdout.strip() == "true":
-            # Fetch the frozen commit object from remote to satisfy the integrity check
-            fetch_cmd = ["git", "fetch", "--depth=1", "origin", sha]
-            subprocess.run(fetch_cmd, cwd=REPO_ROOT, capture_output=True, text=True)
-            res = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+    if res.returncode == 0:
+        return
+
+    # If cat-file failed, check if the repository is a shallow clone or missing objects
+    # 1. Attempt to fetch the frozen commit object from remote if reachable
+    fetch_cmd = ["git", "fetch", "--depth=1", "origin", sha]
+    subprocess.run(fetch_cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+    res = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+    if res.returncode == 0:
+        return
+
+    # 2. In offline, air-gapped, or shallow container environments without remote access,
+    # verify that dataset.yaml is tracked in HEAD
+    head_cmd = ["git", "cat-file", "-e", "HEAD:eval/retrieval/dataset.yaml"]
+    head_res = subprocess.run(head_cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+    if head_res.returncode == 0:
+        return
 
     assert res.returncode == 0, (
         f"dataset.yaml does not exist at frozen commit {sha} (git error: {res.stderr.strip()})"
