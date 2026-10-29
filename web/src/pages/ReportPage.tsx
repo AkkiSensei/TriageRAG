@@ -265,7 +265,7 @@ export const ReportPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-4 text-xs font-mono text-slate-500 dark:text-slate-400 shadow-soft">
             <div className="flex items-center gap-2">
               <Hash className="h-4 w-4 text-teal-700 dark:text-teal-400 shrink-0" />
-              <span className="text-slate-900 dark:text-slate-100 font-bold">SHA-256 Merkle Audit Seal:</span>
+              <span className="text-slate-900 dark:text-slate-100 font-bold">SHA-256 Hash Chain Seal:</span>
             </div>
             <span className="truncate max-w-full sm:max-w-md text-teal-700 dark:text-teal-300 font-bold font-mono bg-teal-50 dark:bg-teal-950/60 px-2.5 py-1 rounded-lg border border-teal-200 dark:border-teal-800 select-all">
               {triageResult.audit_hash}

@@ -296,7 +296,7 @@ export const RedTeamPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Merkle Hash verification */}
+            {/* Hash chain verification */}
             <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-[#1e3840] text-[11px] font-mono text-slate-500 dark:text-slate-400">
               <span>Audit Chain Record:</span>
               <span className="font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-md border border-teal-200 dark:border-teal-800">

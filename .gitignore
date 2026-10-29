@@ -45,6 +45,8 @@ htmlcov/
 audit_log.jsonl*
 *.jsonl
 *.lock
+!requirements.lock
+!dataset.lock
 
 # Real protocols (confidential / external)
 data/protocols_real/*

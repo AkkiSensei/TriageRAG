@@ -47,7 +47,7 @@
      - `RedTeamPage`: Adversarial testing playground simulating prompt injections and demonstrating R7 engine isolation and R1 plan verification.
      - `RulesetPage` & `ProtocolsPage`: Searchable registries with provenance drawers and synthetic corpus watermarks.
      - `EvidencePage`: Live metrics dashboard displaying mutant matrices and ablation results.
-     - `AuditPage`: SHA-256 Merkle audit trail viewer with one-click cryptographic chain verification.
+     - `AuditPage`: SHA-256 sequential hash-chained audit trail viewer with one-click cryptographic chain verification.
      - `ErrorBoundary`: Fail-closed React component boundary preventing inconsistent clinical UI rendering upon unexpected exceptions.
 
 ## Verification Metrics Summary
@@ -57,7 +57,7 @@
 | **Python Linters** | Ruff check & format | 0 warnings | Clean | PASS |
 | **Python Typing** | Mypy strict mode | 0 errors | Clean | PASS |
 | **Layer Contracts** | Import-linter | 0 violations | Clean | PASS |
-| **Backend Tests** | Pytest unit, integration, property | 100% | 227 passed, 1 xfailed (HD-6) | PASS |
+| **Backend Tests** | Pytest unit, integration, property | 100% | 233 passed, 1 xfailed (HD-6) | PASS |
 | **Safety Boundary Tests** | AST scans & rule checks | 100% | 4/4 passed | PASS |
 | **Golden Ruleset** | Shipped clinical cases & rule-isolation | 100% | 65/65 passed (100% in isolation) | PASS |
 | **Mechanics Suite** | Edge cases & unit trips | 100% | 41/41 passed | PASS |

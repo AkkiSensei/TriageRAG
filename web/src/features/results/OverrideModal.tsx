@@ -75,7 +75,7 @@ export const OverrideModal: React.FC<OverrideModalProps> = ({
               <span>Target Rule: {ruleId} &bull; Step #{stepNumber}</span>
             </div>
             <p className="mt-1 text-[11px] text-amber-900/90 dark:text-amber-300/90 leading-relaxed">
-              Overrides are recorded permanently into the append-only SHA-256 Merkle audit chain with your clinician credentials.
+              Overrides are recorded permanently into the append-only SHA-256 sequential hash chain with your clinician credentials.
             </p>
           </div>
 

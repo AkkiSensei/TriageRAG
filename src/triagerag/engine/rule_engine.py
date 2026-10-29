@@ -32,7 +32,7 @@ from triagerag.contracts.schemas import (
     PlanStepDraft,
     SkippedCheck,
 )
-from triagerag.engine.dose_engine import verify_dose
+from triagerag.engine.dose_engine import verify_cumulative_daily_exposure, verify_dose
 
 if TYPE_CHECKING:
     from triagerag.contracts.rules_schema import ClinicalRule
@@ -751,6 +751,15 @@ def evaluate_plan(
                             provenance=prov,
                         )
                     )
+
+    # Cumulative 24-hour daily exposure evaluation (Section 5 review)
+    cum_alerts, cum_skips = verify_cumulative_daily_exposure(
+        patient=patient,
+        steps=steps,
+        registry=registry,
+    )
+    alerts.extend(cum_alerts)
+    skipped_checks.extend(cum_skips)
 
     combined_drugs = _get_active_drug_identifiers(patient, registry) | proposed_administer_drugs
     combined_classes = _get_active_classes(patient, registry)

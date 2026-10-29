@@ -80,3 +80,38 @@ def test_gemini_provider_retry_on_transient_failure() -> None:
         plan = provider.draft_plan(context)
         assert plan.matched_protocol_title == "Test"
         assert mock_client.models.generate_content.call_count == 2
+
+
+def test_gemini_provider_fails_fast_on_permanent_error() -> None:
+    """Verifies that non-transient permanent errors (auth, 400) fail fast without retrying."""
+    from triagerag.contracts.enums import PopulationCategory
+    from triagerag.contracts.schemas import PlanContext
+    from triagerag.llm.gemini import GeminiProvider
+
+    mock_client = MagicMock()
+    # Permanent 401 Unauthorized error
+    mock_client.models.generate_content.side_effect = RuntimeError(
+        "401 Unauthorized: API key invalid"
+    )
+
+    mock_genai = MagicMock()
+    mock_genai.Client.return_value = mock_client
+    mock_google = MagicMock()
+    mock_google.genai = mock_genai
+
+    with (
+        patch.dict("os.environ", {"GEMINI_API_KEY": "fake_key"}),
+        patch.dict(sys.modules, {"google": mock_google, "google.genai": mock_genai}),
+        patch("time.sleep", return_value=None),
+        pytest.raises(RuntimeError, match="non-retryable"),
+    ):
+        provider = GeminiProvider()
+        context = PlanContext(
+            population_category=PopulationCategory.adult,
+            allowed_drug_ids=["epinephrine"],
+            retrieved_chunks=[],
+        )
+        provider.draft_plan(context)
+
+    # Must fail immediately on attempt 1 with zero retries
+    assert mock_client.models.generate_content.call_count == 1

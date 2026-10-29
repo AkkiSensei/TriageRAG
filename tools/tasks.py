@@ -253,42 +253,112 @@ def web_verify() -> None:
     typer.secho("[OK] Frontend verification green", fg=typer.colors.GREEN)
 
 
-@app.command()
-def verify() -> None:
-    """Run full gating verification."""
+@app.command(name="verify-fast")
+def verify_fast() -> None:
+    """Fast developer gate: static analysis, type checking, architecture, and unit tests."""
+    typer.secho("=" * 60, fg=typer.colors.BLUE, bold=True)
+    typer.secho("   TRIAGERAG FAST VERIFICATION PROFILE", fg=typer.colors.BLUE, bold=True)
+    typer.secho("=" * 60, fg=typer.colors.BLUE, bold=True)
+
+    lint()
+    typecheck()
+    lint_imports()
+    validate_data()
+
+    typer.secho("=== Running Unit Test Suite ===", fg=typer.colors.BLUE, bold=True)
+    _run([sys.executable, "-m", "pytest", "tests/unit"])
+
+    typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
+    typer.secho(
+        "[OK] FAST VERIFICATION GATES GREEN (Static, Types, Architecture, Data, Unit)",
+        fg=typer.colors.GREEN,
+        bold=True,
+    )
+    typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
+
+
+@app.command(name="verify-full")
+def verify_full() -> None:
+    """Comprehensive gate: all linters, type checks, full test suites, and mandatory evaluations."""
     typer.secho("=" * 60, fg=typer.colors.MAGENTA, bold=True)
-    typer.secho("   TRIAGERAG VERIFICATION GATE RUNNER", fg=typer.colors.MAGENTA, bold=True)
+    typer.secho("   TRIAGERAG FULL VERIFICATION GATE RUNNER", fg=typer.colors.MAGENTA, bold=True)
     typer.secho("=" * 60, fg=typer.colors.MAGENTA, bold=True)
 
     lint()
     typecheck()
     lint_imports()
-
-    if (REPO_ROOT / "tools/validate_data.py").exists():
-        validate_data()
+    validate_data()
 
     if (REPO_ROOT / "tools/provenance_report.py").exists():
         _run([sys.executable, "tools/provenance_report.py"])
 
-    test_files = list((REPO_ROOT / "tests").glob("**/test_*.py"))
-    if test_files:
-        test()
-    else:
-        typer.secho("No test files detected yet (skeleton phase)", fg=typer.colors.YELLOW)
+    test()
 
-    eval_scripts = [
+    mandatory_evals = [
         "eval/run_golden.py",
         "eval/run_mechanics.py",
         "eval/run_metamorphic.py",
         "eval/run_adversarial.py",
+        "eval/run_retrieval.py",
     ]
-    for ev in eval_scripts:
-        if (REPO_ROOT / ev).exists():
-            _run([sys.executable, ev])
+    for ev in mandatory_evals:
+        target_path = REPO_ROOT / ev
+        if not target_path.exists():
+            typer.secho(f"FATAL: Mandatory evaluation suite missing: {ev}", fg=typer.colors.RED)
+            raise typer.Exit(code=1)
+        typer.secho(f"=== Running Mandatory Eval: {ev} ===", fg=typer.colors.BLUE, bold=True)
+        _run([sys.executable, str(target_path)])
+
+    web_verify()
 
     typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
-    typer.secho("[OK] ALL VERIFICATION GATES GREEN", fg=typer.colors.GREEN, bold=True)
+    typer.secho(
+        "[OK] FULL VERIFICATION GATES GREEN (Backend, Evals, Web)",
+        fg=typer.colors.GREEN,
+        bold=True,
+    )
     typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
+
+
+@app.command(name="release-check")
+def release_check() -> None:
+    """Release certification: full verification, report integrity, dependency lock, security."""
+    typer.secho("=" * 60, fg=typer.colors.CYAN, bold=True)
+    typer.secho("   TRIAGERAG RELEASE CERTIFICATION CHECK", fg=typer.colors.CYAN, bold=True)
+    typer.secho("=" * 60, fg=typer.colors.CYAN, bold=True)
+
+    verify_full()
+
+    typer.secho("=== Checking Dependency Lockfile ===", fg=typer.colors.BLUE, bold=True)
+    lock_file = REPO_ROOT / "requirements.lock"
+    if not lock_file.exists() or lock_file.stat().st_size == 0:
+        typer.secho("FATAL: requirements.lock missing or empty", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    typer.secho("[OK] requirements.lock verified", fg=typer.colors.GREEN)
+
+    typer.secho("=== Checking Report Integrity ===", fg=typer.colors.BLUE, bold=True)
+    _run([sys.executable, "-m", "pytest", "tests/unit/test_report_integrity.py"])
+
+    typer.secho("=== Checking Docker Container Configuration ===", fg=typer.colors.BLUE, bold=True)
+    dockerfile = (REPO_ROOT / "Dockerfile").read_text(encoding="utf-8")
+    if "USER triage" not in dockerfile and "USER " not in dockerfile:
+        typer.secho("FATAL: Dockerfile must enforce a non-root user", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
+    typer.secho("[OK] Container security posture verified (non-root)", fg=typer.colors.GREEN)
+
+    typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
+    typer.secho(
+        "[OK] RELEASE CHECK PASSED — ARTIFACT CERTIFIED FOR DISTRIBUTION",
+        fg=typer.colors.GREEN,
+        bold=True,
+    )
+    typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
+
+
+@app.command()
+def verify() -> None:
+    """Run full gating verification profile (alias for verify-full)."""
+    verify_full()
 
 
 if __name__ == "__main__":

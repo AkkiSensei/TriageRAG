@@ -35,7 +35,7 @@ export const Footer: React.FC = () => {
               Decimal-only math
             </span>
             <span>&bull;</span>
-            <span>SHA-256 Merkle Audit</span>
+            <span>SHA-256 Hash Chain Audit</span>
             <span>&bull;</span>
             <span className="font-bold text-teal-700 dark:text-teal-400">v0.1.0-clinical</span>
           </div>

@@ -21,7 +21,7 @@
 | **Hard-Negative Abstain Recall** | 1.0000 | **1.0000** | Gate: == 1.0000 |
 | **Abstain Precision / Recall** | 0.6133 / 1.0000 | **0.6809 / 1.0000** | - |
 | **Expected Calibration Error (ECE)** | 0.1447 | **0.1453** | Observational (ADR-0008 / HD-3) |
-| **Latency p50 / p95 (ms)** | 0.016 / 0.055 | **0.019 / 0.055** | Budget: p95 < 50 ms |
+| **Latency p50 / p95 (ms)** | 0.018 / 0.075 | **0.021 / 0.064** | Budget: p95 < 50 ms |
 
 ## Stratified Performance Breakdown (FG-06 / HD-1)
 
@@ -30,4 +30,13 @@
 | **Syndrome Provided** | 41 | 53.66% [39.02%, 68.29%] | **100.00%** [100.00%, 100.00%] | 0.7398 |
 | **Vitals Only (HD-1)** | 15 | 0.00% [0.00%, 0.00%] | 0.00% [0.00%, 0.00%] | 0.0000 |
 
-> **Clinical Transparency Note (HD-1 / HD-3):** Vitals-only Recall@1 is 0.0% because all unverified vitals flag cut-offs are marked `status: NEEDS_SOURCE` under Gate G2 and fail closed (`EMPTY_QUERY`). This prevents unverified inference until clinician threshold sourcing is completed (`HD-1`). ECE is tracked as an observational research metric without an unqualified clinical PASS claim (`ADR-0008` / `HD-3`).
+## Methodological Baseline Comparison (Stratified Random vs BM25)
+
+| Evaluation Track | Cases | BM25 R@1 | Random R@1 | BM25 R@5 | Random R@5 |
+|:---|---:|---:|---:|---:|---:|
+| **Routed (Syndrome Provided)** | 41 | **53.66%** | 21.37% | **100.00%** | 79.92% |
+| **Unrouted (Vitals Only)** | 15 | **0.00%** | 9.33% | **0.00%** | 42.33% |
+
+> **Baseline Note:** BM25 achieves 2.5x gain over random on routed R@1 (53.66% vs 21.37%). R@5 is 100% because candidate pool size is ~5 chunks. Unrouted retriever safely abstains under HD-1 fail-closed rules.
+
+> **Clinical Transparency Note (HD-1 / HD-3):** Vitals-only Recall@1 is 0.0% because all unverified vitals flag cut-offs are marked `status: NEEDS_SOURCE` under Gate G2 and fail closed (`EMPTY_QUERY`). This prevents unverified inference until clinician threshold sourcing is completed (`HD-1`). ECE is tracked as an observational research metric without an unqualified clinical PASS claim (`ADR-0008` / `HD-3`). Benchmark labels are unreviewed synthetic fixtures (`AGENT_AUTHORED_UNREVIEWED`).

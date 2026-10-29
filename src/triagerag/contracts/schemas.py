@@ -330,6 +330,16 @@ class PlanStepDraft(BaseModel):
 
         return self
 
+    @property
+    def is_complete_medication_order(self) -> bool:
+        """A complete medication order requires action administer, a drug_id, dose, and route."""
+        return (
+            self.action_type == ActionType.administer
+            and bool(self.drug_id and self.drug_id.strip())
+            and self.requested_dose is not None
+            and self.route is not None
+        )
+
 
 class PlanDraft(BaseModel):
     """The ONLY schema permitted for language model generation."""

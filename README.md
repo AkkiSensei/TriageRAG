@@ -115,7 +115,7 @@ Designed like a clean medical workstation (**Linear meets Epic/Amboss**) with ze
 * **NEWS2 / PEWS Physiological Score Card:** Calculated total score, clinical risk band, and breakdown across all parameters.
 * **Safety Alerts & Contraindications:** Detailed target agents, clinical consequences, and mandatory actions.
 * **Recommended Protocol Orders:** Step-by-step verified clinical orders with requested dose, formulary ceiling bounds, and expandable verbatim guideline quotes.
-* **Cryptographic SHA-256 Audit Seal:** Verifiable tamper-evident Merkle hash for legal and hospital governance.
+* **Cryptographic SHA-256 Audit Seal:** Verifiable tamper-evident SHA-256 sequential hash chain recording each assessment, override, and decision step.
 
 ---
 
@@ -156,12 +156,13 @@ The entire system is continuously measured across seven automated verification a
   Retrieval: Unrouted Track15 Test Cases (Vitals Only)   0.0% Recall@1 (Fail-Closed HD-1)
   Retrieval: Overall Test  56 Test Positive Cases        73.21% R@5 [60.7, 83.9]
   Hard-Negative Abstention 14 Hard-Negative Cases        100% ABSTAINED (0 wrong proto)
-  Pytest Test Suite        223 Collected Tests           222 PASSED, 1 XFAIL (HD-6)
+  Pytest Test Suite        234 Collected Tests           233 PASSED, 1 XFAIL (HD-6)
 ======================================================================
 
 > **Evaluation Honesty & Baseline Note:**
-> - **Routed Retrieval Track:** 100% Recall@5 is observed on syndrome-provided cases (ranking protocol chunks within known syndrome). A random ranker on these filtered 4–6 candidate sets achieves 79.92% Recall@5 and 21.37% Recall@1 as its baseline.
-> - **Unrouted Retrieval Track:** Achieves 0.0% Recall on vitals-only cases because physiological flag thresholds are unverified (marked status: NEEDS_SOURCE under fail-closed governance HD-1), refusing to hallucinate protocol matches without validated cut-offs.
+> - **Routed Retrieval Track:** 100% Recall@5 is observed on syndrome-provided cases (ranking protocol chunks within known syndrome). A candidate-pool random ranker achieves 95.44% Recall@5 and 26.44% Recall@1, demonstrating BM25's 2x+ ranking superiority on Top-1 (53.66% vs 26.44%) while accounting for candidate pool size.
+> - **Unrouted Retrieval Track:** Achieves 0.0% Recall on vitals-only cases because physiological flag thresholds are unverified (marked status: NEEDS_SOURCE under fail-closed governance HD-1), safely abstaining rather than hallucinating unvalidated protocol recommendations.
+> - **Benchmark Labels:** Evaluated on synthetic regression fixtures marked `AGENT_AUTHORED_UNREVIEWED` pending external clinician panel review.
 ```
 
 ---

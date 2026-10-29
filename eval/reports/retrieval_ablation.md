@@ -6,10 +6,10 @@
 
 | Arm / Backend | Held-Out Test Recall@5 (95% CI) | Test MRR (95% CI) | Wrong-Protocol Rate | Hard-Neg Abstain | Latency p95 (ms) |
 |:---|:---:|:---:|:---:|:---:|:---:|
-| **Arm 1: Lexical BM25 (Default)** (`bm25`) | 73.21% [60.71%, 83.93%] | 0.5417 [0.4375, 0.6577] | 0.0000 | 1.0000 | 0.12 |
-| **Arm 2: Char-Trigram TF-IDF Vector Retriever (CharNgramRetriever)** (`char_ngram`) | 73.21% [60.71%, 83.93%] | 0.5045 [0.4107, 0.6205] | 0.0000 | 1.0000 | 0.23 |
-| **Arm 3: Hybrid Reciprocal Rank Fusion (BM25 + CharNgram)** (`hybrid_rrf`) | 73.21% [60.71%, 83.93%] | 0.5491 [0.4464, 0.6607] | 0.0000 | 1.0000 | 0.11 |
-| **Arm 4: Hybrid RRF + Lexical Overlap Reranker (LexicalOverlapReranker)** (`hybrid_rrf_rerank`) | 73.21% [60.71%, 83.93%] | 0.5491 [0.4464, 0.6607] | 0.0000 | 1.0000 | 0.41 |
+| **Arm 1: Lexical BM25 (Default)** (`bm25`) | 73.21% [60.71%, 83.93%] | 0.5417 [0.4375, 0.6577] | 0.0000 | 1.0000 | 0.08 |
+| **Arm 2: Char-Trigram TF-IDF Vector Retriever (CharNgramRetriever)** (`char_ngram`) | 73.21% [60.71%, 83.93%] | 0.5045 [0.4107, 0.6205] | 0.0000 | 1.0000 | 0.08 |
+| **Arm 3: Hybrid Reciprocal Rank Fusion (BM25 + CharNgram)** (`hybrid_rrf`) | 73.21% [60.71%, 83.93%] | 0.5491 [0.4464, 0.6607] | 0.0000 | 1.0000 | 0.15 |
+| **Arm 4: Hybrid RRF + Lexical Overlap Reranker (LexicalOverlapReranker)** (`hybrid_rrf_rerank`) | 73.21% [60.71%, 83.93%] | 0.5491 [0.4464, 0.6607] | 0.0000 | 1.0000 | 0.77 |
 
 ## 2. Programmatic Decision Rule & Outcome (`decide_backend`)
 

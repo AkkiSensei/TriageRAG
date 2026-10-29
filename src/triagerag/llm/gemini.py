@@ -21,6 +21,72 @@ if TYPE_CHECKING:
     pass
 
 
+def _is_transient_error(err: Exception) -> bool:
+    """Classify whether an exception is transient (retryable) or permanent (fail fast).
+
+    Retryable: connection drops, timeouts, 429 rate limit, 500/502/503/504 server errors.
+    Non-retryable: auth failures (401/403), invalid arguments (400), schema/type errors.
+    """
+    if isinstance(err, (ValueError, TypeError, KeyError, AttributeError)):
+        return False
+
+    err_str = str(err).lower()
+
+    # Explicit permanent indicator strings
+    permanent_indicators = [
+        "401",
+        "403",
+        "unauthorized",
+        "permissiondenied",
+        "permission_denied",
+        "api key not valid",
+        "invalid api key",
+        "400",
+        "invalid_argument",
+        "bad request",
+        "not found",
+        "404",
+    ]
+    if any(ind in err_str for ind in permanent_indicators):
+        return False
+
+    # Check for HTTP status code attributes on API exceptions
+    status_code = getattr(err, "status_code", None) or getattr(err, "code", None)
+    if isinstance(status_code, int):
+        if status_code in (429, 500, 502, 503, 504):
+            return True
+        if 400 <= status_code < 500:
+            return False
+
+    # Explicit transient indicator strings or exception types
+    transient_indicators = [
+        "429",
+        "rate limit",
+        "resource exhausted",
+        "resource_exhausted",
+        "500",
+        "502",
+        "503",
+        "504",
+        "unavailable",
+        "service unavailable",
+        "timeout",
+        "timed out",
+        "connection reset",
+        "connection refused",
+        "econnreset",
+        "temporarily unavailable",
+        "deadline exceeded",
+        "network",
+        "glitch",
+        "transient",
+    ]
+    if isinstance(err, (TimeoutError, ConnectionError)):
+        return True
+
+    return any(ind in err_str for ind in transient_indicators)
+
+
 class GeminiProvider(LLMProvider):
     """Production LLM provider using Google Gemini GenAI SDK."""
 
@@ -73,6 +139,9 @@ class GeminiProvider(LLMProvider):
                 )
             except Exception as e:
                 last_err = e
+                if not _is_transient_error(e):
+                    # Fail fast immediately on permanent / non-retryable errors (Review Section 6)
+                    raise RuntimeError(f"Gemini non-retryable request error: {e}") from e
                 if attempt < self.max_retries:
                     time.sleep(0.5 * (2**attempt))
         raise RuntimeError(

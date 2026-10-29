@@ -53,7 +53,7 @@ export const AuditPage: React.FC = () => {
             Tamper-Evident Governance
           </span>
           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950/70 text-teal-900 dark:text-teal-200 font-semibold border border-teal-200 dark:border-teal-800">
-            SHA-256 Merkle Chain
+            SHA-256 Hash Chain
           </span>
         </div>
         <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
@@ -61,7 +61,7 @@ export const AuditPage: React.FC = () => {
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
           Every triage execution, patient hash, rule check, override, and retrieval query is permanently sealed
-          into an append-only cryptographic hash chain for hospital legal governance.
+          into an append-only cryptographic hash chain for tamper-evident clinical provenance.
         </p>
       </div>
 
@@ -115,7 +115,7 @@ export const AuditPage: React.FC = () => {
             ) : (
               <FileCheck2 className="h-3.5 w-3.5" />
             )}
-            <span>Verify Merkle Chain</span>
+            <span>Verify Hash Chain</span>
           </button>
         </div>
       </div>
