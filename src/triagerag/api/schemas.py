@@ -7,11 +7,14 @@ Decimals are serialized strictly as strings.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+from decimal import Decimal
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from triagerag.contracts.schemas import OverrideRecord, Patient
+from triagerag.contracts.enums import AgeUnit
+from triagerag.contracts.schemas import Age, Measured, OverrideRecord, Patient, Vitals
 from triagerag.llm.fake import FakeLLMProfile
 
 
@@ -51,6 +54,72 @@ class TriageApiRequest(BaseModel):
         if isinstance(v, str):
             return v.upper()
         return v
+
+
+class ExplainApiRequest(BaseModel):
+    """Request payload for the retrieval explain diagnostic endpoint.
+
+    Accepts either a full Patient (wrapped under `patient` or inline), or minimal
+    retrieval attributes (population, suspected_syndrome, vitals).
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+    patient: Patient | None = None
+    population: str = "adult"
+    suspected_syndrome: str | None = None
+    vitals: Vitals | dict[str, Any] = Field(default_factory=dict)
+    assessed_at: datetime | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def handle_root_patient(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            if "patient" in data and isinstance(data["patient"], dict):
+                return data
+            if "assessed_at" in data and "age" in data and "sex" in data:
+                return {"patient": data}
+        return data
+
+    def to_patient(self) -> Patient:
+        """Convert request into a fully-validated Patient instance."""
+        if self.patient is not None:
+            return self.patient
+
+        pop_str = (self.population or "adult").lower().strip()
+        if pop_str == "neonate":
+            age = Age(value=Decimal("10"), unit=AgeUnit.days)
+        elif pop_str in ("paediatric", "pediatric", "child"):
+            age = Age(value=Decimal("8"), unit=AgeUnit.years)
+        else:
+            age = Age(value=Decimal("40"), unit=AgeUnit.years)
+
+        if isinstance(self.vitals, Vitals):
+            vitals_obj = self.vitals
+        elif isinstance(self.vitals, dict):
+            normalized_vitals: dict[str, Any] = {}
+            for k, val in self.vitals.items():
+                if isinstance(val, (int, float, str, Decimal)) and not isinstance(val, bool):
+                    normalized_vitals[k] = {"value": val, "source": "measured"}
+                else:
+                    normalized_vitals[k] = val
+            vitals_obj = Vitals(**normalized_vitals)
+        else:
+            vitals_obj = Vitals()
+
+        return Patient(
+            assessed_at=self.assessed_at or datetime.now(UTC),
+            age=age,
+            sex="unknown",
+            pregnancy="unknown",
+            weight_kg=Measured[Decimal](),
+            vitals=vitals_obj,
+            allergy_history_status="unknown_unobtainable",
+            medication_history_status="unknown_unobtainable",
+            allergies=[],
+            medications=[],
+            suspected_syndrome=self.suspected_syndrome,
+        )
 
 
 class RuleSummaryDto(BaseModel):

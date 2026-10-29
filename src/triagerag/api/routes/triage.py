@@ -9,7 +9,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from triagerag.api.schemas import TriageApiRequest
+from triagerag.api.schemas import ExplainApiRequest, TriageApiRequest
 from triagerag.config import get_data_dir
 from triagerag.contracts.schemas import OrchestratorConfig, TriageResponse
 from triagerag.engine.registry import ClinicalRegistry, load_registry
@@ -73,7 +73,7 @@ def execute_triage(request: TriageApiRequest) -> TriageResponse:
 
 
 @router.post("/explain")
-def explain_triage_retrieval(request: TriageApiRequest) -> dict[str, Any]:
+def explain_triage_retrieval(request: ExplainApiRequest) -> dict[str, Any]:
     """Return full Retrieval Inspector diagnostic trace for a patient presentation."""
     retrieval_service = get_retrieval_service()
-    return retrieval_service.explain(request.patient)
+    return retrieval_service.explain(request.to_patient())

@@ -240,3 +240,38 @@ def test_eval_summary_endpoint() -> None:
         assert data["mutation"].get("overall_mutants_killed") == data["mutation"].get(
             "overall_mutants_total"
         )
+
+
+def test_explain_triage_retrieval_endpoint() -> None:
+    """POST /api/triage/explain accepts minimal retrieval attributes and wrapped patient."""
+    # 1. Smoke test payload with minimal fields (CI smoke test contract)
+    smoke_body = {
+        "population": "adult",
+        "suspected_syndrome": "chest_pain",
+        "vitals": {},
+    }
+    resp = client.post("/api/triage/explain", json=smoke_body)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["population"] == "adult"
+    assert data["query"] == "chest_pain"
+    assert "corpus_hash" in data
+    assert "abstained" in data
+
+    # 2. Wrapped patient format
+    patient, _ = get_preloaded_scenario("CLEAN")
+    patient_body = {"patient": json.loads(patient.model_dump_json())}
+    resp_patient = client.post("/api/triage/explain", json=patient_body)
+    assert resp_patient.status_code == 200
+    p_data = resp_patient.json()
+    assert "corpus_hash" in p_data
+
+    # 3. Payload with scalar vitals
+    vitals_body = {
+        "population": "paediatric",
+        "suspected_syndrome": "chest_pain",
+        "vitals": {"heart_rate_bpm": 130},
+    }
+    resp_vitals = client.post("/api/triage/explain", json=vitals_body)
+    assert resp_vitals.status_code == 200
+    assert resp_vitals.json()["population"] == "paediatric"

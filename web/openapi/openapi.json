@@ -147,7 +147,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TriageApiRequest"
+                "$ref": "#/components/schemas/ExplainApiRequest"
               }
             }
           },
@@ -1014,6 +1014,63 @@
         },
         "type": "object",
         "title": "EvalSummaryResponse"
+      },
+      "ExplainApiRequest": {
+        "properties": {
+          "patient": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Patient-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "population": {
+            "type": "string",
+            "title": "Population",
+            "default": "adult"
+          },
+          "suspected_syndrome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suspected Syndrome"
+          },
+          "vitals": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Vitals-Input"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              }
+            ],
+            "title": "Vitals"
+          },
+          "assessed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assessed At"
+          }
+        },
+        "type": "object",
+        "title": "ExplainApiRequest",
+        "description": "Request payload for the retrieval explain diagnostic endpoint.\n\nAccepts either a full Patient (wrapped under `patient` or inline), or minimal\nretrieval attributes (population, suspected_syndrome, vitals)."
       },
       "ExplicitDose-Input": {
         "properties": {
