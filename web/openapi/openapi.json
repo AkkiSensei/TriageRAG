@@ -384,36 +384,21 @@
         }
       }
     },
-    "/{full_path}": {
+    "/": {
       "get": {
-        "summary": "Serve Spa",
-        "operationId": "serve_spa__full_path__get",
-        "parameters": [
-          {
-            "name": "full_path",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Full Path"
-            }
-          }
-        ],
+        "summary": "Root",
+        "operationId": "root__get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Root  Get"
                 }
               }
             }
@@ -475,7 +460,7 @@
           "value"
         ],
         "title": "Age",
-        "description": "Patient chronological age with population classification."
+        "description": "Patient chronological age with population classification (FG-04, HD-2)."
       },
       "Age-Output": {
         "properties": {
@@ -494,7 +479,7 @@
           "value"
         ],
         "title": "Age",
-        "description": "Patient chronological age with population classification."
+        "description": "Patient chronological age with population classification (FG-04, HD-2)."
       },
       "AgeUnit": {
         "type": "string",
@@ -860,6 +845,36 @@
         ],
         "title": "DoseUnit",
         "description": "Controlled clinical dosage units."
+      },
+      "DrugAction": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "administer",
+              "withhold",
+              "unparsed"
+            ],
+            "title": "Action"
+          },
+          "drug_id": {
+            "type": "string",
+            "title": "Drug Id"
+          },
+          "clause_text": {
+            "type": "string",
+            "title": "Clause Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action",
+          "drug_id",
+          "clause_text"
+        ],
+        "title": "DrugAction",
+        "description": "Clause-scoped binding between a clinical action polarity and a formulary drug (FG-01)."
       },
       "EngineReport": {
         "properties": {
@@ -2074,6 +2089,13 @@
             "type": "object",
             "title": "Filters"
           },
+          "skipped_flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Skipped Flags"
+          },
           "stage_scores": {
             "additionalProperties": {
               "additionalProperties": {
@@ -2146,6 +2168,14 @@
             "type": "string",
             "title": "Score",
             "default": "0.0"
+          },
+          "drug_actions": {
+            "items": {
+              "$ref": "#/components/schemas/DrugAction"
+            },
+            "type": "array",
+            "title": "Drug Actions",
+            "default": []
           }
         },
         "additionalProperties": false,
@@ -2483,6 +2513,7 @@
         "type": "string",
         "enum": [
           "APPROVED",
+          "REQUIRES_CLINICIAN_CONFIRMATION",
           "FLAGGED_HIGH",
           "FLAGGED_MODERATE",
           "UNVERIFIED_MISSING_DATA",
