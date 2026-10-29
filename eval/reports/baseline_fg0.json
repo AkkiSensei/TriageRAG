@@ -1,0 +1,112 @@
+{
+  "generated_at": "2026-10-29T08:45:15+00:00",
+  "commit": "5574fdb6792d0b6f806b6a24290c6be0222c013d",
+  "python": "3.13.7",
+  "ruff_check": {
+    "exit_code": 0,
+    "clean": true
+  },
+  "ruff_format": {
+    "exit_code": 1,
+    "files": 107
+  },
+  "mypy": {
+    "exit_code": 0,
+    "source_files": 104,
+    "errors": 0
+  },
+  "import_linter": {
+    "exit_code": 0,
+    "kept": null,
+    "broken": null
+  },
+  "pytest": {
+    "exit_code": 0,
+    "collected": 131,
+    "passed": 131,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "golden": {
+    "exit_code": 0,
+    "passed": 65,
+    "total": 65
+  },
+  "mechanics": {
+    "exit_code": 0,
+    "passed": 41,
+    "total": 41
+  },
+  "metamorphic": {
+    "exit_code": 0,
+    "passed": 3,
+    "total": 3
+  },
+  "adversarial": {
+    "exit_code": 0,
+    "passed": 9,
+    "total": 9
+  },
+  "mutation": {
+    "exit_code": 0,
+    "killed": 45,
+    "total": 45,
+    "rule": "12/12",
+    "code": "33/33"
+  },
+  "web": {
+    "status": "NOT VERIFIED",
+    "reason": "--skip-web passed"
+  },
+  "report_discrepancies": {
+    "report": "Postmortem-Response.MD",
+    "present": true,
+    "cited_test_functions": 17,
+    "phantom_test_functions": [
+      "test_audit_log_records_full_retrieval_metadata_and_distinct_formulary_version",
+      "test_corpus_prompt_injection_quarantined_and_unverified",
+      "test_no_module_global_index_in_triage_route",
+      "test_non_negative_idf_on_small_population_partition",
+      "test_orchestrator_no_assert_on_empty_rules_for_unscored_population",
+      "test_parent_chunks_excluded_from_scored_candidates_and_expanded",
+      "test_probe_1_rag01_unknown_syndrome_abstains",
+      "test_probe_2_rag02_citation_laundering_rejected",
+      "test_probe_3_rag03_paediatric_bm25_positive_idf",
+      "test_probe_4_rag04_chunker_preserves_unparsed_and_terminates",
+      "test_probe_5_rag05_infant_normal_vitals_not_flagged_as_adult_abnormal",
+      "test_probe_6_rag06_real_protocol_missing_synthetic_flag_rejected",
+      "test_probe_7_rag07_clinical_morphology_and_case_safe_acronyms",
+      "test_retrieval_service_parity_across_api_cli_and_eval",
+      "test_search_returns_typed_float_scores_internally",
+      "test_ui_app_paediatric_sepsis_syndrome_matches_corpus"
+    ],
+    "number_checks": [
+      {
+        "claim": "10k-chunk p50",
+        "report": 3.945,
+        "artefact": 3.799,
+        "match": false
+      },
+      {
+        "claim": "10k-chunk p95",
+        "report": 5.648,
+        "artefact": 6.468,
+        "match": false
+      },
+      {
+        "claim": "dev MRR",
+        "report": 0.8998,
+        "artefact": 0.8995,
+        "match": false
+      },
+      {
+        "claim": "dev ECE",
+        "report": 0.151,
+        "artefact": 0.1577,
+        "match": false
+      }
+    ],
+    "number_mismatches": 4
+  }
+}

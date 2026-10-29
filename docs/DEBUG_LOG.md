@@ -253,3 +253,22 @@
   4. Added `Dockerfile`, `docker-compose.yml`, `.devcontainer/devcontainer.json`, `pyproject.toml` dependency groups (`core`, `rag`, `ui`, `api`, `llm`, `dense`, `dev`), and `demo` task in `tools/tasks.py` and `Makefile`.
 - **Tests:** `tests/unit/test_rag_wp9_ops.py` (4/4 PASS).
 
+
+---
+
+## Part D — Post-Remediation Audit Fix Gates (`fg-0` .. `fg-6`)
+
+### Fix Gate G0 — Re-baseline (`fg-0`)
+- **Flags Addressed:** FG-09 (report numbers vs committed JSON artefacts), FG-10 (phantom test names in `Postmortem-Response.MD`).
+- **Observed Clean-Clone Baseline (`eval/reports/baseline_fg0.json`):**
+  - `pytest`: 131/131 passed (`collected: 131, passed: 131, failed: 0, errors: 0, skipped: 0`)
+  - `ruff check` & `ruff format`: 108 files clean (`exit_code: 0`)
+  - `mypy`: 104 source files, 0 errors (`exit_code: 0`)
+  - `import-linter`: 2 contracts kept, 0 broken (`exit_code: 0`)
+  - `eval`: Golden 65/65, Mechanics 41/41, Metamorphic 3/3, Adversarial 9/9, Mutation 45/45 (`12/12` rule + `33/33` code)
+  - `web-verify`: ESLint 0, tsc 0, Vitest 8/8 passed, Vite build 0
+- **Discrepancy Audit Recorded (`tools/fg0_baseline.py`):**
+  - 16 cited test function names in `Postmortem-Response.MD` were hand-typed aliases that do not match the actual `def test_*` identifiers in `tests/`.
+  - 4 numbers in `Postmortem-Response.MD` (10k-chunk `p50`/`p95` and `dev` split `MRR`/`ECE`) drifted from the regenerated JSON reports (`eval/reports/latency_benchmark.json` and `eval/reports/retrieval.json`).
+
+
