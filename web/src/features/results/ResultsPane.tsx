@@ -21,12 +21,12 @@ export const ResultsPane: React.FC<ResultsPaneProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-soft">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-700 mb-4 shadow-soft-sm">
-          <Loader2 className="h-7 w-7 animate-spin text-teal-600" />
+      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-8 text-center shadow-soft">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 mb-4 shadow-soft-sm">
+          <Loader2 className="h-7 w-7 animate-spin text-teal-600 dark:text-teal-400" />
         </div>
-        <h3 className="text-base font-bold text-slate-900">Executing Deterministic Safety Pipeline</h3>
-        <p className="mt-1.5 max-w-sm text-xs text-slate-500 leading-relaxed">
+        <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Executing Deterministic Safety Pipeline</h3>
+        <p className="mt-1.5 max-w-sm text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
           Evaluating contraindication rules, calculating NEWS2/PEWS scores, checking formulary limits, and verifying plan citations...
         </p>
       </div>
@@ -35,12 +35,12 @@ export const ResultsPane: React.FC<ResultsPaneProps> = ({
 
   if (!triage) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-soft">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 mb-4">
+      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-8 text-center shadow-soft">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 dark:bg-[#0c1618] text-slate-400 dark:text-slate-500 mb-4">
           <Info className="h-7 w-7" />
         </div>
-        <h3 className="text-base font-bold text-slate-900">Awaiting Clinical Intake</h3>
-        <p className="mt-1.5 max-w-sm text-xs text-slate-500 leading-relaxed">
+        <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Awaiting Clinical Intake</h3>
+        <p className="mt-1.5 max-w-sm text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
           Configure patient demographics, vitals, and medication history, or select a pre-engineered reference scenario above.
         </p>
       </div>
@@ -79,12 +79,12 @@ export const ResultsPane: React.FC<ResultsPaneProps> = ({
 
       {/* 7. Cryptographic Audit Hash Bar */}
       {triage.audit_hash && (
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-xs font-mono text-slate-500 shadow-soft">
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-4 text-xs font-mono text-slate-500 dark:text-slate-400 shadow-soft">
           <div className="flex items-center gap-2">
-            <Hash className="h-4 w-4 text-teal-700" />
-            <span className="text-slate-900 font-semibold">Record Audit SHA-256:</span>
+            <Hash className="h-4 w-4 text-teal-700 dark:text-teal-400" />
+            <span className="text-slate-900 dark:text-slate-100 font-semibold">Record Audit SHA-256:</span>
           </div>
-          <span className="truncate max-w-[280px] sm:max-w-md text-teal-800 select-all font-mono font-bold bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+          <span className="truncate max-w-[280px] sm:max-w-md text-teal-800 dark:text-teal-300 select-all font-mono font-bold bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded border border-teal-200 dark:border-teal-800">
             {triage.audit_hash}
           </span>
         </div>

@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 /* =====================================================
-   TriageRAG — Modern Healthcare Aesthetic
-   Deep Teal, Aqua/Mint, Warm Coral, and Bright Surfaces
+   TriageRAG — Healthcare Aesthetic Design System
+   Deep Teal, Aqua/Mint, Warm Coral, Light & Dark Surfaces
    ===================================================== */
 
 :root {
-  /* Canvas & Surfaces */
+  /* Canvas & Surfaces (Light) */
   --bg-canvas: #f6faf9;
   --bg-surface: #ffffff;
   --bg-hover: #eef7f6;
@@ -65,6 +65,64 @@
   --clinical-checked-border: #99f6e4;
 }
 
+.dark {
+  /* Canvas & Surfaces (Dark Navy / Blue-Green Charcoal) */
+  --bg-canvas: #0c1618;
+  --bg-surface: #132226;
+  --bg-hover: #192c31;
+  --bg-muted: #16262b;
+
+  /* Primary Bright Teal / Aqua in Dark Mode */
+  --primary: #14b8a6;
+  --primary-dark: #0f766e;
+  --primary-soft: #0c2b2a;
+
+  /* Accent Coral */
+  --coral-accent: #ff6f59;
+  --coral-soft: #381a17;
+
+  /* Borders */
+  --border: #1e3840;
+  --border-focus: #14b8a6;
+  --border-strong: #2c515c;
+
+  /* Typography */
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --text-inverse: #0f172a;
+
+  /* Clinical Status in Dark Mode */
+  --clinical-bg: var(--bg-canvas);
+  --clinical-surface: var(--bg-surface);
+  --clinical-surface-muted: var(--bg-hover);
+  --clinical-border: var(--border);
+
+  --clinical-block: #fb7185;
+  --clinical-block-bg: #3b1219;
+  --clinical-block-border: #881337;
+
+  --clinical-high: #fb923c;
+  --clinical-high-bg: #3c1b0a;
+  --clinical-high-border: #9a3412;
+
+  --clinical-moderate: #fcd34d;
+  --clinical-moderate-bg: #362006;
+  --clinical-moderate-border: #b45309;
+
+  --clinical-info: #38bdf8;
+  --clinical-info-bg: #0c2840;
+  --clinical-info-border: #0369a1;
+
+  --clinical-unverified: #c084fc;
+  --clinical-unverified-bg: #2a1745;
+  --clinical-unverified-border: #6b21a8;
+
+  --clinical-checked: #2dd4bf;
+  --clinical-checked-bg: #072b26;
+  --clinical-checked-border: #115e59;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -99,7 +157,7 @@ code, pre, .font-mono {
   background: var(--primary);
 }
 
-/* Clinical Status Badges & Pills */
+/* Clinical Status Badges & Pills (Light Mode) */
 .badge-block {
   background-color: #fff1f2;
   border: 1px solid #fecdd3;
@@ -134,4 +192,41 @@ code, pre, .font-mono {
   background-color: #f0fdfa;
   border: 1px solid #99f6e4;
   color: #0f766e;
+}
+
+/* Clinical Status Badges & Pills (Dark Mode) */
+.dark .badge-block {
+  background-color: #3b1219;
+  border: 1px solid #881337;
+  color: #fda4af;
+}
+
+.dark .badge-high {
+  background-color: #3c1b0a;
+  border: 1px solid #9a3412;
+  color: #fdba74;
+}
+
+.dark .badge-moderate {
+  background-color: #362006;
+  border: 1px solid #b45309;
+  color: #fde047;
+}
+
+.dark .badge-info {
+  background-color: #0c2840;
+  border: 1px solid #0369a1;
+  color: #7dd3fc;
+}
+
+.dark .badge-unverified {
+  background-color: #2a1745;
+  border: 1px solid #6b21a8;
+  color: #d8b4fe;
+}
+
+.dark .badge-checked {
+  background-color: #072b26;
+  border: 1px solid #115e59;
+  color: #5eead4;
 }

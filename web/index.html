@@ -4,14 +4,28 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#F4F6F4" />
+    <meta name="theme-color" content="#0f766e" />
     <title>TriageRAG Console — Clinical Emergency Triage Decision Support</title>
     <meta name="description" content="Research prototype for deterministic emergency triage decision support, drug safety alerts, and verified protocol plans." />
+    <!-- Zero-flash theme initialization script -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('triagerag-theme');
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (saved === 'dark' || (!saved && prefersDark) || (saved === 'system' && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-[#F4F6F4] text-[#1A2421] min-h-screen antialiased selection:bg-[#E8F5E9] selection:text-[#2D6A4F]">
+  <body class="bg-[#f6faf9] dark:bg-[#0c1618] text-slate-800 dark:text-slate-100 min-h-screen antialiased selection:bg-teal-100 dark:selection:bg-teal-900/60 selection:text-teal-900 dark:selection:text-teal-200 transition-colors duration-150">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

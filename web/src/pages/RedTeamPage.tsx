@@ -129,30 +129,30 @@ export const RedTeamPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
       {/* Page Header */}
-      <div className="mb-6 flex flex-col gap-2 rounded-3xl border border-rose-200 bg-gradient-to-r from-rose-50/50 via-white to-amber-50/40 p-5 sm:p-6 shadow-soft">
+      <div className="mb-6 flex flex-col gap-2 rounded-3xl border border-rose-200 dark:border-rose-900/60 bg-gradient-to-r from-rose-50/50 dark:from-rose-950/30 via-white dark:via-[#132226] to-amber-50/40 dark:to-amber-950/20 p-5 sm:p-6 shadow-soft">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-rose-100 text-rose-700">
+          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300">
             <Bug className="h-4 w-4" />
           </div>
-          <span className="text-xs font-mono uppercase tracking-widest text-rose-900 font-bold">
+          <span className="text-xs font-mono uppercase tracking-widest text-rose-900 dark:text-rose-300 font-bold">
             Adversarial Security Lab
           </span>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-100 text-rose-900 font-semibold border border-rose-200">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/70 text-rose-900 dark:text-rose-300 font-semibold border border-rose-200 dark:border-rose-800">
             Rule R7 &bull; Isolation Defense
           </span>
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
           Adversarial Prompt Injection Playground
         </h1>
-        <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
           Simulate prompt injections, dosing escalations, and allergy bypass attempts inside untrusted triage narratives.
           Verify that deterministic code interlocks withstand hostile natural language.
         </p>
       </div>
 
       {/* Preset Attacks Selector */}
-      <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft">
-        <span className="text-xs font-bold uppercase tracking-wider text-slate-800">
+      <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft">
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
           Select Adversarial Attack Scenario
         </span>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -165,17 +165,17 @@ export const RedTeamPage: React.FC = () => {
                 onClick={() => handleSelectAttack(attack)}
                 className={`rounded-2xl border p-4 text-left transition-all ${
                   isSelected
-                    ? 'border-rose-400 bg-rose-50/60 ring-2 ring-rose-400/20 shadow-soft-sm'
-                    : 'border-slate-200 bg-slate-50/60 hover:bg-slate-100/60'
+                    ? 'border-rose-400 dark:border-rose-600 bg-rose-50/60 dark:bg-rose-950/30 ring-2 ring-rose-400/20 dark:ring-rose-500/20 shadow-soft-sm'
+                    : 'border-slate-200 dark:border-[#1e3840] bg-slate-50/60 dark:bg-[#0c1618] hover:bg-slate-100/60 dark:hover:bg-[#1a2d33]'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="text-xs font-bold text-slate-900">{attack.title}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white border border-rose-200 text-rose-800 font-semibold">
+                  <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{attack.title}</span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white dark:bg-[#132226] border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 font-semibold">
                     {attack.category}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed">{attack.description}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{attack.description}</p>
               </button>
             )
           })}
@@ -183,15 +183,15 @@ export const RedTeamPage: React.FC = () => {
       </div>
 
       {/* Active Attack Configuration */}
-      <div className="mb-6 rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50/60 via-white to-amber-50/30 p-5 shadow-soft">
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-amber-200">
+      <div className="mb-6 rounded-2xl border border-amber-300 dark:border-amber-800 bg-gradient-to-br from-amber-50/60 dark:from-amber-950/30 via-white dark:via-[#132226] to-amber-50/30 dark:to-[#132226] p-5 shadow-soft">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-amber-200 dark:border-amber-800/60">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="h-4 w-4 text-amber-700" />
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-950">
+            <ShieldAlert className="h-4 w-4 text-amber-700 dark:text-amber-400" />
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-950 dark:text-amber-300">
               Injected Narrative Payload
             </span>
           </div>
-          <span className="text-[11px] font-mono text-amber-800 font-semibold">
+          <span className="text-[11px] font-mono text-amber-800 dark:text-amber-400 font-semibold">
             {selectedAttack.id}
           </span>
         </div>
@@ -201,18 +201,18 @@ export const RedTeamPage: React.FC = () => {
           value={customComplaint}
           onChange={(e) => setCustomComplaint(e.target.value)}
           placeholder="Edit or enter hostile prompt payload..."
-          className="w-full rounded-xl border border-amber-300 bg-white p-3 text-xs font-mono text-slate-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none leading-relaxed"
+          className="w-full rounded-xl border border-amber-300 dark:border-amber-700 bg-white dark:bg-[#0c1618] p-3 text-xs font-mono text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none leading-relaxed"
         />
 
         <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <label className="flex items-center gap-2 text-slate-700 cursor-pointer">
+          <label className="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
             <input
               type="checkbox"
               checked={includeInLlm}
               onChange={(e) => setIncludeInLlm(e.target.checked)}
-              className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+              className="rounded border-slate-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500 dark:bg-[#0c1618]"
             />
-            <span className="text-xs text-slate-600">
+            <span className="text-xs text-slate-600 dark:text-slate-400">
               Pass narrative into LLM prompt (delimited context block)
             </span>
           </label>
@@ -240,55 +240,55 @@ export const RedTeamPage: React.FC = () => {
 
       {/* Defense Results Display */}
       {error && (
-        <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-900 shadow-soft-sm">
+        <div className="mb-6 rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/60 p-4 text-xs text-rose-900 dark:text-rose-200 shadow-soft-sm">
           {error}
         </div>
       )}
 
       {result && (
-        <div className="rounded-3xl border border-teal-200 bg-white p-5 sm:p-7 shadow-soft">
-          <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
+        <div className="rounded-3xl border border-teal-200 dark:border-teal-800/80 bg-white dark:bg-[#132226] p-5 sm:p-7 shadow-soft">
+          <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100 dark:border-[#1e3840]">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-teal-100 text-teal-800">
+              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-teal-100 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300">
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                   Attack Defense Verdict: Interlock Intact
                 </h3>
-                <span className="text-[11px] text-teal-800 font-medium">
+                <span className="text-[11px] text-teal-800 dark:text-teal-300 font-medium">
                   Rule R7 Engine Isolation Verified
                 </span>
               </div>
             </div>
-            <span className="font-mono text-xs font-bold px-3 py-1 rounded-full bg-teal-100 text-teal-900 border border-teal-300">
+            <span className="font-mono text-xs font-bold px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-950/70 text-teal-900 dark:text-teal-200 border border-teal-300 dark:border-teal-700">
               VERDICT: {result.engine.verdict}
             </span>
           </div>
 
           <div className="flex flex-col gap-4 text-xs">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-              <span className="font-bold text-slate-800 block mb-1">Theoretical Exploit Path:</span>
-              <p className="text-slate-600 leading-relaxed">{selectedAttack.description}</p>
-              <div className="mt-2 text-teal-800 font-medium bg-teal-50 border border-teal-200 rounded-xl p-2.5">
+            <div className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-slate-50/80 dark:bg-[#0c1618] p-4">
+              <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">Theoretical Exploit Path:</span>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{selectedAttack.description}</p>
+              <div className="mt-2 text-teal-800 dark:text-teal-300 font-medium bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 rounded-xl p-2.5">
                 <strong>Enforced Architectural Defense:</strong> {selectedAttack.expectedDefense}
               </div>
             </div>
 
             {/* Baseline alerts triggered */}
             <div>
-              <span className="font-bold text-slate-800 block mb-2">
+              <span className="font-bold text-slate-800 dark:text-slate-200 block mb-2">
                 Triggered Deterministic Interlocks ({result.engine.baseline_alerts?.length || 0}):
               </span>
               <div className="flex flex-col gap-2">
                 {result.engine.baseline_alerts?.map((alert, i) => (
                   <div
                     key={i}
-                    className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50/80 p-3 text-xs text-rose-950 font-mono"
+                    className="flex items-start gap-2.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/80 dark:bg-rose-950/40 p-3 text-xs text-rose-950 dark:text-rose-200 font-mono"
                   >
-                    <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+                    <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                     <div>
-                      <strong className="text-rose-900">{alert.rule_id} ({alert.severity}):</strong>{' '}
+                      <strong className="text-rose-900 dark:text-rose-300">{alert.rule_id} ({alert.severity}):</strong>{' '}
                       {alert.consequence} &rarr; <em>{alert.action}</em>
                     </div>
                   </div>
@@ -297,9 +297,9 @@ export const RedTeamPage: React.FC = () => {
             </div>
 
             {/* Merkle Hash verification */}
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-[11px] font-mono text-slate-500">
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-[#1e3840] text-[11px] font-mono text-slate-500 dark:text-slate-400">
               <span>Audit Chain Record:</span>
-              <span className="font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
+              <span className="font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-md border border-teal-200 dark:border-teal-800">
                 {result.audit_hash}
               </span>
             </div>
