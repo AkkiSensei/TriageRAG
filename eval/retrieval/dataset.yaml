@@ -1,8 +1,11 @@
+# AGENT_AUTHORED_UNREVIEWED: Retrieval benchmark dataset generated for Fix Gate G4.
+# All cases carry reviewed_by: AGENT_AUTHORED_UNREVIEWED for audit transparency.
 dataset_version: 2.0.0
+provenance_status: AGENT_AUTHORED_UNREVIEWED
 seed: 42
-total_cases: 160
-dev_cases: 98
-test_cases: 62
+total_cases: 224
+dev_cases: 136
+test_cases: 88
 cases:
 - id: RET_001_POS_CP
   family: syndrome_positives
@@ -24,9 +27,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_002_POS_CP
   family: syndrome_positives
-  split: test
+  split: dev
   age:
     value: '58'
     unit: years
@@ -44,9 +48,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_003_POS_CP
   family: syndrome_positives
-  split: dev
+  split: test
   age:
     value: '58'
     unit: years
@@ -64,9 +69,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_004_POS_CP
   family: syndrome_positives
-  split: dev
+  split: test
   age:
     value: '58'
     unit: years
@@ -84,9 +90,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_005_POS_CP
   family: syndrome_positives
-  split: dev
+  split: test
   age:
     value: '58'
     unit: years
@@ -104,9 +111,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_006_POS_CP
   family: syndrome_positives
-  split: dev
+  split: test
   age:
     value: '58'
     unit: years
@@ -124,6 +132,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_007_POS_ANA
   family: syndrome_positives
   split: dev
@@ -144,6 +153,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_008_POS_ANA
   family: syndrome_positives
   split: test
@@ -164,6 +174,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_009_POS_ANA
   family: syndrome_positives
   split: dev
@@ -184,6 +195,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_010_POS_ANA
   family: syndrome_positives
   split: dev
@@ -204,9 +216,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_011_POS_ANA
   family: syndrome_positives
-  split: test
+  split: dev
   age:
     value: '34'
     unit: years
@@ -224,6 +237,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_012_POS_ANA
   family: syndrome_positives
   split: dev
@@ -244,9 +258,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_013_POS_ASTHMA
   family: syndrome_positives
-  split: dev
+  split: test
   age:
     value: '29'
     unit: years
@@ -264,9 +279,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_014_POS_ASTHMA
   family: syndrome_positives
-  split: dev
+  split: test
   age:
     value: '29'
     unit: years
@@ -284,9 +300,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_015_POS_ASTHMA
   family: syndrome_positives
-  split: test
+  split: dev
   age:
     value: '29'
     unit: years
@@ -304,6 +321,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_016_POS_ASTHMA
   family: syndrome_positives
   split: dev
@@ -324,6 +342,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_017_POS_ASTHMA
   family: syndrome_positives
   split: dev
@@ -344,9 +363,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_018_POS_ASTHMA
   family: syndrome_positives
-  split: test
+  split: dev
   age:
     value: '29'
     unit: years
@@ -364,6 +384,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_019_POS_HYPO
   family: syndrome_positives
   split: dev
@@ -384,9 +405,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_020_POS_HYPO
   family: syndrome_positives
-  split: dev
+  split: test
   age:
     value: '64'
     unit: years
@@ -404,9 +426,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_021_POS_HYPO
   family: syndrome_positives
-  split: dev
+  split: test
   age:
     value: '64'
     unit: years
@@ -424,6 +447,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_022_POS_HYPO
   family: syndrome_positives
   split: test
@@ -444,6 +468,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_023_POS_HYPO
   family: syndrome_positives
   split: dev
@@ -464,6 +489,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_024_POS_HYPO
   family: syndrome_positives
   split: dev
@@ -484,9 +510,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_025_POS_AMS
   family: syndrome_positives
-  split: test
+  split: dev
   age:
     value: '71'
     unit: years
@@ -503,6 +530,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_026_POS_AMS
   family: syndrome_positives
   split: test
@@ -522,9 +550,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_027_POS_AMS
   family: syndrome_positives
-  split: test
+  split: dev
   age:
     value: '71'
     unit: years
@@ -541,9 +570,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_028_POS_AMS
   family: syndrome_positives
-  split: test
+  split: dev
   age:
     value: '71'
     unit: years
@@ -560,6 +590,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_029_POS_AMS
   family: syndrome_positives
   split: dev
@@ -579,9 +610,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_030_POS_AMS
   family: syndrome_positives
-  split: test
+  split: dev
   age:
     value: '71'
     unit: years
@@ -598,6 +630,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_031_POS_PAED
   family: syndrome_positives
   split: dev
@@ -618,9 +651,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_032_POS_PAED
   family: syndrome_positives
-  split: dev
+  split: test
   age:
     value: '5'
     unit: years
@@ -638,9 +672,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_033_POS_PAED
   family: syndrome_positives
-  split: dev
+  split: test
   age:
     value: '5'
     unit: years
@@ -658,6 +693,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_034_POS_PAED
   family: syndrome_positives
   split: test
@@ -678,9 +714,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_035_POS_PAED
   family: syndrome_positives
-  split: test
+  split: dev
   age:
     value: '5'
     unit: years
@@ -698,9 +735,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_036_POS_PAED
   family: syndrome_positives
-  split: test
+  split: dev
   age:
     value: '5'
     unit: years
@@ -718,6 +756,7 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_037_HN_ADULT
   family: hard_negatives
   split: dev
@@ -736,6 +775,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'kidney_stone' with hypotension/tachycardia/hypoxia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_038_HN_PAED
   family: hard_negatives
   split: dev
@@ -753,6 +793,7 @@ cases:
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'kidney_stone' with fever/tachycardia must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_039_HN_ADULT
   family: hard_negatives
   split: test
@@ -771,9 +812,10 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'appendicitis' with hypotension/tachycardia/hypoxia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_040_HN_PAED
   family: hard_negatives
-  split: test
+  split: dev
   age:
     value: '6'
     unit: years
@@ -788,6 +830,7 @@ cases:
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'appendicitis' with fever/tachycardia must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_041_HN_ADULT
   family: hard_negatives
   split: test
@@ -805,9 +848,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'migraine' with hypotension/tachycardia/hypoxia must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_042_HN_PAED
   family: hard_negatives
-  split: dev
+  split: test
   age:
     value: '6'
     unit: years
@@ -822,9 +866,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'migraine' with fever/tachycardia must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_043_HN_ADULT
   family: hard_negatives
-  split: test
+  split: dev
   age:
     value: '45'
     unit: years
@@ -839,9 +884,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'gi_bleed' with hypotension/tachycardia/hypoxia must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_044_HN_PAED
   family: hard_negatives
-  split: dev
+  split: test
   age:
     value: '6'
     unit: years
@@ -856,9 +902,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'gi_bleed' with fever/tachycardia must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_045_HN_ADULT
   family: hard_negatives
-  split: test
+  split: dev
   age:
     value: '45'
     unit: years
@@ -874,6 +921,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'pulmonary_embolism' with hypotension/tachycardia/hypoxia
     must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_046_HN_PAED
   family: hard_negatives
   split: dev
@@ -892,9 +940,10 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'pulmonary_embolism' with fever/tachycardia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_047_HN_ADULT
   family: hard_negatives
-  split: test
+  split: dev
   age:
     value: '45'
     unit: years
@@ -910,9 +959,10 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'acute_stroke' with hypotension/tachycardia/hypoxia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_048_HN_PAED
   family: hard_negatives
-  split: test
+  split: dev
   age:
     value: '6'
     unit: years
@@ -927,6 +977,7 @@ cases:
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'acute_stroke' with fever/tachycardia must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_049_HN_ADULT
   family: hard_negatives
   split: test
@@ -944,6 +995,7 @@ cases:
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'cellulitis' with hypotension/tachycardia/hypoxia must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_050_HN_PAED
   family: hard_negatives
   split: dev
@@ -961,9 +1013,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'cellulitis' with fever/tachycardia must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_051_HN_ADULT
   family: hard_negatives
-  split: dev
+  split: test
   age:
     value: '45'
     unit: years
@@ -979,6 +1032,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'femur_fracture' with hypotension/tachycardia/hypoxia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_052_HN_PAED
   family: hard_negatives
   split: dev
@@ -997,6 +1051,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'femur_fracture' with fever/tachycardia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_053_HN_ADULT
   family: hard_negatives
   split: dev
@@ -1015,6 +1070,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'urinary_tract_infection' with hypotension/tachycardia/hypoxia
     must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_054_HN_PAED
   family: hard_negatives
   split: dev
@@ -1033,6 +1089,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'urinary_tract_infection' with fever/tachycardia
     must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_055_HN_ADULT
   family: hard_negatives
   split: test
@@ -1051,6 +1108,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'lobar_pneumonia' with hypotension/tachycardia/hypoxia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_056_HN_PAED
   family: hard_negatives
   split: dev
@@ -1069,6 +1127,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'lobar_pneumonia' with fever/tachycardia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_057_HN_ADULT
   family: hard_negatives
   split: dev
@@ -1087,6 +1146,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'acute_pancreatitis' with hypotension/tachycardia/hypoxia
     must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_058_HN_PAED
   family: hard_negatives
   split: dev
@@ -1105,9 +1165,10 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'acute_pancreatitis' with fever/tachycardia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_059_HN_ADULT
   family: hard_negatives
-  split: test
+  split: dev
   age:
     value: '45'
     unit: years
@@ -1123,9 +1184,10 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'status_epilepticus' with hypotension/tachycardia/hypoxia
     must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_060_HN_PAED
   family: hard_negatives
-  split: dev
+  split: test
   age:
     value: '6'
     unit: years
@@ -1141,9 +1203,10 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'status_epilepticus' with fever/tachycardia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_061_HN_ADULT
   family: hard_negatives
-  split: dev
+  split: test
   age:
     value: '45'
     unit: years
@@ -1159,6 +1222,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'vasovagal_syncope' with hypotension/tachycardia/hypoxia
     must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_062_HN_PAED
   family: hard_negatives
   split: dev
@@ -1177,6 +1241,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'vasovagal_syncope' with fever/tachycardia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_063_HN_ADULT
   family: hard_negatives
   split: dev
@@ -1195,6 +1260,7 @@ cases:
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Unknown syndrome 'heat_stroke' with hypotension/tachycardia/hypoxia must
     abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_064_HN_PAED
   family: hard_negatives
   split: test
@@ -1212,7 +1278,356 @@ cases:
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
   notes: Paediatric unknown syndrome 'heat_stroke' with fever/tachycardia must abstain
-- id: RET_065_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_065_HN_NEARDUP
+  family: hard_negatives
+  split: dev
+  age:
+    value: '65'
+    unit: years
+  population: adult
+  suspected_syndrome: chronic_stable_angina
+  vitals:
+    systolic_bp_mmhg: 130
+    heart_rate_bpm: 72
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'chronic_stable_angina' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_066_HN_NEARDUP
+  family: hard_negatives
+  split: test
+  age:
+    value: '28'
+    unit: years
+  population: adult
+  suspected_syndrome: mild_seasonal_bronchospasm
+  vitals:
+    respiratory_rate_bpm: 18
+    spo2_percent: 98
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'mild_seasonal_bronchospasm' must
+    abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_067_HN_NEARDUP
+  family: hard_negatives
+  split: dev
+  age:
+    value: '32'
+    unit: years
+  population: adult
+  suspected_syndrome: food_intolerance_isolated
+  vitals:
+    heart_rate_bpm: 76
+    systolic_bp_mmhg: 120
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'food_intolerance_isolated' must
+    abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_068_HN_NEARDUP
+  family: hard_negatives
+  split: dev
+  age:
+    value: '45'
+    unit: years
+  population: adult
+  suspected_syndrome: chronic_tension_headache
+  vitals:
+    heart_rate_bpm: 70
+    systolic_bp_mmhg: 124
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'chronic_tension_headache' must
+    abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_069_HN_NEARDUP
+  family: hard_negatives
+  split: dev
+  age:
+    value: '38'
+    unit: years
+  population: adult
+  suspected_syndrome: costochondritis_chest_wall_pain
+  vitals:
+    systolic_bp_mmhg: 118
+    heart_rate_bpm: 68
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'costochondritis_chest_wall_pain'
+    must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_070_HN_NEARDUP
+  family: hard_negatives
+  split: dev
+  age:
+    value: '50'
+    unit: years
+  population: adult
+  suspected_syndrome: localized_dermatitis
+  vitals:
+    heart_rate_bpm: 72
+    temperature_c: '36.8'
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'localized_dermatitis' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_071_HN_NEARDUP
+  family: hard_negatives
+  split: test
+  age:
+    value: '25'
+    unit: years
+  population: adult
+  suspected_syndrome: benign_palpitations
+  vitals:
+    heart_rate_bpm: 85
+    systolic_bp_mmhg: 115
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'benign_palpitations' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_072_HN_NEARDUP
+  family: hard_negatives
+  split: test
+  age:
+    value: '58'
+    unit: years
+  population: adult
+  suspected_syndrome: reactive_hyperglycemia
+  vitals:
+    blood_glucose_mg_dl: '140'
+    heart_rate_bpm: 75
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'reactive_hyperglycemia' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_073_HN_NEARDUP
+  family: hard_negatives
+  split: test
+  age:
+    value: '3'
+    unit: years
+  population: paediatric
+  suspected_syndrome: paediatric_common_cold
+  vitals:
+    temperature_c: '37.4'
+    heart_rate_bpm: 105
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'paediatric_common_cold' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_074_HN_NEARDUP
+  family: hard_negatives
+  split: dev
+  age:
+    value: '8'
+    unit: months
+  population: paediatric
+  suspected_syndrome: paediatric_teething_irritability
+  vitals:
+    temperature_c: '37.2'
+    heart_rate_bpm: 110
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'paediatric_teething_irritability'
+    must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_075_HN_NEARDUP
+  family: hard_negatives
+  split: dev
+  age:
+    value: '42'
+    unit: years
+  population: adult
+  suspected_syndrome: acute_bronchitis_afebrile
+  vitals:
+    respiratory_rate_bpm: 17
+    spo2_percent: 97
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'acute_bronchitis_afebrile' must
+    abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_076_HN_NEARDUP
+  family: hard_negatives
+  split: test
+  age:
+    value: '22'
+    unit: years
+  population: adult
+  suspected_syndrome: post_exercise_tachycardia
+  vitals:
+    heart_rate_bpm: 102
+    systolic_bp_mmhg: 125
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'post_exercise_tachycardia' must
+    abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_077_HN_NEARDUP
+  family: hard_negatives
+  split: dev
+  age:
+    value: '35'
+    unit: years
+  population: adult
+  suspected_syndrome: mild_gastroenteritis
+  vitals:
+    heart_rate_bpm: 80
+    systolic_bp_mmhg: 118
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'mild_gastroenteritis' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_078_HN_NEARDUP
+  family: hard_negatives
+  split: test
+  age:
+    value: '4'
+    unit: years
+  population: paediatric
+  suspected_syndrome: paediatric_mild_otitis
+  vitals:
+    temperature_c: '37.6'
+    heart_rate_bpm: 100
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'paediatric_mild_otitis' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_079_HN_NEARDUP
+  family: hard_negatives
+  split: dev
+  age:
+    value: '49'
+    unit: years
+  population: adult
+  suspected_syndrome: non_cardiac_dyspepsia
+  vitals:
+    systolic_bp_mmhg: 122
+    heart_rate_bpm: 74
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'non_cardiac_dyspepsia' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_080_HN_NEARDUP
+  family: hard_negatives
+  split: test
+  age:
+    value: '53'
+    unit: years
+  population: adult
+  suspected_syndrome: fatigue_syndrome
+  vitals:
+    heart_rate_bpm: 65
+    systolic_bp_mmhg: 110
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'fatigue_syndrome' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_081_HN_NEARDUP
+  family: hard_negatives
+  split: dev
+  age:
+    value: '2'
+    unit: years
+  population: paediatric
+  suspected_syndrome: paediatric_heat_rash
+  vitals:
+    temperature_c: '36.9'
+    heart_rate_bpm: 95
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'paediatric_heat_rash' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_082_HN_NEARDUP
+  family: hard_negatives
+  split: dev
+  age:
+    value: '31'
+    unit: years
+  population: adult
+  suspected_syndrome: mild_allergic_rhinitis
+  vitals:
+    heart_rate_bpm: 72
+    spo2_percent: 99
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'mild_allergic_rhinitis' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_083_HN_NEARDUP
+  family: hard_negatives
+  split: test
+  age:
+    value: '27'
+    unit: years
+  population: adult
+  suspected_syndrome: hyperventilation_anxiety
+  vitals:
+    respiratory_rate_bpm: 22
+    spo2_percent: 100
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'hyperventilation_anxiety' must
+    abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_084_HN_NEARDUP
+  family: hard_negatives
+  split: test
+  age:
+    value: '60'
+    unit: years
+  population: adult
+  suspected_syndrome: postprandial_somnolence
+  vitals:
+    blood_glucose_mg_dl: '110'
+    consciousness: A
+  expected_syndrome: null
+  relevance_grades: {}
+  expect_abstain: true
+  expected_abstain_code: UNKNOWN_SYNDROME
+  notes: Near-duplicate / non-emergency condition 'postprandial_somnolence' must abstain
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_085_CONF
   family: conflicting_syndrome_vitals
   split: test
   age:
@@ -1232,7 +1647,8 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_066_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_086_CONF
   family: conflicting_syndrome_vitals
   split: test
   age:
@@ -1252,9 +1668,10 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_067_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_087_CONF
   family: conflicting_syndrome_vitals
-  split: dev
+  split: test
   age:
     value: '52'
     unit: years
@@ -1272,7 +1689,8 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_068_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_088_CONF
   family: conflicting_syndrome_vitals
   split: test
   age:
@@ -1292,7 +1710,8 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_069_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_089_CONF
   family: conflicting_syndrome_vitals
   split: dev
   age:
@@ -1312,7 +1731,8 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_070_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_090_CONF
   family: conflicting_syndrome_vitals
   split: dev
   age:
@@ -1332,9 +1752,10 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_071_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_091_CONF
   family: conflicting_syndrome_vitals
-  split: dev
+  split: test
   age:
     value: '52'
     unit: years
@@ -1352,9 +1773,10 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_072_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_092_CONF
   family: conflicting_syndrome_vitals
-  split: dev
+  split: test
   age:
     value: '52'
     unit: years
@@ -1372,9 +1794,10 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_073_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_093_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  split: dev
   age:
     value: '52'
     unit: years
@@ -1392,7 +1815,8 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_074_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_094_CONF
   family: conflicting_syndrome_vitals
   split: dev
   age:
@@ -1412,7 +1836,8 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_075_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_095_CONF
   family: conflicting_syndrome_vitals
   split: dev
   age:
@@ -1433,7 +1858,8 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_076_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_096_CONF
   family: conflicting_syndrome_vitals
   split: dev
   age:
@@ -1454,9 +1880,10 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_077_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_097_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  split: dev
   age:
     value: '52'
     unit: years
@@ -1474,9 +1901,10 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_078_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_098_CONF
   family: conflicting_syndrome_vitals
-  split: dev
+  split: test
   age:
     value: '52'
     unit: years
@@ -1494,7 +1922,8 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_079_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_099_CONF
   family: conflicting_syndrome_vitals
   split: dev
   age:
@@ -1514,9 +1943,10 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_080_CONF
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_100_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  split: dev
   age:
     value: '7'
     unit: years
@@ -1534,9 +1964,178 @@ cases:
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
     vitals
-- id: RET_081_VO_AMBIG_SBP
-  family: vitals_only
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_101_CONF
+  family: conflicting_syndrome_vitals
   split: test
+  age:
+    value: '52'
+    unit: years
+  population: adult
+  suspected_syndrome: chest_pain
+  vitals:
+    temperature_c: '39.5'
+    heart_rate_bpm: 135
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_1: 2
+    CHEST_PAIN_01_NODE_2: 1
+    CHEST_PAIN_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: NONE
+  notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
+    vitals
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_102_CONF
+  family: conflicting_syndrome_vitals
+  split: dev
+  age:
+    value: '52'
+    unit: years
+  population: adult
+  suspected_syndrome: severe_asthma
+  vitals:
+    systolic_bp_mmhg: 72
+    heart_rate_bpm: 48
+  expected_syndrome: severe_asthma
+  relevance_grades:
+    SEVERE_ASTHMA_01_NODE_1: 2
+    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: NONE
+  notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
+    vitals
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_103_CONF
+  family: conflicting_syndrome_vitals
+  split: dev
+  age:
+    value: '52'
+    unit: years
+  population: adult
+  suspected_syndrome: anaphylaxis
+  vitals:
+    respiratory_rate_bpm: 12
+    spo2_percent: 99
+  expected_syndrome: anaphylaxis
+  relevance_grades:
+    ANAPHYLAXIS_01_NODE_1: 2
+    ANAPHYLAXIS_01_NODE_2: 1
+    ANAPHYLAXIS_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: NONE
+  notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
+    vitals
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_104_CONF
+  family: conflicting_syndrome_vitals
+  split: dev
+  age:
+    value: '52'
+    unit: years
+  population: adult
+  suspected_syndrome: hypoglycemia
+  vitals:
+    respiratory_rate_bpm: 36
+    spo2_percent: 84
+  expected_syndrome: hypoglycemia
+  relevance_grades:
+    HYPOGLYCEMIA_01_NODE_1: 2
+    HYPOGLYCEMIA_01_NODE_2: 1
+    HYPOGLYCEMIA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: NONE
+  notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
+    vitals
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_105_CONF
+  family: conflicting_syndrome_vitals
+  split: test
+  age:
+    value: '52'
+    unit: years
+  population: adult
+  suspected_syndrome: altered_mental_status
+  vitals:
+    temperature_c: '39.6'
+    blood_glucose_mg_dl: '180'
+  expected_syndrome: altered_mental_status
+  relevance_grades:
+    ALTERED_MENTAL_STATUS_01_NODE_1: 2
+    ALTERED_MENTAL_STATUS_01_NODE_2: 1
+    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: NONE
+  notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
+    vitals
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_106_CONF
+  family: conflicting_syndrome_vitals
+  split: dev
+  age:
+    value: '7'
+    unit: years
+  population: paediatric
+  suspected_syndrome: paediatric_sepsis
+  vitals:
+    systolic_bp_mmhg: 135
+    spo2_percent: 99
+  expected_syndrome: paediatric_sepsis
+  relevance_grades:
+    PAED_SEPSIS_01_NODE_1: 2
+    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: NONE
+  notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
+    vitals
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_107_CONF
+  family: conflicting_syndrome_vitals
+  split: test
+  age:
+    value: '52'
+    unit: years
+  population: adult
+  suspected_syndrome: chest_pain
+  vitals:
+    blood_glucose_mg_dl: '42'
+    temperature_c: '36.2'
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_1: 2
+    CHEST_PAIN_01_NODE_2: 1
+    CHEST_PAIN_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: NONE
+  notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
+    vitals
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_108_CONF
+  family: conflicting_syndrome_vitals
+  split: dev
+  age:
+    value: '52'
+    unit: years
+  population: adult
+  suspected_syndrome: severe_asthma
+  vitals:
+    blood_glucose_mg_dl: '44'
+    consciousness: C
+  expected_syndrome: severe_asthma
+  relevance_grades:
+    SEVERE_ASTHMA_01_NODE_1: 2
+    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: NONE
+  notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
+    vitals
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_109_VO_AMBIG_SBP
+  family: vitals_only
+  split: dev
   age:
     value: '50'
     unit: years
@@ -1549,7 +2148,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: AMBIGUOUS_MARGIN
   notes: Adult hypotension alone matches both chest_pain and anaphylaxis within margin
-- id: RET_082_VO_AMBIG_SBP
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_110_VO_AMBIG_SBP
   family: vitals_only
   split: test
   age:
@@ -1564,7 +2164,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: AMBIGUOUS_MARGIN
   notes: Adult hypotension alone matches both chest_pain and anaphylaxis within margin
-- id: RET_083_VO_AMBIG_SBP
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_111_VO_AMBIG_SBP
   family: vitals_only
   split: dev
   age:
@@ -1579,9 +2180,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: AMBIGUOUS_MARGIN
   notes: Adult hypotension alone matches both chest_pain and anaphylaxis within margin
-- id: RET_084_VO_AMBIG_SBP
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_112_VO_AMBIG_SBP
   family: vitals_only
-  split: dev
+  split: test
   age:
     value: '50'
     unit: years
@@ -1594,9 +2196,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: AMBIGUOUS_MARGIN
   notes: Adult hypotension alone matches both chest_pain and anaphylaxis within margin
-- id: RET_085_VO_AMBIG_SBP
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_113_VO_AMBIG_SBP
   family: vitals_only
-  split: dev
+  split: test
   age:
     value: '50'
     unit: years
@@ -1609,9 +2212,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: AMBIGUOUS_MARGIN
   notes: Adult hypotension alone matches both chest_pain and anaphylaxis within margin
-- id: RET_086_VO_AMBIG_SBP
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_114_VO_AMBIG_SBP
   family: vitals_only
-  split: dev
+  split: test
   age:
     value: '50'
     unit: years
@@ -1624,7 +2228,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: AMBIGUOUS_MARGIN
   notes: Adult hypotension alone matches both chest_pain and anaphylaxis within margin
-- id: RET_087_VO_EMPTY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_115_VO_EMPTY
   family: vitals_only
   split: dev
   age:
@@ -1641,9 +2246,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: Normal vitals and no suspected syndrome emits empty query and abstains
-- id: RET_088_VO_EMPTY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_116_VO_EMPTY
   family: vitals_only
-  split: dev
+  split: test
   age:
     value: '40'
     unit: years
@@ -1658,7 +2264,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: Normal vitals and no suspected syndrome emits empty query and abstains
-- id: RET_089_VO_EMPTY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_117_VO_EMPTY
   family: vitals_only
   split: test
   age:
@@ -1675,7 +2282,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: Normal vitals and no suspected syndrome emits empty query and abstains
-- id: RET_090_VO_EMPTY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_118_VO_EMPTY
   family: vitals_only
   split: dev
   age:
@@ -1692,7 +2300,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: Normal vitals and no suspected syndrome emits empty query and abstains
-- id: RET_091_VO_EMPTY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_119_VO_EMPTY
   family: vitals_only
   split: test
   age:
@@ -1709,9 +2318,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: Normal vitals and no suspected syndrome emits empty query and abstains
-- id: RET_092_VO_EMPTY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_120_VO_EMPTY
   family: vitals_only
-  split: test
+  split: dev
   age:
     value: '40'
     unit: years
@@ -1726,25 +2336,108 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: Normal vitals and no suspected syndrome emits empty query and abstains
-- id: RET_093_VO_INF_PAED
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_121_VO_INF_PAED
   family: vitals_only
   split: dev
   age:
-    value: '4'
-    unit: years
+    value: '6'
+    unit: months
   population: paediatric
   suspected_syndrome: null
   vitals:
     temperature_c: '39.2'
-    heart_rate_bpm: 155
+    heart_rate_bpm: 175
+    respiratory_rate_bpm: 48
   expected_syndrome: paediatric_sepsis
   relevance_grades:
     PAED_SEPSIS_01_NODE_1: 2
     PAED_SEPSIS_01_NODE_2: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
-  notes: Paediatric fever + severe tachycardia infers paediatric_sepsis with SYNDROME_INFERRED
-- id: RET_094_VO_INF_PAED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_122_VO_INF_PAED
+  family: vitals_only
+  split: dev
+  age:
+    value: '9'
+    unit: months
+  population: paediatric
+  suspected_syndrome: null
+  vitals:
+    temperature_c: '39.0'
+    heart_rate_bpm: 170
+    respiratory_rate_bpm: 46
+  expected_syndrome: paediatric_sepsis
+  relevance_grades:
+    PAED_SEPSIS_01_NODE_1: 2
+    PAED_SEPSIS_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_123_VO_INF_PAED
+  family: vitals_only
+  split: dev
+  age:
+    value: '1'
+    unit: years
+  population: paediatric
+  suspected_syndrome: null
+  vitals:
+    temperature_c: '39.4'
+    heart_rate_bpm: 162
+    respiratory_rate_bpm: 42
+  expected_syndrome: paediatric_sepsis
+  relevance_grades:
+    PAED_SEPSIS_01_NODE_1: 2
+    PAED_SEPSIS_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_124_VO_INF_PAED
+  family: vitals_only
+  split: test
+  age:
+    value: '2'
+    unit: years
+  population: paediatric
+  suspected_syndrome: null
+  vitals:
+    temperature_c: '39.1'
+    heart_rate_bpm: 158
+    respiratory_rate_bpm: 38
+  expected_syndrome: paediatric_sepsis
+  relevance_grades:
+    PAED_SEPSIS_01_NODE_1: 2
+    PAED_SEPSIS_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_125_VO_INF_PAED
+  family: vitals_only
+  split: test
+  age:
+    value: '3'
+    unit: years
+  population: paediatric
+  suspected_syndrome: null
+  vitals:
+    temperature_c: '39.5'
+    heart_rate_bpm: 160
+    respiratory_rate_bpm: 40
+  expected_syndrome: paediatric_sepsis
+  relevance_grades:
+    PAED_SEPSIS_01_NODE_1: 2
+    PAED_SEPSIS_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_126_VO_INF_PAED
   family: vitals_only
   split: dev
   age:
@@ -1754,53 +2447,179 @@ cases:
   suspected_syndrome: null
   vitals:
     temperature_c: '38.9'
-    heart_rate_bpm: 148
+    heart_rate_bpm: 152
+    respiratory_rate_bpm: 36
   expected_syndrome: paediatric_sepsis
   relevance_grades:
     PAED_SEPSIS_01_NODE_1: 2
     PAED_SEPSIS_01_NODE_2: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
-  notes: Paediatric fever + severe tachycardia infers paediatric_sepsis with SYNDROME_INFERRED
-- id: RET_095_VO_INF_PAED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_127_VO_INF_PAED
   family: vitals_only
-  split: test
+  split: dev
   age:
-    value: '4'
+    value: '5'
     unit: years
   population: paediatric
   suspected_syndrome: null
   vitals:
-    temperature_c: '39.5'
-    heart_rate_bpm: 160
+    temperature_c: '39.3'
+    heart_rate_bpm: 150
+    respiratory_rate_bpm: 34
   expected_syndrome: paediatric_sepsis
   relevance_grades:
     PAED_SEPSIS_01_NODE_1: 2
     PAED_SEPSIS_01_NODE_2: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
-  notes: Paediatric fever + severe tachycardia infers paediatric_sepsis with SYNDROME_INFERRED
-- id: RET_096_VO_INF_PAED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_128_VO_INF_PAED
+  family: vitals_only
+  split: test
+  age:
+    value: '6'
+    unit: years
+  population: paediatric
+  suspected_syndrome: null
+  vitals:
+    temperature_c: '39.6'
+    heart_rate_bpm: 148
+    respiratory_rate_bpm: 32
+  expected_syndrome: paediatric_sepsis
+  relevance_grades:
+    PAED_SEPSIS_01_NODE_1: 2
+    PAED_SEPSIS_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_129_VO_INF_PAED
   family: vitals_only
   split: dev
   age:
-    value: '4'
+    value: '8'
+    unit: years
+  population: paediatric
+  suspected_syndrome: null
+  vitals:
+    temperature_c: '39.0'
+    heart_rate_bpm: 142
+    respiratory_rate_bpm: 30
+  expected_syndrome: paediatric_sepsis
+  relevance_grades:
+    PAED_SEPSIS_01_NODE_1: 2
+    PAED_SEPSIS_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_130_VO_INF_PAED
+  family: vitals_only
+  split: dev
+  age:
+    value: '10'
+    unit: years
+  population: paediatric
+  suspected_syndrome: null
+  vitals:
+    temperature_c: '39.2'
+    heart_rate_bpm: 138
+    respiratory_rate_bpm: 28
+  expected_syndrome: paediatric_sepsis
+  relevance_grades:
+    PAED_SEPSIS_01_NODE_1: 2
+    PAED_SEPSIS_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_131_VO_INF_PAED
+  family: vitals_only
+  split: dev
+  age:
+    value: '12'
+    unit: years
+  population: paediatric
+  suspected_syndrome: null
+  vitals:
+    temperature_c: '39.4'
+    heart_rate_bpm: 135
+    respiratory_rate_bpm: 26
+  expected_syndrome: paediatric_sepsis
+  relevance_grades:
+    PAED_SEPSIS_01_NODE_1: 2
+    PAED_SEPSIS_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_132_VO_INF_PAED
+  family: vitals_only
+  split: test
+  age:
+    value: '14'
     unit: years
   population: paediatric
   suspected_syndrome: null
   vitals:
     temperature_c: '39.1'
-    heart_rate_bpm: 152
+    heart_rate_bpm: 130
+    respiratory_rate_bpm: 24
   expected_syndrome: paediatric_sepsis
   relevance_grades:
     PAED_SEPSIS_01_NODE_1: 2
     PAED_SEPSIS_01_NODE_2: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
-  notes: Paediatric fever + severe tachycardia infers paediatric_sepsis with SYNDROME_INFERRED
-- id: RET_097_VO_INF_ASTHMA
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_133_VO_INF_PAED
   family: vitals_only
-  split: test
+  split: dev
+  age:
+    value: '15'
+    unit: years
+  population: paediatric
+  suspected_syndrome: null
+  vitals:
+    temperature_c: '39.5'
+    heart_rate_bpm: 132
+    respiratory_rate_bpm: 25
+  expected_syndrome: paediatric_sepsis
+  relevance_grades:
+    PAED_SEPSIS_01_NODE_1: 2
+    PAED_SEPSIS_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_134_VO_INF_PAED
+  family: vitals_only
+  split: dev
+  age:
+    value: '16'
+    unit: years
+  population: paediatric
+  suspected_syndrome: null
+  vitals:
+    temperature_c: '39.0'
+    heart_rate_bpm: 128
+    respiratory_rate_bpm: 24
+  expected_syndrome: paediatric_sepsis
+  relevance_grades:
+    PAED_SEPSIS_01_NODE_1: 2
+    PAED_SEPSIS_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_135_VO_INF_ASTHMA
+  family: vitals_only
+  split: dev
   age:
     value: '30'
     unit: years
@@ -1809,6 +2628,7 @@ cases:
   vitals:
     respiratory_rate_bpm: 30
     spo2_percent: 88
+    heart_rate_bpm: 112
   expected_syndrome: severe_asthma
   relevance_grades:
     SEVERE_ASTHMA_01_NODE_1: 2
@@ -1816,7 +2636,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
-- id: RET_098_VO_INF_ASTHMA
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_136_VO_INF_ASTHMA
   family: vitals_only
   split: dev
   age:
@@ -1827,6 +2648,7 @@ cases:
   vitals:
     respiratory_rate_bpm: 32
     spo2_percent: 86
+    heart_rate_bpm: 118
   expected_syndrome: severe_asthma
   relevance_grades:
     SEVERE_ASTHMA_01_NODE_1: 2
@@ -1834,7 +2656,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
-- id: RET_099_VO_INF_ASTHMA
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_137_VO_INF_ASTHMA
   family: vitals_only
   split: dev
   age:
@@ -1845,6 +2668,7 @@ cases:
   vitals:
     respiratory_rate_bpm: 28
     spo2_percent: 89
+    heart_rate_bpm: 105
   expected_syndrome: severe_asthma
   relevance_grades:
     SEVERE_ASTHMA_01_NODE_1: 2
@@ -1852,9 +2676,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
-- id: RET_100_VO_INF_ASTHMA
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_138_VO_INF_ASTHMA
   family: vitals_only
-  split: test
+  split: dev
   age:
     value: '30'
     unit: years
@@ -1863,6 +2688,7 @@ cases:
   vitals:
     respiratory_rate_bpm: 34
     spo2_percent: 85
+    heart_rate_bpm: 122
   expected_syndrome: severe_asthma
   relevance_grades:
     SEVERE_ASTHMA_01_NODE_1: 2
@@ -1870,7 +2696,528 @@ cases:
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
-- id: RET_101_POP_NEO
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_139_VO_INF_ASTHMA
+  family: vitals_only
+  split: test
+  age:
+    value: '30'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    respiratory_rate_bpm: 26
+    spo2_percent: 90
+    heart_rate_bpm: 102
+  expected_syndrome: severe_asthma
+  relevance_grades:
+    SEVERE_ASTHMA_01_NODE_1: 2
+    SEVERE_ASTHMA_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_140_VO_INF_ASTHMA
+  family: vitals_only
+  split: test
+  age:
+    value: '30'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    respiratory_rate_bpm: 31
+    spo2_percent: 87
+    heart_rate_bpm: 115
+  expected_syndrome: severe_asthma
+  relevance_grades:
+    SEVERE_ASTHMA_01_NODE_1: 2
+    SEVERE_ASTHMA_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_141_VO_INF_ASTHMA
+  family: vitals_only
+  split: dev
+  age:
+    value: '30'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    respiratory_rate_bpm: 29
+    spo2_percent: 88
+    heart_rate_bpm: 110
+  expected_syndrome: severe_asthma
+  relevance_grades:
+    SEVERE_ASTHMA_01_NODE_1: 2
+    SEVERE_ASTHMA_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_142_VO_INF_ASTHMA
+  family: vitals_only
+  split: test
+  age:
+    value: '30'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    respiratory_rate_bpm: 33
+    spo2_percent: 86
+    heart_rate_bpm: 120
+  expected_syndrome: severe_asthma
+  relevance_grades:
+    SEVERE_ASTHMA_01_NODE_1: 2
+    SEVERE_ASTHMA_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_143_VO_INF_ASTHMA
+  family: vitals_only
+  split: test
+  age:
+    value: '30'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    respiratory_rate_bpm: 27
+    spo2_percent: 89
+    heart_rate_bpm: 104
+  expected_syndrome: severe_asthma
+  relevance_grades:
+    SEVERE_ASTHMA_01_NODE_1: 2
+    SEVERE_ASTHMA_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_144_VO_INF_ASTHMA
+  family: vitals_only
+  split: test
+  age:
+    value: '30'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    respiratory_rate_bpm: 35
+    spo2_percent: 84
+    heart_rate_bpm: 125
+  expected_syndrome: severe_asthma
+  relevance_grades:
+    SEVERE_ASTHMA_01_NODE_1: 2
+    SEVERE_ASTHMA_01_NODE_2: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_145_VO_INF_HYPO
+  family: vitals_only
+  split: test
+  age:
+    value: '58'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    blood_glucose_mg_dl: '40'
+    consciousness: C
+    heart_rate_bpm: 98
+  expected_syndrome: hypoglycemia
+  relevance_grades:
+    HYPOGLYCEMIA_01_NODE_1: 2
+    HYPOGLYCEMIA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_146_VO_INF_HYPO
+  family: vitals_only
+  split: dev
+  age:
+    value: '58'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    blood_glucose_mg_dl: '45'
+    consciousness: V
+    heart_rate_bpm: 105
+  expected_syndrome: hypoglycemia
+  relevance_grades:
+    HYPOGLYCEMIA_01_NODE_1: 2
+    HYPOGLYCEMIA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_147_VO_INF_HYPO
+  family: vitals_only
+  split: dev
+  age:
+    value: '58'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    blood_glucose_mg_dl: '38'
+    consciousness: P
+    heart_rate_bpm: 110
+  expected_syndrome: hypoglycemia
+  relevance_grades:
+    HYPOGLYCEMIA_01_NODE_1: 2
+    HYPOGLYCEMIA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_148_VO_INF_HYPO
+  family: vitals_only
+  split: dev
+  age:
+    value: '58'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    blood_glucose_mg_dl: '50'
+    consciousness: C
+    heart_rate_bpm: 95
+  expected_syndrome: hypoglycemia
+  relevance_grades:
+    HYPOGLYCEMIA_01_NODE_1: 2
+    HYPOGLYCEMIA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_149_VO_INF_HYPO
+  family: vitals_only
+  split: test
+  age:
+    value: '58'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    blood_glucose_mg_dl: '42'
+    consciousness: V
+    heart_rate_bpm: 102
+  expected_syndrome: hypoglycemia
+  relevance_grades:
+    HYPOGLYCEMIA_01_NODE_1: 2
+    HYPOGLYCEMIA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_150_VO_INF_HYPO
+  family: vitals_only
+  split: dev
+  age:
+    value: '58'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    blood_glucose_mg_dl: '35'
+    consciousness: U
+    heart_rate_bpm: 115
+  expected_syndrome: hypoglycemia
+  relevance_grades:
+    HYPOGLYCEMIA_01_NODE_1: 2
+    HYPOGLYCEMIA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_151_VO_INF_HYPO
+  family: vitals_only
+  split: dev
+  age:
+    value: '58'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    blood_glucose_mg_dl: '48'
+    consciousness: C
+    heart_rate_bpm: 92
+  expected_syndrome: hypoglycemia
+  relevance_grades:
+    HYPOGLYCEMIA_01_NODE_1: 2
+    HYPOGLYCEMIA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_152_VO_INF_HYPO
+  family: vitals_only
+  split: dev
+  age:
+    value: '58'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    blood_glucose_mg_dl: '44'
+    consciousness: V
+    heart_rate_bpm: 100
+  expected_syndrome: hypoglycemia
+  relevance_grades:
+    HYPOGLYCEMIA_01_NODE_1: 2
+    HYPOGLYCEMIA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_153_VO_INF_HYPO
+  family: vitals_only
+  split: dev
+  age:
+    value: '58'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    blood_glucose_mg_dl: '39'
+    consciousness: P
+    heart_rate_bpm: 108
+  expected_syndrome: hypoglycemia
+  relevance_grades:
+    HYPOGLYCEMIA_01_NODE_1: 2
+    HYPOGLYCEMIA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_154_VO_INF_HYPO
+  family: vitals_only
+  split: test
+  age:
+    value: '58'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    blood_glucose_mg_dl: '46'
+    consciousness: C
+    heart_rate_bpm: 96
+  expected_syndrome: hypoglycemia
+  relevance_grades:
+    HYPOGLYCEMIA_01_NODE_1: 2
+    HYPOGLYCEMIA_01_NODE_3: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_155_VO_INF_CP
+  family: vitals_only
+  split: dev
+  age:
+    value: '62'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    systolic_bp_mmhg: 82
+    heart_rate_bpm: 48
+    spo2_percent: 95
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_5: 2
+    CHEST_PAIN_01_NODE_1: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_156_VO_INF_CP
+  family: vitals_only
+  split: dev
+  age:
+    value: '62'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    systolic_bp_mmhg: 80
+    heart_rate_bpm: 45
+    spo2_percent: 96
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_5: 2
+    CHEST_PAIN_01_NODE_1: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_157_VO_INF_CP
+  family: vitals_only
+  split: dev
+  age:
+    value: '62'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    systolic_bp_mmhg: 84
+    heart_rate_bpm: 50
+    spo2_percent: 94
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_5: 2
+    CHEST_PAIN_01_NODE_1: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_158_VO_INF_CP
+  family: vitals_only
+  split: test
+  age:
+    value: '62'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    systolic_bp_mmhg: 78
+    heart_rate_bpm: 42
+    spo2_percent: 98
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_5: 2
+    CHEST_PAIN_01_NODE_1: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_159_VO_INF_CP
+  family: vitals_only
+  split: dev
+  age:
+    value: '62'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    systolic_bp_mmhg: 85
+    heart_rate_bpm: 52
+    spo2_percent: 92
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_5: 2
+    CHEST_PAIN_01_NODE_1: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_160_VO_INF_CP
+  family: vitals_only
+  split: test
+  age:
+    value: '62'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    systolic_bp_mmhg: 81
+    heart_rate_bpm: 46
+    spo2_percent: 95
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_5: 2
+    CHEST_PAIN_01_NODE_1: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_161_VO_INF_CP
+  family: vitals_only
+  split: dev
+  age:
+    value: '62'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    systolic_bp_mmhg: 79
+    heart_rate_bpm: 44
+    spo2_percent: 97
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_5: 2
+    CHEST_PAIN_01_NODE_1: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_162_VO_INF_CP
+  family: vitals_only
+  split: dev
+  age:
+    value: '62'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    systolic_bp_mmhg: 83
+    heart_rate_bpm: 49
+    spo2_percent: 93
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_5: 2
+    CHEST_PAIN_01_NODE_1: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_163_VO_INF_CP
+  family: vitals_only
+  split: dev
+  age:
+    value: '62'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    systolic_bp_mmhg: 77
+    heart_rate_bpm: 40
+    spo2_percent: 99
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_5: 2
+    CHEST_PAIN_01_NODE_1: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_164_VO_INF_CP
+  family: vitals_only
+  split: test
+  age:
+    value: '62'
+    unit: years
+  population: adult
+  suspected_syndrome: null
+  vitals:
+    systolic_bp_mmhg: 86
+    heart_rate_bpm: 53
+    spo2_percent: 91
+  expected_syndrome: chest_pain
+  relevance_grades:
+    CHEST_PAIN_01_NODE_5: 2
+    CHEST_PAIN_01_NODE_1: 1
+  expect_abstain: false
+  expected_abstain_code: SYNDROME_INFERRED
+  notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_165_POP_NEO
   family: population_boundaries
   split: dev
   age:
@@ -1886,9 +3233,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: NO_POPULATION_COVERAGE
   notes: Neonate (1 days <= 28d) has 0 neonate protocols and must abstain
-- id: RET_102_POP_NEO
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_166_POP_NEO
   family: population_boundaries
-  split: test
+  split: dev
   age:
     value: '7'
     unit: days
@@ -1902,7 +3250,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: NO_POPULATION_COVERAGE
   notes: Neonate (7 days <= 28d) has 0 neonate protocols and must abstain
-- id: RET_103_POP_NEO
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_167_POP_NEO
   family: population_boundaries
   split: dev
   age:
@@ -1918,9 +3267,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: NO_POPULATION_COVERAGE
   notes: Neonate (14 days <= 28d) has 0 neonate protocols and must abstain
-- id: RET_104_POP_NEO
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_168_POP_NEO
   family: population_boundaries
-  split: test
+  split: dev
   age:
     value: '21'
     unit: days
@@ -1934,7 +3284,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: NO_POPULATION_COVERAGE
   notes: Neonate (21 days <= 28d) has 0 neonate protocols and must abstain
-- id: RET_105_POP_NEO
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_169_POP_NEO
   family: population_boundaries
   split: dev
   age:
@@ -1950,7 +3301,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: NO_POPULATION_COVERAGE
   notes: Neonate (28 days <= 28d) has 0 neonate protocols and must abstain
-- id: RET_106_POP_PAED_OK
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_170_POP_PAED_OK
   family: population_boundaries
   split: dev
   age:
@@ -1969,7 +3321,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_107_POP_PAED_OK
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_171_POP_PAED_OK
   family: population_boundaries
   split: test
   age:
@@ -1988,9 +3341,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_108_POP_PAED_OK
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_172_POP_PAED_OK
   family: population_boundaries
-  split: dev
+  split: test
   age:
     value: '2'
     unit: years
@@ -2007,7 +3361,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_109_POP_PAED_OK
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_173_POP_PAED_OK
   family: population_boundaries
   split: dev
   age:
@@ -2026,9 +3381,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_110_POP_PAED_MISMATCH
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_174_POP_PAED_MISMATCH
   family: population_boundaries
-  split: test
+  split: dev
   age:
     value: '8'
     unit: years
@@ -2041,9 +3397,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: NO_POPULATION_COVERAGE
   notes: Paediatric patient with adult-only syndrome 'chest_pain' must abstain
-- id: RET_111_POP_PAED_MISMATCH
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_175_POP_PAED_MISMATCH
   family: population_boundaries
-  split: dev
+  split: test
   age:
     value: '8'
     unit: years
@@ -2056,7 +3413,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: NO_POPULATION_COVERAGE
   notes: Paediatric patient with adult-only syndrome 'anaphylaxis' must abstain
-- id: RET_112_POP_PAED_MISMATCH
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_176_POP_PAED_MISMATCH
   family: population_boundaries
   split: dev
   age:
@@ -2071,7 +3429,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: NO_POPULATION_COVERAGE
   notes: Paediatric patient with adult-only syndrome 'severe_asthma' must abstain
-- id: RET_113_POP_ADULT_OK
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_177_POP_ADULT_OK
   family: population_boundaries
   split: dev
   age:
@@ -2090,7 +3449,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_114_POP_ADULT_OK
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_178_POP_ADULT_OK
   family: population_boundaries
   split: test
   age:
@@ -2109,7 +3469,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_115_POP_ADULT_PAEDSYN
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_179_POP_ADULT_PAEDSYN
   family: population_boundaries
   split: test
   age:
@@ -2125,9 +3486,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: NO_POPULATION_COVERAGE
   notes: Adult patient with paediatric-only syndrome 'paediatric_sepsis' must abstain
-- id: RET_116_POP_ADULT_PAEDSYN
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_180_POP_ADULT_PAEDSYN
   family: population_boundaries
-  split: dev
+  split: test
   age:
     value: '45'
     unit: years
@@ -2141,9 +3503,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: NO_POPULATION_COVERAGE
   notes: Adult patient with paediatric-only syndrome 'paediatric_sepsis' must abstain
-- id: RET_117_UNK_SYN_ONLY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_181_UNK_SYN_ONLY
   family: unknown_missing_vitals
-  split: test
+  split: dev
   age:
     value: '48'
     unit: years
@@ -2158,7 +3521,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
-- id: RET_118_UNK_SYN_ONLY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_182_UNK_SYN_ONLY
   family: unknown_missing_vitals
   split: test
   age:
@@ -2175,7 +3539,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
-- id: RET_119_UNK_SYN_ONLY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_183_UNK_SYN_ONLY
   family: unknown_missing_vitals
   split: test
   age:
@@ -2192,7 +3557,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
-- id: RET_120_UNK_SYN_ONLY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_184_UNK_SYN_ONLY
   family: unknown_missing_vitals
   split: dev
   age:
@@ -2209,9 +3575,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
-- id: RET_121_UNK_SYN_ONLY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_185_UNK_SYN_ONLY
   family: unknown_missing_vitals
-  split: dev
+  split: test
   age:
     value: '48'
     unit: years
@@ -2226,7 +3593,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
-- id: RET_122_UNK_SYN_ONLY
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_186_UNK_SYN_ONLY
   family: unknown_missing_vitals
   split: dev
   age:
@@ -2243,7 +3611,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
-- id: RET_123_UNK_ALL
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_187_UNK_ALL
   family: unknown_missing_vitals
   split: dev
   age:
@@ -2257,9 +3626,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: All vitals unknown and no syndrome abstains with EMPTY_QUERY
-- id: RET_124_UNK_ALL
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_188_UNK_ALL
   family: unknown_missing_vitals
-  split: test
+  split: dev
   age:
     value: '35'
     unit: years
@@ -2271,7 +3641,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: All vitals unknown and no syndrome abstains with EMPTY_QUERY
-- id: RET_125_UNK_ALL
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_189_UNK_ALL
   family: unknown_missing_vitals
   split: test
   age:
@@ -2285,7 +3656,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: All vitals unknown and no syndrome abstains with EMPTY_QUERY
-- id: RET_126_UNK_ALL
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_190_UNK_ALL
   family: unknown_missing_vitals
   split: dev
   age:
@@ -2299,9 +3671,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: All vitals unknown and no syndrome abstains with EMPTY_QUERY
-- id: RET_127_UNK_ALL
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_191_UNK_ALL
   family: unknown_missing_vitals
-  split: test
+  split: dev
   age:
     value: '50'
     unit: years
@@ -2313,7 +3686,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: All vitals unknown and no syndrome abstains with EMPTY_QUERY
-- id: RET_128_UNK_ALL
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_192_UNK_ALL
   family: unknown_missing_vitals
   split: dev
   age:
@@ -2327,9 +3701,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: All vitals unknown and no syndrome abstains with EMPTY_QUERY
-- id: RET_129_UNK_ALL
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_193_UNK_ALL
   family: unknown_missing_vitals
-  split: dev
+  split: test
   age:
     value: '60'
     unit: years
@@ -2341,9 +3716,10 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: All vitals unknown and no syndrome abstains with EMPTY_QUERY
-- id: RET_130_UNK_ALL
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_194_UNK_ALL
   family: unknown_missing_vitals
-  split: dev
+  split: test
   age:
     value: '65'
     unit: years
@@ -2355,7 +3731,8 @@ cases:
   expect_abstain: true
   expected_abstain_code: EMPTY_QUERY
   notes: All vitals unknown and no syndrome abstains with EMPTY_QUERY
-- id: RET_131_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_195_VAR
   family: acronym_morphology_variants
   split: test
   age:
@@ -2373,7 +3750,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_132_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_196_VAR
   family: acronym_morphology_variants
   split: test
   age:
@@ -2391,7 +3769,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_133_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_197_VAR
   family: acronym_morphology_variants
   split: dev
   age:
@@ -2409,7 +3788,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_134_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_198_VAR
   family: acronym_morphology_variants
   split: test
   age:
@@ -2427,7 +3807,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_135_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_199_VAR
   family: acronym_morphology_variants
   split: test
   age:
@@ -2446,7 +3827,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_136_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_200_VAR
   family: acronym_morphology_variants
   split: dev
   age:
@@ -2464,7 +3846,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_137_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_201_VAR
   family: acronym_morphology_variants
   split: dev
   age:
@@ -2482,7 +3865,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_138_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_202_VAR
   family: acronym_morphology_variants
   split: dev
   age:
@@ -2500,7 +3884,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_139_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_203_VAR
   family: acronym_morphology_variants
   split: dev
   age:
@@ -2519,7 +3904,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_140_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_204_VAR
   family: acronym_morphology_variants
   split: dev
   age:
@@ -2538,7 +3924,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_141_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_205_VAR
   family: acronym_morphology_variants
   split: test
   age:
@@ -2556,7 +3943,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_142_VAR
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_206_VAR
   family: acronym_morphology_variants
   split: dev
   age:
@@ -2574,9 +3962,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_143_POISON
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_207_POISON
   family: corpus_poisoned_chunk
-  split: dev
+  split: test
   age:
     value: '50'
     unit: years
@@ -2592,7 +3981,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
-- id: RET_144_POISON
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_208_POISON
   family: corpus_poisoned_chunk
   split: dev
   age:
@@ -2610,9 +4000,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
-- id: RET_145_POISON
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_209_POISON
   family: corpus_poisoned_chunk
-  split: test
+  split: dev
   age:
     value: '50'
     unit: years
@@ -2628,9 +4019,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
-- id: RET_146_POISON
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_210_POISON
   family: corpus_poisoned_chunk
-  split: dev
+  split: test
   age:
     value: '50'
     unit: years
@@ -2646,9 +4038,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
-- id: RET_147_POISON
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_211_POISON
   family: corpus_poisoned_chunk
-  split: test
+  split: dev
   age:
     value: '50'
     unit: years
@@ -2664,7 +4057,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
-- id: RET_148_POISON
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_212_POISON
   family: corpus_poisoned_chunk
   split: dev
   age:
@@ -2682,9 +4076,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
-- id: RET_149_DUP
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_213_DUP
   family: near_duplicate_versions
-  split: test
+  split: dev
   age:
     value: '45'
     unit: years
@@ -2700,7 +4095,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
-- id: RET_150_DUP
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_214_DUP
   family: near_duplicate_versions
   split: dev
   age:
@@ -2718,9 +4114,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
-- id: RET_151_DUP
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_215_DUP
   family: near_duplicate_versions
-  split: dev
+  split: test
   age:
     value: '47'
     unit: years
@@ -2736,9 +4133,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
-- id: RET_152_DUP
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_216_DUP
   family: near_duplicate_versions
-  split: dev
+  split: test
   age:
     value: '48'
     unit: years
@@ -2754,7 +4152,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
-- id: RET_153_DUP
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_217_DUP
   family: near_duplicate_versions
   split: dev
   age:
@@ -2772,9 +4171,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
-- id: RET_154_DUP
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_218_DUP
   family: near_duplicate_versions
-  split: test
+  split: dev
   age:
     value: '50'
     unit: years
@@ -2790,9 +4190,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
-- id: RET_155_SCALE
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_219_SCALE
   family: scale_latency
-  split: test
+  split: dev
   age:
     value: '55'
     unit: years
@@ -2814,7 +4215,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_156_SCALE
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_220_SCALE
   family: scale_latency
   split: dev
   age:
@@ -2838,7 +4240,8 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_157_SCALE
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_221_SCALE
   family: scale_latency
   split: dev
   age:
@@ -2862,9 +4265,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_158_SCALE
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_222_SCALE
   family: scale_latency
-  split: dev
+  split: test
   age:
     value: '58'
     unit: years
@@ -2886,9 +4290,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_159_SCALE
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_223_SCALE
   family: scale_latency
-  split: dev
+  split: test
   age:
     value: '59'
     unit: years
@@ -2910,9 +4315,10 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
-- id: RET_160_SCALE
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED
+- id: RET_224_SCALE
   family: scale_latency
-  split: test
+  split: dev
   age:
     value: '60'
     unit: years
@@ -2934,3 +4340,4 @@ cases:
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
+  reviewed_by: AGENT_AUTHORED_UNREVIEWED

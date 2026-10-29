@@ -1,11 +1,13 @@
-"""Deterministic generator for the 160-case WP5 retrieval benchmark dataset.
+"""Deterministic generator for the WP5 retrieval benchmark dataset (FG-06, FG-20).
 
 Generates eval/retrieval/dataset.yaml with:
-- 160 structured patient cases (96 dev [60%], 64 test [40%], stratified by family with seed 42).
+- 224 structured patient cases (136 dev [61%], 88 test [39%], stratified by family with seed 42).
 - Natural patient vitals (systolic_bp_mmhg, heart_rate_bpm, respiratory_rate_bpm, spo2_percent,
   temperature_c, blood_glucose_mg_dl, consciousness) and chronological ages.
 - Graded node-level relevance (2 = directly actionable node, 1 = supporting node in protocol).
-- All 10 mandatory case families from Appendix B of POSTMORTEM.md.
+- Mandatory case families including >= 40 vitals-only positives, >= 20 conflicting cases,
+  and >= 20 near-duplicate hard negatives (FG-06).
+- AGENT_AUTHORED_UNREVIEWED header annotation for independent audit traceability.
 """
 
 from __future__ import annotations
@@ -31,6 +33,7 @@ def _make_case(
     expect_abstain: bool,
     expected_abstain_code: str,
     notes: str = "",
+    reviewed_by: str = "AGENT_AUTHORED_UNREVIEWED",
 ) -> dict[str, Any]:
     return {
         "id": case_id,
@@ -45,6 +48,7 @@ def _make_case(
         "expect_abstain": expect_abstain,
         "expected_abstain_code": expected_abstain_code,
         "notes": notes,
+        "reviewed_by": reviewed_by,
     }
 
 
@@ -277,8 +281,49 @@ def generate_all_cases() -> list[dict[str, Any]]:
             )
         )
 
+    # 2b. Near-duplicate-wording hard negatives (20 cases, FG-06)
+    near_dup_specs: list[tuple[str, str, str, str, dict[str, Any]]] = [
+        ("chronic_stable_angina", "adult", "65", "years", {"systolic_bp_mmhg": 130, "heart_rate_bpm": 72}),
+        ("mild_seasonal_bronchospasm", "adult", "28", "years", {"respiratory_rate_bpm": 18, "spo2_percent": 98}),
+        ("food_intolerance_isolated", "adult", "32", "years", {"heart_rate_bpm": 76, "systolic_bp_mmhg": 120}),
+        ("chronic_tension_headache", "adult", "45", "years", {"heart_rate_bpm": 70, "systolic_bp_mmhg": 124}),
+        ("costochondritis_chest_wall_pain", "adult", "38", "years", {"systolic_bp_mmhg": 118, "heart_rate_bpm": 68}),
+        ("localized_dermatitis", "adult", "50", "years", {"heart_rate_bpm": 72, "temperature_c": "36.8"}),
+        ("benign_palpitations", "adult", "25", "years", {"heart_rate_bpm": 85, "systolic_bp_mmhg": 115}),
+        ("reactive_hyperglycemia", "adult", "58", "years", {"blood_glucose_mg_dl": "140", "heart_rate_bpm": 75}),
+        ("paediatric_common_cold", "paediatric", "3", "years", {"temperature_c": "37.4", "heart_rate_bpm": 105}),
+        ("paediatric_teething_irritability", "paediatric", "8", "months", {"temperature_c": "37.2", "heart_rate_bpm": 110}),
+        ("acute_bronchitis_afebrile", "adult", "42", "years", {"respiratory_rate_bpm": 17, "spo2_percent": 97}),
+        ("post_exercise_tachycardia", "adult", "22", "years", {"heart_rate_bpm": 102, "systolic_bp_mmhg": 125}),
+        ("mild_gastroenteritis", "adult", "35", "years", {"heart_rate_bpm": 80, "systolic_bp_mmhg": 118}),
+        ("paediatric_mild_otitis", "paediatric", "4", "years", {"temperature_c": "37.6", "heart_rate_bpm": 100}),
+        ("non_cardiac_dyspepsia", "adult", "49", "years", {"systolic_bp_mmhg": 122, "heart_rate_bpm": 74}),
+        ("fatigue_syndrome", "adult", "53", "years", {"heart_rate_bpm": 65, "systolic_bp_mmhg": 110}),
+        ("paediatric_heat_rash", "paediatric", "2", "years", {"temperature_c": "36.9", "heart_rate_bpm": 95}),
+        ("mild_allergic_rhinitis", "adult", "31", "years", {"heart_rate_bpm": 72, "spo2_percent": 99}),
+        ("hyperventilation_anxiety", "adult", "27", "years", {"respiratory_rate_bpm": 22, "spo2_percent": 100}),
+        ("postprandial_somnolence", "adult", "60", "years", {"blood_glucose_mg_dl": "110", "consciousness": "A"}),
+    ]
+    for syn, pop, age_v, age_u, v_dict in near_dup_specs:
+        cases.append(
+            _make_case(
+                next_id("HN_NEARDUP"),
+                "hard_negatives",
+                pop,
+                age_v,
+                age_u,
+                syn,
+                v_dict,
+                None,
+                {},
+                True,
+                "UNKNOWN_SYNDROME",
+                f"Near-duplicate / non-emergency condition '{syn}' must abstain",
+            )
+        )
+
     # -------------------------------------------------------------------------
-    # Family 3: Conflicting syndrome vs vitals (16 cases)
+    # Family 3: Conflicting syndrome vs vitals (24 cases, FG-06)
     # -------------------------------------------------------------------------
     conflicting_specs: list[tuple[str, dict[str, Any], str]] = [
         ("hypoglycemia", {"systolic_bp_mmhg": 78, "heart_rate_bpm": 128}, "HYPOGLYCEMIA_01_NODE_1"),
@@ -337,6 +382,14 @@ def generate_all_cases() -> list[dict[str, Any]]:
             "ALTERED_MENTAL_STATUS_01_NODE_1",
         ),
         ("paediatric_sepsis", {"spo2_percent": 88, "consciousness": "V"}, "PAED_SEPSIS_01_NODE_1"),
+        ("chest_pain", {"temperature_c": "39.5", "heart_rate_bpm": 135}, "CHEST_PAIN_01_NODE_1"),
+        ("severe_asthma", {"systolic_bp_mmhg": 72, "heart_rate_bpm": 48}, "SEVERE_ASTHMA_01_NODE_1"),
+        ("anaphylaxis", {"respiratory_rate_bpm": 12, "spo2_percent": 99}, "ANAPHYLAXIS_01_NODE_1"),
+        ("hypoglycemia", {"respiratory_rate_bpm": 36, "spo2_percent": 84}, "HYPOGLYCEMIA_01_NODE_1"),
+        ("altered_mental_status", {"temperature_c": "39.6", "blood_glucose_mg_dl": "180"}, "ALTERED_MENTAL_STATUS_01_NODE_1"),
+        ("paediatric_sepsis", {"systolic_bp_mmhg": 135, "spo2_percent": 99}, "PAED_SEPSIS_01_NODE_1"),
+        ("chest_pain", {"blood_glucose_mg_dl": "42", "temperature_c": "36.2"}, "CHEST_PAIN_01_NODE_1"),
+        ("severe_asthma", {"blood_glucose_mg_dl": "44", "consciousness": "C"}, "SEVERE_ASTHMA_01_NODE_1"),
     ]
     for syn, v_dict, primary_node in conflicting_specs:
         pop = "paediatric" if syn == "paediatric_sepsis" else "adult"
@@ -404,26 +457,55 @@ def generate_all_cases() -> list[dict[str, Any]]:
                 "Normal vitals and no suspected syndrome emits empty query and abstains",
             )
         )
-    # 4c: Paediatric fever + severe tachycardia with no syndrome -> infers paediatric_sepsis
-    for temp, hr in [("39.2", 155), ("38.9", 148), ("39.5", 160), ("39.1", 152)]:
+    # 4c: Paediatric fever + severe tachycardia with no syndrome -> infers paediatric_sepsis (14 cases, FG-06)
+    paed_vo_specs: list[tuple[str, str, str, int, int]] = [
+        ("6", "months", "39.2", 175, 48),
+        ("9", "months", "39.0", 170, 46),
+        ("1", "years", "39.4", 162, 42),
+        ("2", "years", "39.1", 158, 38),
+        ("3", "years", "39.5", 160, 40),
+        ("4", "years", "38.9", 152, 36),
+        ("5", "years", "39.3", 150, 34),
+        ("6", "years", "39.6", 148, 32),
+        ("8", "years", "39.0", 142, 30),
+        ("10", "years", "39.2", 138, 28),
+        ("12", "years", "39.4", 135, 26),
+        ("14", "years", "39.1", 130, 24),
+        ("15", "years", "39.5", 132, 25),
+        ("16", "years", "39.0", 128, 24),
+    ]
+    for age_v, age_u, temp, hr, rr in paed_vo_specs:
         cases.append(
             _make_case(
                 next_id("VO_INF_PAED"),
                 "vitals_only",
                 "paediatric",
-                "4",
-                "years",
+                age_v,
+                age_u,
                 None,
-                {"temperature_c": temp, "heart_rate_bpm": hr},
+                {"temperature_c": temp, "heart_rate_bpm": hr, "respiratory_rate_bpm": rr},
                 "paediatric_sepsis",
                 {"PAED_SEPSIS_01_NODE_1": 2, "PAED_SEPSIS_01_NODE_2": 1},
                 False,
                 "SYNDROME_INFERRED",
-                "Paediatric fever + severe tachycardia infers paediatric_sepsis",
+                "Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis",
             )
         )
-    # 4d: Adult tachypnea + hypoxia (severe_asthma NODE_1 has both tachypnea and oxygen)
-    for rr, spo2 in [(30, 88), (32, 86), (28, 89), (34, 85)]:
+
+    # 4d: Adult tachypnea + hypoxia -> infers severe_asthma (10 cases, FG-06)
+    asthma_vo_specs: list[tuple[int, int, int]] = [
+        (30, 88, 112),
+        (32, 86, 118),
+        (28, 89, 105),
+        (34, 85, 122),
+        (26, 90, 102),
+        (31, 87, 115),
+        (29, 88, 110),
+        (33, 86, 120),
+        (27, 89, 104),
+        (35, 84, 125),
+    ]
+    for rr, spo2, hr in asthma_vo_specs:
         cases.append(
             _make_case(
                 next_id("VO_INF_ASTHMA"),
@@ -432,12 +514,74 @@ def generate_all_cases() -> list[dict[str, Any]]:
                 "30",
                 "years",
                 None,
-                {"respiratory_rate_bpm": rr, "spo2_percent": spo2},
+                {"respiratory_rate_bpm": rr, "spo2_percent": spo2, "heart_rate_bpm": hr},
                 "severe_asthma",
                 {"SEVERE_ASTHMA_01_NODE_1": 2, "SEVERE_ASTHMA_01_NODE_2": 1},
                 False,
                 "SYNDROME_INFERRED",
                 "Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED",
+            )
+        )
+
+    # 4e: Adult hypoglycemia low blood glucose + confusion -> infers hypoglycemia (10 cases, FG-06)
+    hypo_vo_specs: list[tuple[str, str, int]] = [
+        ("40", "C", 98),
+        ("45", "V", 105),
+        ("38", "P", 110),
+        ("50", "C", 95),
+        ("42", "V", 102),
+        ("35", "U", 115),
+        ("48", "C", 92),
+        ("44", "V", 100),
+        ("39", "P", 108),
+        ("46", "C", 96),
+    ]
+    for glu, consc, hr in hypo_vo_specs:
+        cases.append(
+            _make_case(
+                next_id("VO_INF_HYPO"),
+                "vitals_only",
+                "adult",
+                "58",
+                "years",
+                None,
+                {"blood_glucose_mg_dl": glu, "consciousness": consc, "heart_rate_bpm": hr},
+                "hypoglycemia",
+                {"HYPOGLYCEMIA_01_NODE_1": 2, "HYPOGLYCEMIA_01_NODE_3": 1},
+                False,
+                "SYNDROME_INFERRED",
+                "Adult severe hypoglycemia with altered consciousness infers hypoglycemia",
+            )
+        )
+
+    # 4f: Adult chest pain hypotension + severe bradycardia -> infers chest_pain (10 cases, FG-06)
+    cp_vo_specs: list[tuple[int, int, int]] = [
+        (82, 48, 95),
+        (80, 45, 96),
+        (84, 50, 94),
+        (78, 42, 98),
+        (85, 52, 92),
+        (81, 46, 95),
+        (79, 44, 97),
+        (83, 49, 93),
+        (77, 40, 99),
+        (86, 53, 91),
+    ]
+    for sbp, hr, spo2 in cp_vo_specs:
+        cases.append(
+            _make_case(
+                next_id("VO_INF_CP"),
+                "vitals_only",
+                "adult",
+                "62",
+                "years",
+                None,
+                {"systolic_bp_mmhg": sbp, "heart_rate_bpm": hr, "spo2_percent": spo2},
+                "chest_pain",
+                {"CHEST_PAIN_01_NODE_5": 2, "CHEST_PAIN_01_NODE_1": 1},
+                False,
+                "SYNDROME_INFERRED",
+                "Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock",
             )
         )
 
@@ -791,6 +935,7 @@ def main() -> None:
     test_n = sum(1 for c in cases if c["split"] == "test")
     payload = {
         "dataset_version": "2.0.0",
+        "provenance_status": "AGENT_AUTHORED_UNREVIEWED",
         "seed": 42,
         "total_cases": len(cases),
         "dev_cases": dev_n,
@@ -799,7 +944,12 @@ def main() -> None:
     }
     out_path = get_repo_root() / "eval" / "retrieval" / "dataset.yaml"
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
+    header = (
+        "# AGENT_AUTHORED_UNREVIEWED: Retrieval benchmark dataset generated for Fix Gate G4.\n"
+        "# All cases carry reviewed_by: AGENT_AUTHORED_UNREVIEWED for audit transparency.\n"
+    )
+    content = header + yaml.safe_dump(payload, sort_keys=False)
+    out_path.write_text(content, encoding="utf-8")
     print(f"Generated {len(cases)} cases ({dev_n} dev, {test_n} test) -> {out_path}")
 
 
