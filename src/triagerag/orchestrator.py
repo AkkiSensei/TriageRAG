@@ -32,6 +32,7 @@ from triagerag.contracts.schemas import (
     Provenance,
     RetrievalReport,
     ScoreResult,
+    SkippedCheck,
     SystemClock,
     TriageResponse,
     VerifiedStep,
@@ -119,6 +120,172 @@ def run_triage(
         normalized_patient, registry
     )
 
+    # Fail closed on missing/unscored vitals in physiological scoring (Rule R2)
+    if score_result.band == ScoreBand.UNSCORED and score_result.missing_vitals:
+        baseline_skips.append(
+            SkippedCheck(
+                rule_id=score_result.score_name or f"EWS_{pop_str.upper()}",
+                rule_type="physiological_scoring",
+                reason=(
+                    "Early-warning physiological score could not be calculated due to "
+                    f"missing/unknown vitals: {', '.join(score_result.missing_vitals)}"
+                ),
+                missing_fields=list(score_result.missing_vitals),
+                provenance=score_result.provenance,
+            )
+        )
+
+    # Fail closed on unknown intake history & unknown patient parameters (Rule R2)
+    if normalized_patient.medication_history_status in (
+        "incomplete",
+        "unknown_unobtainable",
+    ) and not any("medications" in s.missing_fields for s in baseline_skips):
+        baseline_skips.append(
+            SkippedCheck(
+                rule_id="INTAKE_MEDICATION_HISTORY",
+                rule_type="history_verification",
+                reason=(
+                    "Medication history status is "
+                    f"'{normalized_patient.medication_history_status}' (fail closed)"
+                ),
+                missing_fields=["medications"],
+                provenance=_UNAVAILABLE_SCORE_PROVENANCE,
+            )
+        )
+
+    if normalized_patient.allergy_history_status in (
+        "incomplete",
+        "unknown_unobtainable",
+    ) and not any("allergies" in s.missing_fields for s in baseline_skips):
+        baseline_skips.append(
+            SkippedCheck(
+                rule_id="INTAKE_ALLERGY_HISTORY",
+                rule_type="history_verification",
+                reason=(
+                    "Allergy history status is "
+                    f"'{normalized_patient.allergy_history_status}' (fail closed)"
+                ),
+                missing_fields=["allergies"],
+                provenance=_UNAVAILABLE_SCORE_PROVENANCE,
+            )
+        )
+
+    if (
+        normalized_patient.sex in ("female", "other", "unknown")
+        and normalized_patient.pregnancy == "unknown"
+        and not any("pregnancy" in s.missing_fields for s in baseline_skips)
+    ):
+        baseline_skips.append(
+            SkippedCheck(
+                rule_id="INTAKE_PREGNANCY_STATUS",
+                rule_type="population_verification",
+                reason=(
+                    "Patient pregnancy status is unknown for "
+                    f"{normalized_patient.sex} patient (fail closed)"
+                ),
+                missing_fields=["pregnancy"],
+                provenance=_UNAVAILABLE_SCORE_PROVENANCE,
+            )
+        )
+
+    if (
+        normalized_patient.weight_kg.source == "unknown"
+        or normalized_patient.weight_kg.value is None
+    ) and not any("weight_kg" in s.missing_fields for s in baseline_skips):
+        baseline_skips.append(
+            SkippedCheck(
+                rule_id="INTAKE_PATIENT_WEIGHT",
+                rule_type="vitals_verification",
+                reason="Patient weight is unknown or unmeasured (fail closed)",
+                missing_fields=["weight_kg"],
+                provenance=_UNAVAILABLE_SCORE_PROVENANCE,
+            )
+        )
+
+    for allergy in normalized_patient.allergies:
+        sub_name = allergy.normalized_allergen_id or allergy.raw_substance
+        if allergy.reaction_type == "unknown" and not any(
+            "reaction_type" in s.missing_fields and sub_name.lower() in s.reason.lower()
+            for s in baseline_skips
+        ):
+            baseline_skips.append(
+                SkippedCheck(
+                    rule_id=f"INTAKE_ALLERGY_REACTION_{sub_name.upper()}",
+                    rule_type="allergy_crossreactivity",
+                    reason=(f"Allergy reaction type for '{sub_name}' is unknown (fail closed)"),
+                    missing_fields=["reaction_type"],
+                    provenance=_UNAVAILABLE_SCORE_PROVENANCE,
+                )
+            )
+
+    for med in normalized_patient.medications:
+        if not med.resolved and not any(
+            "medications_resolved" in s.missing_fields and med.raw_text in s.reason
+            for s in baseline_skips
+        ):
+            baseline_skips.append(
+                SkippedCheck(
+                    rule_id=f"UNRESOLVED_MEDICATION_{med.raw_text.upper()}",
+                    rule_type="entity_resolution",
+                    reason=(
+                        f"Medication '{med.raw_text}' could not be resolved to formulary/classes"
+                    ),
+                    missing_fields=["medications_resolved"],
+                    provenance=_UNAVAILABLE_SCORE_PROVENANCE,
+                )
+            )
+
+    for allergy in normalized_patient.allergies:
+        if not allergy.resolved and not any(
+            "allergies_resolved" in s.missing_fields and allergy.raw_substance in s.reason
+            for s in baseline_skips
+        ):
+            baseline_skips.append(
+                SkippedCheck(
+                    rule_id=f"UNRESOLVED_ALLERGEN_{allergy.raw_substance.upper()}",
+                    rule_type="entity_resolution",
+                    reason=(
+                        f"Allergen substance '{allergy.raw_substance}' could not be "
+                        "resolved to ontology classes"
+                    ),
+                    missing_fields=["allergies_resolved"],
+                    provenance=_UNAVAILABLE_SCORE_PROVENANCE,
+                )
+            )
+
+    # Known coverage gaps: renal and hepatic impairment (Rule R2, Section 5)
+    if normalized_patient.renal_impairment == "yes" and not any(
+        "renal" in s.rule_id.lower() for s in baseline_skips
+    ):
+        baseline_skips.append(
+            SkippedCheck(
+                rule_id="COVERAGE_GAP_RENAL_IMPAIRMENT",
+                rule_type="coverage_gap",
+                reason=(
+                    "Patient has documented renal impairment; ruleset has no renal "
+                    "dose titration adjustment rules (Rule R2)"
+                ),
+                missing_fields=["renal_rules"],
+                provenance=_UNAVAILABLE_SCORE_PROVENANCE,
+            )
+        )
+
+    if normalized_patient.hepatic_impairment == "yes" and not any(
+        "hepatic" in s.rule_id.lower() for s in baseline_skips
+    ):
+        baseline_skips.append(
+            SkippedCheck(
+                rule_id="COVERAGE_GAP_HEPATIC_IMPAIRMENT",
+                rule_type="coverage_gap",
+                reason=(
+                    "Patient has documented hepatic impairment; ruleset has no hepatic "
+                    "contraindication rules (Rule R2)"
+                ),
+                missing_fields=["hepatic_rules"],
+                provenance=_UNAVAILABLE_SCORE_PROVENANCE,
+            )
+        )
+
     # Extract blocked drug IDs to exclude from LLM allowed list (Rule R1)
     blocked_drug_ids = {
         drug_id
@@ -183,6 +350,7 @@ def run_triage(
     # 6. Machine Verification & Pass 2 (guarded with repair loop, Rules R1, R7)
     verified_steps: list[VerifiedStep] = []
     plan_alerts: list[Any] = []
+    plan_skips: list[SkippedCheck] = []
     dose_reports: list[CalculatedDoseReport] = []
 
     if plan_draft and not llm_fallback_mode:
@@ -196,8 +364,8 @@ def run_triage(
         )
         verified_steps = v_steps
         plan_alerts = p_alerts
+        plan_skips = list(p_skips)
         dose_reports = d_reports
-        baseline_skips.extend(p_skips)
 
         # Repair loop: If repairable violations exist and LLM is active
         # Feeds back strictly structured violation codes (never echoes untrusted patient complaint)
@@ -227,7 +395,7 @@ def run_triage(
                     draft=plan_draft,
                     violations=structured_violations,
                 )
-                v_steps, p_alerts, _, d_reports = verify_plan(
+                v_steps, p_alerts, p_skips, d_reports = verify_plan(
                     patient=normalized_patient,
                     draft=repaired_draft,
                     baseline_alerts=baseline_alerts,
@@ -237,6 +405,7 @@ def run_triage(
                 )
                 verified_steps = v_steps
                 plan_alerts = p_alerts
+                plan_skips = list(p_skips)
                 dose_reports = d_reports
                 plan_draft = repaired_draft
             except Exception as e:
@@ -249,11 +418,24 @@ def run_triage(
             for i, v_step in enumerate(verified_steps):
                 if v_step.draft.step_number == override.step_number:
                     # Check for Rule R11 violation: BLOCK CANNOT BE OVERRIDDEN
-                    if v_step.status == StepStatus.BLOCKED_STRUCK_THROUGH:
+                    rule = registry.get_rule(override.rule_id)
+                    is_block_override = (
+                        v_step.status == StepStatus.BLOCKED_STRUCK_THROUGH
+                        or (rule is not None and rule.severity == Severity.BLOCK)
+                        or any(
+                            a.severity == Severity.BLOCK
+                            for a in (baseline_alerts + plan_alerts)
+                            if (
+                                a.rule_id == override.rule_id
+                                or a.rule_id in v_step.triggered_rule_ids
+                            )
+                        )
+                    )
+                    if is_block_override:
                         msg = (
                             f"Rule R11 Violation: Step {override.step_number} is "
-                            f"BLOCKED_STRUCK_THROUGH and cannot be overridden by "
-                            f"{override.clinician_id}"
+                            f"contraindicated by a BLOCK rule ({override.rule_id}) and "
+                            f"cannot be overridden by {override.clinician_id}"
                         )
                         raise PermissionError(msg)
                     if v_step.status in (
@@ -281,17 +463,27 @@ def run_triage(
 
     # 8. Verdict Lattice Resolution (Section 4)
     all_alerts = baseline_alerts + plan_alerts
-    has_block = any(a.severity == Severity.BLOCK for a in all_alerts)
+    all_skips = baseline_skips + plan_skips
+    has_block = any(a.severity == Severity.BLOCK for a in all_alerts) or any(
+        s.status == StepStatus.BLOCKED_STRUCK_THROUGH for s in verified_steps
+    )
     unresolved_entities = [m.raw_text for m in normalized_patient.medications if not m.resolved] + [
         a.raw_substance for a in normalized_patient.allergies if not a.resolved
     ]
-    has_skip_or_unresolved = len(baseline_skips) > 0 or len(unresolved_entities) > 0
+    has_unverified_steps = any(
+        s.status in (StepStatus.UNVERIFIED_MISSING_DATA, StepStatus.CITATION_UNVERIFIED)
+        for s in verified_steps
+    )
+    has_skip_or_unresolved = (
+        len(all_skips) > 0 or len(unresolved_entities) > 0 or has_unverified_steps
+    )
     has_alert = len(all_alerts) > 0
 
     overall_verdict = resolve_verdict(
         has_block=has_block,
         has_skip_or_unresolved=has_skip_or_unresolved,
         has_alert=has_alert,
+        has_unverified_steps=has_unverified_steps,
     )
 
     # Check review state of all rules evaluated
@@ -307,7 +499,7 @@ def run_triage(
         plan_alerts=plan_alerts,
         dose_reports=dose_reports,
         checks_run=checks_run,
-        checks_skipped=baseline_skips,
+        checks_skipped=all_skips,
         unresolved_entities=unresolved_entities,
         ruleset_coverage=[
             f"{checks_run} rules evaluated across {len(registry.rules)} registered rules"

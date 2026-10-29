@@ -16,18 +16,22 @@ def resolve_verdict(
     has_block: bool,
     has_skip_or_unresolved: bool,
     has_alert: bool,
+    *,
+    has_unverified_steps: bool = False,
+    has_coverage_gaps: bool = False,
 ) -> Verdict:
     """Resolve the overall safety verdict from the strict 4-level lattice.
 
     Lattice priority:
     1. BLOCKED (highest priority): Hard contraindication fired.
-    2. UNVERIFIED: Missing vitals, unknown history, unresolved brand, or skipped check.
+    2. UNVERIFIED: Missing vitals, unknown history, unresolved brand, ungrounded step,
+       coverage gap, or skipped check.
     3. CHECKED_ALERTS: Checks completed without block or skip, but HIGH/MODERATE/INFO alerts fired.
     4. CHECKED_CLEAR: Complete ruleset coverage without block, skip, or alert.
     """
     if has_block:
         return Verdict.BLOCKED
-    if has_skip_or_unresolved:
+    if has_skip_or_unresolved or has_unverified_steps or has_coverage_gaps:
         return Verdict.UNVERIFIED
     if has_alert:
         return Verdict.CHECKED_ALERTS

@@ -112,9 +112,13 @@ def render_unverified_section(engine: EngineReport) -> None:
     st.subheader("What I Couldn't Check (Fail-Closed)")
     with st.container():
         st.write(
-            f"**Checks Skipped:** {len(engine.checks_skipped)} check(s) skipped due to missing "
-            "data or unreviewed draft thresholds."
+            f"**Checks Skipped ({len(engine.checks_skipped)}):** The following safety checks could "
+            "not be completed due to missing clinical data, unknown history, or rule gaps:"
         )
+        for s in engine.checks_skipped:
+            missing = f" *(missing: {', '.join(s.missing_fields)})*" if s.missing_fields else ""
+            st.markdown(f"- **`{s.rule_id}`** ({s.rule_type}): {s.reason}{missing}")
+
         if engine.unresolved_entities:
             st.write(f"**Unresolved Clinical Entities:** {', '.join(engine.unresolved_entities)}")
         st.caption(
