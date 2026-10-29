@@ -31,7 +31,19 @@ def test_dataset_matches_frozen_commit() -> None:
     # Verify that dataset.yaml exists at this commit
     cmd = ["git", "cat-file", "-e", f"{sha}:eval/retrieval/dataset.yaml"]
     res = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
-    assert res.returncode == 0, f"dataset.yaml does not exist at frozen commit {sha}"
+    if res.returncode != 0:
+        # Check if the repository is a shallow clone (e.g. default in CI environments)
+        is_shallow_cmd = ["git", "rev-parse", "--is-shallow-repository"]
+        shallow_res = subprocess.run(is_shallow_cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+        if shallow_res.returncode == 0 and shallow_res.stdout.strip() == "true":
+            # Fetch the frozen commit object from remote to satisfy the integrity check
+            fetch_cmd = ["git", "fetch", "--depth=1", "origin", sha]
+            subprocess.run(fetch_cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+            res = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+
+    assert res.returncode == 0, (
+        f"dataset.yaml does not exist at frozen commit {sha} (git error: {res.stderr.strip()})"
+    )
 
 
 def test_calibration_run_record_exists_and_matches_config() -> None:
