@@ -81,6 +81,35 @@ def verify_plan(
             rejection_reasons.append(
                 f"Unknown drug_id '{step.drug_id}' not found in verified formulary"
             )
+            unapproved_rule_id = f"FORMULARY_VALIDITY_{str(step.drug_id).upper()}"
+            if not any(a.rule_id == unapproved_rule_id for a in plan_alerts):
+                from triagerag.contracts.schemas import Provenance
+
+                prov = (
+                    registry.rules[0].provenance
+                    if registry.rules
+                    else Provenance(
+                        source_doc="SYNTHETIC_FORMULARY_DRAFT",
+                        section_ref="TO_BE_RESOLVED",
+                        version_or_date="2026-DRAFT",
+                    )
+                )
+                plan_alerts.append(
+                    Alert(
+                        rule_id=unapproved_rule_id,
+                        severity=Severity.BLOCK,
+                        rule_type="formulary_validity",
+                        drug_ids=[step.drug_id] if step.drug_id else [],
+                        consequence=(
+                            f"Unknown or unapproved drug_id '{step.drug_id}' not found in "
+                            "verified formulary"
+                        ),
+                        action=f"Do not administer unlisted agent '{step.drug_id}'",
+                        provenance=prov,
+                        unverified=True,
+                    )
+                )
+                all_alerts = baseline_alerts + plan_alerts
 
         # 2. Prose drug leak scan (Section 10)
         leaks = scan_narrative_for_drug_leaks(
@@ -129,9 +158,17 @@ def verify_plan(
         # 4. Check rule alerts impacting this specific step
         # Note: Withhold steps are NEVER treated as administrations (Section 6)
         if step.action_type == ActionType.administer and step.drug_id:
-            # Check for alerts matching this drug
+            step_drug_id = step.drug_id.lower()
+            step_drug_identifiers = {step_drug_id}
+            drug_obj = registry.get_drug(step.drug_id)
+            if drug_obj:
+                for ing in drug_obj.ingredient_ids:
+                    step_drug_identifiers.add(ing.lower())
+
+            # Check for alerts matching this drug or its active ingredients
             for alert in all_alerts:
-                if step.drug_id in alert.drug_ids:
+                alert_drug_ids = {did.lower() for did in alert.drug_ids}
+                if step_drug_identifiers & alert_drug_ids:
                     triggered_rule_ids.append(alert.rule_id)
                     if alert.severity == Severity.BLOCK:
                         # Rule R11: Absolute block, no override path

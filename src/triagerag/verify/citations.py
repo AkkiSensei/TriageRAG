@@ -123,6 +123,20 @@ def verify_citation(
             c.doc_id == matched_chunk.doc_id and (c.parent_id is not None or "_NODE_" in c.chunk_id)
             for c in retrieved_chunks
         )
+        if not has_child_for_doc:
+            try:
+                from triagerag.config import get_data_dir
+                from triagerag.rag.ingest import ingest_protocols
+
+                all_corpus_chunks = ingest_protocols(get_data_dir())
+                has_child_for_doc = any(
+                    c.doc_id == matched_chunk.doc_id
+                    and (c.parent_id is not None or "_NODE_" in c.chunk_id)
+                    for c in all_corpus_chunks
+                )
+            except Exception:
+                pass
+
         if has_child_for_doc:
             return (
                 False,
@@ -135,7 +149,7 @@ def verify_citation(
     norm_span = _normalize_whitespace(citation.quoted_span)
     norm_chunk_text = _normalize_whitespace(matched_chunk.text)
 
-    if norm_span.lower() not in norm_chunk_text.lower():
+    if norm_span not in norm_chunk_text:
         msg = (
             f"Quoted span '{citation.quoted_span[:30]}...' is not a verbatim "
             f"substring of chunk {citation.chunk_id}"
@@ -209,7 +223,13 @@ def verify_step_support(
     cfg = load_action_cues(data_dir)
     drug_term_map = _build_registry_drug_term_map(registry, data_dir)
 
-    if step.action_type in (ActionType.administer, ActionType.withhold) and step.drug_id:
+    if step.action_type in (ActionType.administer, ActionType.withhold):
+        if not step.drug_id:
+            return (
+                False,
+                f"MISSING_DRUG_ID: {step.action_type.value} step missing mandatory drug_id "
+                "(fail closed)",
+            )
         drug_id_lower = step.drug_id.lower()
         saw_unparsed = False
         saw_opposite_polarity: str | None = None
