@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTriage } from '@/context/TriageContext'
 import { SafetyBanner } from '@/features/results/SafetyBanner'
+import { ExplanationSection } from '@/features/results/ExplanationSection'
 import { ScoreCard } from '@/features/results/ScoreCard'
 import { AlertsList } from '@/features/results/AlertsList'
 import { SkippedChecksList } from '@/features/results/SkippedChecksList'
@@ -220,6 +221,9 @@ export const ReportPage: React.FC = () => {
       <div className="flex flex-col gap-6">
         {/* 1. Primary Verdict Banner (Static, zero animation) */}
         <SafetyBanner report={engine} />
+
+        {/* 1b. Executive Summary & Plain Language Explanation */}
+        <ExplanationSection triage={triageResult} />
 
         {/* 1b. Generation Mode and Retrieval Observability Strip */}
         {triageResult.provider_info && (

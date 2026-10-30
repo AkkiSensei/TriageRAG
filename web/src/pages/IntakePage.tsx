@@ -1,8 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PatientIntakeForm } from '@/features/intake/PatientIntakeForm'
+import { ScenarioSelector } from '@/features/intake/ScenarioSelector'
 import { useTriage } from '@/context/TriageContext'
-import type { TriageApiRequest } from '@/lib/api'
+import type { TriageApiRequest, ScenarioDetail } from '@/lib/api'
 import { Stethoscope, AlertCircle, ShieldAlert } from 'lucide-react'
 
 export const IntakePage: React.FC = () => {
@@ -13,6 +14,7 @@ export const IntakePage: React.FC = () => {
     isLoading,
     error,
     selectedScenario,
+    setSelectedScenario,
   } = useTriage()
 
   const handleFormSubmit = async (req: TriageApiRequest) => {
@@ -24,10 +26,26 @@ export const IntakePage: React.FC = () => {
     }
   }
 
+  const handleSelectScenario = async (scenario: ScenarioDetail, autoRun: boolean = true) => {
+    setSelectedScenario(scenario)
+    if (autoRun) {
+      try {
+        await evaluatePatient({
+          patient: scenario.patient,
+          include_complaint_in_llm: false,
+          llm_profile: 'COMPLIANT',
+        })
+        navigate('/report')
+      } catch (err) {
+        console.error('Scenario run error:', err)
+      }
+    }
+  }
+
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
       {/* Station Header */}
-      <div className="mb-6 flex flex-col gap-2 rounded-3xl border border-[#d9e8e6] bg-gradient-to-r from-white via-teal-50/30 to-white p-5 sm:p-6 shadow-soft">
+      <div className="flex flex-col gap-2 rounded-3xl border border-[#d9e8e6] bg-gradient-to-r from-white via-teal-50/30 to-white p-5 sm:p-6 shadow-soft">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-teal-600 animate-pulse" />
           <span className="text-xs font-mono uppercase tracking-widest text-teal-800 font-bold">
@@ -46,9 +64,16 @@ export const IntakePage: React.FC = () => {
         </p>
       </div>
 
+      {/* Reference Preset Scenarios */}
+      <ScenarioSelector
+        onSelectScenario={handleSelectScenario}
+        activeScenarioId={selectedScenario?.id ?? null}
+        loadingScenarioId={isLoading ? selectedScenario?.id ?? null : null}
+      />
+
       {/* Pipeline Error Banner */}
       {error && (
-        <div className="mb-6 flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50/90 p-4 text-xs text-rose-900 shadow-soft-sm">
+        <div className="flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50/90 p-4 text-xs text-rose-900 shadow-soft-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
               <AlertCircle className="h-5 w-5" />

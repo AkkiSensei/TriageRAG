@@ -122,44 +122,44 @@ export const inferSyndromeFromText = (text: string): string | null => {
 }
 
 export const INITIAL_FORM_STATE: FormState = {
-  ageValue: '62',
+  ageValue: '45',
   ageUnit: 'years',
   sex: 'male',
   pregnancy: 'no',
-  weightStatus: 'measured',
-  weightValue: '82.0',
+  weightStatus: 'unknown',
+  weightValue: '',
 
-  hrStatus: 'measured',
-  hrValue: 92,
-  sbpStatus: 'measured',
-  sbpValue: 135,
-  dbpStatus: 'measured',
-  dbpValue: 85,
-  rrStatus: 'measured',
-  rrValue: 18,
-  spo2Status: 'measured',
-  spo2Value: 98,
-  o2Status: 'measured',
-  o2Value: 'no',
-  tempStatus: 'measured',
-  tempValue: '37.1',
-  glucoseStatus: 'measured',
-  glucoseValue: '110.0',
-  consciousnessStatus: 'measured',
+  hrStatus: 'unknown',
+  hrValue: null,
+  sbpStatus: 'unknown',
+  sbpValue: null,
+  dbpStatus: 'unknown',
+  dbpValue: null,
+  rrStatus: 'unknown',
+  rrValue: null,
+  spo2Status: 'unknown',
+  spo2Value: null,
+  o2Status: 'unknown',
+  o2Value: 'unknown',
+  tempStatus: 'unknown',
+  tempValue: '',
+  glucoseStatus: 'unknown',
+  glucoseValue: '',
+  consciousnessStatus: 'unknown',
   consciousnessValue: 'A',
 
-  medicationStatus: 'confirmed_none',
+  medicationStatus: 'unknown_unobtainable',
   medications: [],
 
-  allergyStatus: 'confirmed_nkda',
+  allergyStatus: 'unknown_unobtainable',
   allergies: [],
 
-  suspectedSyndrome: 'chest_pain',
+  suspectedSyndrome: '',
   renalImpairment: 'no',
   hepaticImpairment: 'no',
 
-  chiefComplaint: 'Patient presents with acute retrosternal chest pressure radiating to left arm.',
-  includeComplaintInLlm: true,
+  chiefComplaint: '',
+  includeComplaintInLlm: false,
   llmProfile: 'COMPLIANT',
 }
 
@@ -569,6 +569,30 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      {/* Synthetic Reference Scenario Indicator */}
+      {initialScenario && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5 rounded-2xl bg-teal-50/80 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-xs shadow-soft-sm">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-teal-200 dark:bg-teal-900 text-teal-900 dark:text-teal-200 font-bold uppercase">
+              Reference Demo Case Loaded
+            </span>
+            <span className="font-bold text-slate-800 dark:text-slate-100">
+              {initialScenario.title}
+            </span>
+            <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+              ({initialScenario.id})
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setForm(INITIAL_FORM_STATE)}
+            className="text-[11px] font-semibold text-rose-700 hover:text-rose-900 dark:text-rose-400 hover:underline transition-colors shrink-0"
+          >
+            Clear to Blank Form &rarr;
+          </button>
+        </div>
+      )}
+
       {/* CARD 1: PRESENTING CLINICAL SYNDROME */}
       <div className="rounded-2xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 sm:p-6 shadow-soft transition-all">
         <div className="flex items-center justify-between border-b border-[#d9e8e6] dark:border-[#1e3840] pb-3 mb-4">
@@ -626,19 +650,13 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             </div>
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                Chief Complaint &amp; Clinical Presentation
+                Chief Complaint &amp; Bedside Presentation
               </span>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Patient triage narrative and bedside observations (actively informs protocol plan)
+                Untrusted patient narrative (Rule R7: excluded from scoring, dose math, and retrieval indexes)
               </p>
             </div>
           </div>
-          {inferSyndromeFromText(form.chiefComplaint) && (
-            <span className="inline-flex items-center gap-1.5 self-start sm:self-center text-[10px] font-mono px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300 font-bold border border-teal-200 dark:border-teal-800 shadow-sm">
-              <Sparkles className="h-3 w-3 text-teal-600 dark:text-teal-400" />
-              Auto-Routed: {inferSyndromeFromText(form.chiefComplaint)!.replace('_', ' ').toUpperCase()}
-            </span>
-          )}
         </div>
 
         <textarea
@@ -646,23 +664,49 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
           value={form.chiefComplaint}
           onChange={(e) => {
             const val = e.target.value
-            const inferred = inferSyndromeFromText(val)
             setForm((prev) => ({
               ...prev,
               chiefComplaint: val,
-              includeComplaintInLlm: val.trim().length > 0,
-              ...(inferred ? { suspectedSyndrome: inferred } : {}),
             }))
           }}
-          placeholder="Enter patient narrative, acute symptoms, or paramedic handoff notes (e.g. 'Sudden onset chest tightness radiating to left arm', 'Severe wheezing after exercise', 'Facial swelling and hives after wasp sting')..."
+          placeholder="Enter patient-reported narrative or bedside notes (e.g. 'Sudden onset chest tightness radiating to left arm', 'Severe wheezing after exercise', 'Facial swelling and hives after wasp sting')..."
           className="w-full rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/50 dark:bg-[#0f1b1e] p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-teal-600 focus:bg-white dark:focus:bg-[#132226] focus:outline-none focus:ring-2 focus:ring-teal-500/20 resize-none font-sans leading-relaxed transition-all"
         />
 
-        <div className="mt-2.5 flex items-center justify-between text-[11px]">
-          <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-            <span className="inline-block h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
-            <span>Active: Directly shapes protocol guidance &amp; plan context</span>
-          </div>
+        {/* Finding A: Optional Suggestion with explicit confirmation button */}
+        {(() => {
+          const suggested = inferSyndromeFromText(form.chiefComplaint)
+          if (!suggested || form.suspectedSyndrome === suggested) return null
+          return (
+            <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-xs">
+              <div className="flex items-center gap-2 text-teal-900 dark:text-teal-200 font-sans">
+                <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                <span>
+                  Clinical keyword detected: Potential match for <strong>{suggested.replace('_', ' ').toUpperCase()}</strong>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, suspectedSyndrome: suggested }))}
+                className="text-[11px] font-bold bg-teal-700 hover:bg-teal-800 text-white px-3 py-1 rounded-lg transition-colors shadow-sm shrink-0"
+              >
+                Apply as Selected Syndrome
+              </button>
+            </div>
+          )
+        })()}
+
+        {/* Finding B: Explicit opt-in for includeComplaintInLlm */}
+        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-[#1e3840] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.includeComplaintInLlm}
+              onChange={(e) => setForm((prev) => ({ ...prev, includeComplaintInLlm: e.target.checked }))}
+              className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-teal-600 focus:ring-teal-500"
+            />
+            <span>Pass narrative to mock generation in delimited context block only (Rule R7: off by default)</span>
+          </label>
           <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
             {form.chiefComplaint.length}/500 chars
           </span>

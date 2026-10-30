@@ -933,6 +933,18 @@ export interface components {
        */
       audit_hash?: string;
       provider_info?: components["schemas"]["ProviderMetadata"];
+      explanation?: components["schemas"]["TriageExplanation"] | null;
+    };
+    TriageExplanation: {
+      headline: string;
+      plain_language_summary: string;
+      outcome_reasons: string[];
+      retrieval_explanation: string;
+      evidence_summary: string;
+      completed_checks: string[];
+      unresolved_checks: string[];
+      generation_disclosure: string;
+      permitted_ui_actions: string[];
     };
     ProviderMetadata: {
       generation_mode?: string;

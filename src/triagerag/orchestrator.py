@@ -35,6 +35,7 @@ from triagerag.contracts.schemas import (
     ScoreResult,
     SkippedCheck,
     SystemClock,
+    TriageExplanation,
     TriageResponse,
     VerifiedStep,
 )
@@ -560,6 +561,16 @@ def run_triage(
             abstain_code=retrieval_report.abstain_code.value,
         )
 
+    explanation = build_triage_explanation(
+        engine=engine_report,
+        retrieval=retrieval_report,
+        verified_steps=verified_steps,
+        patient=normalized_patient,
+        provider_info=prov_meta,
+        llm_fallback_mode=llm_fallback_mode,
+        include_complaint_in_llm=cfg.include_complaint_in_llm,
+    )
+
     return TriageResponse(
         engine=engine_report,
         verified_steps=verified_steps,
@@ -568,4 +579,230 @@ def run_triage(
         llm_fallback_mode=llm_fallback_mode,
         audit_hash=audit_hash,
         provider_info=prov_meta,
+        explanation=explanation,
+    )
+
+
+def build_triage_explanation(
+    *,
+    engine: EngineReport,
+    retrieval: RetrievalReport | None,
+    verified_steps: list[VerifiedStep],
+    patient: Any,
+    provider_info: ProviderMetadata,
+    llm_fallback_mode: bool,
+    include_complaint_in_llm: bool = False,
+) -> TriageExplanation:
+    """Construct an understandable explanation grounded in engine/retrieval output."""
+    verdict_str = engine.verdict.value if hasattr(engine.verdict, "value") else str(engine.verdict)
+
+    # 1. Headline
+    headline_map = {
+        "BLOCKED": "BLOCKED: Absolute Safety Interlock Triggered",
+        "UNVERIFIED": "UNVERIFIED: Insufficient or Unresolved Clinical Data",
+        "CHECKED_ALERTS": "CHECKED WITH ALERTS: Clinical Warnings Require Review",
+        "CHECKED_CLEAR": "CHECKED CLEAR: No Configured Safety Rules Triggered",
+    }
+    headline = headline_map.get(verdict_str, f"Triage Result: {verdict_str}")
+
+    # 2. Plain Language Summary
+    if verdict_str == "BLOCKED":
+        plain_language_summary = (
+            "A deterministic clinical safety rule blocked this proposal. One or more active "
+            "medications, severe contraindications, or dose tripwires prohibit requested orders. "
+            "Under safety rule R11, absolute BLOCK interlocks cannot be overridden."
+        )
+    elif verdict_str == "UNVERIFIED":
+        plain_language_summary = (
+            "The system could not establish a verified clinical plan. Essential physiological "
+            "parameters, medication history, or protocol evidence were missing or below retrieval "
+            "thresholds. Under fail-closed safety rule R2, no unverified orders can proceed."
+        )
+    elif verdict_str == "CHECKED_ALERTS":
+        plain_language_summary = (
+            "Deterministic safety checks were completed and identified non-blocking warnings "
+            "(such as duplicate therapies, moderate interactions, or elevated scores). "
+            "Clinician review and logged override justifications are required before proceeding."
+        )
+    else:  # CHECKED_CLEAR
+        plain_language_summary = (
+            "All applicable deterministic rules in the active ruleset fired clear without "
+            "triggering alerts. Disclaimer: This confirms compliance with configured prototype "
+            "rules, not absolute clinical safety."
+        )
+
+    # 3. Outcome Reasons
+    outcome_reasons: list[str] = []
+    all_alerts = engine.baseline_alerts + engine.plan_alerts
+    for a in all_alerts:
+        sev = a.severity.value if hasattr(a.severity, "value") else str(a.severity)
+        drugs_str = f" involving {', '.join(a.drug_ids)}" if a.drug_ids else ""
+        outcome_reasons.append(
+            f"[{sev}] Rule '{a.rule_id}'{drugs_str}: {a.action}. Consequence: {a.consequence}"
+        )
+
+    for v_step in verified_steps:
+        step_desc = v_step.draft.narrative_instruction
+        if len(step_desc) > 80:
+            step_desc = f"{step_desc[:77]}..."
+        if v_step.status == StepStatus.BLOCKED_STRUCK_THROUGH:
+            outcome_reasons.append(
+                f"[STRUCK THROUGH] Proposed step {v_step.draft.step_number} ('{step_desc}') was "
+                f"blocked: {'; '.join(v_step.rejection_reasons)}"
+            )
+        elif v_step.status == StepStatus.CITATION_UNVERIFIED:
+            outcome_reasons.append(
+                f"[UNVERIFIED CITATION] Proposed step {v_step.draft.step_number} ('{step_desc}') "
+                f"rejected: Supporting evidence could not be verified in retrieved protocol text."
+            )
+        elif v_step.status == StepStatus.REQUIRES_CLINICIAN_CONFIRMATION:
+            outcome_reasons.append(
+                f"[CONFIRMATION REQUIRED] Proposed step {v_step.draft.step_number} ('{step_desc}') "
+                f"requires explicit confirmation as protocol was inferred from vitals (ADR-0007)."
+            )
+
+    if retrieval and retrieval.abstained:
+        ac_val = (
+            retrieval.abstain_code.value
+            if hasattr(retrieval.abstain_code, "value")
+            else str(retrieval.abstain_code)
+        )
+        outcome_reasons.append(
+            f"[RETRIEVAL ABSTAINED] Protocol retrieval did not proceed: {retrieval.reason} "
+            f"(Code: {ac_val})"
+        )
+
+    if not outcome_reasons:
+        outcome_reasons.append("No active alerts, blocked steps, or abstentions were recorded.")
+
+    # 4. Retrieval Explanation
+    if retrieval is None:
+        retrieval_explanation = "Protocol retrieval was not executed for this run."
+    elif retrieval.abstained:
+        ac_val = (
+            retrieval.abstain_code.value
+            if hasattr(retrieval.abstain_code, "value")
+            else str(retrieval.abstain_code)
+        )
+        retrieval_explanation = (
+            f"Retrieval abstained under safety gate '{ac_val}': {retrieval.reason}. "
+            f"Query: '{retrieval.query or '(empty)'}', Filters: {retrieval.filters}."
+        )
+    elif (
+        str(getattr(retrieval.abstain_code, "value", retrieval.abstain_code)) == "SYNDROME_INFERRED"
+    ):
+        retrieval_explanation = (
+            f"No syndrome was explicitly specified by the clinician. Retrieval inferred candidate "
+            f"protocol from abnormal vitals flags using {retrieval.backend.upper()} backend. "
+            f"In accordance with ADR-0007, all passing steps require clinician confirmation."
+        )
+    else:
+        syn = retrieval.filters.get("syndrome", "unknown") if retrieval.filters else "unknown"
+        pop = retrieval.filters.get("population", "unknown") if retrieval.filters else "unknown"
+        retrieval_explanation = (
+            f"Successfully retrieved {len(retrieval.chunks)} protocol chunks using "
+            f"{retrieval.backend.upper()} partitioned by population '{pop}' and filtered by "
+            f"syndrome '{syn}'. Lexical ranking scores reflect token matching against controlled "
+            f"vocabulary, not clinical confidence probabilities."
+        )
+
+    # 5. Evidence Summary
+    if retrieval and retrieval.chunks:
+        top_c = retrieval.chunks[0]
+        evidence_summary = (
+            f"Top retrieved evidence: Document '{top_c.doc_id}', Section '{top_c.section}' "
+            f'(Rank 1). Excerpt: "{top_c.text[:140]}..."'
+        )
+    else:
+        evidence_summary = "No protocol evidence chunks were retrieved or verified for this case."
+
+    # 6. Completed Checks
+    completed_checks: list[str] = [
+        f"Evaluated {engine.checks_run} registered safety rules across formulary and ontology",
+        "Deterministic contraindication and drug-drug interaction screening",
+        "Allergy and cross-reactivity interlock evaluation",
+        "Weight-based dose ceiling and 10x/1000x magnitude tripwire checks",
+    ]
+    if engine.score and engine.score.total_score is not None:
+        band_val = (
+            engine.score.band.value
+            if hasattr(engine.score.band, "value")
+            else str(engine.score.band)
+        )
+        completed_checks.append(
+            f"Calculated physiological risk score: {engine.score.score_name} = "
+            f"{engine.score.total_score} (Band: {band_val})"
+        )
+    if verified_steps:
+        completed_checks.append(
+            f"Machine-verified {len(verified_steps)} proposed protocol steps against "
+            f"retrieved evidence and formulary limits"
+        )
+
+    # 7. Unresolved Checks
+    unresolved_checks: list[str] = []
+    for skip in engine.checks_skipped:
+        missing_str = f" (Missing: {', '.join(skip.missing_fields)})" if skip.missing_fields else ""
+        unresolved_checks.append(f"Rule '{skip.rule_id}': {skip.reason}{missing_str}")
+    for ent in engine.unresolved_entities:
+        unresolved_checks.append(
+            f"Unresolved entity: '{ent}' could not be mapped to formulary or ontology"
+        )
+    for gap in engine.coverage_gaps:
+        unresolved_checks.append(f"Known ruleset coverage gap: {gap}")
+
+    # 8. Generation Disclosure
+    generation_disclosure = (
+        f"Plan generation mode: '{provider_info.generation_mode}' (Deterministic mock profile: "
+        f"'{provider_info.requested_profile or 'default'}', repair cycles: "
+        f"{provider_info.repair_cycles}). No external generative AI models or cloud APIs are used."
+    )
+    complaint_text = getattr(patient, "chief_complaint_untrusted", "") or ""
+    if complaint_text:
+        if include_complaint_in_llm:
+            generation_disclosure += (
+                " Patient narrative was passed inside a delimited clinical context block "
+                "only per explicit opt-in."
+            )
+        else:
+            generation_disclosure += (
+                " Patient narrative was excluded from drafting context under Rule R7 isolation."
+            )
+
+    # 9. Permitted UI Actions
+    if verdict_str == "BLOCKED":
+        permitted_ui_actions = [
+            "Review contraindicated medication and select alternative protocol therapy",
+            "Consult senior clinical staff or full reference guideline",
+            "Rule R11: Overrides are strictly prohibited for BLOCK verdicts",
+        ]
+    elif verdict_str == "UNVERIFIED":
+        permitted_ui_actions = [
+            "Provide missing patient vitals, weight, or history to enable unverified checks",
+            "Explicitly select or confirm suspected clinical syndrome",
+            "Re-run triage verification after data entry",
+        ]
+    elif verdict_str == "CHECKED_ALERTS":
+        permitted_ui_actions = [
+            "Review non-blocking alerts and drug interactions",
+            "Enter logged clinician override with rationale if proceeding with HIGH warnings",
+            "Administer verified steps with continuous monitoring",
+        ]
+    else:  # CHECKED_CLEAR
+        permitted_ui_actions = [
+            "Review verified protocol steps and order administration",
+            "Confirm patient identification and presentation consistency",
+            "Re-assess vitals according to protocol observation schedule",
+        ]
+
+    return TriageExplanation(
+        headline=headline,
+        plain_language_summary=plain_language_summary,
+        outcome_reasons=outcome_reasons,
+        retrieval_explanation=retrieval_explanation,
+        evidence_summary=evidence_summary,
+        completed_checks=completed_checks,
+        unresolved_checks=unresolved_checks,
+        generation_disclosure=generation_disclosure,
+        permitted_ui_actions=permitted_ui_actions,
     )

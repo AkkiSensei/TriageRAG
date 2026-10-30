@@ -5,6 +5,31 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-10-30
+
+### Added
+- **Grounded Triage Explanation Layer (`TriageExplanation`):**
+  - Implemented typed, deterministic explanation schema answering the six core user questions ("What did I submit?", "What did the system process?", "What information did retrieval find?", "Why did the system produce this result?", "What was successfully checked?", "What could not be established?").
+  - Added `ExplanationSection.tsx` with executive verdict banners, plain language summaries, itemized rule consequences, permitted next steps, and a 9-stage execution pipeline timeline.
+  - Authored comprehensive explainability documentation in `docs/USER_OUTPUT_GUIDE.md`.
+
+### Fixed & Hardened
+- **Clinical Syndrome Inference Hardening (Finding A, ADR-0007):**
+  - Removed substring-based syndrome inference from `triage.py` and `PatientIntakeForm.tsx`.
+  - Enforced that explicit clinician selection takes precedence; unconfirmed vitals-based candidate inference strictly caps verified steps at `StepStatus.REQUIRES_CLINICIAN_CONFIRMATION`.
+  - Added optional client-side suggestion chips requiring explicit clinician confirmation before applying.
+- **Untrusted Chief Complaint Isolation (Finding B, Rule R7):**
+  - Fixed route handler in `triage.py`: `include_complaint_in_llm` is strictly opt-in (default `False`). The presence of narrative text never automatically passes it to the LLM.
+  - Chief complaint text is completely excluded from guideline retrieval queries and index filters.
+- **Intake State & Reference Presets (Finding C):**
+  - Initial patient intake form state is clean and unpopulated (unknown vitals, unknown history, empty syndrome, empty narrative).
+  - Added 1-Click Reference Case Presets (`ScenarioSelector.tsx`) for `BLOCK`, `HIGH`, `UNVERIFIED`, and `CHECKED_CLEAR` test scenarios with prominent demo badges and a "Clear to Blank" reset action.
+- **Evidence Cards & Ranking Disclosure (Finding D & F):**
+  - Added explicit BM25 lexical ranking disclosure to evidence cards clarifying that BM25 scores reflect keyword overlap against controlled vocabulary, not clinical confidence or probability.
+  - Added prominent `SYNTHETIC CORPUS` badges to evidence cards and disclosures of synthetic-only text without numeric doses.
+- **Evaluation Documentation Reconciliation (Finding E):**
+  - Reconciled `docs/evaluation/ENGINEERING_FINAL_RESULTS.md` with exact values from machine-readable JSON artifacts (`eval/reports/retrieval_ablation.json`, `latency_benchmark.json`, `mutation.json`, `adversarial.json`).
+
 ## [0.3.0] - 2026-10-30
 
 ### Fixed & Hardened

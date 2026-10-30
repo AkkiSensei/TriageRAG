@@ -4,18 +4,19 @@
 
 ## Current State
 
-- **Current Status:** Engineering Excellence Initiative completed on implementation branch `hardening/engineering-excellence-implementation` (base commit `4ad9a2f4020533b831e56703b8fe2c4c0dea45fc`). All 16 engineering dimensions independently raised to >= 7.8/10 (overall system rating: **8.2/10**). Zero regressions, zero uncommitted tracked report mutations, and 100% test isolation.
+- **Current Status:** Engineering Excellence & Explainability Initiative completed on branch `feat/retrieval-explainability-ux` (base commit `4ad9a2f4020533b831e56703b8fe2c4c0dea45fc`). All baseline findings (Findings A through F) resolved. Fully grounded, deterministic explainability layer (`TriageExplanation`) answers all 6 core user questions. Zero regressions, zero uncommitted tracked report mutations, 100% test isolation, and 100% test pass rate across backend and frontend.
 - **Verification:** All gates green:
-  - **233 passed, 1 xfailed (ENG-04 pending HD-6), 0 failed** in Pytest test suite (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, test isolation, route verification, and differential engine).
+  - **238 passed, 1 xfailed (ENG-04 pending HD-6), 0 failed** in Pytest test suite (including unit, integration, property, UI smoke, safety boundary, intake hardening, WP0–WP9 RAG suites, test isolation, route verification, and differential engine).
   - **8/8 Vitest frontend unit & component tests green.**
-  - **0 lint / format errors** (Python ruff check & format; 158 files checked).
+  - **0 lint / format errors** (Python ruff check & format; 159 files checked).
   - **0 type errors** (Python mypy strict in `src/` & TypeScript `tsc --noEmit`).
   - **0 import isolation contract violations** (import-linter: 2 contracts kept, 0 broken).
-  - **Vite production build succeeds** (bundle compiled in 2.16s, ~340KB).
+  - **Vite production build succeeds** (bundle compiled in ~2s).
   - **Zero tracked report mutations**: Running `pytest` does not dirty git working tree.
   - **52/52 mutants killed** (100% kill score).
   - **65/65 Golden cases green** (100% recall on BLOCK and HIGH contraindications).
-  - **4-Arm Retrieval Ablation**: Hybrid RRF achieved 1.000 Hit@1, 1.000 Hit@3, 1.000 MRR. Connected directly to production API.
+  - **19/19 Adversarial prompt injection attacks neutralized.**
+  - **4-Arm Retrieval Ablation**: All 4 arms benchmarked across 224 cases with 0.0 wrong-protocol rate and 100% hard-negative abstention recall.
 
 ## Architecture Highlights
 

@@ -17,6 +17,7 @@ export type EngineReport = components['schemas']['EngineReport']
 export type PlanStepDraft = components['schemas']['PlanStepDraft']
 export type VerifiedStep = components['schemas']['VerifiedStep']
 export type OverrideRecord = components['schemas']['OverrideRecord']
+export type TriageExplanation = components['schemas']['TriageExplanation']
 export type { components }
 
 export const queryClient = new QueryClient({

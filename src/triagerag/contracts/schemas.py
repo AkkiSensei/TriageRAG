@@ -539,6 +539,22 @@ class ProviderMetadata(BaseModel):
     retrieval_backend: str = Field(default="bm25")
 
 
+class TriageExplanation(BaseModel):
+    """Structured, deterministic explanation of the triage result answering user questions."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    headline: str
+    plain_language_summary: str
+    outcome_reasons: list[str] = Field(default_factory=list)
+    retrieval_explanation: str
+    evidence_summary: str
+    completed_checks: list[str] = Field(default_factory=list)
+    unresolved_checks: list[str] = Field(default_factory=list)
+    generation_disclosure: str
+    permitted_ui_actions: list[str] = Field(default_factory=list)
+
+
 class TriageResponse(BaseModel):
     """Full triage response returned to UI and CLI."""
 
@@ -552,6 +568,7 @@ class TriageResponse(BaseModel):
     llm_fallback_mode: bool = False
     audit_hash: str = ""
     provider_info: ProviderMetadata = Field(default_factory=ProviderMetadata)
+    explanation: TriageExplanation | None = Field(default=None)
 
 
 class Clock(Protocol):
