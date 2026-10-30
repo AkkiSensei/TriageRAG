@@ -337,6 +337,7 @@ export interface components {
        * @default true
        */
       llm_available?: boolean;
+      generation_mode?: string;
       /**
        * Retrieval Backend
        * @default bm25
@@ -906,6 +907,7 @@ export interface components {
        * @default false
        */
       include_complaint_in_llm?: boolean;
+      retrieval_backend?: string | null;
     };
     /**
      * TriageResponse
@@ -930,6 +932,14 @@ export interface components {
        * @default
        */
       audit_hash?: string;
+      provider_info?: components["schemas"]["ProviderMetadata"];
+    };
+    ProviderMetadata: {
+      generation_mode?: string;
+      requested_profile?: string | null;
+      repair_attempted?: boolean;
+      repair_cycles?: number;
+      retrieval_backend?: string;
     };
     /** ValidationError */
     ValidationError: {

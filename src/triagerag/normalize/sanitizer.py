@@ -53,7 +53,7 @@ _INJECTION_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "xml_tag_escape",
         re.compile(
-            r"</?(?:instructions|system|prompt|untrusted_retrieved_protocol_data)>",
+            r"</?(?:instructions|system|prompt|untrusted_retrieved_protocol_data|untrusted_patient_reported_complaint)[^>]*>",
             re.IGNORECASE,
         ),
     ),
@@ -185,7 +185,7 @@ def sanitize_chunk_for_prompt(text: str) -> str:
     """Neutralize XML delimiter escapes and explicit override headers for LLM prompt framing."""
     norm = normalize_and_sanitize_text(text)
     sanitized = re.sub(
-        r"</?(?:instructions|system|prompt|untrusted_retrieved_protocol_data)>",
+        r"</?(?:instructions|system|prompt|untrusted_retrieved_protocol_data|untrusted_patient_reported_complaint)[^>]*>",
         "[STRIPPED_TAG]",
         norm,
         flags=re.IGNORECASE,

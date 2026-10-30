@@ -5,6 +5,35 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-10-30
+
+### Fixed & Hardened
+- **Complete Removal of External LLM Integrations (Rule R1, R5):**
+  - Completely removed external API provider dependencies, network adapters, and live cloud harnesses.
+  - Standardized the generation layer on pure offline deterministic mock generation (`FakeLLM`) with all 7 test profiles preserved.
+  - Eliminated silent fallbacks; application and API contracts explicitly report `generation_mode: "deterministic_mock"`.
+- **Test Suite Report Mutation Isolation (WP E, WP K):**
+  - Refactored `eval/run_latency_benchmark.py`, `eval/run_retrieval_ablation.py`, and `tools/gate_report.py` to accept output destinations and conditional report writing (`write_report=False`).
+  - Isolated test fixtures in `tests/unit/test_rag_wp9_ops.py`, `tests/unit/test_rag_wp7_hybrid.py`, and `tests/unit/test_report_integrity.py` to write strictly to `tmp_path`.
+  - Added `tests/integration/test_test_isolation.py` cryptographically verifying that test execution leaves git-tracked reports 100% byte-identical.
+- **Provider Transparency & Observability (WP B, WP G):**
+  - Introduced provider-neutral `ProviderMetadata` schema tracking `generation_mode`, `requested_profile`, `repair_attempted`, `repair_cycles`, and `retrieval_backend`.
+  - Added `provider_info` to `TriageResponse`, API responses, and frontend observability strips.
+- **Production Hybrid Retrieval Routing (WP A, WP D):**
+  - Wired `HybridRRFRetriever` into production `RetrievalService` factory, `config.get_retrieval_backend()`, and API request schemas.
+  - Implemented secondary tie-breaking on RRF scores (`(-score, chunk_id)`), ensuring deterministic ranking.
+- **Security & Prompt Injection Hardening (WP H):**
+  - Sanitized XML tag breakout patterns (`</untrusted_patient_reported_complaint>`) in patient-reported chief complaint prompt framing.
+  - Updated pattern detectors and prompt sanitizers to strip hostile markup before protocol plan drafting.
+- **Clinical Data Provenance State Machine (WP I):**
+  - Formalized 4-state lifecycle (`PLACEHOLDER_UNRETRIEVED`, `RETRIEVED_UNREVIEWED`, `REVIEWED`, `REJECTED`).
+  - Strengthened Pydantic validator `validate_verified_provenance` enforcing non-empty reviewer, resolved section ref, and valid source document for any verified claim.
+  - Authored comprehensive governance specification `docs/safety/DATA_PROVENANCE_STATUS.md`.
+- **Frontend Usability & Navigation Debloat (WP J):**
+  - Debloated navigation: Removed Audit Chain, Red Team, Evidence, and 1-Click Reference Cases from active clinical workflow.
+  - Re-framed text input as "Chief Complaint & Clinical Presentation" with active syndrome auto-routing and protocol plan shaping.
+  - Added observability pills (Deterministic Mock, Hybrid RRF vs BM25) in navbar and clinical report.
+
 ## [0.2.2] - 2026-10-30
 
 ### Fixed
@@ -19,7 +48,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Allergy Precedence Fix:** Confirmed IgE anaphylaxis alerts take strict precedence over unknown reaction types on secondary class allergens.
 
   - **Formulary Route Validation:** `verify_plan` in `plan_verifier.py` strictly validates proposed administration routes against the drug's formulary-approved route options (`drug.routes`), flagging unapproved administration routes as `FLAGGED_HIGH`.
-  - **Gemini Provider Hardening:** Reconciled `TRIAGERAG_MODEL_NAME` with `GEMINI_MODEL`, enforced client request timeout `timeout_seconds`, and implemented bounded retries with exponential backoff on transient network failures.
   - **Candidate-Pool Random Baseline:** Added `run_candidate_pool_random_baseline()` to `eval/run_retrieval.py` providing a true candidate-pool random ranking baseline (21.37% R@1, 79.92% R@5 on 4–6 candidate pools).
   - **Empirical Metrics Alignment:** Updated `README.md` to accurately disclose current benchmark results (73.21% test / 69.86% overall Recall@5, 100% routed / 0% unrouted under HD-1, 19/19 adversarial, 52/52 mutants killed, SHA-256 hash-chained audit log, and 10x tripwire `Severity.HIGH` qualification).
 
@@ -28,7 +56,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Rule-Isolation Harness:** Added `only_rules` isolation harness to `eval/run_golden.py`. Evaluates all 65 golden cases in complete isolation from redundant rules (100% pass).
   - **Differential Property Testing:** Implemented independent reference interpreter and Hypothesis test suite in `tests/property/test_engine_differential.py` running 1,000 synthetic patient permutations with 0 divergences.
   - **Route Verification Suite:** Added `tests/unit/test_route_and_verification_hardening.py` testing route validation and order completeness.
-  - **Gemini Provider Suite:** Added `tests/unit/test_gemini_provider.py` testing model reconciliation, timeouts, and bounded retries.
   - **ADR-0010:** Documented architectural decisions in `docs/adr/0010-engine-defect-sweep-and-rule-isolation.md`.
   - **Audit Regressions Suite:** Added `tests/unit/test_audit_regressions.py` covering ENG-01..ENG-08.
 

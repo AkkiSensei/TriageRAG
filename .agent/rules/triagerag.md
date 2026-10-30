@@ -21,13 +21,13 @@
 
 ## 2. STACK & DECISIONS (final; do not re-litigate)
 
-Python 3.11+, src layout `src/triagerag/`. Core deps: pydantic>=2.7, pyyaml, pint (boundary parsing only), rapidfuzz, typer, rich, rank-bm25, streamlit. Optional extras: `llm` (google-genai), `dense` (sentence-transformers). Dev: pytest, hypothesis, ruff, mypy, import-linter, pre-commit. Everything must run offline with no API keys by default.
+Python 3.11+, src layout `src/triagerag/`. Core deps: pydantic>=2.7, pyyaml, pint (boundary parsing only), rapidfuzz, typer, rich, rank-bm25, streamlit. Optional extras: `dense` (sentence-transformers). Dev: pytest, hypothesis, ruff, mypy, import-linter, pre-commit. Everything must run offline with no API keys by default.
 Data (`data/`) stays at repo root; `triagerag/config.py` resolves it via env `TRIAGERAG_DATA_DIR` or repo-root discovery. `config.py` imports nothing from triagerag.
 Cross-platform: `tools/tasks.py` (Typer) implements `verify, lint, test, eval, ui, validate-data`. The Makefile only delegates to it (do not assume `make` exists). Use `pathlib` everywhere.
 
 ## 16. CODING STANDARDS (also in AGENTS.md)
 
-Pure functions in engine; no global mutable state; deterministic ordering; no network outside `llm/gemini.py`; no secrets in repo (`.env.example` only); small modules with docstrings stating the safety property each upholds; new rules only via `tools/add_rule.py` (enforces provenance, `verified: false`, `content_origin`); never edit golden expectations to match behavior without an ADR giving the clinical reason.
+Pure functions in engine; no global mutable state; deterministic ordering; pure offline execution with zero network calls; no secrets in repo (`.env.example` only); small modules with docstrings stating the safety property each upholds; new rules only via `tools/add_rule.py` (enforces provenance, `verified: false`, `content_origin`); never edit golden expectations to match behavior without an ADR giving the clinical reason.
 
 ## 17. ITERATION PROTOCOL
 

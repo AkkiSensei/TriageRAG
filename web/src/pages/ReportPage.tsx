@@ -221,6 +221,34 @@ export const ReportPage: React.FC = () => {
         {/* 1. Primary Verdict Banner (Static, zero animation) */}
         <SafetyBanner report={engine} />
 
+        {/* 1b. Generation Mode and Retrieval Observability Strip */}
+        {triageResult.provider_info && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] px-5 py-3 text-xs shadow-soft font-mono">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-slate-500 dark:text-slate-400 font-semibold">Generation:</span>
+              <span className="px-2 py-0.5 rounded-md font-bold text-[11px] bg-slate-100 text-slate-800 border border-slate-300 dark:bg-slate-800 dark:text-slate-200">
+                Deterministic Mock
+              </span>
+              {triageResult.provider_info.requested_profile && (
+                <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                  (Profile: {triageResult.provider_info.requested_profile})
+                </span>
+              )}
+              {triageResult.provider_info.repair_attempted && (
+                <span className="text-[10px] bg-teal-50 dark:bg-teal-950 text-teal-800 dark:text-teal-300 px-2 py-0.5 rounded border border-teal-200 dark:border-teal-800">
+                  Repaired ({triageResult.provider_info.repair_cycles} cycles)
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-slate-500 dark:text-slate-400 font-semibold">Retrieval:</span>
+              <span className="px-2 py-0.5 rounded-md bg-teal-50 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-[11px] font-bold uppercase">
+                {triageResult.provider_info.retrieval_backend}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* 2. Physiological Score Card */}
         {engine.score && <ScoreCard score={engine.score} />}
 

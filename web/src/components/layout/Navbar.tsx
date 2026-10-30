@@ -35,7 +35,7 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { isDark, toggleTheme } = useTheme()
 
-  const { isSuccess } = useQuery({
+  const { data: healthData, isSuccess } = useQuery({
     queryKey: ['health'],
     queryFn: api.getHealth,
     refetchInterval: 30000,
@@ -128,6 +128,19 @@ export const Navbar: React.FC = () => {
               <Moon className="h-4 w-4 text-slate-600 animate-in spin-in-90 duration-300" />
             )}
           </button>
+
+          {/* Generation Mode and Retrieval Observability Pill */}
+          {healthData && (
+            <div className="hidden xl:flex items-center gap-1.5 rounded-full bg-slate-50 dark:bg-[#182b30] border border-slate-200 dark:border-[#223d45] px-2.5 py-1 text-[11px] font-mono text-slate-600 dark:text-slate-300 shadow-soft-sm">
+              <span className="font-semibold text-teal-700 dark:text-teal-400">
+                Deterministic Mock
+              </span>
+              <span className="text-slate-300 dark:text-slate-600">&bull;</span>
+              <span className="uppercase font-medium text-slate-500 dark:text-slate-400">
+                {healthData.retrieval_backend === 'hybrid_rrf' ? 'Hybrid RRF' : 'BM25'}
+              </span>
+            </div>
+          )}
 
           {/* API Health Pill */}
           <div

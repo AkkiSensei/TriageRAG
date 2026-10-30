@@ -8,11 +8,8 @@ import { ThemeProvider } from '@/context/ThemeContext'
 import { TriageProvider } from '@/context/TriageContext'
 import { IntakePage } from '@/pages/IntakePage'
 import { ReportPage } from '@/pages/ReportPage'
-import { RedTeamPage } from '@/pages/RedTeamPage'
 import { RulesPage } from '@/pages/RulesPage'
 import { ProtocolsPage } from '@/pages/ProtocolsPage'
-import { EvidencePage } from '@/pages/EvidencePage'
-import { AuditPage } from '@/pages/AuditPage'
 
 export const App: FC = () => {
   return (
@@ -26,11 +23,8 @@ export const App: FC = () => {
                   <Route index element={<Navigate to="/intake" replace />} />
                   <Route path="intake" element={<IntakePage />} />
                   <Route path="report" element={<ReportPage />} />
-                  <Route path="redteam" element={<RedTeamPage />} />
                   <Route path="rules" element={<RulesPage />} />
                   <Route path="protocols" element={<ProtocolsPage />} />
-                  <Route path="evidence" element={<EvidencePage />} />
-                  <Route path="audit" element={<AuditPage />} />
                   <Route path="*" element={<Navigate to="/intake" replace />} />
                 </Route>
               </Routes>

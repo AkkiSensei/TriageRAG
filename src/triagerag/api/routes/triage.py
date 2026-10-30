@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import logging
-import os
 import threading
 from typing import Any
 
 from fastapi import APIRouter
 
 from triagerag.api.schemas import ExplainApiRequest, TriageApiRequest
-from triagerag.config import get_data_dir
-from triagerag.contracts.schemas import OrchestratorConfig, TriageResponse
+from triagerag.config import get_data_dir, get_retrieval_backend
+from triagerag.contracts.schemas import OrchestratorConfig, ProviderMetadata, TriageResponse
 from triagerag.engine.registry import ClinicalRegistry, load_registry
 from triagerag.llm.fake import FakeLLM
 from triagerag.orchestrator import run_triage
@@ -34,28 +33,29 @@ def get_cached_registry() -> ClinicalRegistry:
         return _REGISTRY
 
 
-def get_retrieval_service() -> RetrievalService:
+def get_retrieval_service(backend: str | None = None) -> RetrievalService:
     """Return unified thread-safe RetrievalService instance."""
-    return RetrievalService.create_default(get_data_dir())
+    eff_backend = backend or get_retrieval_backend()
+    return RetrievalService.create_default(get_data_dir(), backend=eff_backend)
 
 
 @router.post("", response_model=TriageResponse)
 def execute_triage(request: TriageApiRequest) -> TriageResponse:
     registry = get_cached_registry()
-    retrieval_service = get_retrieval_service()
+    eff_backend = (request.retrieval_backend or get_retrieval_backend()).strip().lower()
+    retrieval_service = get_retrieval_service(eff_backend)
 
-    llm: Any
-    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    if gemini_key and request.llm_profile == "COMPLIANT":
-        try:
-            from triagerag.llm.gemini import GeminiProvider
-
-            llm = GeminiProvider(api_key=gemini_key)
-        except Exception as e:
-            logger.warning("GeminiProvider initialization failed, falling back to FakeLLM: %s", e)
-            llm = FakeLLM(profile=request.llm_profile)
-    else:
-        llm = FakeLLM(profile=request.llm_profile)
+    llm = FakeLLM(profile=request.llm_profile)
+    req_profile = (
+        request.llm_profile.value
+        if hasattr(request.llm_profile, "value")
+        else str(request.llm_profile)
+    )
+    prov_meta = ProviderMetadata(
+        generation_mode="deterministic_mock",
+        requested_profile=req_profile,
+        retrieval_backend=eff_backend,
+    )
 
     patient = request.patient
     # If suspected_syndrome is missing, infer from clinical narrative if available
@@ -88,6 +88,7 @@ def execute_triage(request: TriageApiRequest) -> TriageResponse:
         index=retrieval_service.index,
         overrides=request.overrides or [],
         config=config,
+        provider_info=prov_meta,
     )
     return response
 

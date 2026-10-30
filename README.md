@@ -100,14 +100,10 @@ Safety rules, physiological scores (NEWS2), dose arithmetic, and contraindicatio
 Designed like a clean medical workstation (**Linear meets Epic/Amboss**) with zero SaaS bloat, zero cyberpunk gimmicks, and pure clinical clarity.
 
 ### 1️⃣ Page 1: Patient Intake Station (`/intake`)
-* **1-Click Reference Cases:** Instantly test live scenarios:
-  * 🛑 **Case 1 (BLOCK):** Acute Coronary Syndrome + Sildenafil within 24h *(Fatal Vasodilation Hazard)*
-  * ⚠️ **Case 2 (HIGH):** Pediatric Sepsis + Penicillin Allergy *(Cephalosporin Cross-Reactivity)*
-  * ❓ **Case 3 (UNVERIFIED):** Missing Renal / Vitals Data *(Fail-Closed Safety Interlock)*
-  * ✅ **Case 4 (CLEAR):** Acute Asthma Inhalation Protocol *(Salbutamol Inhalation)*
 * **Demographics & Physical Profile:** Age, Sex, Weight (kg), and biological invariant locking (male pregnancy strictly locked to `No (N/A)`).
-* **7 Measured Physiological Vitals:** Heart Rate, Blood Pressure (SBP/DBP), Respiratory Rate, SpO2 (%), Temperature (°C), **Capillary Blood Glucose (mg/dL)**, and AVPU+C Consciousness.
+* **7 Measured Physiological Vitals:** Heart Rate, Blood Pressure (SBP/DBP), Respiratory Rate, SpO2 (%), Temperature (°C), **Capillary Blood Glucose (mg/dL)**, and AVPU+C Consciousness with first-class uncertainty tracking (`measured`, `estimated`, `unknown`).
 * **Home Medications & Allergies:** Formulary autocomplete with exact **Last Taken Time Windows** (`12h`, `24h`, `48h`, `72h ago`) mapped directly to lookback interlocks.
+* **Chief Complaint & Clinical Presentation:** Free-text clinical narrative with automatic syndrome routing suggestions and XML-delimiter sanitization.
 
 ### 2️⃣ Page 2: Clinical Decision & Protocol Report (`/report`)
 * **Patient Wristband Summary:** Compact bedside banner showing age, weight, presenting syndrome, home meds, and allergies.
@@ -217,6 +213,29 @@ python tools/tasks.py web-verify
 
 ---
 
+## 🔄 End-to-End Decision Support Pipeline
+
+The complete system pipeline executes deterministically across 16 formal steps:
+
+1. **Synthetic Protocol Preparation:** Original, synthetic clinical protocols are authored without numeric dosages, watermarked with provenance metadata.
+2. **Protocol Ingestion and Chunking:** Text is parsed into atomic decision nodes (parent sections and child IF/THEN action nodes) and indexed.
+3. **Patient Input Capture:** Clinical demographics, 7 physiological vitals, medication history with lookback windows, and chief complaints are entered via the web console.
+4. **Pydantic Contract Validation:** All inputs are validated against strict schemas, enforcing tri-state uncertainty (`measured`, `estimated`, `unknown`).
+5. **Clinical Data Normalization:** Drug aliases and acronyms are mapped to formulary standards; units are normalized to standard SI clinical units.
+6. **Physiological Scoring & Pass 1 Rule Evaluation:** NEWS2/PEWS early warning scores are calculated and deterministic contraindication interlocks (e.g. Sildenafil + Nitrate DDI) are evaluated.
+7. **Syndrome Identification & Query Construction:** Presenting syndromes are extracted or auto-routed; a structured retrieval query with hard population filtering is constructed.
+8. **Protocol Retrieval (BM25 or Hybrid RRF):** The partitioned clinical index retrieves relevant guideline decision nodes using BM25 or Reciprocal Rank Fusion.
+9. **Abstention & Sufficiency Checks:** The system checks whether evidence meets sufficiency thresholds; if unverified or insufficient, the engine abstains safely (Rule R2 fail-closed).
+10. **Plan Context Preparation:** Allowed formulary drugs (minus blocked agents), vitals-derived flags, and sanitized chunk text are assembled into an immutable `PlanContext`.
+11. **Deterministic Mock Plan Generation:** The deterministic generator (`FakeLLM`) extracts proposed protocol orders adhering strictly to the `PlanDraft` JSON schema. *(Note: Pure offline simulated generation; no external generative AI model).*
+12. **Pass 2 Machine Verification:** Proposed orders are verified by code against formulary dosage bounds, routes, verbatim guideline chunk substrings, and prose drug leaks.
+13. **Bounded Repair Loop:** If repairable violations occur, structured machine rejection codes are fed back for bounded correction cycles.
+14. **Deterministic Verdict Resolution:** The final safety verdict is resolved strictly through the precedence lattice: `BLOCKED` > `UNVERIFIED` > `CHECKED_ALERTS` > `CHECKED_CLEAR`.
+15. **SHA-256 Hash-Chained Audit Logging:** Every assessment input, rule trigger, override, and decision report is appended to a cryptographic SHA-256 sequential audit log.
+16. **Bedside Report Presentation:** The clinical decision report displays the qualified safety verdict, physiological score, alert hierarchy, verified protocol steps, and audit seal.
+
+---
+
 ## 📂 Project Architecture
 
 ```
@@ -237,8 +256,8 @@ TriageRAG/
 │   │   ├── index.py            # Partitioned BM25 with acronym expansion
 │   │   └── retrieve.py         # Structured query builder & hard population filter
 │   ├── llm/                    # Protocol plan drafting & repair
-│   │   ├── fake.py             # Deterministic FakeLLM testing profiles
-│   │   ├── gemini.py           # Google Gemini provider (JSON schema output)
+│   │   ├── fake.py             # Deterministic FakeLLM testing profiles (mock generation)
+│   │   ├── provider.py         # Abstract LLMProvider interface
 │   │   └── repair.py           # Structured machine repair loop
 │   ├── verify/                 # Pass 2 machine verification
 │   │   ├── plan_verifier.py    # Order validation lattice & step status
@@ -252,7 +271,7 @@ TriageRAG/
 │       ├── pages/
 │       │   ├── IntakePage.tsx  # Page 1: Patient intake workstation
 │       │   └── ReportPage.tsx  # Page 2: Clinical decision & protocol report
-│       ├── features/intake/    # Patient form & 1-click showcase selector
+│       ├── features/intake/    # Patient intake form & tri-state physiological vitals
 │       └── features/results/   # SafetyBanner, ScoreCard, VerifiedPlanView
 ├── eval/                       # Evaluation & mutation benchmarks
 └── tools/tasks.py              # Cross-platform project CLI

@@ -25,8 +25,8 @@ from triagerag.config import get_repo_root
 
 @pytest.fixture(scope="module")
 def report_text() -> str:
-    """Generate Postmortem-Response.MD from current artefacts and return its content."""
-    return generate_gate_report()
+    """Generate Postmortem-Response.MD in memory from current artefacts without mutating disk."""
+    return generate_gate_report(write_file=False)
 
 
 def test_all_cited_tests_exist_in_pytest_collection() -> None:

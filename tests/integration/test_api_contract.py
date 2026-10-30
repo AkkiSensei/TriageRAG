@@ -275,3 +275,31 @@ def test_explain_triage_retrieval_endpoint() -> None:
     resp_vitals = client.post("/api/triage/explain", json=vitals_body)
     assert resp_vitals.status_code == 200
     assert resp_vitals.json()["population"] == "paediatric"
+
+
+def test_triage_provider_metadata_and_hybrid_backend_selection() -> None:
+    """Verify deterministic mock execution metadata and hybrid retrieval routing."""
+    patient, _ = get_preloaded_scenario("CLEAN")
+    patient_dict = json.loads(patient.model_dump_json())
+
+    # 1. Default request uses deterministic mock generation and bm25
+    default_payload = {"patient": patient_dict}
+    resp = client.post("/api/triage", json=default_payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "provider_info" in data
+    info = data["provider_info"]
+    assert info["generation_mode"] == "deterministic_mock"
+    assert info["retrieval_backend"] in ("bm25", "hybrid_rrf")
+
+    # 2. Request hybrid_rrf backend explicitly
+    hybrid_req = {
+        "patient": patient_dict,
+        "retrieval_backend": "hybrid_rrf",
+    }
+    resp_hybrid = client.post("/api/triage", json=hybrid_req)
+    assert resp_hybrid.status_code == 200
+    hybrid_data = resp_hybrid.json()
+    assert hybrid_data["provider_info"]["generation_mode"] == "deterministic_mock"
+    assert hybrid_data["provider_info"]["retrieval_backend"] == "hybrid_rrf"
+    assert hybrid_data["retrieval"]["backend"] == "hybrid_rrf"

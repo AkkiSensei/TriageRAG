@@ -30,6 +30,7 @@ from triagerag.contracts.schemas import (
     PlanContext,
     PlanDraft,
     Provenance,
+    ProviderMetadata,
     RetrievalReport,
     ScoreResult,
     SkippedCheck,
@@ -79,6 +80,7 @@ def run_triage(
     overrides: list[OverrideRecord] | None = None,
     config: OrchestratorConfig | dict[str, Any] | None = None,
     clock: Clock | None = None,
+    provider_info: ProviderMetadata | None = None,
 ) -> TriageResponse:
     """Execute complete emergency triage decision support pipeline.
 
@@ -96,6 +98,16 @@ def run_triage(
 
     active_clock: Clock = clock if clock is not None else SystemClock()
     overrides_list = overrides or []
+
+    prov_meta = (
+        provider_info.model_copy()
+        if provider_info is not None
+        else ProviderMetadata(
+            generation_mode="deterministic_mock",
+            requested_profile=getattr(llm, "profile", None) if llm else None,
+            retrieval_backend="bm25",
+        )
+    )
 
     # 1. Normalize patient data
     normalized_patient = normalize_patient(patient, registry.resolver)
@@ -319,6 +331,7 @@ def run_triage(
                 abstain_code=AbstainCode.INDEX_UNAVAILABLE,
                 reason=f"Retrieval error: {e}",
             )
+    prov_meta.retrieval_backend = retrieval_report.backend
 
     # 5. LLM Plan Drafting (guarded with fallback)
     llm_fallback_mode = False
@@ -387,6 +400,8 @@ def run_triage(
                 break
 
             repair_attempts += 1
+            prov_meta.repair_attempted = True
+            prov_meta.repair_cycles = repair_attempts
             try:
                 assert plan_context is not None
                 repaired_draft = attempt_plan_repair(
@@ -552,4 +567,5 @@ def run_triage(
         overrides=overrides_list,
         llm_fallback_mode=llm_fallback_mode,
         audit_hash=audit_hash,
+        provider_info=prov_meta,
     )

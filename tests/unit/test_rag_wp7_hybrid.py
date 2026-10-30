@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from decimal import Decimal
+from pathlib import Path
 
 from triagerag.config import get_data_dir, get_repo_root
 from triagerag.contracts.enums import AgeUnit
@@ -65,16 +66,15 @@ def test_dense_and_hybrid_retrievers_conform_to_protocol() -> None:
     assert isinstance(r_dense, Retriever)
 
 
-def test_four_arm_retrieval_ablation_and_architecture_docs() -> None:
+def test_four_arm_retrieval_ablation_and_architecture_docs(tmp_path: Path) -> None:
     """RAG-08: 4-arm retrieval ablation report and ARCHITECTURE.md match implementation."""
     from eval.run_retrieval_ablation import run_retrieval_ablation_suite
 
-    rc = run_retrieval_ablation_suite()
+    rc = run_retrieval_ablation_suite(output_dir=tmp_path)
     assert rc == 0
 
-    repo_root = get_repo_root()
-    json_path = repo_root / "eval" / "reports" / "retrieval_ablation.json"
-    md_path = repo_root / "eval" / "reports" / "retrieval_ablation.md"
+    json_path = tmp_path / "retrieval_ablation.json"
+    md_path = tmp_path / "retrieval_ablation.md"
     assert json_path.exists()
     assert md_path.exists()
 
@@ -86,6 +86,7 @@ def test_four_arm_retrieval_ablation_and_architecture_docs() -> None:
         assert arms[arm_key]["wrong_protocol_rate"] == 0.0
         assert arms[arm_key]["hard_negative_abstain_recall"] >= 0.95
 
+    repo_root = get_repo_root()
     arch_text = (repo_root / "docs" / "ARCHITECTURE.md").read_text(encoding="utf-8")
     assert "Retriever" in arch_text
     assert "HybridRRFRetriever" in arch_text

@@ -344,9 +344,9 @@ def release_preflight() -> None:
     if "USER root" in dockerfile or "USER 0" in dockerfile:
         typer.secho("FATAL: Dockerfile cannot run as root user", fg=typer.colors.RED)
         raise typer.Exit(code=1)
-    if "USER triage" not in dockerfile and "USER " not in dockerfile:
+    if "USER appuser" not in dockerfile and "USER " not in dockerfile:
         typer.secho(
-            "FATAL: Dockerfile must enforce a non-root user (e.g. USER triage)",
+            "FATAL: Dockerfile must enforce a non-root user (e.g. USER appuser)",
             fg=typer.colors.RED,
         )
         raise typer.Exit(code=1)

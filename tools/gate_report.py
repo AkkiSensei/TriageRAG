@@ -468,7 +468,7 @@ def get_git_info() -> tuple[str, list[str]]:
         return "UNKNOWN", []
 
 
-def generate_gate_report() -> str:
+def generate_gate_report(write_file: bool = True, output_path: Path | None = None) -> str:
     """Generate Postmortem-Response.MD directly and deterministically from committed artefacts."""
     reports_dir = _REPO_ROOT / "eval" / "reports"
     retrieval_path = reports_dir / "retrieval.json"
@@ -716,8 +716,9 @@ def generate_gate_report() -> str:
     )
 
     report_content = "\n".join(lines) + "\n"
-    report_file = _REPO_ROOT / "Postmortem-Response.MD"
-    report_file.write_text(report_content, encoding="utf-8")
+    if write_file:
+        report_file = output_path or (_REPO_ROOT / "Postmortem-Response.MD")
+        report_file.write_text(report_content, encoding="utf-8")
     return report_content
 
 

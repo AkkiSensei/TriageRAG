@@ -81,7 +81,10 @@ def decide_backend(arms: dict[str, Any]) -> str:
     return best_candidate
 
 
-def run_retrieval_ablation_suite() -> int:
+def run_retrieval_ablation_suite(
+    output_dir: Path | None = None,
+    write_reports: bool = True,
+) -> int:
     """Execute 4-arm retrieval ablation across all cases and held-out test split."""
     import sys
 
@@ -135,7 +138,7 @@ def run_retrieval_ablation_suite() -> int:
     selected_backend = decide_backend(arms_report)
     print(f"\nDeterministic decide_backend() selected: '{selected_backend}'")
 
-    reports_dir = _REPO_ROOT / "eval" / "reports"
+    reports_dir = output_dir or (_REPO_ROOT / "eval" / "reports")
     reports_dir.mkdir(parents=True, exist_ok=True)
 
     json_payload = {
@@ -147,65 +150,72 @@ def run_retrieval_ablation_suite() -> int:
         "arms": arms_report,
         "status": "PASS",
     }
-    (reports_dir / "retrieval_ablation.json").write_text(
-        json.dumps(json_payload, indent=2),
-        encoding="utf-8",
-    )
-
-    disclaimer = (
-        "> **DISCLAIMER:** Research prototype. Synthetic data only. "
-        "Not a medical device. Not for clinical use."
-    )
-    table_header = (
-        "| Arm / Backend | Held-Out Test Recall@5 (95% CI) | Test MRR (95% CI) | "
-        "Wrong-Protocol Rate | Hard-Neg Abstain | Latency p95 (ms) |"
-    )
-    md_lines = [
-        "# TriageRAG — 4-Arm Retrieval Ablation Study (FG-08 / FG-14 / HD-5)",
-        "",
-        disclaimer,
-        "",
-        "## 1. Held-Out Test Split Performance (n=88, Graded Relevance)",
-        "",
-        table_header,
-        "|:---|:---:|:---:|:---:|:---:|:---:|",
-    ]
-    for backend_key, _label in RETRIEVAL_ARMS:
-        m = arms_report[backend_key]
-        tm = m["test_split"]
-        r5_low = tm["recall_at_5_ci95"][0]
-        r5_high = tm["recall_at_5_ci95"][1]
-        r5_str = f"{tm['recall_at_5']:.2f}% [{r5_low:.2f}%, {r5_high:.2f}%]"
-        mrr_str = f"{tm['mrr']:.4f} [{tm['mrr_ci95'][0]:.4f}, {tm['mrr_ci95'][1]:.4f}]"
-        md_lines.append(
-            f"| **{m['label']}** (`{backend_key}`) | {r5_str} | {mrr_str} | "
-            f"{tm['wrong_protocol_rate']:.4f} | {tm['abstain_recall_hard_negatives']:.4f} | "
-            f"{tm['latency_p95_ms']:.2f} |"
+    if write_reports:
+        (reports_dir / "retrieval_ablation.json").write_text(
+            json.dumps(json_payload, indent=2),
+            encoding="utf-8",
         )
 
-    md_lines.extend(
-        [
+        disclaimer = (
+            "> **DISCLAIMER:** Research prototype. Synthetic data only. "
+            "Not a medical device. Not for clinical use."
+        )
+        table_header = (
+            "| Arm / Backend | Held-Out Test Recall@5 (95% CI) | Test MRR (95% CI) | "
+            "Wrong-Protocol Rate | Hard-Neg Abstain | Latency p95 (ms) |"
+        )
+        md_lines = [
+            "# TriageRAG — 4-Arm Retrieval Ablation Study (FG-08 / FG-14 / HD-5)",
             "",
-            "## 2. Programmatic Decision Rule & Outcome (`decide_backend`)",
+            disclaimer,
             "",
-            f"Deterministic rule (`decide_backend`) selected: **`{selected_backend}`**.",
+            "## 1. Held-Out Test Split Performance (n=88, Graded Relevance)",
             "",
-            "### Selection Criteria (Codified):",
-            "1. **Hard Safety Constraints:** Must achieve `wrong_protocol_rate == 0.0`, "
-            "`hard_negative_abstain_recall == 1.0`, and `latency_p95_ms < 50.0 ms`.",
-            "2. **Adoption Threshold:** An alternative stage is adopted only if its test Recall@5 "
-            "does not regress vs `bm25` AND its test MRR improves by at least `+0.05`.",
-            "3. **Outcome:** In accordance with this rule, "
-            f"`{selected_backend}` is chosen as the default production backend.",
-            "",
-            "> **Component Honesty Disclosure (FG-14 / HD-5):** What was previously referred to as "
-            "'Dense' is implemented as an offline character trigram TF-IDF cosine retriever "
-            "(`CharNgramRetriever`), and the reranker is a token overlap ratio estimator "
-            "(`LexicalOverlapReranker`). Neither utilizes a deep neural cross-encoder or neural "
-            "dense embedding model in offline baseline mode (`HD-5`).\n",
+            table_header,
+            "|:---|:---:|:---:|:---:|:---:|:---:|",
         ]
-    )
-    (reports_dir / "retrieval_ablation.md").write_text("\n".join(md_lines), encoding="utf-8")
+        for backend_key, _label in RETRIEVAL_ARMS:
+            m = arms_report[backend_key]
+            tm = m["test_split"]
+            r5_low = tm["recall_at_5_ci95"][0]
+            r5_high = tm["recall_at_5_ci95"][1]
+            r5_str = f"{tm['recall_at_5']:.2f}% [{r5_low:.2f}%, {r5_high:.2f}%]"
+            mrr_str = f"{tm['mrr']:.4f} [{tm['mrr_ci95'][0]:.4f}, {tm['mrr_ci95'][1]:.4f}]"
+            md_lines.append(
+                f"| **{m['label']}** (`{backend_key}`) | {r5_str} | {mrr_str} | "
+                f"{tm['wrong_protocol_rate']:.4f} | {tm['abstain_recall_hard_negatives']:.4f} | "
+                f"{tm['latency_p95_ms']:.2f} |"
+            )
+
+        md_lines.extend(
+            [
+                "",
+                "## 2. Programmatic Decision Rule & Outcome (`decide_backend`)",
+                "",
+                f"Deterministic rule (`decide_backend`) selected: **`{selected_backend}`**.",
+                "",
+                "### Selection Criteria (Codified):",
+                "1. **Hard Safety Constraints:** Must achieve `wrong_protocol_rate == 0.0`, "
+                "`hard_negative_abstain_recall == 1.0`, and `latency_p95_ms < 50.0 ms`.",
+                (
+                    "2. **Adoption Threshold:** An alternative stage is adopted only if its "
+                    "test Recall@5 does not regress vs `bm25` AND its test MRR improves by "
+                    "at least `+0.05`."
+                ),
+                "3. **Outcome:** In accordance with this rule, "
+                f"`{selected_backend}` is chosen as the default production backend.",
+                "",
+                (
+                    "> **Component Honesty Disclosure (FG-14 / HD-5):** What was previously "
+                    "referred to as 'Dense' is implemented as an offline character trigram TF-IDF "
+                    "cosine retriever (`CharNgramRetriever`), and the reranker is a token overlap "
+                    "ratio estimator (`LexicalOverlapReranker`). Neither utilizes a deep neural "
+                    "cross-encoder or neural dense embedding model in offline baseline mode "
+                    "(`HD-5`).\n"
+                ),
+            ]
+        )
+        (reports_dir / "retrieval_ablation.md").write_text("\n".join(md_lines), encoding="utf-8")
     return 0
 
 

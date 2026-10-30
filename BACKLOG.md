@@ -76,7 +76,7 @@ Prioritized engineering and clinical verification backlog (ordered by safety pri
 10. **[P2-SAFETY] DDI Dataset Evaluation & Licensing Review**: Evaluate standard Drug-Drug Interaction datasets (e.g., DrugBank / openFDA) with strict copyright review before integration.
 11. **[COMPLETED in WP2/WP7] Structured Protocol Flowchart Parser**: Implemented `chunk_decision_graph_json()` adapter in `src/triagerag/rag/chunking.py`.
 12. **[IN PROGRESS] Retrieval Score Threshold Calibration & ECE Targets (`FG-07`, `HD-3`, ADR 0008)**: Calibrated BM25 score cutoffs on dev split of expanded 224-case benchmark (`calibration_run_CALIB_FG4_DEV_SWEEP_V1.json`). ECE and reliability curves are tracked as observational research metrics pending prospective clinical cohort calibration (`HD-3`).
-13. **[P2-EVAL] Real-Model Ablation Study**: Execute full 3-arm ablation with live frontier LLMs (Gemini, Claude, GPT-4) comparing naive generation vs unverified RAG vs TriageRAG verified pipeline.
+13. **[P2-EVAL] Real-Model Ablation Study**: Execute full 3-arm ablation with frontier LLM benchmarks (Claude, GPT-4, Llama 3) comparing naive generation vs unverified RAG vs TriageRAG verified pipeline.
 14. **[P2-FEATURE] Continuous Vital Sign Trend Analysis**: Detect physiological deterioration trends (e.g. delta MAP over 30 mins) rather than static snapshot scores.
 15. **[P3-UX] Voice Dictation Normalizer for Bedside Triage**: Add offline Whisper-based transcription pipeline with prompt-injection filtering.
 16. **[P3-SAFETY] Multi-Ingredient Combination Titration**: Expand dose engine to evaluate dynamically titrated infusions (e.g. norepinephrine with dextrose carrier) and additive osmolarity.

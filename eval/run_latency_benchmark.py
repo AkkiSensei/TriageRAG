@@ -84,6 +84,8 @@ def _generate_synthetic_10k_corpus(target_chunks: int = 10000) -> list[ProtocolC
 def run_scale_benchmark(
     target_chunks: int = 10000,
     num_queries: int = 100,
+    output_path: Path | None = None,
+    write_report: bool = True,
 ) -> dict[str, Any]:
     """Run lexical retrieval latency benchmark on a 10,000-chunk synthetic corpus."""
     chunks = _generate_synthetic_10k_corpus(target_chunks=target_chunks)
@@ -132,12 +134,13 @@ def run_scale_benchmark(
         "passed": latencies_sorted[p95_idx] < 50.0,
     }
 
-    out_dir = REPO_ROOT / "eval" / "reports"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "latency_benchmark.json").write_text(
-        json.dumps(report, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    if write_report:
+        dest = output_path or (REPO_ROOT / "eval" / "reports" / "latency_benchmark.json")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(
+            json.dumps(report, indent=2) + "\n",
+            encoding="utf-8",
+        )
     return report
 
 

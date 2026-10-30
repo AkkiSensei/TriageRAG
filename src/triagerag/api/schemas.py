@@ -22,6 +22,7 @@ class HealthResponse(BaseModel):
     version: str = "0.1.0"
     ruleset_version: str = "0.1.0"
     llm_available: bool = True
+    generation_mode: str = "deterministic_mock"
     retrieval_backend: str = "bm25"
     unreviewed_rules_count: int = 0
     disclaimer: str = (
@@ -47,6 +48,7 @@ class TriageApiRequest(BaseModel):
     overrides: list[OverrideRecord] | None = None
     llm_profile: FakeLLMProfile = FakeLLMProfile.COMPLIANT
     include_complaint_in_llm: bool = False
+    retrieval_backend: str | None = None
 
     @field_validator("llm_profile", mode="before")
     @classmethod

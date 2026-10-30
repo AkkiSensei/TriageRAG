@@ -54,8 +54,16 @@ class Provenance(BaseModel):
         if self.verified:
             if self.source_status != SourceStatus.REVIEWED:
                 raise ValueError("verified=True requires source_status == REVIEWED")
-            if not self.reviewer or not self.reviewer.strip():
+            if (
+                not self.reviewer
+                or not self.reviewer.strip()
+                or self.reviewer.upper() == "TO_BE_RESOLVED"
+            ):
                 raise ValueError("verified=True requires non-empty reviewer identifier")
+            if self.section_ref.strip().upper() == "TO_BE_RESOLVED":
+                raise ValueError("verified=True forbids unresolved section_ref")
+        if self.source_status == SourceStatus.PLACEHOLDER_UNRETRIEVED and self.verified:
+            raise ValueError("PLACEHOLDER_UNRETRIEVED sources cannot be marked verified=True")
         return self
 
 
@@ -519,6 +527,18 @@ class VerifiedStep(BaseModel):
     support_reason: str | None = None
 
 
+class ProviderMetadata(BaseModel):
+    """Execution metadata for deterministic mock plan generation and repair cycles."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    generation_mode: str = Field(default="deterministic_mock")
+    requested_profile: str | None = Field(default=None)
+    repair_attempted: bool = Field(default=False)
+    repair_cycles: int = Field(default=0, ge=0)
+    retrieval_backend: str = Field(default="bm25")
+
+
 class TriageResponse(BaseModel):
     """Full triage response returned to UI and CLI."""
 
@@ -531,6 +551,7 @@ class TriageResponse(BaseModel):
     overrides: list[OverrideRecord] = Field(default_factory=list)
     llm_fallback_mode: bool = False
     audit_hash: str = ""
+    provider_info: ProviderMetadata = Field(default_factory=ProviderMetadata)
 
 
 class Clock(Protocol):
