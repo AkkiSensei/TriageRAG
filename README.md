@@ -7,7 +7,7 @@
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg?style=for-the-badge&logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111%2B-009688.svg?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
 [![React + Vite](https://img.shields.io/badge/React_18-Vite-61DAFB.svg?style=for-the-badge&logo=react)](https://vitejs.dev)
-[![CI Verification](https://img.shields.io/badge/CI%20Pipeline-100%25%20Green-emerald.svg?style=for-the-badge&logo=githubactions)](https://github.com/AkkiSensei/TriageRAG/actions)
+[![CI](https://github.com/AkkiSensei/TriageRAG/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AkkiSensei/TriageRAG/actions)
 [![Mutant Kill Rate](https://img.shields.io/badge/Mutation%20Score-52%2F52%20(100%25)-purple.svg?style=for-the-badge)](https://github.com/AkkiSensei/TriageRAG)
 [![Math Precision](https://img.shields.io/badge/Precision-Exact%20Decimal%20Only-orange.svg?style=for-the-badge)](https://github.com/AkkiSensei/TriageRAG)
 
@@ -156,11 +156,11 @@ The entire system is continuously measured across seven automated verification a
   Retrieval: Unrouted Track15 Test Cases (Vitals Only)   0.0% Recall@1 (Fail-Closed HD-1)
   Retrieval: Overall Test  56 Test Positive Cases        73.21% R@5 [60.7, 83.9]
   Hard-Negative Abstention 14 Hard-Negative Cases        100% ABSTAINED (0 wrong proto)
-  Pytest Test Suite        234 Collected Tests           233 PASSED, 1 XFAIL (HD-6)
+  Pytest Test Suite        235 Collected Tests           234 PASSED, 1 XFAIL (HD-6)
 ======================================================================
 
 > **Evaluation Honesty & Baseline Note:**
-> - **Routed Retrieval Track:** 100% Recall@5 is observed on syndrome-provided cases (ranking protocol chunks within known syndrome). A candidate-pool random ranker achieves 95.44% Recall@5 and 26.44% Recall@1, demonstrating BM25's 2x+ ranking superiority on Top-1 (53.66% vs 26.44%) while accounting for candidate pool size.
+> - **Routed Retrieval Track:** 100% Recall@5 is observed on syndrome-provided cases (ranking protocol chunks within known syndrome). A paired candidate-pool random ranker achieves 95.44% Recall@5 and 26.44% Recall@1, demonstrating BM25's 2.0x ranking superiority on Top-1 (52.78% vs 26.44%, paired delta +26.33 pts [95% CI: 9.75, 42.56]) across the exact same query cases and candidate pools.
 > - **Unrouted Retrieval Track:** Achieves 0.0% Recall on vitals-only cases because physiological flag thresholds are unverified (marked status: NEEDS_SOURCE under fail-closed governance HD-1), safely abstaining rather than hallucinating unvalidated protocol recommendations.
 > - **Benchmark Labels:** Evaluated on synthetic regression fixtures marked `AGENT_AUTHORED_UNREVIEWED` pending external clinician panel review.
 ```

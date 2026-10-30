@@ -1,9 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ScenarioSelector } from '@/features/intake/ScenarioSelector'
 import { PatientIntakeForm } from '@/features/intake/PatientIntakeForm'
 import { useTriage } from '@/context/TriageContext'
-import type { TriageApiRequest, ScenarioDetail } from '@/lib/api'
+import type { TriageApiRequest } from '@/lib/api'
 import { Stethoscope, AlertCircle, ShieldAlert } from 'lucide-react'
 
 export const IntakePage: React.FC = () => {
@@ -14,35 +13,7 @@ export const IntakePage: React.FC = () => {
     isLoading,
     error,
     selectedScenario,
-    setSelectedScenario,
   } = useTriage()
-
-  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(
-    selectedScenario?.id ?? null
-  )
-
-  const handleSelectScenario = (scenario: ScenarioDetail, autoRun: boolean = true) => {
-    setActiveScenarioId(scenario.id)
-    setSelectedScenario(scenario)
-
-    if (autoRun) {
-      const p = scenario.patient
-      const payload: TriageApiRequest = {
-        patient: {
-          ...p,
-          pregnancy: p.sex === 'male' ? 'no' : p.pregnancy,
-        },
-        overrides: scenario.overrides || [],
-      }
-      evaluatePatient(payload)
-        .then(() => {
-          navigate('/report')
-        })
-        .catch((err) => {
-          console.error('Scenario run error:', err)
-        })
-    }
-  }
 
   const handleFormSubmit = async (req: TriageApiRequest) => {
     try {
@@ -73,15 +44,6 @@ export const IntakePage: React.FC = () => {
           Record measured or estimated vital signs, medication history, and acute complaints.
           Deterministic rules will check contraindications and early warning scores before guideline retrieval.
         </p>
-      </div>
-
-      {/* Preset Reference Scenarios */}
-      <div className="mb-6">
-        <ScenarioSelector
-          onSelectScenario={handleSelectScenario}
-          activeScenarioId={activeScenarioId}
-          loadingScenarioId={isLoading ? activeScenarioId : null}
-        />
       </div>
 
       {/* Pipeline Error Banner */}

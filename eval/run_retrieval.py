@@ -507,17 +507,15 @@ def run_permutation_sanity_check(seed: int = 42) -> float:
 
 
 def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) -> dict[str, Any]:
-    """Evaluate candidate-pool random rankers stratified across routed and unrouted tracks.
+    """Evaluate candidate-pool random rankers paired directly with BM25.
 
-    Methodological separation (Reviewer P0):
-    1. Routed Track (41 test cases): evaluates random selection from the exact same candidate
-       pool (matching population + syndrome, ~4-6 chunks). Demonstrates that BM25 achieves 53.66%
-       R@1 vs ~21.4% random selection (2.5x ranking superiority), while explaining why R@5=100%
-       for both because the candidate pool is ~5 items.
-    2. Unrouted Track (15 test cases): explains and measures the fail-closed abstention contract
-       where production retrieval safely abstains under HD-1 (0% R@5, 100% fail-closed adherence),
-       contrasting with unconstrained random sampling across all population chunks.
-    3. Overall Test Split (56 test cases): overall random baseline summary.
+    Methodological paired comparison (Reviewer P0):
+    1. Paired evaluation: For each eligible query, BM25 ranking and seeded random ranking are
+       executed on the EXACT same candidate pool and query ID.
+    2. Identical denominators and relevance targets (grades >= 2).
+    3. Calculates paired delta and 1,000-resample bootstrap 95% confidence intervals on delta.
+    4. Stratifies routed track (syndrome provided) and unrouted track (vitals / HD-1 abstention).
+    5. No hardcoded or manually supplied metrics.
     """
     dataset_path = _REPO_ROOT / "eval" / "retrieval" / "dataset.yaml"
     raw_ds = yaml.safe_load(dataset_path.read_text(encoding="utf-8"))
@@ -533,13 +531,21 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
             return {
                 "test_cases": 0,
                 "avg_candidate_pool_size": 0.0,
+                "bm25_recall_at_1": 0.0,
+                "bm25_recall_at_5": 0.0,
+                "bm25_mrr": 0.0,
                 "random_recall_at_1": 0.0,
                 "random_recall_at_5": 0.0,
                 "random_mrr": 0.0,
+                "paired_diff_r1_points": 0.0,
+                "paired_diff_r1_ci_95": [0.0, 0.0],
             }
-        r1_list: list[float] = []
-        r5_list: list[float] = []
-        rr_list: list[float] = []
+        bm25_r1_list: list[float] = []
+        bm25_r5_list: list[float] = []
+        bm25_rr_list: list[float] = []
+        rand_r1_list: list[float] = []
+        rand_r5_list: list[float] = []
+        rand_rr_list: list[float] = []
         cand_sizes: list[int] = []
 
         for c in cases:
@@ -559,6 +565,27 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
                 continue
 
             cand_sizes.append(len(candidates))
+
+            # 1. Evaluate BM25 retrieval on this exact patient case
+            rep = service.retrieve(patient, top_k=5)
+            if not rep.abstained and rep.chunks:
+                b_top1 = 1.0 if rep.chunks[0].chunk_id in targets else 0.0
+                b_top5 = 1.0 if any(ch.chunk_id in targets for ch in rep.chunks[:5]) else 0.0
+                b_rr = 0.0
+                for rank, ch in enumerate(rep.chunks, start=1):
+                    if ch.chunk_id in targets:
+                        b_rr = 1.0 / float(rank)
+                        break
+            else:
+                b_top1 = 0.0
+                b_top5 = 0.0
+                b_rr = 0.0
+
+            bm25_r1_list.append(b_top1)
+            bm25_r5_list.append(b_top5)
+            bm25_rr_list.append(b_rr)
+
+            # 2. Evaluate random baseline across seeded trials on identical candidate pool
             cand_r1 = 0
             cand_r5 = 0
             cand_rr = 0.0
@@ -571,28 +598,64 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
                     cand_r1 += 1
                 if targets & top5:
                     cand_r5 += 1
-                for rank, ch in enumerate(shuffled, start=1):
-                    if ch.chunk_id in targets:
+                for rank, sch in enumerate(shuffled, start=1):
+                    if sch.chunk_id in targets:
                         cand_rr += 1.0 / float(rank)
                         break
 
-            r1_list.append(float(cand_r1) / float(num_trials))
-            r5_list.append(float(cand_r5) / float(num_trials))
-            rr_list.append(cand_rr / float(num_trials))
+            rand_r1_list.append(float(cand_r1) / float(num_trials))
+            rand_r5_list.append(float(cand_r5) / float(num_trials))
+            rand_rr_list.append(cand_rr / float(num_trials))
 
-        n_eval = len(r1_list)
+        n_eval = len(rand_r1_list)
+        if n_eval == 0:
+            return {
+                "test_cases": 0,
+                "avg_candidate_pool_size": 0.0,
+                "bm25_recall_at_1": 0.0,
+                "bm25_recall_at_5": 0.0,
+                "bm25_mrr": 0.0,
+                "random_recall_at_1": 0.0,
+                "random_recall_at_5": 0.0,
+                "random_mrr": 0.0,
+                "paired_diff_r1_points": 0.0,
+                "paired_diff_r1_ci_95": [0.0, 0.0],
+            }
+
+        bm25_r1_pct = round((sum(bm25_r1_list) / float(n_eval)) * 100.0, 2)
+        bm25_r5_pct = round((sum(bm25_r5_list) / float(n_eval)) * 100.0, 2)
+        bm25_mrr_val = round(sum(bm25_rr_list) / float(n_eval), 4)
+
+        rand_r1_pct = round((sum(rand_r1_list) / float(n_eval)) * 100.0, 2)
+        rand_r5_pct = round((sum(rand_r5_list) / float(n_eval)) * 100.0, 2)
+        rand_mrr_val = round(sum(rand_rr_list) / float(n_eval), 4)
+
+        paired_diffs = [b - r for b, r in zip(bm25_r1_list, rand_r1_list, strict=True)]
+        mean_diff = round((sum(paired_diffs) / float(n_eval)) * 100.0, 2)
+
+        # 1,000 bootstrap resamples on paired differences
+        boot_diffs: list[float] = []
+        for _ in range(1000):
+            resample = [rng.choice(paired_diffs) for _ in range(n_eval)]
+            boot_diffs.append((sum(resample) / float(n_eval)) * 100.0)
+        boot_diffs.sort()
+        ci_lower = round(boot_diffs[25], 2)
+        ci_upper = round(boot_diffs[975], 2)
+
+        multiplier = round(bm25_r1_pct / rand_r1_pct, 2) if rand_r1_pct > 0 else None
+
         return {
             "test_cases": n_eval,
-            "avg_candidate_pool_size": (
-                round(sum(cand_sizes) / float(len(cand_sizes)), 2) if cand_sizes else 0.0
-            ),
-            "random_recall_at_1": (
-                round((sum(r1_list) / float(n_eval)) * 100.0, 2) if n_eval else 0.0
-            ),
-            "random_recall_at_5": (
-                round((sum(r5_list) / float(n_eval)) * 100.0, 2) if n_eval else 0.0
-            ),
-            "random_mrr": round(sum(rr_list) / float(n_eval), 4) if n_eval else 0.0,
+            "avg_candidate_pool_size": round(sum(cand_sizes) / float(len(cand_sizes)), 2),
+            "bm25_recall_at_1": bm25_r1_pct,
+            "bm25_recall_at_5": bm25_r5_pct,
+            "bm25_mrr": bm25_mrr_val,
+            "random_recall_at_1": rand_r1_pct,
+            "random_recall_at_5": rand_r5_pct,
+            "random_mrr": rand_mrr_val,
+            "paired_diff_r1_points": mean_diff,
+            "paired_diff_r1_ci_95": [ci_lower, ci_upper],
+            "relative_r1_multiplier": multiplier,
         }
 
     syn_cases = [
@@ -610,16 +673,15 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
     unrouted_stats = _eval_cases(vit_cases, require_syndrome_match=False)
     overall_stats = _eval_cases(test_cases, require_syndrome_match=True)
 
-    routed_stats.update(
-        {
-            "bm25_recall_at_1": 53.66,
-            "bm25_recall_at_5": 100.0,
-            "bm25_mrr": 0.7398,
-            "interpretation": (
-                "BM25 ranker achieves 53.66% R@1 vs ~21% random selection (2.5x gain). "
-                "R@5=100% is mathematically expected because candidate pool size is ~5 chunks."
-            ),
-        }
+    r_pts = routed_stats["paired_diff_r1_points"]
+    r_ci = routed_stats["paired_diff_r1_ci_95"]
+    routed_stats["interpretation"] = (
+        f"Paired evaluation across {routed_stats['test_cases']} routed test cases: "
+        f"BM25 R@1={routed_stats['bm25_recall_at_1']}% vs "
+        f"Random R@1={routed_stats['random_recall_at_1']}% "
+        f"(paired difference +{r_pts} pts, 95% CI {r_ci}, "
+        f"{routed_stats['relative_r1_multiplier']}x ranking advantage). "
+        f"R@5={routed_stats['bm25_recall_at_5']}% matches candidate pool saturation."
     )
 
     unrouted_stats.update(
@@ -750,6 +812,19 @@ def run_retrieval_benchmark(
             f"[{vit_test['recall_at_5_ci95'][0]:.2f}%, {vit_test['recall_at_5_ci95'][1]:.2f}%]"
         )
 
+        rand_cand = summary["random_candidate_baseline"]
+        r_syn = rand_cand["routed_syndrome_provided"]
+        r_vit = rand_cand["unrouted_vitals_only"]
+
+        r_syn_ci = (
+            f"+{r_syn['paired_diff_r1_points']:.2f}% "
+            f"[{r_syn['paired_diff_r1_ci_95'][0]:.2f}%, {r_syn['paired_diff_r1_ci_95'][1]:.2f}%]"
+        )
+        r_vit_ci = (
+            f"{r_vit['paired_diff_r1_points']:.2f}% "
+            f"[{r_vit['paired_diff_r1_ci_95'][0]:.2f}%, {r_vit['paired_diff_r1_ci_95'][1]:.2f}%]"
+        )
+
         calib_md = (
             "# Retrieval Calibration & Evaluation Report (WP5 / FG-06 / FG-07)\n\n"
             "> Research prototype. Synthetic data only. "
@@ -798,17 +873,17 @@ def run_retrieval_benchmark(
             f"{vit_test['recall_at_5']:.2f}% {vit_r5_ci_str} | "
             f"{vit_test['mrr']:.4f} |\n\n"
             "## Methodological Baseline Comparison (Stratified Random vs BM25)\n\n"
-            "| Evaluation Track | Cases | BM25 R@1 | Random R@1 | BM25 R@5 | Random R@5 |\n"
-            "|:---|---:|---:|---:|---:|---:|\n"
-            f"| **Routed (Syndrome Provided)** | {syn_test['positive_cases']} | "
-            f"**{syn_test['recall_at_1']:.2f}%** | 21.37% | "
-            f"**{syn_test['recall_at_5']:.2f}%** | 79.92% |\n"
-            f"| **Unrouted (Vitals Only)** | {vit_test['positive_cases']} | "
-            f"**{vit_test['recall_at_1']:.2f}%** | 9.33% | "
-            f"**{vit_test['recall_at_5']:.2f}%** | 42.33% |\n\n"
-            "> **Baseline Note:** BM25 achieves 2.5x gain over random on routed R@1 (53.66% "
-            "vs 21.37%). R@5 is 100% because candidate pool size is ~5 chunks. Unrouted "
-            "retriever safely abstains under HD-1 fail-closed rules.\n\n"
+            "| Track | Cases | BM25 R@1 | Random R@1 | Paired Diff R@1 | BM25 R@5 | Random R@5 |\n"
+            "|:---|---:|---:|---:|---:|---:|---:|\n"
+            f"| **Routed** | {r_syn['test_cases']} | "
+            f"**{r_syn['bm25_recall_at_1']:.2f}%** | {r_syn['random_recall_at_1']:.2f}% | "
+            f"{r_syn_ci} | "
+            f"**{r_syn['bm25_recall_at_5']:.2f}%** | {r_syn['random_recall_at_5']:.2f}% |\n"
+            f"| **Unrouted** | {r_vit['test_cases']} | "
+            f"**{r_vit['bm25_recall_at_1']:.2f}%** | {r_vit['random_recall_at_1']:.2f}% | "
+            f"{r_vit_ci} | "
+            f"**{r_vit['bm25_recall_at_5']:.2f}%** | {r_vit['random_recall_at_5']:.2f}% |\n\n"
+            f"> **Baseline Note:** {r_syn['interpretation']} {r_vit['interpretation']}\n\n"
             "> **Clinical Transparency Note (HD-1 / HD-3):** Vitals-only Recall@1 is 0.0% "
             "because all unverified vitals flag cut-offs are marked `status: NEEDS_SOURCE` "
             "under Gate G2 and fail closed (`EMPTY_QUERY`). This prevents unverified inference "

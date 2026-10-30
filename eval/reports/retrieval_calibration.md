@@ -21,7 +21,7 @@
 | **Hard-Negative Abstain Recall** | 1.0000 | **1.0000** | Gate: == 1.0000 |
 | **Abstain Precision / Recall** | 0.6133 / 1.0000 | **0.6809 / 1.0000** | - |
 | **Expected Calibration Error (ECE)** | 0.1447 | **0.1453** | Observational (ADR-0008 / HD-3) |
-| **Latency p50 / p95 (ms)** | 0.018 / 0.075 | **0.021 / 0.064** | Budget: p95 < 50 ms |
+| **Latency p50 / p95 (ms)** | 0.017 / 0.092 | **0.019 / 0.060** | Budget: p95 < 50 ms |
 
 ## Stratified Performance Breakdown (FG-06 / HD-1)
 
@@ -32,11 +32,11 @@
 
 ## Methodological Baseline Comparison (Stratified Random vs BM25)
 
-| Evaluation Track | Cases | BM25 R@1 | Random R@1 | BM25 R@5 | Random R@5 |
-|:---|---:|---:|---:|---:|---:|
-| **Routed (Syndrome Provided)** | 41 | **53.66%** | 21.37% | **100.00%** | 79.92% |
-| **Unrouted (Vitals Only)** | 15 | **0.00%** | 9.33% | **0.00%** | 42.33% |
+| Track | Cases | BM25 R@1 | Random R@1 | Paired Diff R@1 | BM25 R@5 | Random R@5 |
+|:---|---:|---:|---:|---:|---:|---:|
+| **Routed** | 36 | **52.78%** | 26.44% | +26.33% [9.75%, 42.56%] | **100.00%** | 95.44% |
+| **Unrouted** | 15 | **0.00%** | 9.87% | -9.87% [-15.00%, -5.93%] | **0.00%** | 43.53% |
 
-> **Baseline Note:** BM25 achieves 2.5x gain over random on routed R@1 (53.66% vs 21.37%). R@5 is 100% because candidate pool size is ~5 chunks. Unrouted retriever safely abstains under HD-1 fail-closed rules.
+> **Baseline Note:** Paired evaluation across 36 routed test cases: BM25 R@1=52.78% vs Random R@1=26.44% (paired difference +26.33 pts, 95% CI [9.75, 42.56], 2.0x ranking advantage). R@5=100.0% matches candidate pool saturation. Production retriever deliberately abstains under fail-closed HD-1 because vitals thresholds are unverified (NEEDS_SOURCE). Random baseline selects unconstrained across all population chunks.
 
 > **Clinical Transparency Note (HD-1 / HD-3):** Vitals-only Recall@1 is 0.0% because all unverified vitals flag cut-offs are marked `status: NEEDS_SOURCE` under Gate G2 and fail closed (`EMPTY_QUERY`). This prevents unverified inference until clinician threshold sourcing is completed (`HD-1`). ECE is tracked as an observational research metric without an unqualified clinical PASS claim (`ADR-0008` / `HD-3`). Benchmark labels are unreviewed synthetic fixtures (`AGENT_AUTHORED_UNREVIEWED`).

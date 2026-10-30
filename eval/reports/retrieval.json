@@ -5,7 +5,7 @@
   "corpus_hash": "591c6cd10f3067be58abf29ecbda0d5dd2b46eee6d09d99e36057de25aed763b",
   "index_version": "2.0.0",
   "config_hash": "ffb6892cc1524c60cb9b354c2718da1f4ea504be36376fcb57fea32de6c5f44b",
-  "index_build_time_ms": 151.399,
+  "index_build_time_ms": 80.168,
   "deterministic": true,
   "benchmark_pairs": 146,
   "total_cases": 224,
@@ -21,20 +21,35 @@
     "routed_syndrome_provided": {
       "test_cases": 36,
       "avg_candidate_pool_size": 4.89,
+      "bm25_recall_at_1": 52.78,
+      "bm25_recall_at_5": 100.0,
+      "bm25_mrr": 0.7361,
       "random_recall_at_1": 26.44,
       "random_recall_at_5": 95.44,
       "random_mrr": 0.5178,
-      "bm25_recall_at_1": 53.66,
-      "bm25_recall_at_5": 100.0,
-      "bm25_mrr": 0.7398,
-      "interpretation": "BM25 ranker achieves 53.66% R@1 vs ~21% random selection (2.5x gain). R@5=100% is mathematically expected because candidate pool size is ~5 chunks."
+      "paired_diff_r1_points": 26.33,
+      "paired_diff_r1_ci_95": [
+        9.75,
+        42.56
+      ],
+      "relative_r1_multiplier": 2.0,
+      "interpretation": "Paired evaluation across 36 routed test cases: BM25 R@1=52.78% vs Random R@1=26.44% (paired difference +26.33 pts, 95% CI [9.75, 42.56], 2.0x ranking advantage). R@5=100.0% matches candidate pool saturation."
     },
     "unrouted_vitals_only": {
       "test_cases": 15,
       "avg_candidate_pool_size": 17.93,
-      "random_recall_at_1": 9.33,
-      "random_recall_at_5": 42.33,
-      "random_mrr": 0.2531,
+      "bm25_recall_at_1": 0.0,
+      "bm25_recall_at_5": 0.0,
+      "bm25_mrr": 0.0,
+      "random_recall_at_1": 9.87,
+      "random_recall_at_5": 43.53,
+      "random_mrr": 0.261,
+      "paired_diff_r1_points": -9.87,
+      "paired_diff_r1_ci_95": [
+        -15.0,
+        -5.93
+      ],
+      "relative_r1_multiplier": 0.0,
       "production_retriever_status": "FAILS_CLOSED_ABSTAIN",
       "production_recall_at_5": 0.0,
       "interpretation": "Production retriever deliberately abstains under fail-closed HD-1 because vitals thresholds are unverified (NEEDS_SOURCE). Random baseline selects unconstrained across all population chunks."
@@ -42,12 +57,21 @@
     "overall_test": {
       "test_cases": 51,
       "avg_candidate_pool_size": 8.73,
-      "random_recall_at_1": 20.9,
-      "random_recall_at_5": 80.82,
-      "random_mrr": 0.4392
+      "bm25_recall_at_1": 37.25,
+      "bm25_recall_at_5": 70.59,
+      "bm25_mrr": 0.5196,
+      "random_recall_at_1": 21.73,
+      "random_recall_at_5": 80.0,
+      "random_mrr": 0.4414,
+      "paired_diff_r1_points": 15.53,
+      "paired_diff_r1_ci_95": [
+        3.57,
+        27.71
+      ],
+      "relative_r1_multiplier": 1.71
     },
-    "random_recall_at_1": 20.9,
-    "random_recall_at_5": 80.82,
+    "random_recall_at_1": 21.73,
+    "random_recall_at_5": 80.0,
     "label_review_status": "AGENT_AUTHORED_UNREVIEWED"
   },
   "dev": {
@@ -86,8 +110,8 @@
     "abstain_recall_hard_negatives": 1.0,
     "wrong_protocol_rate": 0.0,
     "ece": 0.1447,
-    "latency_p50_ms": 0.018,
-    "latency_p95_ms": 0.075,
+    "latency_p50_ms": 0.017,
+    "latency_p95_ms": 0.092,
     "syndrome_provided": {
       "positive_cases": 61,
       "recall_at_1": 36.07,
@@ -181,8 +205,8 @@
     "abstain_recall_hard_negatives": 1.0,
     "wrong_protocol_rate": 0.0,
     "ece": 0.1453,
-    "latency_p50_ms": 0.021,
-    "latency_p95_ms": 0.064,
+    "latency_p50_ms": 0.019,
+    "latency_p95_ms": 0.06,
     "syndrome_provided": {
       "positive_cases": 41,
       "recall_at_1": 53.66,
@@ -276,8 +300,8 @@
     "abstain_recall_hard_negatives": 1.0,
     "wrong_protocol_rate": 0.0,
     "ece": 0.1449,
-    "latency_p50_ms": 0.054,
-    "latency_p95_ms": 0.213,
+    "latency_p50_ms": 0.017,
+    "latency_p95_ms": 0.06,
     "syndrome_provided": {
       "positive_cases": 102,
       "recall_at_1": 43.14,

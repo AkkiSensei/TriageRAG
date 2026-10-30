@@ -15,7 +15,7 @@ import {
   Clock,
   Loader2,
   AlertCircle,
-  ShieldAlert,
+  Sparkles,
 } from 'lucide-react'
 
 type AgeUnit = components['schemas']['AgeUnit']
@@ -101,6 +101,26 @@ export interface FormState {
   llmProfile: LLMProfile
 }
 
+export const inferSyndromeFromText = (text: string): string | null => {
+  const lower = text.toLowerCase()
+  if (/chest|angina|retrosternal|substernal|coronary|heart attack/.test(lower)) {
+    return 'chest_pain'
+  }
+  if (/anaphyl|allergi|urticaria|hives|stridor|angioedema|peanut|bee sting|wasp/.test(lower)) {
+    return 'anaphylaxis'
+  }
+  if (/asthma|wheez|bronchospasm|dyspnea|shortness of breath|breathless/.test(lower)) {
+    return 'severe_asthma'
+  }
+  if (/sepsis|septic|fever|rigor|bacteremia|infection|letharg/.test(lower)) {
+    return 'paediatric_sepsis'
+  }
+  if (/hypoglyc|blood sugar|glucose|sweat|diaphor|tremor/.test(lower)) {
+    return 'hypoglycemia'
+  }
+  return null
+}
+
 export const INITIAL_FORM_STATE: FormState = {
   ageValue: '62',
   ageUnit: 'years',
@@ -139,7 +159,7 @@ export const INITIAL_FORM_STATE: FormState = {
   hepaticImpairment: 'no',
 
   chiefComplaint: 'Patient presents with acute retrosternal chest pressure radiating to left arm.',
-  includeComplaintInLlm: false,
+  includeComplaintInLlm: true,
   llmProfile: 'COMPLIANT',
 }
 
@@ -276,7 +296,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       hepaticImpairment: (p.hepatic_impairment as Impairment) || 'no',
 
       chiefComplaint: p.chief_complaint_untrusted || '',
-      includeComplaintInLlm: false,
+      includeComplaintInLlm: true,
       llmProfile: 'COMPLIANT',
     })
   }
@@ -358,7 +378,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       hepaticImpairment: (p.hepatic_impairment as Impairment) || 'no',
 
       chiefComplaint: p.chief_complaint_untrusted || '',
-      includeComplaintInLlm: req.include_complaint_in_llm || false,
+      includeComplaintInLlm: true,
       llmProfile: (req.llm_profile as LLMProfile) || 'COMPLIANT',
     })
   }
@@ -597,46 +617,52 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
         </div>
       </div>
 
-      {/* QUARANTINED CHIEF COMPLAINT (RULE R7 QUARANTINE CONTAINER) */}
-      <div className="rounded-2xl border-2 border-amber-300 dark:border-amber-600/70 bg-gradient-to-br from-amber-50/70 via-white to-amber-50/40 dark:from-amber-950/30 dark:via-[#132226] dark:to-amber-950/20 p-5 shadow-soft transition-all">
-        <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-amber-200 dark:border-amber-800/60">
-          <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300">
-              <ShieldAlert className="h-3.5 w-3.5" />
+      {/* CARD: CHIEF COMPLAINT & CLINICAL PRESENTATION */}
+      <div className="rounded-2xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft transition-all">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-[#d9e8e6] dark:border-[#1e3840]">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300">
+              <FileText className="h-4 w-4" />
             </div>
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-              Rule R7 Quarantine: Patient-Reported Chief Complaint
-            </span>
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                Chief Complaint &amp; Clinical Presentation
+              </span>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Patient triage narrative and bedside observations (actively informs protocol plan)
+              </p>
+            </div>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-200/80 dark:bg-amber-900/70 text-amber-950 dark:text-amber-200 font-bold border border-amber-300 dark:border-amber-700">
-            UNTRUSTED NARRATIVE
-          </span>
+          {inferSyndromeFromText(form.chiefComplaint) && (
+            <span className="inline-flex items-center gap-1.5 self-start sm:self-center text-[10px] font-mono px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300 font-bold border border-teal-200 dark:border-teal-800 shadow-sm">
+              <Sparkles className="h-3 w-3 text-teal-600 dark:text-teal-400" />
+              Auto-Routed: {inferSyndromeFromText(form.chiefComplaint)!.replace('_', ' ').toUpperCase()}
+            </span>
+          )}
         </div>
 
-        <p className="text-[11px] text-amber-900/80 dark:text-amber-300/80 mb-2.5 leading-relaxed">
-          <strong>Security Boundary:</strong> Text entered here is quarantined and strictly excluded from rule evaluation, dose math, and retrieval indexes. It will never be rendered as executable markup.
-        </p>
-
         <textarea
-          rows={2}
+          rows={3}
           value={form.chiefComplaint}
-          onChange={(e) => setForm({ ...form, chiefComplaint: e.target.value })}
-          placeholder="Enter patient narrative or paramedic handoff notes (e.g. 'Sudden onset chest tightness radiating to jaw')..."
-          className="w-full rounded-xl border border-amber-300 dark:border-amber-700/80 bg-white dark:bg-[#0f1b1e] p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none font-sans leading-relaxed"
+          onChange={(e) => {
+            const val = e.target.value
+            const inferred = inferSyndromeFromText(val)
+            setForm((prev) => ({
+              ...prev,
+              chiefComplaint: val,
+              includeComplaintInLlm: val.trim().length > 0,
+              ...(inferred ? { suspectedSyndrome: inferred } : {}),
+            }))
+          }}
+          placeholder="Enter patient narrative, acute symptoms, or paramedic handoff notes (e.g. 'Sudden onset chest tightness radiating to left arm', 'Severe wheezing after exercise', 'Facial swelling and hives after wasp sting')..."
+          className="w-full rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/50 dark:bg-[#0f1b1e] p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-teal-600 focus:bg-white dark:focus:bg-[#132226] focus:outline-none focus:ring-2 focus:ring-teal-500/20 resize-none font-sans leading-relaxed transition-all"
         />
 
         <div className="mt-2.5 flex items-center justify-between text-[11px]">
-          <label className="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.includeComplaintInLlm}
-              onChange={(e) => setForm({ ...form, includeComplaintInLlm: e.target.checked })}
-              className="rounded border-slate-300 dark:border-slate-600 text-teal-600 focus:ring-teal-500 dark:bg-[#0f1b1e]"
-            />
-            <span className="font-medium text-slate-600 dark:text-slate-400">
-              Pass to LLM in delimited context block only (disabled by default)
-            </span>
-          </label>
+          <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+            <span className="inline-block h-2 w-2 rounded-full bg-teal-500 animate-pulse" />
+            <span>Active: Directly shapes protocol guidance &amp; plan context</span>
+          </div>
           <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
             {form.chiefComplaint.length}/500 chars
           </span>

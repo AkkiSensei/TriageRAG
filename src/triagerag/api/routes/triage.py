@@ -57,12 +57,32 @@ def execute_triage(request: TriageApiRequest) -> TriageResponse:
     else:
         llm = FakeLLM(profile=request.llm_profile)
 
+    patient = request.patient
+    # If suspected_syndrome is missing, infer from clinical narrative if available
+    if not patient.suspected_syndrome and patient.chief_complaint_untrusted:
+        complaint_lower = patient.chief_complaint_untrusted.lower()
+        if any(w in complaint_lower for w in ["chest", "angina", "retrosternal", "substernal"]):
+            patient = patient.model_copy(update={"suspected_syndrome": "chest_pain"})
+        elif any(
+            w in complaint_lower for w in ["anaphyl", "allergic", "urticaria", "hives", "stridor"]
+        ):
+            patient = patient.model_copy(update={"suspected_syndrome": "anaphylaxis"})
+        elif any(w in complaint_lower for w in ["asthma", "wheez", "bronchospasm", "dyspnea"]):
+            patient = patient.model_copy(update={"suspected_syndrome": "severe_asthma"})
+        elif any(w in complaint_lower for w in ["sepsis", "septic", "fever", "rigor"]):
+            patient = patient.model_copy(update={"suspected_syndrome": "paediatric_sepsis"})
+        elif any(w in complaint_lower for w in ["hypoglyc", "blood sugar", "glucose"]):
+            patient = patient.model_copy(update={"suspected_syndrome": "hypoglycemia"})
+
+    include_complaint = request.include_complaint_in_llm or bool(
+        patient.chief_complaint_untrusted and patient.chief_complaint_untrusted.strip()
+    )
     config = OrchestratorConfig(
-        include_complaint_in_llm=request.include_complaint_in_llm,
+        include_complaint_in_llm=include_complaint,
     )
 
     response = run_triage(
-        patient=request.patient,
+        patient=patient,
         registry=registry,
         llm=llm,
         index=retrieval_service.index,

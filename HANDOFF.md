@@ -6,7 +6,7 @@
 
 - **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`), Part D Fix Gates `fg-0` through `fg-6`, and **Part E Work Package 0 (WP-0: Engine Defect Sweep & Deterministic Safety Interlocks, ADR 0010)** **COMPLETE**. Latent safety defects ENG-01..ENG-08 resolved with failing-first tests; all 65 golden cases verified in strict isolation (`only_rules`); differential testing with naive reference interpreter green across 1,000 Hypothesis permutations; all audit flags closed with zero regressions.
 - **Verification:** All gates green:
-  - 227 passed, 1 xfailed (ENG-04 pending HD-6) Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, FG-1..FG-5 test suites, audit regressions suite, route verification suite, gemini provider suite, and differential engine suite).
+  - 234 passed, 1 xfailed (ENG-04 pending HD-6) Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, FG-1..FG-5 test suites, audit regressions suite, route verification suite, gemini provider suite, and differential engine suite).
   - 8/8 Vitest frontend unit & component tests green.
   - 52/52 mutants killed (100% kill score: 12 rule mutants + 40 code mutants, including M34–M40).
   - 65/65 Golden cases green (100% in full ruleset and 100% in rule-isolation harness).
@@ -57,7 +57,7 @@
 | **Python Linters** | Ruff check & format | 0 warnings | Clean | PASS |
 | **Python Typing** | Mypy strict mode | 0 errors | Clean | PASS |
 | **Layer Contracts** | Import-linter | 0 violations | Clean | PASS |
-| **Backend Tests** | Pytest unit, integration, property | 100% | 233 passed, 1 xfailed (HD-6) | PASS |
+| **Backend Tests** | Pytest unit, integration, property | 100% | 234 passed, 1 xfailed (HD-6) | PASS |
 | **Safety Boundary Tests** | AST scans & rule checks | 100% | 4/4 passed | PASS |
 | **Golden Ruleset** | Shipped clinical cases & rule-isolation | 100% | 65/65 passed (100% in isolation) | PASS |
 | **Mechanics Suite** | Edge cases & unit trips | 100% | 41/41 passed | PASS |

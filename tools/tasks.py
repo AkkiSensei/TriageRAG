@@ -320,11 +320,11 @@ def verify_full() -> None:
     typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
 
 
-@app.command(name="release-check")
-def release_check() -> None:
-    """Release certification: full verification, report integrity, dependency lock, security."""
+@app.command(name="release-preflight")
+def release_preflight() -> None:
+    """Release preflight gate: verification, report integrity, dependency lock, security posture."""
     typer.secho("=" * 60, fg=typer.colors.CYAN, bold=True)
-    typer.secho("   TRIAGERAG RELEASE CERTIFICATION CHECK", fg=typer.colors.CYAN, bold=True)
+    typer.secho("   TRIAGERAG RELEASE PREFLIGHT CHECK", fg=typer.colors.CYAN, bold=True)
     typer.secho("=" * 60, fg=typer.colors.CYAN, bold=True)
 
     verify_full()
@@ -341,18 +341,30 @@ def release_check() -> None:
 
     typer.secho("=== Checking Docker Container Configuration ===", fg=typer.colors.BLUE, bold=True)
     dockerfile = (REPO_ROOT / "Dockerfile").read_text(encoding="utf-8")
+    if "USER root" in dockerfile or "USER 0" in dockerfile:
+        typer.secho("FATAL: Dockerfile cannot run as root user", fg=typer.colors.RED)
+        raise typer.Exit(code=1)
     if "USER triage" not in dockerfile and "USER " not in dockerfile:
-        typer.secho("FATAL: Dockerfile must enforce a non-root user", fg=typer.colors.RED)
+        typer.secho(
+            "FATAL: Dockerfile must enforce a non-root user (e.g. USER triage)",
+            fg=typer.colors.RED,
+        )
         raise typer.Exit(code=1)
     typer.secho("[OK] Container security posture verified (non-root)", fg=typer.colors.GREEN)
 
     typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
     typer.secho(
-        "[OK] RELEASE CHECK PASSED — ARTIFACT CERTIFIED FOR DISTRIBUTION",
+        "[OK] RELEASE PREFLIGHT PASSED — CODEBASE READY FOR ARCHIVAL AND DISTRIBUTION",
         fg=typer.colors.GREEN,
         bold=True,
     )
     typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
+
+
+@app.command(name="release-check")
+def release_check() -> None:
+    """Alias for release-preflight."""
+    release_preflight()
 
 
 @app.command()

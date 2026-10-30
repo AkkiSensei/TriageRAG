@@ -37,14 +37,6 @@ jobs:
         run: |
           python tools/tasks.py verify
 
-      - name: Run frontend verification
-        run: |
-          python tools/tasks.py web-verify
-
-      - name: Run evaluation suites
-        run: |
-          python tools/tasks.py eval
-
       - name: Upload evaluation reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -90,9 +82,19 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Run README Quickstart commands verbatim
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "web/package-lock.json"
+
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev,api]"
+          npm ci --prefix web
+
+      - name: Run README Quickstart verification
+        run: |
           python tools/tasks.py verify
-          python tools/tasks.py eval

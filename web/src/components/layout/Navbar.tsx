@@ -4,11 +4,8 @@ import {
   Activity,
   Stethoscope,
   FileSpreadsheet,
-  Shield,
   BookOpen,
   FileCode2,
-  LineChart,
-  Hash,
   Menu,
   X,
   Sparkles,
@@ -29,11 +26,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: '/intake', label: 'Intake Station', icon: Stethoscope },
   { to: '/report', label: 'Clinical Report', icon: FileSpreadsheet },
-  { to: '/redteam', label: 'Red Team', icon: Shield, badge: 'R7' },
   { to: '/rules', label: 'Ruleset', icon: BookOpen },
   { to: '/protocols', label: 'Protocols', icon: FileCode2 },
-  { to: '/evidence', label: 'Evidence', icon: LineChart },
-  { to: '/audit', label: 'Audit Chain', icon: Hash },
 ]
 
 export const Navbar: React.FC = () => {

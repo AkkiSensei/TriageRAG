@@ -246,17 +246,36 @@ def verify_cumulative_daily_exposure(
         ):
             continue
 
-        target_unit = (
-            _get_mass_unit_for_weight_basis(pop_rule.unit)
-            if pop_rule.dose_basis == "weight"
-            else pop_rule.unit
-        )
-        daily_max_amount = pop_rule.daily_max
-
         # Check patient weight for weight-based doses
         patient_weight: Decimal | None = None
         if patient.weight_kg.source != "unknown" and patient.weight_kg.value is not None:
             patient_weight = patient.weight_kg.value
+
+        if pop_rule.dose_basis == "weight":
+            if pop_rule.unit in (DoseUnit.mg_per_kg, DoseUnit.mcg_per_kg):
+                if patient_weight is None:
+                    skipped_checks.append(
+                        SkippedCheck(
+                            rule_id=f"CUMULATIVE_DOSE_{drug_id.upper()}",
+                            rule_type="cumulative_dose_limit",
+                            reason=(
+                                f"Patient weight unknown; cannot calculate weight-adjusted "
+                                f"cumulative daily ceiling for '{drug_id}'"
+                            ),
+                            missing_fields=["weight_kg"],
+                            provenance=pop_rule.provenance,
+                        )
+                    )
+                    continue
+                # Weight-based daily max ceiling normalized to absolute mass
+                target_unit = DoseUnit.mg if pop_rule.unit == DoseUnit.mg_per_kg else DoseUnit.mcg
+                daily_max_amount = pop_rule.daily_max * patient_weight
+            else:
+                target_unit = pop_rule.unit
+                daily_max_amount = pop_rule.daily_max
+        else:
+            target_unit = pop_rule.unit
+            daily_max_amount = pop_rule.daily_max
 
         plan_total = Decimal("0.0")
         conversion_error = False
@@ -301,9 +320,9 @@ def verify_cumulative_daily_exposure(
         if conversion_error:
             continue
 
-        # Inspect prior 24h medication history
+        # Inspect prior 24h medication history (single-encounter rolling 24h window)
         prior_total = Decimal("0.0")
-        if patient.medication_history_status in ("unobtainable", "unknown"):
+        if patient.medication_history_status in ("incomplete", "unknown_unobtainable"):
             skipped_checks.append(
                 SkippedCheck(
                     rule_id=f"CUMULATIVE_DOSE_{drug_id.upper()}",

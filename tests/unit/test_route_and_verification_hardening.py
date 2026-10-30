@@ -325,15 +325,18 @@ def test_cumulative_daily_dose_prior_history_exceeded_flags_high() -> None:
     assert "1.5 mg" in cum_alert.consequence
 
 
-def test_cumulative_daily_dose_unknown_prior_history_emits_skip() -> None:
-    """Unknown prior history emits SkippedCheck for cumulative dose safety (Section 5 review)."""
+def test_cumulative_daily_dose_unknown_prior_history_emits_skip_and_blocks_approval() -> None:
+    """Unknown prior history emits SkippedCheck and prevents step from being APPROVED (P0-B)."""
+    from triagerag.contracts.schemas import PlanDraft, RetrievedChunk
     from triagerag.engine.rule_engine import evaluate_plan
+    from triagerag.verify.plan_verifier import verify_plan
 
     reg = load_registry(get_data_dir())
     patient = _make_patient()
+    # Use valid schema status: "unknown_unobtainable"
     unknown_patient = patient.model_copy(
         update={
-            "medication_history_status": "unobtainable",
+            "medication_history_status": "unknown_unobtainable",
             "medications": [],
         }
     )
@@ -344,17 +347,18 @@ def test_cumulative_daily_dose_unknown_prior_history_emits_skip() -> None:
         drug_id="epinephrine",
         requested_dose=ExplicitDose(amount=Decimal("0.3"), unit=DoseUnit.mg),
         route=Route.im,
-        narrative_instruction="Administer epinephrine 0.3mg IM.",
+        narrative_instruction="Administer first-line IM agent immediately for anaphylaxis.",
         citations=[
             SpanCitation(
                 doc_id="PROTO_ANAPHYLAXIS",
                 section="Immediate Management",
                 chunk_id="ANAPHYLAXIS_01",
-                quoted_span="administer epinephrine immediately",
+                quoted_span="administer epinephrine immediately for anaphylaxis",
             )
         ],
     )
 
+    # 1. Direct evaluate_plan emits SkippedCheck under valid schema status
     alerts, skips, _ = evaluate_plan(
         patient=unknown_patient,
         steps=[step],
@@ -364,4 +368,120 @@ def test_cumulative_daily_dose_unknown_prior_history_emits_skip() -> None:
 
     cum_skip = next((s for s in skips if "CUMULATIVE_DOSE" in s.rule_id), None)
     assert cum_skip is not None
-    assert "unobtainable" in cum_skip.reason
+    assert "unknown_unobtainable" in cum_skip.reason
+
+    # 2. verify_plan propagation: step cannot receive APPROVED when cumulative dose is unverified
+    retrieved_chunk = RetrievedChunk(
+        chunk_id="ANAPHYLAXIS_01",
+        doc_id="PROTO_ANAPHYLAXIS",
+        section="Immediate Management",
+        text="When anaphylaxis is recognized, administer epinephrine immediately for anaphylaxis.",
+        population="adult",
+        syndrome="anaphylaxis",
+    )
+    draft = PlanDraft(
+        matched_protocol_title="Anaphylaxis Management",
+        steps=[step],
+    )
+
+    v_steps, _, _, _ = verify_plan(
+        patient=unknown_patient,
+        draft=draft,
+        baseline_alerts=[],
+        retrieved_chunks=[retrieved_chunk],
+        registry=reg,
+    )
+
+    assert len(v_steps) == 1
+    v_step = v_steps[0]
+    # Acceptance criterion: Step CANNOT receive APPROVED when cumulative check is unverified
+    assert v_step.status != StepStatus.APPROVED
+    assert v_step.status == StepStatus.REQUIRES_CLINICIAN_CONFIRMATION
+    assert any("Cumulative daily exposure unverified" in r for r in v_step.rejection_reasons)
+
+
+def test_weight_based_cumulative_dose_unit_consistency() -> None:
+    """Weight-based daily dose limits are dimensionally consistent (P0-C)."""
+    from triagerag.contracts.schemas import Age, AgeUnit, Measured
+    from triagerag.engine.rule_engine import evaluate_plan
+
+    reg = load_registry(get_data_dir())
+
+    # Paediatric patient: 20 kg
+    paed_patient = _make_patient().model_copy(
+        update={
+            "age": Age(value=Decimal("8"), unit=AgeUnit.years),
+            "weight_kg": Measured[Decimal](value=Decimal("20.0"), source="measured"),
+            "medication_history_status": "confirmed_none",
+            "medications": [],
+        }
+    )
+
+    # Paediatric epinephrine rule in formulary:
+    # dose_basis: "weight", per_dose_min: 0.01, per_dose_max: 0.01, daily_max: 0.5, unit: "mg/kg"
+    # For a 20 kg child, daily_max in absolute mass is 0.5 * 20 = 10.0 mg.
+    # Single dose: 0.01 mg/kg * 20 kg = 0.2 mg.
+    # A proposal of 2 repeated doses of 0.2 mg (total 0.4 mg) is well below the 10.0 mg daily limit.
+    safe_steps = [
+        PlanStepDraft(
+            step_number=i,
+            action_type=ActionType.administer,
+            drug_id="epinephrine",
+            requested_dose=ExplicitDose(amount=Decimal("0.01"), unit=DoseUnit.mg_per_kg),
+            route=Route.im,
+            narrative_instruction=f"Step {i}: Administer paediatric epinephrine IM.",
+            citations=[
+                SpanCitation(
+                    doc_id="PROTO_ANAPHYLAXIS",
+                    section="Immediate Management",
+                    chunk_id="ANAPHYLAXIS_01",
+                    quoted_span="administer epinephrine immediately",
+                )
+            ],
+        )
+        for i in range(1, 3)
+    ]
+
+    alerts, skips, _ = evaluate_plan(
+        patient=paed_patient,
+        steps=safe_steps,
+        baseline_alerts=[],
+        registry=reg,
+    )
+    # Total 0.4 mg is below 10.0 mg ceiling: NO cumulative dose alert should fire
+    cum_alert = next((a for a in alerts if "CUMULATIVE_DAILY_DOSE" in a.rule_id), None)
+    assert cum_alert is None
+
+    # Now test an excessive dose exceeding weight-adjusted daily_max
+    # (e.g. 0.3 mg/kg * 20 kg = 6 mg per dose, 2 doses = 12 mg > 10 mg daily cap)
+    excessive_steps = [
+        PlanStepDraft(
+            step_number=i,
+            action_type=ActionType.administer,
+            drug_id="epinephrine",
+            requested_dose=ExplicitDose(amount=Decimal("0.3"), unit=DoseUnit.mg_per_kg),
+            route=Route.im,
+            narrative_instruction=f"Step {i}: Administer excessive dose IM.",
+            citations=[
+                SpanCitation(
+                    doc_id="PROTO_ANAPHYLAXIS",
+                    section="Immediate Management",
+                    chunk_id="ANAPHYLAXIS_01",
+                    quoted_span="administer epinephrine immediately",
+                )
+            ],
+        )
+        for i in range(1, 3)
+    ]
+
+    alerts_ex, _, _ = evaluate_plan(
+        patient=paed_patient,
+        steps=excessive_steps,
+        baseline_alerts=[],
+        registry=reg,
+    )
+    cum_alert_ex = next((a for a in alerts_ex if "CUMULATIVE_DAILY_DOSE" in a.rule_id), None)
+    assert cum_alert_ex is not None
+    assert cum_alert_ex.severity.value == "HIGH"
+    assert "12.00 mg" in cum_alert_ex.consequence
+    assert "10.00 mg" in cum_alert_ex.consequence

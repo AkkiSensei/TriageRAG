@@ -308,6 +308,12 @@ class PlanStepDraft(BaseModel):
     requested_dose: ExplicitDose | None = None
     route: Route | None = None
     citations: list[SpanCitation] = Field(min_length=1)
+    relative_time_minutes: int | None = Field(
+        default=0,
+        ge=0,
+        le=1440,
+        description="Planned administration offset in minutes from assessed_at (max 1440m/24h).",
+    )
 
     @model_validator(mode="after")
     def validate_step_consistency(self) -> PlanStepDraft:

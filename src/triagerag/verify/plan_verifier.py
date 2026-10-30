@@ -254,6 +254,27 @@ def verify_plan(
                         status = StepStatus.UNVERIFIED_MISSING_DATA
                     rejection_reasons.append(d_rep.notes)
 
+            # Check for unresolved cumulative dose verification skips impacting this drug (P0-B)
+            matching_cum_skips = [
+                s
+                for s in all_skips
+                if s.rule_type == "cumulative_dose_limit"
+                and (
+                    step_drug_id in s.rule_id.lower()
+                    or any(did in s.rule_id.lower() for did in step_drug_identifiers)
+                )
+            ]
+            for c_skip in matching_cum_skips:
+                triggered_rule_ids.append(c_skip.rule_id)
+                rejection_reasons.append(
+                    f"Cumulative daily exposure unverified [{c_skip.rule_id}]: {c_skip.reason}"
+                )
+                if status not in (
+                    StepStatus.BLOCKED_STRUCK_THROUGH,
+                    StepStatus.FLAGGED_HIGH,
+                ):
+                    status = StepStatus.REQUIRES_CLINICIAN_CONFIRMATION
+
         elif step.action_type == ActionType.withhold:
             # Withholding a blocked drug is safe and correct (Section 6)
             pass
