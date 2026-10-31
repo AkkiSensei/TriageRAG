@@ -4,9 +4,9 @@
 
 ## Current State
 
-- **Current Status:** Engineering Excellence & Explainability Initiative completed on branch `feat/retrieval-explainability-ux` (base commit `4ad9a2f4020533b831e56703b8fe2c4c0dea45fc`). All baseline findings (Findings A through F) resolved. Fully grounded, deterministic explainability layer (`TriageExplanation`) answers all 6 core user questions. Zero regressions, zero uncommitted tracked report mutations, 100% test isolation, and 100% test pass rate across backend and frontend.
+- **Current Status:** AUB Phase 2 (Patient-Aware Retrieval) completed on branch `aub/phase-2-patient-aware-retrieval`. Tasks T2.1 through T2.7 implemented, verified, and documented with ADR-0011 and updated status ledger. Overall Test Recall@1 = 71.43% (up from 39.29%), Test Recall@5 = 98.21% (up from 73.21%), Vitals-Only Recall@1 = 73.33% (up from 0.00%), Wrong-Protocol Rate = 0.0000. All 295 unit tests passing (294 passed, 1 xfailed for HD-6).
 - **Verification:** All gates green:
-  - **238 passed, 1 xfailed (ENG-04 pending HD-6), 0 failed** in Pytest test suite (including unit, integration, property, UI smoke, safety boundary, intake hardening, WP0–WP9 RAG suites, test isolation, route verification, and differential engine).
+  - **294 passed, 1 xfailed (HD-6 non-overridable overdose BLOCK), 0 failed** in Pytest test suite (including unit, integration, property, UI smoke, safety boundary, intake hardening, WP0–WP9 RAG suites, test isolation, route verification, differential engine, and Phase 2 suites).
   - **8/8 Vitest frontend unit & component tests green.**
   - **0 lint / format errors** (Python ruff check & format; 159 files checked).
   - **0 type errors** (Python mypy strict in `src/` & TypeScript `tsc --noEmit`).
@@ -18,7 +18,26 @@
   - **19/19 Adversarial prompt injection attacks neutralized.**
   - **4-Arm Retrieval Ablation**: All 4 arms benchmarked across 224 cases with 0.0 wrong-protocol rate and 100% hard-negative abstention recall.
 
-## Architecture Highlights
+## AUB Phase 2 Deliverables Summary
+
+1. **T2.1 / D2 — Structured Clinical Predicate Vocabulary (`af6a410`):**
+   - 17 synthetic predicates (`data/retrieval/predicates.yaml`) with tri-state evaluation (`SATISFIED`, `UNSATISFIED`, `UNKNOWN`) in `src/triagerag/rag/predicates.py`. Strict clinical engine isolation upheld.
+2. **T2.2 / D2 — Protocol Node Applicability Metadata (`93e5521`):**
+   - 21 decision nodes catalogued in `data/retrieval/node_predicates.yaml` with `requires_predicates`, `contraindicated_by`, and `always_applicable`. Attached to `ProtocolChunk` during ingestion.
+3. **T2.3 / HD-16 — Synthetic Retrieval Cues & Query Expansion (`e73e69b`):**
+   - Mapped 17 patient predicates to protocol vocabulary in `data/retrieval/cues.yaml` and `src/triagerag/rag/cues.py`. Distinguished presenting findings (`syndrome_cue: true`) from qualifiers (`syndrome_cue: false`).
+4. **T2.4 / AUB-RET-01 — Patient-Conditioned Retrieval Scoring (`5f26092`):**
+   - Implemented linear scoring model $Score = BM25 + \lambda \times \text{matches} - \mu \times \text{conflicts}$ in `src/triagerag/rag/scoring.py` with deterministic tie-breaking sorted by `(-round(score, 4), chunk_id)`.
+5. **T2.5 / AUB-RET-06 — Query and Index Token Hygiene (`dbe44bf`):**
+   - Added `tokenize_raw` so BM25 document length strictly counts discriminative raw words, avoiding length normalisation penalties from synonyms/stems. Cleaned `indexed_text` and preserved `display_header` for citations.
+6. **T2.6 / AUB-RET-02 — Score-Scale Integrity Across Retrieval Backends (`17b0d90`):**
+   - Removed 1.5x reranker multiplier; bounded reranked score $\le$ base score; eliminated artificial RRF-to-BM25 rescaling; added $[0.0, 1.0)$ confidence normalization.
+7. **T2.7 / HD-4 — Reachable Vitals-Only Syndrome Inference Path (`d27dc07`):**
+   - Re-enabled vitals-only triage candidate retrieval using presenting vitals cues; implemented margin-based discrimination ($\ge 0.25$ required, else `AMBIGUOUS_MARGIN`); enforced HD-4 clinical confirmation gate in `orchestrator.py` capping all verified steps at `StepStatus.REQUIRES_CLINICIAN_CONFIRMATION`.
+8. **ADR-0011 & Documentation Ledger (`da14533`):**
+   - Authored `docs/adr/0011-patient-aware-retrieval-scoring.md` and updated `docs/AUB_STATUS.md` and `CHANGELOG.md`.
+
+## Prior Architecture Highlights
 
 1. **Part A: Master Debugging & Mutation Hardening (tagged `debug-complete`):**
    - 40-mutant kill suite (`eval/run_mutation.py`) covering verdict lattice, lookbacks, withhold exemptions, citation groundings, drug-scan tokens, population filters, BLOCK override guards, dose math, and cryptographic audit.
