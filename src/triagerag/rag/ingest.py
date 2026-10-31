@@ -96,8 +96,12 @@ def compute_corpus_hash(chunks: list[ProtocolChunk]) -> str:
 
 
 @lru_cache
-def load_corpus_manifest(data_dir: Path | None = None) -> CorpusManifest:
-    """Load data/corpus/manifest.yaml if present, or derive from ingested chunks."""
+def load_corpus_manifest(
+    data_dir: Path | None = None,
+    *,
+    allow_derive: bool = False,
+) -> CorpusManifest:
+    """Load data/corpus/manifest.yaml if present, or derive when explicitly permitted (fail-closed, R2)."""
     target_dir = (data_dir if data_dir is not None else get_data_dir()).resolve()
     manifest_path = target_dir / "corpus" / "manifest.yaml"
     if manifest_path.exists():
@@ -105,13 +109,16 @@ def load_corpus_manifest(data_dir: Path | None = None) -> CorpusManifest:
         if isinstance(raw, dict):
             return CorpusManifest.model_validate(raw)
 
-    # Fallback derivation when operating on a temporary test data_dir without manifest.yaml
-    report = ingest_protocols_with_report(target_dir, strict_unparsed=False)
+    if not allow_derive:
+        raise FileNotFoundError(f"Corpus manifest not found at {manifest_path} (fail-closed, R2)")
+
+    # Explicit fallback derivation when permitted
+    report = ingest_protocols_with_report(target_dir, strict_unparsed=False, derive_manifest=True)
     syndromes = sorted({c.syndrome for c in report.chunks if c.syndrome})
     return CorpusManifest(
         manifest_version="1.0.0",
         controlled_syndromes=syndromes,
-        syndrome_aliases={"paediatric_sepsis_screen": "paediatric_sepsis"},
+        syndrome_aliases={},
         documents=[],
     )
 
@@ -120,24 +127,19 @@ def ingest_protocols_with_report(
     data_dir: Path,
     *,
     strict_unparsed: bool = True,
+    derive_manifest: bool = False,
 ) -> IngestReport:
     """Ingest and validate all protocol markdown files from data directories.
 
     Scans data/protocols_synthetic/, data/protocols_real/, and data/corpus/ (excluding manifest).
     Quarantines malformed files per-file rather than aborting the entire ingestion run.
+    Absent manifest.yaml quarantines all documents unless derive_manifest is True (fail-closed, R2).
     """
     all_chunks: list[ProtocolChunk] = []
     loaded_docs: list[str] = []
     quarantined: list[QuarantinedDocument] = []
     unparsed_by_doc: dict[str, list[str]] = {}
     flagged_chunks: dict[str, list[str]] = {}
-
-    # Block status REVIEWED if document has flagged prompt injection patterns (FG-17)
-    manifest_map: dict[str, CorpusManifestEntry] = {}
-    manifest_file = data_dir / "corpus" / "manifest.yaml"
-    if manifest_file.exists():
-        manifest = load_corpus_manifest(data_dir)
-        manifest_map = {d.doc_id: d for d in manifest.documents}
 
     candidate_dirs = [
         data_dir / "protocols_synthetic",
@@ -154,6 +156,26 @@ def ingest_protocols_with_report(
                 if resolved not in seen_paths:
                     seen_paths.add(resolved)
                     md_files.append(md_file)
+
+    manifest_file = data_dir / "corpus" / "manifest.yaml"
+    manifest_map: dict[str, CorpusManifestEntry] = {}
+    if not manifest_file.exists():
+        if not derive_manifest:
+            reason = f"Corpus manifest missing: {manifest_file} not found (fail-closed, R2)"
+            for md_file in md_files:
+                logger.warning("Quarantining protocol %s: %s", md_file.name, reason)
+                quarantined.append(QuarantinedDocument(path=str(md_file), reason=reason))
+            return IngestReport(
+                chunks=[],
+                loaded_docs=[],
+                quarantined=quarantined,
+                unparsed_by_doc={},
+                flagged_chunks={},
+                corpus_hash="",
+            )
+    else:
+        manifest = load_corpus_manifest(data_dir)
+        manifest_map = {d.doc_id: d for d in manifest.documents}
 
     for md_file in md_files:
         try:

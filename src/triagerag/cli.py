@@ -461,11 +461,17 @@ def corpus_validate(
         Path | None,
         typer.Option("--data-dir", help="Data directory containing protocol corpus"),
     ] = None,
+    derive_manifest: Annotated[
+        bool,
+        typer.Option("--derive-manifest", help="Allow deriving corpus manifest when manifest.yaml is missing"),
+    ] = False,
 ) -> None:
     """Validate all protocol files, frontmatter provenance, and round-trip chunking invariants."""
     _print_disclaimer()
     target_dir = data_dir or get_data_dir()
-    report = ingest_protocols_with_report(target_dir, strict_unparsed=True)
+    report = ingest_protocols_with_report(
+        target_dir, strict_unparsed=True, derive_manifest=derive_manifest
+    )
 
     errors: list[str] = []
     if report.quarantined:
@@ -492,6 +498,8 @@ def corpus_validate(
                     )
         except Exception as exc:
             errors.append(f"Manifest validation failed: {exc}")
+    elif not derive_manifest:
+        errors.append(f"Missing corpus manifest: {manifest_path} (pass --derive-manifest to override)")
 
     if not report.loaded_docs and not errors:
         errors.append(f"FAILED: No valid protocol documents found in {target_dir}")
@@ -518,11 +526,17 @@ def corpus_report(
         Path | None,
         typer.Option("--data-dir", help="Data directory containing protocol corpus"),
     ] = None,
+    derive_manifest: Annotated[
+        bool,
+        typer.Option("--derive-manifest", help="Allow deriving corpus manifest when manifest.yaml is missing"),
+    ] = False,
 ) -> None:
     """Print detailed corpus provenance, population/syndrome distribution, and quarantine report."""
     _print_disclaimer()
     target_dir = data_dir or get_data_dir()
-    report = ingest_protocols_with_report(target_dir, strict_unparsed=False)
+    report = ingest_protocols_with_report(
+        target_dir, strict_unparsed=False, derive_manifest=derive_manifest
+    )
 
     table = Table(title=f"CORPUS REPORT (Hash: {report.corpus_hash[:16]})", expand=True)
     table.add_column("Chunk ID")

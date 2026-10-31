@@ -20,7 +20,7 @@ from typer.testing import CliRunner
 from triagerag.cli import app
 from triagerag.config import get_data_dir
 from triagerag.rag.chunking import chunk_protocol_markdown
-from triagerag.rag.ingest import ingest_protocols_with_report
+from triagerag.rag.ingest import ingest_protocols_with_report, load_corpus_manifest
 
 runner = CliRunner()
 
@@ -83,6 +83,12 @@ def test_license_required_for_real() -> None:
 
 def test_bad_file_quarantined_not_fatal(tmp_path: Path) -> None:
     """RAG-04: Malformed protocol file is quarantined into IngestReport without aborting run."""
+    corpus_dir = tmp_path / "corpus"
+    corpus_dir.mkdir(parents=True, exist_ok=True)
+    (corpus_dir / "manifest.yaml").write_text(
+        "manifest_version: '1.0.0'\ncontrolled_syndromes: ['sepsis']\nsyndrome_aliases: {}\ndocuments: []\n",
+        encoding="utf-8",
+    )
     synth_dir = tmp_path / "protocols_synthetic"
     synth_dir.mkdir(parents=True)
     real_dir = tmp_path / "protocols_real"
@@ -177,3 +183,43 @@ status: "PLACEHOLDER_UNRETRIEVED"
     assert "EMERG_CHEST_PAIN" not in report.loaded_docs
     assert len(report.quarantined) == 1
     assert "Content hash mismatch" in report.quarantined[0].reason
+
+
+def test_missing_manifest_quarantines_all_documents(tmp_path: Path) -> None:
+    """T0.5 / AUB-COR-04: Missing manifest.yaml quarantines all documents unless derive_manifest is set."""
+    synth_dir = tmp_path / "protocols_synthetic"
+    synth_dir.mkdir(parents=True)
+    (synth_dir / "sample.md").write_text(
+        "---\n"
+        'doc_id: "SAMPLE_DOC"\n'
+        'title: "Sample Protocol"\n'
+        'section: "Triage"\n'
+        'population: "adult"\n'
+        'syndrome: "chest_pain"\n'
+        'chunk_id: "SAMPLE_01"\n'
+        "synthetic: true\n"
+        "---\n"
+        "1. IF chest pain:\n"
+        "   THEN evaluate.\n",
+        encoding="utf-8",
+    )
+
+    # 1. Without manifest and derive_manifest=False: all files quarantined
+    report_strict = ingest_protocols_with_report(tmp_path)
+    assert len(report_strict.loaded_docs) == 0
+    assert len(report_strict.quarantined) == 1
+    assert "Corpus manifest missing" in report_strict.quarantined[0].reason
+
+    # 2. load_corpus_manifest fails closed without allow_derive
+    with pytest.raises(FileNotFoundError, match="Corpus manifest not found"):
+        load_corpus_manifest(tmp_path)
+
+    # 3. With derive_manifest=True: documents load and manifest is derived without hardcoded aliases
+    report_derived = ingest_protocols_with_report(tmp_path, derive_manifest=True)
+    assert len(report_derived.loaded_docs) == 1
+    assert "SAMPLE_DOC" in report_derived.loaded_docs
+
+    manifest_derived = load_corpus_manifest(tmp_path, allow_derive=True)
+    assert manifest_derived.controlled_syndromes == ["chest_pain"]
+    assert manifest_derived.syndrome_aliases == {}
+

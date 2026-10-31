@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `test_dataset_lock_fails_on_tampered_dataset` regression test.
 
 ### Fixed & Hardened
+- **Strict Corpus Manifest Enforcement and Fail-Closed Ingestion (T0.5 / AUB-COR-04):**
+  - Removed silent fallback manifest derivation and hardcoded `paediatric_sepsis_screen` alias in `load_corpus_manifest()`.
+  - Ingestion now strictly fails closed, quarantining all protocol files when `manifest.yaml` is absent unless `derive_manifest=True` is explicitly passed.
+  - Added CLI `--derive-manifest` flag to `corpus validate` and `corpus report`.
+  - Added regression test `test_missing_manifest_quarantines_all_documents`.
 - **Honest Retrieval Terminology (`char_ngram` Primary) (T0.4 / AUB-RET-05 / D6):**
   - Renamed internal attributes from `self.dense` to `self.char_ngram` in `HybridRRFRetriever`.
   - Added runtime `DeprecationWarning` when querying deprecated `HybridRRFRetriever.dense` or requesting backend `"dense"`.
