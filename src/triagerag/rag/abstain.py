@@ -93,11 +93,18 @@ def evaluate_abstention_with_code(
     )
     eff_margin = min_margin if min_margin is not None else cfg.min_syndrome_margin
 
-    if not population_available or not scored_chunks:
+    if not population_available:
         return (
             True,
             AbstainCode.NO_POPULATION_COVERAGE,
             f"No verified protocol chunks available for population '{population}'",
+        )
+
+    if not scored_chunks:
+        return (
+            True,
+            AbstainCode.NO_RESULTS,
+            f"No protocol chunks matched retrieval query for population '{population}'",
         )
 
     best_score = float(scored_chunks[0][1])

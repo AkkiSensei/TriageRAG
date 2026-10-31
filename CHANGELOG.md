@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 1: Trust and Honesty of Outputs
 
 ### Fixed & Hardened
+- **Accurate Population-Coverage vs No-Results Abstention Semantics (T1.4 / AUB-ABS-01):**
+  - Added `NO_RESULTS` to `AbstainCode` enum in `src/triagerag/contracts/enums.py`.
+  - Disentangled population availability from retrieval match failure in `src/triagerag/rag/abstain.py`:
+    - `not population_available` strictly returns `AbstainCode.NO_POPULATION_COVERAGE`.
+    - `not scored_chunks` with `population_available=True` strictly returns `AbstainCode.NO_RESULTS`.
+    - Low-scoring chunks below calibrated threshold return `AbstainCode.LOW_CONFIDENCE`.
+  - Added unit test suite `tests/unit/test_aub_phase1_abstention.py` covering all outcome codes and backward-compatible tuple.
 - **Canonical Shared Verdict Wording Contract and Ellipsis Correction (T1.3 / AUB-UX-02):**
   - Created canonical JSON contract `data/wording/verdicts.json` mirrored to `web/src/lib/wording.json` as the authoritative source of verdict copy.
   - Implemented `src/triagerag/contracts/wording.py` to provide typed access to shared labels, displays, badges, headlines, summaries, and actions.
