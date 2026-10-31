@@ -12,12 +12,79 @@ Generates eval/retrieval/dataset.yaml with:
 
 from __future__ import annotations
 
+import hashlib
+import json
 import random
 from typing import Any
 
 import yaml
 
-from triagerag.config import get_repo_root
+from triagerag.config import get_data_dir, get_repo_root
+from triagerag.rag.service import RetrievalService
+
+
+def derive_template_id(case: dict[str, Any]) -> str:
+    """Derive deterministic template identifier for a case.
+
+    Positive cases are grouped by (expected_syndrome, target_nodeset_hash).
+    Abstain cases are grouped by (expected_abstain_code, presentation_syndrome).
+    This guarantees 0 target node-set leakage between dev and test splits.
+    """
+    if case.get("expect_abstain"):
+        code = str(case.get("expected_abstain_code") or "NONE").upper()
+        syn = str(case.get("suspected_syndrome") or case.get("expected_syndrome") or "NONE").upper()
+        return f"TMPL_ABS_{code}_{syn}"
+    syn = str(case.get("expected_syndrome") or "NONE").upper()
+    g2 = tuple(sorted([cid for cid, g in (case.get("relevance_grades") or {}).items() if g >= 2]))
+    sig_str = "|".join(g2)
+    sig_hash = hashlib.md5(sig_str.encode("utf-8")).hexdigest()[:8]
+    return f"TMPL_POS_{syn}_{sig_hash}"
+
+
+def stratified_template_group_split(
+    cases: list[dict[str, Any]], seed: int = 42
+) -> tuple[set[str], set[str]]:
+    """Partition template groups into dev and test sets with stratified greedy packing.
+
+    Guarantees:
+    - Zero template group leakage between dev and test.
+    - Zero target node-set leakage between dev and test.
+    - Stratified representation across abstain, vitals-only, and syndrome positive categories.
+    """
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for c in cases:
+        groups.setdefault(c["template_id"], []).append(c)
+
+    rng = random.Random(seed)
+    strata: dict[str, list[str]] = {"abstain": [], "vitals_only": [], "syndrome_pos": []}
+    for tid, g_cases in sorted(groups.items()):
+        if g_cases[0].get("expect_abstain"):
+            strata["abstain"].append(tid)
+        elif any(c.get("family") == "vitals_only" for c in g_cases):
+            strata["vitals_only"].append(tid)
+        else:
+            strata["syndrome_pos"].append(tid)
+
+    dev_groups: set[str] = set()
+    test_groups: set[str] = set()
+
+    for _st_name, t_list in sorted(strata.items()):
+        shuffled = list(t_list)
+        rng.shuffle(shuffled)
+        total_cases = sum(len(groups[t]) for t in shuffled)
+        target_dev = round(total_cases * 0.60)
+        curr_dev = 0
+        for t in shuffled:
+            t_len = len(groups[t])
+            fits_under = curr_dev + t_len <= target_dev
+            closer_to_target = abs((curr_dev + t_len) - target_dev) < abs(curr_dev - target_dev)
+            if fits_under or closer_to_target:
+                dev_groups.add(t)
+                curr_dev += t_len
+            else:
+                test_groups.add(t)
+
+    return dev_groups, test_groups
 
 
 def _make_case(
@@ -35,9 +102,10 @@ def _make_case(
     notes: str = "",
     reviewed_by: str = "AGENT_AUTHORED_UNREVIEWED",
 ) -> dict[str, Any]:
-    return {
+    raw_case = {
         "id": case_id,
         "family": family,
+        "template_id": "",  # derived below
         "split": "dev",  # assigned by stratified splitter
         "age": {"value": age_value, "unit": age_unit},
         "population": population,
@@ -50,6 +118,8 @@ def _make_case(
         "notes": notes,
         "reviewed_by": reviewed_by,
     }
+    raw_case["template_id"] = derive_template_id(raw_case)
+    return raw_case
 
 
 def generate_all_cases() -> list[dict[str, Any]]:
@@ -1056,19 +1126,10 @@ def generate_all_cases() -> list[dict[str, Any]]:
             )
         )
 
-    # Stratified 60% dev / 40% test split with fixed seed 42
-    rng = random.Random(42)
-    by_family: dict[str, list[dict[str, Any]]] = {}
+    # Assign splits via template-grouped stratified split (T4.1, AUB-EVL-01)
+    dev_groups, _test_groups = stratified_template_group_split(cases, seed=42)
     for c in cases:
-        by_family.setdefault(str(c["family"]), []).append(c)
-
-    for _fam, fam_cases in sorted(by_family.items()):
-        indices = list(range(len(fam_cases)))
-        rng.shuffle(indices)
-        dev_cutoff = round(len(fam_cases) * 0.6)
-        dev_idx_set = set(indices[:dev_cutoff])
-        for pos, case_obj in enumerate(fam_cases):
-            case_obj["split"] = "dev" if pos in dev_idx_set else "test"
+        c["split"] = "dev" if c["template_id"] in dev_groups else "test"
 
     return cases
 
@@ -1086,15 +1147,81 @@ def main() -> None:
         "test_cases": test_n,
         "cases": cases,
     }
-    out_path = get_repo_root() / "eval" / "retrieval" / "dataset.yaml"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+    repo_root = get_repo_root()
+    retrieval_eval_dir = repo_root / "eval" / "retrieval"
+    retrieval_eval_dir.mkdir(parents=True, exist_ok=True)
+    out_path = retrieval_eval_dir / "dataset.yaml"
+    lock_path = retrieval_eval_dir / "dataset.lock"
+    manifest_path = retrieval_eval_dir / "split_manifest.json"
+
     header = (
         "# AGENT_AUTHORED_UNREVIEWED: Retrieval benchmark dataset generated for Fix Gate G4.\n"
         "# All cases carry reviewed_by: AGENT_AUTHORED_UNREVIEWED for audit transparency.\n"
     )
     content = header + yaml.safe_dump(payload, sort_keys=False)
     out_path.write_text(content, encoding="utf-8")
-    print(f"Generated {len(cases)} cases ({dev_n} dev, {test_n} test) -> {out_path}")
+
+    # Compute SHA-256 for dataset.lock
+    ds_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+    lock_path.write_text(f"{ds_hash}\n", encoding="utf-8")
+
+    # Get corpus hash and chunk count from production service
+    service = RetrievalService.create_default(get_data_dir(), backend="bm25")
+    corpus_hash = service.corpus_hash
+    chunk_count = len(service.ingest_report.chunks)
+
+    # Compute group leakage & target leakage counts
+    dev_templates = {c["template_id"] for c in cases if c["split"] == "dev"}
+    test_templates = {c["template_id"] for c in cases if c["split"] == "test"}
+    group_leakage = len(dev_templates & test_templates)
+
+    dev_targets: set[frozenset[tuple[str, int]]] = set()
+    test_targets: set[frozenset[tuple[str, int]]] = set()
+    for c in cases:
+        if c.get("expect_abstain"):
+            continue
+        g2 = frozenset((cid, g) for cid, g in (c.get("relevance_grades") or {}).items() if g >= 2)
+        if not g2:
+            continue
+        if c.get("split") == "dev":
+            dev_targets.add(g2)
+        elif c.get("split") == "test":
+            test_targets.add(g2)
+    target_leakage = len(dev_targets & test_targets)
+
+    # Strata breakdown
+    families = sorted(set(c["family"] for c in cases))
+    strata_counts: dict[str, dict[str, int]] = {}
+    for fam in families:
+        strata_counts[fam] = {
+            "dev": sum(1 for c in cases if c["family"] == fam and c["split"] == "dev"),
+            "test": sum(1 for c in cases if c["family"] == fam and c["split"] == "test"),
+        }
+
+    manifest_payload = {
+        "dataset_version": "2.0.0",
+        "dataset_hash": ds_hash,
+        "corpus_hash": corpus_hash,
+        "seed": 42,
+        "split_algorithm": "stratified_template_group_split",
+        "grouping_key": "template_id",
+        "total_cases": len(cases),
+        "dev_cases": dev_n,
+        "test_cases": test_n,
+        "total_groups": len(dev_templates | test_templates),
+        "dev_groups": len(dev_templates),
+        "test_groups": len(test_templates),
+        "group_leakage_count": group_leakage,
+        "target_nodeset_leakage_count": target_leakage,
+        "candidate_pool_min_size": chunk_count,
+        "strata": strata_counts,
+    }
+    manifest_path.write_text(json.dumps(manifest_payload, indent=2), encoding="utf-8")
+    print(
+        f"Generated {len(cases)} cases ({dev_n} dev, {test_n} test, "
+        f"{len(dev_templates | test_templates)} groups) -> {out_path}\n"
+        f"Wrote {lock_path} and {manifest_path}"
+    )
 
 
 if __name__ == "__main__":
