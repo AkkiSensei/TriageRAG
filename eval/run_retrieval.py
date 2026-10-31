@@ -851,6 +851,7 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
     routed_stats = _eval_cases(syn_cases, require_syndrome_match=True)
     unrouted_stats = _eval_cases(vit_cases, require_syndrome_match=False)
     overall_stats = _eval_cases(test_cases, require_syndrome_match=True)
+    unconstrained_overall = _eval_cases(test_cases, require_syndrome_match=False)
 
     r_pts = routed_stats["paired_diff_r1_points"]
     r_ci = routed_stats["paired_diff_r1_ci_95"]
@@ -879,8 +880,9 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
         "routed_syndrome_provided": routed_stats,
         "unrouted_vitals_only": unrouted_stats,
         "overall_test": overall_stats,
-        "random_recall_at_1": overall_stats["random_recall_at_1"],
-        "random_recall_at_5": overall_stats["random_recall_at_5"],
+        "unconstrained_overall": unconstrained_overall,
+        "random_recall_at_1": unconstrained_overall["random_recall_at_1"],
+        "random_recall_at_5": unconstrained_overall["random_recall_at_5"],
         "label_review_status": "AGENT_AUTHORED_UNREVIEWED",
     }
 
@@ -1124,6 +1126,87 @@ def run_position_prior_baseline(seed: int = 42) -> dict[str, Any]:
     }
 
 
+def validate_benchmark_gate(
+    summary: dict[str, Any],
+    vitals_recall_threshold: float = 0.0,
+) -> dict[str, Any]:
+    """Validate benchmark validity self-tests and system performance gates (AUB-EVL-01, T4.5).
+
+    Validity Self-Test:
+    1. Random baseline Recall@5 must be < 60.0% (candidate pool non-triviality).
+    2. Position-prior R@1 must be < system R@1 with paired difference CI excluding zero.
+    If either self-test fails, the benchmark collection is declared INVALID.
+
+    System Performance Gates:
+    1. false_accept_rate == 0.0 (no unindicated chunks when expected to abstain).
+    2. wrong_syndrome_rate == 0.0 (no discordant clinical syndrome chunks).
+    3. wrong_protocol_rate == 0.0 (legacy compatibility).
+    4. abstain_recall_hard_negatives == 1.0 (abstain on all distractors).
+    5. syndrome_provided Recall@5 >= 95.0%.
+    6. Determinism: identical scores across repeat runs.
+    """
+    rand_base = summary.get("random_candidate_baseline", {})
+    rand_r5 = rand_base.get("random_recall_at_5", 100.0)
+    rand_valid = rand_r5 < 60.0
+
+    pp_base = summary.get("position_prior_baseline", {})
+    pp_valid = bool(pp_base.get("is_recall_at_1_above_label_frequency", False))
+
+    validity_checks = {
+        "random_baseline_recall_at_5_under_60": {
+            "value": rand_r5,
+            "threshold": 60.0,
+            "passed": rand_valid,
+        },
+        "position_prior_r1_margin_positive": {
+            "passed": pp_valid,
+            "paired_diff_r1_ci95": pp_base.get("overall_test", {}).get("paired_diff_r1_ci_95"),
+        },
+    }
+    benchmark_valid = rand_valid and pp_valid
+
+    test_metrics = summary.get("test", {})
+    far = test_metrics.get("false_accept_rate", 1.0)
+    wsr = test_metrics.get("wrong_syndrome_rate", 1.0)
+    wpr = test_metrics.get("wrong_protocol_rate", 1.0)
+    hn_rec = test_metrics.get("abstain_recall_hard_negatives", 0.0)
+    syn_r5 = test_metrics.get("syndrome_provided", {}).get("recall_at_5", 0.0)
+    deterministic = bool(summary.get("deterministic", False))
+
+    system_checks: dict[str, dict[str, Any]] = {
+        "false_accept_rate_is_zero": {"value": far, "passed": far == 0.0},
+        "wrong_syndrome_rate_is_zero": {"value": wsr, "passed": wsr == 0.0},
+        "wrong_protocol_rate_is_zero": {"value": wpr, "passed": wpr == 0.0},
+        "hard_negative_abstain_recall_is_one": {"value": hn_rec, "passed": hn_rec == 1.0},
+        "syndrome_provided_recall_at_5_min_95": {"value": syn_r5, "passed": syn_r5 >= 95.0},
+        "deterministic": {"passed": deterministic},
+    }
+
+    if vitals_recall_threshold > 0.0:
+        vit_r5 = test_metrics.get("vitals_only", {}).get("recall_at_5", 0.0)
+        system_checks["vitals_only_recall_at_5_min_threshold"] = {
+            "value": vit_r5,
+            "threshold": vitals_recall_threshold,
+            "passed": vit_r5 >= vitals_recall_threshold,
+        }
+
+    all_system_passed = all(c["passed"] for c in system_checks.values())
+
+    if not benchmark_valid:
+        gate_status = "BENCHMARK_INVALID"
+    elif all_system_passed:
+        gate_status = "PASS"
+    else:
+        gate_status = "FAIL"
+
+    return {
+        "status": gate_status,
+        "benchmark_valid": benchmark_valid,
+        "validity_checks": validity_checks,
+        "system_checks": system_checks,
+    }
+
+
 def run_retrieval_benchmark(
     backend: str = "bm25",
     write_reports: bool = False,
@@ -1153,16 +1236,6 @@ def run_retrieval_benchmark(
         and test_metrics["mrr"] == test_metrics_repeat["mrr"]
         and test_metrics["ndcg_at_5"] == test_metrics_repeat["ndcg_at_5"]
         and test_metrics["wrong_protocol_rate"] == test_metrics_repeat["wrong_protocol_rate"]
-    )
-
-    # Gated safety criteria (ADR-0008 / FG-06 / T4.4 / AUB-EVL-01)
-    passed = (
-        test_metrics["false_accept_rate"] == 0.0
-        and test_metrics["wrong_syndrome_rate"] == 0.0
-        and test_metrics["wrong_protocol_rate"] == 0.0
-        and test_metrics["abstain_recall_hard_negatives"] == 1.0
-        and test_metrics["syndrome_provided"]["recall_at_5"] >= 95.0
-        and deterministic
     )
 
     summary: dict[str, Any] = {
@@ -1195,8 +1268,11 @@ def run_retrieval_benchmark(
         "dev": dev_metrics,
         "test": test_metrics,
         "overall": all_metrics,
-        "status": "PASS" if passed else "FAIL",
     }
+
+    gate_report = validate_benchmark_gate(summary)
+    summary["gate_report"] = gate_report
+    summary["status"] = gate_report["status"]
 
     if write_reports or output_dir is not None:
         reports_dir = output_dir or (_REPO_ROOT / "eval" / "reports")
