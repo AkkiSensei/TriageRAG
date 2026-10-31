@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `test_dataset_lock_fails_on_tampered_dataset` regression test.
 
 ### Fixed & Hardened
+- **Cryptographic Audit Chain Anchoring and Tail-Truncation Defense (T0.10 / AUB-OPS-03):**
+  - Added `write_head_anchor()` to export current head hash to `.head` anchor files.
+  - Extended `verify_audit_chain()` with `expected_head_hash` and `anchor_path` checks to verify final head match and detect tail truncation.
+  - Added optional HMAC-SHA256 support via `hmac_key` in `compute_canonical_hash`, `append_audit_entry`, and `verify_audit_chain`.
+  - Added unit regression tests in `tests/unit/test_audit.py`: `test_audit_chain_unanchored_tail_truncation_vulnerability`, `test_audit_chain_head_anchor_detects_truncation`, and `test_audit_chain_hmac_key_verification`.
 - **Non-Mutating Evaluation Runners by Default (T0.8 / AUB-EVL-02):**
   - Updated `eval/run_retrieval.py`, `eval/run_retrieval_ablation.py`, and `eval/run_latency_benchmark.py` to default to `write_reports=False` / `write_report=False`.
   - Added explicit `--write` CLI flag and `eval-write` task in `tools/tasks.py`.
