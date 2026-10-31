@@ -894,7 +894,7 @@ export interface components {
      * @description Verification verdict for a proposed plan step.
      * @enum {string}
      */
-    StepStatus: "APPROVED" | "FLAGGED_HIGH" | "FLAGGED_MODERATE" | "UNVERIFIED_MISSING_DATA" | "CITATION_UNVERIFIED" | "BLOCKED_STRUCK_THROUGH";
+    StepStatus: "APPROVED" | "REQUIRES_CLINICIAN_CONFIRMATION" | "FLAGGED_HIGH" | "FLAGGED_MODERATE" | "UNVERIFIED_MISSING_DATA" | "CITATION_UNVERIFIED" | "BLOCKED_STRUCK_THROUGH";
     /** TriageApiRequest */
     TriageApiRequest: {
       patient: components["schemas"]["Patient-Input"];

@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 1: Trust and Honesty of Outputs
 
 ### Fixed & Hardened
+- **Frontend Component Test Expansion and Scope Rendering (T1.7 / AUB-UX-03):**
+  - Expanded Vitest component test suite from 8 tests to 36 tests (+28 tests):
+    - `ExplanationSection.test.tsx` (10 tests): headline and summary, UNVERIFIED retrieval abstention display, BLOCKED / CHECKED_ALERTS styling, absence of bare CLEAR, completed vs unresolved checks, collapsible 9-stage execution timeline, generation disclosure.
+    - `RetrievalView.test.tsx` (8 tests): chunk listings, abstention banner with gate codes (`NO_POPULATION_COVERAGE`, `NO_RESULTS`, `LOW_CONFIDENCE`), fallback mode alert, "How Retrieval Worked" mechanics toggle, lexical ranking disclosure.
+    - `VerifiedPlanView.test.tsx` (6 tests): empty state, badges for `APPROVED`, `BLOCKED_STRUCK_THROUGH`, `FLAGGED_HIGH`, `REQUIRES_CLINICIAN_CONFIRMATION`, and expandable citation quoted spans.
+    - `SkippedChecksList.test.tsx` (4 tests): empty state, total unverified count with Fail-Closed notice, rule IDs and types, missing field badges, and intake callback.
+  - Rendered explicit "Completed Checks" vs "Unresolved Checks & Scope" cards in `ExplanationSection.tsx`.
+  - Added missing `REQUIRES_CLINICIAN_CONFIRMATION` to TypeScript `StepStatus` schema in `web/src/types/api.ts`.
 - **Pipeline Decomposition into Seven Typed Stages (T1.6 / AUB-OPS-02):**
   - Refactored monolithic `run_triage` in `src/triagerag/orchestrator.py` into 7 typed, pure pipeline stages:
     1. `stage_normalise`: Patient data normalization, age categorization, and physiological scoring.

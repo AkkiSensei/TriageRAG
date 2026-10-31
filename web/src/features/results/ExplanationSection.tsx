@@ -188,6 +188,11 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
             </span>
           )}
         </div>
+        {explanation?.generation_disclosure && (
+          <p className="mt-2 text-[11px] font-mono text-slate-500 dark:text-slate-400 leading-relaxed">
+            {explanation.generation_disclosure}
+          </p>
+        )}
       </div>
 
       {/* 2. "WHY DID I GET THIS RESULT?" & NEXT ACTIONS */}
@@ -242,6 +247,45 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
           </ul>
         </div>
       </div>
+
+      {/* 2.5 COMPLETED VS UNRESOLVED CHECKS SCOPE */}
+      {(Boolean(explanation?.completed_checks?.length) || Boolean(explanation?.unresolved_checks?.length)) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft">
+            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-[#1e3840] pb-3 mb-3">
+              <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                Completed Checks ({explanation?.completed_checks?.length || 0})
+              </h3>
+            </div>
+            <ul className="flex flex-col gap-2 text-xs text-slate-700 dark:text-slate-300">
+              {explanation?.completed_checks?.map((chk, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-teal-500 shrink-0 mt-1.5" />
+                  <span className="leading-relaxed">{chk}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft">
+            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-[#1e3840] pb-3 mb-3">
+              <HelpCircle className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                Unresolved Checks &amp; Scope ({explanation?.unresolved_checks?.length || 0})
+              </h3>
+            </div>
+            <ul className="flex flex-col gap-2 text-xs text-slate-700 dark:text-slate-300">
+              {explanation?.unresolved_checks?.map((chk, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-violet-500 shrink-0 mt-1.5" />
+                  <span className="leading-relaxed">{chk}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       {/* 3. EXECUTION PIPELINE TIMELINE (COLLAPSIBLE) */}
       <div className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-4 shadow-soft">
