@@ -96,11 +96,12 @@ def test_four_arm_retrieval_ablation_and_architecture_docs(tmp_path: Path) -> No
 
 
 def test_hybrid_retrievers_thread_explicit_config_and_data_dir(tmp_path: Path) -> None:
-    """T0.3 / AUB-RET-04: Hybrid and CharNgram retrievers thread config and data_dir without hidden globals."""
+    """T0.3 / AUB-RET-04: Hybrid and CharNgram thread config and data_dir without globals."""
     import shutil
+
     import pytest
+
     from triagerag.rag.abstain import load_retrieval_config
-    from triagerag.rag.hybrid import CharNgramRetriever
 
     # 1. Non-existent data_dir must fail closed (R2)
     with pytest.raises(FileNotFoundError):
@@ -115,7 +116,11 @@ def test_hybrid_retrievers_thread_explicit_config_and_data_dir(tmp_path: Path) -
 
     # Modify config in dir_b
     cfg_b_path = dir_b / "retrieval" / "config.yaml"
-    cfg_b_text = cfg_b_path.read_text(encoding="utf-8").replace("top_k: 5", "top_k: 8").replace("0.15", "0.77")
+    cfg_b_text = (
+        cfg_b_path.read_text(encoding="utf-8")
+        .replace("top_k: 5", "top_k: 8")
+        .replace("0.15", "0.77")
+    )
     cfg_b_path.write_text(cfg_b_text, encoding="utf-8")
 
     svc_a = RetrievalService.build(dir_a, backend="hybrid_rrf")
@@ -124,15 +129,14 @@ def test_hybrid_retrievers_thread_explicit_config_and_data_dir(tmp_path: Path) -
     assert svc_a.config.top_k == 5
     assert svc_b.config.top_k == 8
     assert svc_a.config.calibrated_threshold != svc_b.config.calibrated_threshold
-    assert getattr(svc_a.index, "config").top_k == 5
-    assert getattr(svc_b.index, "config").top_k == 8
-    assert getattr(svc_a.index, "char_ngram").config.top_k == 5
-    assert getattr(svc_b.index, "char_ngram").config.top_k == 8
+    assert svc_a.index.config.top_k == 5
+    assert svc_b.index.config.top_k == 8
+    assert svc_a.index.char_ngram.config.top_k == 5
+    assert svc_b.index.char_ngram.config.top_k == 8
 
 
 def test_char_ngram_primary_and_dense_deprecation_warning() -> None:
     """T0.4 / AUB-RET-05: char_ngram is primary; using 'dense' issues DeprecationWarning."""
-    import warnings
     from triagerag.rag.hybrid import CharNgramRetriever, build_retriever_backend
     from triagerag.rag.ingest import ingest_protocols
 

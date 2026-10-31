@@ -31,9 +31,28 @@ Starting HEAD for Phase 0: `3e8a45bded1a9bd39e5e644a0957c62bb0fb8315` (branch `a
 |----|-------------|--------|--------|
 | LOCAL-01 | `tests/unit/test_explainability_and_intake_hardening.py` (previous session) used non-existent `StepStatus` members, broke `mypy src tests tools eval` and therefore `tools/tasks.py verify` at HEAD; its vitals-inference test also passed vacuously (`INDEX_UNAVAILABLE`, 0 steps). | FIXED | `b8924fe` |
 
-## Non-Phase-0 register rows (not touched in this session)
+## Phase 1 register rows
 
-All other AUB register rows (AUB-VRD-01, AUB-RET-01, AUB-RET-02, AUB-RET-06, AUB-UX-01..04, AUB-EVL-01, AUB-GRD-01/02, AUB-GEN-01 (generator), AUB-COR-01..03, AUB-ABS-01/02, AUB-ENG-01..06, AUB-KB-01, AUB-OPS-02/04) are `TODO` and will be reproduced on HEAD in their own phase.
+| ID | Repro on HEAD (date, commit) | Status | Task | Commit | Test added | Notes |
+|----|------------------------------|--------|------|--------|-----------|-------|
+| AUB-VRD-01 | 2026-10-31 `a2ed67d`: `run_triage` on clean patient with unknown syndrome yielded `Verdict.CHECKED_CLEAR` if physiological score was unskipped, ignoring retrieval abstention and absence of approved steps | FIXED | T1.1 | `e3f0367` | `tests/unit/test_aub_phase1_verdict.py` (18 tests) | Added `resolve_verdict_with_reason`, threaded `retrieval_report` and `has_approved_steps`; fail closed to `UNVERIFIED` on any `AbstainCode` or 0 approved steps; verified headline has no 'CLEAR' |
+| AUB-UX-01 | _pending execution in T1.2_ | TODO | T1.2 | | | |
+| AUB-UX-02 | _pending execution in T1.3_ | TODO | T1.3 | | | |
+| AUB-ABS-01 | _pending execution in T1.4_ | TODO | T1.4 | | | |
+| AUB-GRD-02 | _pending execution in T1.5_ | TODO | T1.5 | | | |
+| AUB-OPS-02 | _pending execution in T1.6_ | TODO | T1.6 | | | |
+| AUB-UX-03 | _pending execution in T1.7_ | TODO | T1.7 | | | |
+
+## Defects discovered during baseline (not in AUB register)
+
+| ID | Description | Status | Commit |
+|----|-------------|--------|--------|
+| LOCAL-01 | `tests/unit/test_explainability_and_intake_hardening.py` (previous session) used non-existent `StepStatus` members, broke `mypy src tests tools eval` and therefore `tools/tasks.py verify` at HEAD; its vitals-inference test also passed vacuously (`INDEX_UNAVAILABLE`, 0 steps). | FIXED | `b8924fe` |
+| VERIFY-FAST-01 | `tools/tasks.py verify-fast` exited with code 1 due to `ruff check` failing on 65 lines > 100 chars (E501) across existing files and tests. AUB.md Section D explicitly records that `ruff` was never executed during baseline audit ("Tests not executed: ruff, mypy, import-linter, eslint..."). Pre-existing style mismatch. | DOCUMENTED / IN_PROGRESS | T1.1+ |
+
+## Non-Phase-1 register rows (not touched in this session)
+
+All subsequent AUB register rows (AUB-RET-01, AUB-RET-02, AUB-RET-06, AUB-UX-04, AUB-EVL-01, AUB-GRD-01, AUB-GEN-01 (generator), AUB-COR-01..03, AUB-ABS-02, AUB-ENG-01..06, AUB-KB-01, AUB-OPS-04) are `TODO` and will be addressed in their own phases.
 
 Observation relevant to Phase 2 (recorded, **not fixed here**): with no clinician-confirmed syndrome and normal-or-abnormal vitals, retrieval abstains with `EMPTY_QUERY`; the ADR-0007 inference path (`SYNDROME_INFERRED`) is unreachable with the current `NEEDS_SOURCE` vitals flags (consistent with AUB-RET-01).
 

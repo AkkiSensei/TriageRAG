@@ -181,6 +181,8 @@ def test_llm_failure_degrades_gracefully_to_fallback(
     response = run_triage(patient, registry=registry, llm=None, index=index)
     assert response.llm_fallback_mode is True
     assert response.verified_steps == []
-    # Engine report still fully generated (Rule R1: LLM state does not alter deterministic verdict)
-    assert response.engine.verdict == Verdict.CHECKED_CLEAR
+    # Under Rule R2 and T1.1 (AUB-VRD-01), when no steps are approved, verdict is at most UNVERIFIED
+    assert response.engine.verdict == Verdict.UNVERIFIED
+    assert response.engine.unverified_reason is not None
+    assert "APPROVED" in response.engine.unverified_reason
     assert response.engine.checks_run > 0

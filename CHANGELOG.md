@@ -5,7 +5,18 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - AUB Phase 0: Re-baseline and Hygiene
+## [Unreleased] - AUB Phase 1: Trust and Honesty of Outputs
+
+### Fixed & Hardened
+- **Retrieval-Dependent Verdict Resolution and Non-Clear Headline Enforcement (T1.1 / AUB-VRD-01):**
+  - Added `resolve_verdict_with_reason` in `src/triagerag/engine/verdict.py` accepting `retrieval_report` and `has_approved_steps`.
+  - Added `unverified_reason: str | None = None` to `EngineReport` data contract.
+  - Fail closed to `Verdict.UNVERIFIED` whenever retrieval abstains (`abstained=True` or `abstain_code != NONE`) or when zero steps achieve `APPROVED` status, prohibiting false `CHECKED_CLEAR` results.
+  - Preserved strict lattice priority: `BLOCKED > UNVERIFIED > CHECKED_ALERTS > CHECKED_CLEAR`.
+  - Enforced that verdict headlines for non-clear outcomes never contain the word "CLEAR", specializing headlines to `UNVERIFIED: Protocol Retrieval Abstained (<CODE>)` upon retrieval abstention.
+  - Added comprehensive test suite `tests/unit/test_aub_phase1_verdict.py` (18 tests) parametrized over every `AbstainCode`.
+
+## [0.3.2] - AUB Phase 0: Re-baseline and Hygiene
 
 ### Added
 - **Validated Retrieval Backend Enum and Explain Route Support (T0.9 / AUB-OPS-01):**

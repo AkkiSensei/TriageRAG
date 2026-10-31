@@ -486,6 +486,7 @@ class EngineReport(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     verdict: Verdict
+    unverified_reason: str | None = Field(default=None)
     score: ScoreResult | None = None
     baseline_alerts: list[Alert] = Field(default_factory=list)
     plan_alerts: list[Alert] = Field(default_factory=list)

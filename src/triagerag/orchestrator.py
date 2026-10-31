@@ -41,7 +41,7 @@ from triagerag.contracts.schemas import (
 )
 from triagerag.engine.rule_engine import evaluate_baseline
 from triagerag.engine.scores import calculate_early_warning_score
-from triagerag.engine.verdict import resolve_verdict
+from triagerag.engine.verdict import resolve_verdict_with_reason
 from triagerag.llm.draft import draft_plan_safe
 from triagerag.llm.repair import attempt_plan_repair, sanitize_repair_violations
 from triagerag.normalize.validators import normalize_patient
@@ -494,12 +494,15 @@ def run_triage(
         len(all_skips) > 0 or len(unresolved_entities) > 0 or has_unverified_steps
     )
     has_alert = len(all_alerts) > 0
+    has_approved_steps = any(s.status == StepStatus.APPROVED for s in verified_steps)
 
-    overall_verdict = resolve_verdict(
+    overall_verdict, unverified_reason = resolve_verdict_with_reason(
         has_block=has_block,
         has_skip_or_unresolved=has_skip_or_unresolved,
         has_alert=has_alert,
         has_unverified_steps=has_unverified_steps,
+        retrieval_report=retrieval_report,
+        has_approved_steps=has_approved_steps,
     )
 
     # Check review state of all rules evaluated
@@ -510,6 +513,7 @@ def run_triage(
     # 9. Deterministic Engine Report
     engine_report = EngineReport(
         verdict=overall_verdict,
+        unverified_reason=unverified_reason,
         score=score_result,
         baseline_alerts=baseline_alerts,
         plan_alerts=plan_alerts,
@@ -603,7 +607,20 @@ def build_triage_explanation(
         "CHECKED_ALERTS": "CHECKED WITH ALERTS: Clinical Warnings Require Review",
         "CHECKED_CLEAR": "CHECKED CLEAR: No Configured Safety Rules Triggered",
     }
-    headline = headline_map.get(verdict_str, f"Triage Result: {verdict_str}")
+    if verdict_str == "UNVERIFIED" and retrieval and retrieval.abstained:
+        ac_val = (
+            retrieval.abstain_code.value
+            if hasattr(retrieval.abstain_code, "value")
+            else str(retrieval.abstain_code)
+        )
+        headline = f"UNVERIFIED: Protocol Retrieval Abstained ({ac_val})"
+    else:
+        headline = headline_map.get(verdict_str, f"Triage Result: {verdict_str}")
+
+    if verdict_str != "CHECKED_CLEAR":
+        assert "CLEAR" not in headline, (
+            f"Safety invariant violated: Non-clear verdict has CLEAR in headline: {headline}"
+        )
 
     # 2. Plain Language Summary
     if verdict_str == "BLOCKED":
