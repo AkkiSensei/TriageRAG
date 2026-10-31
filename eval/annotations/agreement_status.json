@@ -1,0 +1,11 @@
+{
+  "disclaimer": "Research prototype. Synthetic data only. Not a medical device.",
+  "provenance_status": "AGENT_AUTHORED_UNREVIEWED",
+  "agreement_state": "BLOCKED_PENDING_INDEPENDENT_HUMAN_ANNOTATION",
+  "human_agreement_measured": false,
+  "cohens_kappa": null,
+  "sample_size": 100,
+  "blocking_dependency": "Independent double-annotation by two licensed clinicians (or one clinician + independent secondary rubric) required on eval/annotations/blinded_cases.json. Per Rule R3 and AUB-EVL-01, synthetic or fabricated agreement metrics are forbidden.",
+  "annotation_guide_ref": "docs/evaluation/ANNOTATION_GUIDE.md",
+  "submission_schema_ref": "eval/annotations/schema.json"
+}

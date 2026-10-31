@@ -1,0 +1,2114 @@
+{
+  "disclaimer": "Research prototype. Synthetic data only. Not a medical device.",
+  "schema_version": "1.0.0",
+  "sample_size": 100,
+  "source_dataset_version": "2.0.0",
+  "blinded_cases": [
+    {
+      "case_id": "RET_195_VAR",
+      "age": {
+        "value": "55",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 84
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_085_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 78,
+        "heart_rate_bpm": 128
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "HYPOGLYCEMIA_01_NODE_1",
+        "HYPOGLYCEMIA_01_NODE_2",
+        "HYPOGLYCEMIA_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "HYPOGLYCEMIA_01_NODE_1": null,
+        "HYPOGLYCEMIA_01_NODE_2": null,
+        "HYPOGLYCEMIA_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_207_POISON",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "heart_rate_bpm": 115
+      },
+      "notes": "Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_037_HN_ADULT",
+      "age": {
+        "value": "45",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 80,
+        "heart_rate_bpm": 130,
+        "spo2_percent": 89
+      },
+      "notes": "Unknown syndrome 'kidney_stone' with hypotension/tachycardia/hypoxia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_213_DUP",
+      "age": {
+        "value": "45",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 80,
+        "heart_rate_bpm": 52
+      },
+      "notes": "Deterministic tie-breaking by (-score, chunk_id) across runs",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_165_POP_NEO",
+      "age": {
+        "value": "1",
+        "unit": "days"
+      },
+      "population": "neonate",
+      "vitals": {
+        "heart_rate_bpm": 160,
+        "temperature_c": "38.5"
+      },
+      "notes": "Neonate (1 days <= 28d) has 0 neonate protocols and must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_219_SCALE",
+      "age": {
+        "value": "55",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82,
+        "heart_rate_bpm": 128,
+        "respiratory_rate_bpm": 26,
+        "spo2_percent": 89,
+        "temperature_c": "38.6",
+        "blood_glucose_mg_dl": "58",
+        "consciousness": "C"
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_4",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_4": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_001_POS_CP",
+      "age": {
+        "value": "58",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82,
+        "heart_rate_bpm": 95,
+        "spo2_percent": 96
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_181_UNK_SYN_ONLY",
+      "age": {
+        "value": "48",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {},
+      "notes": "All vitals unknown/missing but known syndrome still retrieves protocol nodes",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_109_VO_AMBIG_SBP",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 75
+      },
+      "notes": "Adult hypotension alone matches both chest_pain and anaphylaxis within margin",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_196_VAR",
+      "age": {
+        "value": "61",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "heart_rate_bpm": 118
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_086_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "respiratory_rate_bpm": 28,
+        "spo2_percent": 88
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "HYPOGLYCEMIA_01_NODE_1",
+        "HYPOGLYCEMIA_01_NODE_2",
+        "HYPOGLYCEMIA_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "HYPOGLYCEMIA_01_NODE_1": null,
+        "HYPOGLYCEMIA_01_NODE_2": null,
+        "HYPOGLYCEMIA_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_208_POISON",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "heart_rate_bpm": 115
+      },
+      "notes": "Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_2",
+        "ANAPHYLAXIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_2": null,
+        "ANAPHYLAXIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_038_HN_PAED",
+      "age": {
+        "value": "6",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "39.4",
+        "heart_rate_bpm": 158,
+        "respiratory_rate_bpm": 38
+      },
+      "notes": "Paediatric unknown syndrome 'kidney_stone' with fever/tachycardia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_214_DUP",
+      "age": {
+        "value": "46",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 81,
+        "heart_rate_bpm": 52
+      },
+      "notes": "Deterministic tie-breaking by (-score, chunk_id) across runs",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_166_POP_NEO",
+      "age": {
+        "value": "7",
+        "unit": "days"
+      },
+      "population": "neonate",
+      "vitals": {
+        "heart_rate_bpm": 160,
+        "temperature_c": "38.5"
+      },
+      "notes": "Neonate (7 days <= 28d) has 0 neonate protocols and must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_220_SCALE",
+      "age": {
+        "value": "56",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82,
+        "heart_rate_bpm": 128,
+        "respiratory_rate_bpm": 26,
+        "spo2_percent": 89,
+        "temperature_c": "38.6",
+        "blood_glucose_mg_dl": "58",
+        "consciousness": "C"
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_4",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_4": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_002_POS_CP",
+      "age": {
+        "value": "58",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 85,
+        "heart_rate_bpm": 52,
+        "spo2_percent": 96
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_182_UNK_SYN_ONLY",
+      "age": {
+        "value": "48",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {},
+      "notes": "All vitals unknown/missing but known syndrome still retrieves protocol nodes",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_2",
+        "ANAPHYLAXIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_2": null,
+        "ANAPHYLAXIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_110_VO_AMBIG_SBP",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 78
+      },
+      "notes": "Adult hypotension alone matches both chest_pain and anaphylaxis within margin",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_197_VAR",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_087_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "blood_glucose_mg_dl": "55",
+        "consciousness": "C"
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_2",
+        "ANAPHYLAXIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_2": null,
+        "ANAPHYLAXIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_209_POISON",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "heart_rate_bpm": 115
+      },
+      "notes": "Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns",
+      "candidate_nodes_to_grade": [
+        "SEVERE_ASTHMA_01_NODE_1",
+        "SEVERE_ASTHMA_01_NODE_2",
+        "SEVERE_ASTHMA_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "SEVERE_ASTHMA_01_NODE_1": null,
+        "SEVERE_ASTHMA_01_NODE_2": null,
+        "SEVERE_ASTHMA_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_039_HN_ADULT",
+      "age": {
+        "value": "45",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 80,
+        "heart_rate_bpm": 130,
+        "spo2_percent": 89
+      },
+      "notes": "Unknown syndrome 'appendicitis' with hypotension/tachycardia/hypoxia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_215_DUP",
+      "age": {
+        "value": "47",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82,
+        "heart_rate_bpm": 52
+      },
+      "notes": "Deterministic tie-breaking by (-score, chunk_id) across runs",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_167_POP_NEO",
+      "age": {
+        "value": "14",
+        "unit": "days"
+      },
+      "population": "neonate",
+      "vitals": {
+        "heart_rate_bpm": 160,
+        "temperature_c": "38.5"
+      },
+      "notes": "Neonate (14 days <= 28d) has 0 neonate protocols and must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_221_SCALE",
+      "age": {
+        "value": "57",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82,
+        "heart_rate_bpm": 128,
+        "respiratory_rate_bpm": 26,
+        "spo2_percent": 89,
+        "temperature_c": "38.6",
+        "blood_glucose_mg_dl": "58",
+        "consciousness": "C"
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_4",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_4": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_003_POS_CP",
+      "age": {
+        "value": "58",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 130,
+        "heart_rate_bpm": 118,
+        "spo2_percent": 96
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_4"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_4": null
+      }
+    },
+    {
+      "case_id": "RET_183_UNK_SYN_ONLY",
+      "age": {
+        "value": "48",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {},
+      "notes": "All vitals unknown/missing but known syndrome still retrieves protocol nodes",
+      "candidate_nodes_to_grade": [
+        "SEVERE_ASTHMA_01_NODE_1",
+        "SEVERE_ASTHMA_01_NODE_2",
+        "SEVERE_ASTHMA_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "SEVERE_ASTHMA_01_NODE_1": null,
+        "SEVERE_ASTHMA_01_NODE_2": null,
+        "SEVERE_ASTHMA_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_111_VO_AMBIG_SBP",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 80
+      },
+      "notes": "Adult hypotension alone matches both chest_pain and anaphylaxis within margin",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_198_VAR",
+      "age": {
+        "value": "28",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 78
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_2",
+        "ANAPHYLAXIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_2": null,
+        "ANAPHYLAXIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_088_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "temperature_c": "38.9",
+        "heart_rate_bpm": 52
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_2",
+        "ANAPHYLAXIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_2": null,
+        "ANAPHYLAXIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_210_POISON",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "heart_rate_bpm": 115
+      },
+      "notes": "Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns",
+      "candidate_nodes_to_grade": [
+        "HYPOGLYCEMIA_01_NODE_1",
+        "HYPOGLYCEMIA_01_NODE_2",
+        "HYPOGLYCEMIA_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "HYPOGLYCEMIA_01_NODE_1": null,
+        "HYPOGLYCEMIA_01_NODE_2": null,
+        "HYPOGLYCEMIA_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_040_HN_PAED",
+      "age": {
+        "value": "6",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "39.4",
+        "heart_rate_bpm": 158,
+        "respiratory_rate_bpm": 38
+      },
+      "notes": "Paediatric unknown syndrome 'appendicitis' with fever/tachycardia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_216_DUP",
+      "age": {
+        "value": "48",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 83,
+        "heart_rate_bpm": 52
+      },
+      "notes": "Deterministic tie-breaking by (-score, chunk_id) across runs",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_168_POP_NEO",
+      "age": {
+        "value": "21",
+        "unit": "days"
+      },
+      "population": "neonate",
+      "vitals": {
+        "heart_rate_bpm": 160,
+        "temperature_c": "38.5"
+      },
+      "notes": "Neonate (21 days <= 28d) has 0 neonate protocols and must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_222_SCALE",
+      "age": {
+        "value": "58",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82,
+        "heart_rate_bpm": 128,
+        "respiratory_rate_bpm": 26,
+        "spo2_percent": 89,
+        "temperature_c": "38.6",
+        "blood_glucose_mg_dl": "58",
+        "consciousness": "C"
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_4",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_4": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_004_POS_CP",
+      "age": {
+        "value": "58",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 125,
+        "heart_rate_bpm": 124,
+        "spo2_percent": 96
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_4"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_4": null
+      }
+    },
+    {
+      "case_id": "RET_184_UNK_SYN_ONLY",
+      "age": {
+        "value": "48",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {},
+      "notes": "All vitals unknown/missing but known syndrome still retrieves protocol nodes",
+      "candidate_nodes_to_grade": [
+        "HYPOGLYCEMIA_01_NODE_1",
+        "HYPOGLYCEMIA_01_NODE_2",
+        "HYPOGLYCEMIA_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "HYPOGLYCEMIA_01_NODE_1": null,
+        "HYPOGLYCEMIA_01_NODE_2": null,
+        "HYPOGLYCEMIA_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_112_VO_AMBIG_SBP",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82
+      },
+      "notes": "Adult hypotension alone matches both chest_pain and anaphylaxis within margin",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_199_VAR",
+      "age": {
+        "value": "24",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "respiratory_rate_bpm": 30,
+        "spo2_percent": 88
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "SEVERE_ASTHMA_01_NODE_1",
+        "SEVERE_ASTHMA_01_NODE_2",
+        "SEVERE_ASTHMA_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "SEVERE_ASTHMA_01_NODE_1": null,
+        "SEVERE_ASTHMA_01_NODE_2": null,
+        "SEVERE_ASTHMA_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_089_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82,
+        "heart_rate_bpm": 54
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "SEVERE_ASTHMA_01_NODE_1",
+        "SEVERE_ASTHMA_01_NODE_2",
+        "SEVERE_ASTHMA_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "SEVERE_ASTHMA_01_NODE_1": null,
+        "SEVERE_ASTHMA_01_NODE_2": null,
+        "SEVERE_ASTHMA_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_211_POISON",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "heart_rate_bpm": 115
+      },
+      "notes": "Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns",
+      "candidate_nodes_to_grade": [
+        "ALTERED_MENTAL_STATUS_01_NODE_1",
+        "ALTERED_MENTAL_STATUS_01_NODE_2",
+        "ALTERED_MENTAL_STATUS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ALTERED_MENTAL_STATUS_01_NODE_1": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_2": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_041_HN_ADULT",
+      "age": {
+        "value": "45",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 80,
+        "heart_rate_bpm": 130,
+        "spo2_percent": 89
+      },
+      "notes": "Unknown syndrome 'migraine' with hypotension/tachycardia/hypoxia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_217_DUP",
+      "age": {
+        "value": "49",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 84,
+        "heart_rate_bpm": 52
+      },
+      "notes": "Deterministic tie-breaking by (-score, chunk_id) across runs",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_169_POP_NEO",
+      "age": {
+        "value": "28",
+        "unit": "days"
+      },
+      "population": "neonate",
+      "vitals": {
+        "heart_rate_bpm": 160,
+        "temperature_c": "38.5"
+      },
+      "notes": "Neonate (28 days <= 28d) has 0 neonate protocols and must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_223_SCALE",
+      "age": {
+        "value": "59",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82,
+        "heart_rate_bpm": 128,
+        "respiratory_rate_bpm": 26,
+        "spo2_percent": 89,
+        "temperature_c": "38.6",
+        "blood_glucose_mg_dl": "58",
+        "consciousness": "C"
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_4",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_4": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_005_POS_CP",
+      "age": {
+        "value": "58",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 140,
+        "heart_rate_bpm": 88,
+        "spo2_percent": 96
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_185_UNK_SYN_ONLY",
+      "age": {
+        "value": "48",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {},
+      "notes": "All vitals unknown/missing but known syndrome still retrieves protocol nodes",
+      "candidate_nodes_to_grade": [
+        "ALTERED_MENTAL_STATUS_01_NODE_1",
+        "ALTERED_MENTAL_STATUS_01_NODE_2",
+        "ALTERED_MENTAL_STATUS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ALTERED_MENTAL_STATUS_01_NODE_1": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_2": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_113_VO_AMBIG_SBP",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 85
+      },
+      "notes": "Adult hypotension alone matches both chest_pain and anaphylaxis within margin",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_200_VAR",
+      "age": {
+        "value": "33",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "respiratory_rate_bpm": 28
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "SEVERE_ASTHMA_01_NODE_1",
+        "SEVERE_ASTHMA_01_NODE_2",
+        "SEVERE_ASTHMA_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "SEVERE_ASTHMA_01_NODE_1": null,
+        "SEVERE_ASTHMA_01_NODE_2": null,
+        "SEVERE_ASTHMA_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_090_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "blood_glucose_mg_dl": "58",
+        "temperature_c": "38.6"
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "SEVERE_ASTHMA_01_NODE_1",
+        "SEVERE_ASTHMA_01_NODE_2",
+        "SEVERE_ASTHMA_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "SEVERE_ASTHMA_01_NODE_1": null,
+        "SEVERE_ASTHMA_01_NODE_2": null,
+        "SEVERE_ASTHMA_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_212_POISON",
+      "age": {
+        "value": "5",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "heart_rate_bpm": 150
+      },
+      "notes": "Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns",
+      "candidate_nodes_to_grade": [
+        "PAED_SEPSIS_01_NODE_1",
+        "PAED_SEPSIS_01_NODE_2",
+        "PAED_SEPSIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "PAED_SEPSIS_01_NODE_1": null,
+        "PAED_SEPSIS_01_NODE_2": null,
+        "PAED_SEPSIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_042_HN_PAED",
+      "age": {
+        "value": "6",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "39.4",
+        "heart_rate_bpm": 158,
+        "respiratory_rate_bpm": 38
+      },
+      "notes": "Paediatric unknown syndrome 'migraine' with fever/tachycardia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_218_DUP",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 85,
+        "heart_rate_bpm": 52
+      },
+      "notes": "Deterministic tie-breaking by (-score, chunk_id) across runs",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_170_POP_PAED_OK",
+      "age": {
+        "value": "29",
+        "unit": "days"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "39.0",
+        "heart_rate_bpm": 150
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "PAED_SEPSIS_01_NODE_1",
+        "PAED_SEPSIS_01_NODE_2",
+        "PAED_SEPSIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "PAED_SEPSIS_01_NODE_1": null,
+        "PAED_SEPSIS_01_NODE_2": null,
+        "PAED_SEPSIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_224_SCALE",
+      "age": {
+        "value": "60",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82,
+        "heart_rate_bpm": 128,
+        "respiratory_rate_bpm": 26,
+        "spo2_percent": 89,
+        "temperature_c": "38.6",
+        "blood_glucose_mg_dl": "58",
+        "consciousness": "C"
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_4",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_4": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_006_POS_CP",
+      "age": {
+        "value": "58",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 78,
+        "heart_rate_bpm": 55,
+        "spo2_percent": 96
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_186_UNK_SYN_ONLY",
+      "age": {
+        "value": "6",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {},
+      "notes": "All vitals unknown/missing but known syndrome still retrieves protocol nodes",
+      "candidate_nodes_to_grade": [
+        "PAED_SEPSIS_01_NODE_1",
+        "PAED_SEPSIS_01_NODE_2",
+        "PAED_SEPSIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "PAED_SEPSIS_01_NODE_1": null,
+        "PAED_SEPSIS_01_NODE_2": null,
+        "PAED_SEPSIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_114_VO_AMBIG_SBP",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 88
+      },
+      "notes": "Adult hypotension alone matches both chest_pain and anaphylaxis within margin",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_201_VAR",
+      "age": {
+        "value": "68",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "consciousness": "C"
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "ALTERED_MENTAL_STATUS_01_NODE_1",
+        "ALTERED_MENTAL_STATUS_01_NODE_2",
+        "ALTERED_MENTAL_STATUS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ALTERED_MENTAL_STATUS_01_NODE_1": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_2": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_091_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "blood_glucose_mg_dl": "50",
+        "spo2_percent": 88
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_043_HN_ADULT",
+      "age": {
+        "value": "45",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 80,
+        "heart_rate_bpm": 130,
+        "spo2_percent": 89
+      },
+      "notes": "Unknown syndrome 'gi_bleed' with hypotension/tachycardia/hypoxia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_171_POP_PAED_OK",
+      "age": {
+        "value": "6",
+        "unit": "months"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "39.0",
+        "heart_rate_bpm": 150
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "PAED_SEPSIS_01_NODE_1",
+        "PAED_SEPSIS_01_NODE_2",
+        "PAED_SEPSIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "PAED_SEPSIS_01_NODE_1": null,
+        "PAED_SEPSIS_01_NODE_2": null,
+        "PAED_SEPSIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_007_POS_ANA",
+      "age": {
+        "value": "34",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 76,
+        "spo2_percent": 94,
+        "heart_rate_bpm": 112
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_3",
+        "ANAPHYLAXIS_01_NODE_4"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_3": null,
+        "ANAPHYLAXIS_01_NODE_4": null
+      }
+    },
+    {
+      "case_id": "RET_187_UNK_ALL",
+      "age": {
+        "value": "30",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {},
+      "notes": "All vitals unknown and no syndrome abstains with EMPTY_QUERY",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_115_VO_EMPTY",
+      "age": {
+        "value": "40",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "heart_rate_bpm": 72,
+        "systolic_bp_mmhg": 120,
+        "spo2_percent": 98
+      },
+      "notes": "Normal vitals and no suspected syndrome emits empty query and abstains",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_202_VAR",
+      "age": {
+        "value": "72",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "consciousness": "V"
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "ALTERED_MENTAL_STATUS_01_NODE_1",
+        "ALTERED_MENTAL_STATUS_01_NODE_2",
+        "ALTERED_MENTAL_STATUS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ALTERED_MENTAL_STATUS_01_NODE_1": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_2": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_092_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "temperature_c": "39.0",
+        "respiratory_rate_bpm": 26
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_044_HN_PAED",
+      "age": {
+        "value": "6",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "39.4",
+        "heart_rate_bpm": 158,
+        "respiratory_rate_bpm": 38
+      },
+      "notes": "Paediatric unknown syndrome 'gi_bleed' with fever/tachycardia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_172_POP_PAED_OK",
+      "age": {
+        "value": "2",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "39.0",
+        "heart_rate_bpm": 150
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "PAED_SEPSIS_01_NODE_1",
+        "PAED_SEPSIS_01_NODE_2",
+        "PAED_SEPSIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "PAED_SEPSIS_01_NODE_1": null,
+        "PAED_SEPSIS_01_NODE_2": null,
+        "PAED_SEPSIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_008_POS_ANA",
+      "age": {
+        "value": "34",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 84,
+        "spo2_percent": 89,
+        "heart_rate_bpm": 112
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_3",
+        "ANAPHYLAXIS_01_NODE_4"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_3": null,
+        "ANAPHYLAXIS_01_NODE_4": null
+      }
+    },
+    {
+      "case_id": "RET_188_UNK_ALL",
+      "age": {
+        "value": "35",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {},
+      "notes": "All vitals unknown and no syndrome abstains with EMPTY_QUERY",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_116_VO_EMPTY",
+      "age": {
+        "value": "40",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "heart_rate_bpm": 80,
+        "systolic_bp_mmhg": 118,
+        "spo2_percent": 98
+      },
+      "notes": "Normal vitals and no suspected syndrome emits empty query and abstains",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_203_VAR",
+      "age": {
+        "value": "5",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "39.2",
+        "heart_rate_bpm": 152
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "PAED_SEPSIS_01_NODE_1",
+        "PAED_SEPSIS_01_NODE_2",
+        "PAED_SEPSIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "PAED_SEPSIS_01_NODE_1": null,
+        "PAED_SEPSIS_01_NODE_2": null,
+        "PAED_SEPSIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_093_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 80,
+        "heart_rate_bpm": 125
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "ALTERED_MENTAL_STATUS_01_NODE_1",
+        "ALTERED_MENTAL_STATUS_01_NODE_2",
+        "ALTERED_MENTAL_STATUS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ALTERED_MENTAL_STATUS_01_NODE_1": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_2": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_045_HN_ADULT",
+      "age": {
+        "value": "45",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 80,
+        "heart_rate_bpm": 130,
+        "spo2_percent": 89
+      },
+      "notes": "Unknown syndrome 'pulmonary_embolism' with hypotension/tachycardia/hypoxia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_173_POP_PAED_OK",
+      "age": {
+        "value": "17",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "39.0",
+        "heart_rate_bpm": 150
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "PAED_SEPSIS_01_NODE_1",
+        "PAED_SEPSIS_01_NODE_2",
+        "PAED_SEPSIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "PAED_SEPSIS_01_NODE_1": null,
+        "PAED_SEPSIS_01_NODE_2": null,
+        "PAED_SEPSIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_009_POS_ANA",
+      "age": {
+        "value": "34",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 88,
+        "spo2_percent": 95,
+        "heart_rate_bpm": 112
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_3",
+        "ANAPHYLAXIS_01_NODE_4"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_3": null,
+        "ANAPHYLAXIS_01_NODE_4": null
+      }
+    },
+    {
+      "case_id": "RET_189_UNK_ALL",
+      "age": {
+        "value": "40",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {},
+      "notes": "All vitals unknown and no syndrome abstains with EMPTY_QUERY",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_117_VO_EMPTY",
+      "age": {
+        "value": "40",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "heart_rate_bpm": 68,
+        "systolic_bp_mmhg": 124,
+        "spo2_percent": 98
+      },
+      "notes": "Normal vitals and no suspected syndrome emits empty query and abstains",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_204_VAR",
+      "age": {
+        "value": "4",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "38.9",
+        "heart_rate_bpm": 148
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "PAED_SEPSIS_01_NODE_1",
+        "PAED_SEPSIS_01_NODE_2",
+        "PAED_SEPSIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "PAED_SEPSIS_01_NODE_1": null,
+        "PAED_SEPSIS_01_NODE_2": null,
+        "PAED_SEPSIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_094_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "respiratory_rate_bpm": 28,
+        "spo2_percent": 89
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "ALTERED_MENTAL_STATUS_01_NODE_1",
+        "ALTERED_MENTAL_STATUS_01_NODE_2",
+        "ALTERED_MENTAL_STATUS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ALTERED_MENTAL_STATUS_01_NODE_1": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_2": null,
+        "ALTERED_MENTAL_STATUS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_046_HN_PAED",
+      "age": {
+        "value": "6",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "39.4",
+        "heart_rate_bpm": 158,
+        "respiratory_rate_bpm": 38
+      },
+      "notes": "Paediatric unknown syndrome 'pulmonary_embolism' with fever/tachycardia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_174_POP_PAED_MISMATCH",
+      "age": {
+        "value": "8",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "heart_rate_bpm": 150
+      },
+      "notes": "Paediatric patient with adult-only syndrome 'chest_pain' must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_010_POS_ANA",
+      "age": {
+        "value": "34",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 110,
+        "spo2_percent": 90,
+        "heart_rate_bpm": 112
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_2",
+        "ANAPHYLAXIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_2": null,
+        "ANAPHYLAXIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_190_UNK_ALL",
+      "age": {
+        "value": "45",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {},
+      "notes": "All vitals unknown and no syndrome abstains with EMPTY_QUERY",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_118_VO_EMPTY",
+      "age": {
+        "value": "40",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "heart_rate_bpm": 76,
+        "systolic_bp_mmhg": 115,
+        "spo2_percent": 98
+      },
+      "notes": "Normal vitals and no suspected syndrome emits empty query and abstains",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_205_VAR",
+      "age": {
+        "value": "59",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "blood_glucose_mg_dl": "45"
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "HYPOGLYCEMIA_01_NODE_1",
+        "HYPOGLYCEMIA_01_NODE_2",
+        "HYPOGLYCEMIA_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "HYPOGLYCEMIA_01_NODE_1": null,
+        "HYPOGLYCEMIA_01_NODE_2": null,
+        "HYPOGLYCEMIA_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_095_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 80,
+        "heart_rate_bpm": 50
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_2",
+        "ANAPHYLAXIS_01_NODE_3",
+        "ANAPHYLAXIS_01_NODE_4"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_2": null,
+        "ANAPHYLAXIS_01_NODE_3": null,
+        "ANAPHYLAXIS_01_NODE_4": null
+      }
+    },
+    {
+      "case_id": "RET_047_HN_ADULT",
+      "age": {
+        "value": "45",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 80,
+        "heart_rate_bpm": 130,
+        "spo2_percent": 89
+      },
+      "notes": "Unknown syndrome 'acute_stroke' with hypotension/tachycardia/hypoxia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_175_POP_PAED_MISMATCH",
+      "age": {
+        "value": "8",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "heart_rate_bpm": 150
+      },
+      "notes": "Paediatric patient with adult-only syndrome 'anaphylaxis' must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_011_POS_ANA",
+      "age": {
+        "value": "34",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 80,
+        "spo2_percent": 91,
+        "heart_rate_bpm": 112
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_3",
+        "ANAPHYLAXIS_01_NODE_4"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_3": null,
+        "ANAPHYLAXIS_01_NODE_4": null
+      }
+    },
+    {
+      "case_id": "RET_191_UNK_ALL",
+      "age": {
+        "value": "50",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {},
+      "notes": "All vitals unknown and no syndrome abstains with EMPTY_QUERY",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_119_VO_EMPTY",
+      "age": {
+        "value": "40",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "heart_rate_bpm": 84,
+        "systolic_bp_mmhg": 122,
+        "spo2_percent": 98
+      },
+      "notes": "Normal vitals and no suspected syndrome emits empty query and abstains",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_206_VAR",
+      "age": {
+        "value": "41",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 85
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_2",
+        "ANAPHYLAXIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_2": null,
+        "ANAPHYLAXIS_01_NODE_3": null
+      }
+    },
+    {
+      "case_id": "RET_096_CONF",
+      "age": {
+        "value": "52",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 82,
+        "consciousness": "C"
+      },
+      "notes": "Hard syndrome filter prevents cross-syndrome leakage despite conflicting vitals",
+      "candidate_nodes_to_grade": [
+        "CHEST_PAIN_01_NODE_1",
+        "CHEST_PAIN_01_NODE_2",
+        "CHEST_PAIN_01_NODE_3",
+        "CHEST_PAIN_01_NODE_5"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "CHEST_PAIN_01_NODE_1": null,
+        "CHEST_PAIN_01_NODE_2": null,
+        "CHEST_PAIN_01_NODE_3": null,
+        "CHEST_PAIN_01_NODE_5": null
+      }
+    },
+    {
+      "case_id": "RET_048_HN_PAED",
+      "age": {
+        "value": "6",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "temperature_c": "39.4",
+        "heart_rate_bpm": 158,
+        "respiratory_rate_bpm": 38
+      },
+      "notes": "Paediatric unknown syndrome 'acute_stroke' with fever/tachycardia must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_176_POP_PAED_MISMATCH",
+      "age": {
+        "value": "8",
+        "unit": "years"
+      },
+      "population": "paediatric",
+      "vitals": {
+        "heart_rate_bpm": 150
+      },
+      "notes": "Paediatric patient with adult-only syndrome 'severe_asthma' must abstain",
+      "candidate_nodes_to_grade": [],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {}
+    },
+    {
+      "case_id": "RET_012_POS_ANA",
+      "age": {
+        "value": "34",
+        "unit": "years"
+      },
+      "population": "adult",
+      "vitals": {
+        "systolic_bp_mmhg": 115,
+        "spo2_percent": 96,
+        "heart_rate_bpm": 112
+      },
+      "notes": "",
+      "candidate_nodes_to_grade": [
+        "ANAPHYLAXIS_01_NODE_1",
+        "ANAPHYLAXIS_01_NODE_2",
+        "ANAPHYLAXIS_01_NODE_3"
+      ],
+      "annotation_instructions": "Assign grade: 2 = directly actionable, 1 = supporting, 0 = irrelevant/non-indicated",
+      "ratings_placeholder": {
+        "ANAPHYLAXIS_01_NODE_1": null,
+        "ANAPHYLAXIS_01_NODE_2": null,
+        "ANAPHYLAXIS_01_NODE_3": null
+      }
+    }
+  ]
+}
