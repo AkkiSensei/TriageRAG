@@ -36,7 +36,7 @@ Starting HEAD for Phase 0: `3e8a45bded1a9bd39e5e644a0957c62bb0fb8315` (branch `a
 | ID | Repro on HEAD (date, commit) | Status | Task | Commit | Test added | Notes |
 |----|------------------------------|--------|------|--------|-----------|-------|
 | AUB-VRD-01 | 2026-10-31 `a2ed67d`: `run_triage` on clean patient with unknown syndrome yielded `Verdict.CHECKED_CLEAR` if physiological score was unskipped, ignoring retrieval abstention and absence of approved steps | FIXED | T1.1 | `e3f0367` | `tests/unit/test_aub_phase1_verdict.py` (18 tests) | Added `resolve_verdict_with_reason`, threaded `retrieval_report` and `has_approved_steps`; fail closed to `UNVERIFIED` on any `AbstainCode` or 0 approved steps; verified headline has no 'CLEAR' |
-| AUB-UX-01 | _pending execution in T1.2_ | TODO | T1.2 | | | |
+| AUB-UX-01 | 2026-10-31 `2ff73d8`: `build_triage_explanation` hardcoded allergy, DDI, and weight checks in `completed_checks` regardless of skips/unknowns; `timelineStages` in `ExplanationSection.tsx` labelled stage 4 'CLEAR' with skipped checks, and stage 7 'VERIFIED' when 0 steps approved | FIXED | T1.2 | `38e56c2` | `tests/unit/test_aub_phase1_explanations.py` (3 tests) | Derived `completed_checks` from `checks_run - checks_skipped` and non-unknown status; counted strictly APPROVED steps in machine verification; updated timeline stage 4 and stage 7 to reflect real status |
 | AUB-UX-02 | _pending execution in T1.3_ | TODO | T1.3 | | | |
 | AUB-ABS-01 | _pending execution in T1.4_ | TODO | T1.4 | | | |
 | AUB-GRD-02 | _pending execution in T1.5_ | TODO | T1.5 | | | |

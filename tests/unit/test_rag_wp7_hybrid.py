@@ -126,6 +126,10 @@ def test_hybrid_retrievers_thread_explicit_config_and_data_dir(tmp_path: Path) -
     svc_a = RetrievalService.build(dir_a, backend="hybrid_rrf")
     svc_b = RetrievalService.build(dir_b, backend="hybrid_rrf")
 
+    from triagerag.rag.hybrid import HybridRRFRetriever
+
+    assert isinstance(svc_a.index, HybridRRFRetriever)
+    assert isinstance(svc_b.index, HybridRRFRetriever)
     assert svc_a.config.top_k == 5
     assert svc_b.config.top_k == 8
     assert svc_a.config.calibrated_threshold != svc_b.config.calibrated_threshold

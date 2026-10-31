@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 1: Trust and Honesty of Outputs
 
 ### Fixed & Hardened
+- **Truthful Execution Explanations and Timeline Stage Accuracy (T1.2 / AUB-UX-01):**
+  - Dynamically derived `completed_checks` from `checks_run - checks_skipped` and confirmed patient parameters; omitted false claims of completed allergy, DDI, and weight checks in the UNVERIFIED preset and when inputs are unknown.
+  - Constrained machine-verified step counts in `completed_checks` to strictly count `APPROVED` steps, excluding struck-through, citation-unverified, and missing-data steps.
+  - Enriched `unresolved_checks` with explicit line items for unverified and struck-through proposed steps as well as retrieval abstentions.
+  - Updated `ExplanationSection.tsx` timeline stages: stage 2 reflects unmapped entities, stage 4 reflects skipped checks rather than false 'CLEAR', and stage 7 reflects real step approval statuses (`VERIFIED`, `PARTIALLY VERIFIED`, `UNVERIFIED`).
+  - Added unit regression tests in `tests/unit/test_aub_phase1_explanations.py`.
 - **Retrieval-Dependent Verdict Resolution and Non-Clear Headline Enforcement (T1.1 / AUB-VRD-01):**
   - Added `resolve_verdict_with_reason` in `src/triagerag/engine/verdict.py` accepting `retrieval_report` and `has_approved_steps`.
   - Added `unverified_reason: str | None = None` to `EngineReport` data contract.

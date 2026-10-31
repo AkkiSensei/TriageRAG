@@ -733,14 +733,58 @@ def build_triage_explanation(
     else:
         evidence_summary = "No protocol evidence chunks were retrieved or verified for this case."
 
-    # 6. Completed Checks
-    completed_checks: list[str] = [
-        f"Evaluated {engine.checks_run} registered safety rules across formulary and ontology",
-        "Deterministic contraindication and drug-drug interaction screening",
-        "Allergy and cross-reactivity interlock evaluation",
-        "Weight-based dose ceiling and 10x/1000x magnitude tripwire checks",
-    ]
-    if engine.score and engine.score.total_score is not None:
+    # 6. Completed Checks (truthfully derived from actual execution, T1.2 / AUB-UX-01)
+    completed_checks: list[str] = []
+    if engine.checks_run > 0:
+        completed_checks.append(
+            f"Evaluated {engine.checks_run} registered safety rules across formulary and ontology"
+        )
+
+    # Check whether allergy screening ran or was skipped
+    has_allergy_skip = any(
+        "allergy" in s.rule_type.lower()
+        or "allergy" in s.rule_id.lower()
+        or "allergies" in s.missing_fields
+        for s in engine.checks_skipped
+    ) or getattr(patient, "allergy_history_status", None) in (
+        "incomplete",
+        "unknown_unobtainable",
+    )
+    if not has_allergy_skip:
+        completed_checks.append("Allergy and cross-reactivity interlock evaluation")
+
+    # Check whether medication / DDI screening ran or was skipped
+    has_med_skip = any(
+        "medication" in s.rule_type.lower()
+        or "medication" in s.rule_id.lower()
+        or "medications" in s.missing_fields
+        or s.rule_type == "entity_resolution"
+        for s in engine.checks_skipped
+    ) or getattr(patient, "medication_history_status", None) in (
+        "incomplete",
+        "unknown_unobtainable",
+    )
+    if not has_med_skip:
+        completed_checks.append(
+            "Deterministic contraindication and drug-drug interaction screening"
+        )
+
+    # Check whether weight-based dose checks ran or were skipped
+    patient_weight = getattr(patient, "weight_kg", None)
+    has_weight_skip = any(
+        "weight" in s.rule_type.lower()
+        or "weight" in s.rule_id.lower()
+        or "weight_kg" in s.missing_fields
+        for s in engine.checks_skipped
+    ) or patient_weight is None or getattr(patient_weight, "value", None) is None
+    if not has_weight_skip:
+        completed_checks.append("Weight-based dose ceiling and magnitude tripwire checks")
+
+    # Check physiological risk score
+    has_score_skip = any(
+        s.rule_type == "physiological_scoring" for s in engine.checks_skipped
+    )
+    if engine.score and engine.score.total_score is not None and not has_score_skip:
         band_val = (
             engine.score.band.value
             if hasattr(engine.score.band, "value")
@@ -750,10 +794,13 @@ def build_triage_explanation(
             f"Calculated physiological risk score: {engine.score.score_name} = "
             f"{engine.score.total_score} (Band: {band_val})"
         )
-    if verified_steps:
+
+    # Machine-verified plan steps: count ONLY approved steps (never struck or unverified)
+    approved_steps = [s for s in verified_steps if s.status == StepStatus.APPROVED]
+    if approved_steps:
         completed_checks.append(
-            f"Machine-verified {len(verified_steps)} proposed protocol steps against "
-            f"retrieved evidence and formulary limits"
+            f"Machine-verified {len(approved_steps)} proposed protocol steps against "
+            "retrieved evidence and formulary limits"
         )
 
     # 7. Unresolved Checks
@@ -767,6 +814,31 @@ def build_triage_explanation(
         )
     for gap in engine.coverage_gaps:
         unresolved_checks.append(f"Known ruleset coverage gap: {gap}")
+    for v_step in verified_steps:
+        if v_step.status == StepStatus.CITATION_UNVERIFIED:
+            unresolved_checks.append(
+                f"Proposed step {v_step.draft.step_number} citation unverified: "
+                "Supporting evidence could not be verified in retrieved protocol text"
+            )
+        elif v_step.status == StepStatus.UNVERIFIED_MISSING_DATA:
+            unresolved_checks.append(
+                f"Proposed step {v_step.draft.step_number} unverified: "
+                "Missing required clinical parameters to verify proposed intervention"
+            )
+        elif v_step.status == StepStatus.BLOCKED_STRUCK_THROUGH:
+            unresolved_checks.append(
+                f"Proposed step {v_step.draft.step_number} struck through: "
+                f"{'; '.join(v_step.rejection_reasons)}"
+            )
+    if retrieval and retrieval.abstained:
+        ac_val = (
+            retrieval.abstain_code.value
+            if hasattr(retrieval.abstain_code, "value")
+            else str(retrieval.abstain_code)
+        )
+        unresolved_checks.append(
+            f"Protocol retrieval abstained ({ac_val}): {retrieval.reason}"
+        )
 
     # 8. Generation Disclosure
     generation_disclosure = (

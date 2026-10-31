@@ -74,7 +74,13 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
   // Timeline stage definitions
   const timelineStages = [
     { name: '1. Patient Input Validation', status: 'COMPLETED', note: 'All fields type-checked' },
-    { name: '2. Clinical Data Normalization', status: 'COMPLETED', note: 'Controlled units & vocabularies' },
+    {
+      name: '2. Clinical Data Normalization',
+      status: (engine.unresolved_entities?.length || 0) > 0 ? 'UNRESOLVED ENTITIES' : 'COMPLETED',
+      note: (engine.unresolved_entities?.length || 0) > 0
+        ? `${engine.unresolved_entities?.length} unmapped entities`
+        : 'Controlled units & vocabularies',
+    },
     {
       name: '3. Physiological Risk Scoring',
       status: engine.score && engine.score.total_score !== null ? 'SCORED' : 'UNSCORED',
@@ -82,8 +88,12 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
     },
     {
       name: '4. Deterministic Safety Interlocks',
-      status: alertsCount > 0 ? (verdict === 'BLOCKED' ? 'BLOCK TRIGGERED' : 'ALERTS FLAGGED') : 'CLEAR',
-      note: `${engine.checks_run} rules evaluated`,
+      status: alertsCount > 0
+        ? (verdict === 'BLOCKED' ? 'BLOCK TRIGGERED' : 'ALERTS FLAGGED')
+        : (skipsCount > 0 ? 'CHECKS SKIPPED' : 'CLEAR'),
+      note: skipsCount > 0
+        ? `${engine.checks_run} evaluated, ${skipsCount} skipped`
+        : `${engine.checks_run} rules evaluated`,
     },
     {
       name: '5. Protocol Retrieval',
@@ -97,8 +107,18 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
     },
     {
       name: '7. Machine Verification',
-      status: stepsCount > 0 ? 'VERIFIED' : 'NO STEPS',
-      note: `${stepsCount} steps evaluated`,
+      status: (() => {
+        if (stepsCount === 0) return 'NO STEPS'
+        const approvedCount = triage.verified_steps?.filter(s => s.status === 'APPROVED').length || 0
+        if (approvedCount === stepsCount) return 'VERIFIED'
+        if (approvedCount > 0) return 'PARTIALLY VERIFIED'
+        return 'UNVERIFIED'
+      })(),
+      note: (() => {
+        if (stepsCount === 0) return '0 steps evaluated'
+        const approvedCount = triage.verified_steps?.filter(s => s.status === 'APPROVED').length || 0
+        return `${approvedCount}/${stepsCount} steps approved`
+      })(),
     },
     {
       name: '8. Safety Verdict Lattice',
