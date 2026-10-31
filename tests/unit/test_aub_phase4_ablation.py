@@ -167,9 +167,7 @@ def test_compute_paired_differences_contract() -> None:
     data_dir = get_data_dir()
     services = {
         "bm25": RetrievalService.create_default(data_dir, backend="bm25"),
-        "bm25_pure_lexical": RetrievalService.create_default(
-            data_dir, backend="bm25_pure_lexical"
-        ),
+        "bm25_pure_lexical": RetrievalService.create_default(data_dir, backend="bm25_pure_lexical"),
     }
     sample_cases = [
         {

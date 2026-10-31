@@ -46,7 +46,7 @@ from triagerag.rag.retrieve import (
 )
 
 _SERVICE_LOCK = threading.RLock()
-_SERVICE_CACHE: dict[tuple[str, str], RetrievalService] = {}
+_SERVICE_CACHE: dict[tuple[str, str, bool | None, bool | None], RetrievalService] = {}
 
 
 class RetrievalService:

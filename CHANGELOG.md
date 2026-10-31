@@ -5,6 +5,50 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - AUB Phase 4: Evaluation Rebuild and Research Validity
+
+### Added & Hardened
+- **Controlled 7-Arm Retrieval Ablation & Programmatic Decision Rule (T4.7 / AUB-EVL-01):**
+  - Expanded `eval/run_retrieval_ablation.py` to evaluate seven controlled configurations: `bm25` (Production BM25 with calibrated predicates), `bm25_pure_lexical`, `char_ngram`, `hybrid_rrf`, `hybrid_rrf_rerank`, `bm25_contextual`, and `contextual_predicate`.
+  - Added support for backend aliases and explicit `enable_predicate_scoring` toggle in `RetrievalService`.
+  - Implemented `_compute_paired_differences()` calculating 95% bootstrap confidence intervals for paired differences vs baseline BM25 across 1,000 resamples.
+  - Codified `decide_backend()`: strictly enforces hard safety invariants (FAR==0, WSR==0, HN==1, latency < 50ms) and adopts alternative candidates only with non-regressing Recall@5, test MRR gain $\ge +0.05$, and paired difference 95% bootstrap CI strictly excluding zero.
+  - Retained `bm25` as default production backend after proving that contextual chunking's MRR advantage (`+0.0533`) has a 95% CI crossing zero (`[-0.0067, +0.1200]`).
+  - Added comprehensive test suite `tests/unit/test_aub_phase4_ablation.py` (6 tests).
+- **Hand-Computed Metric Verification Fixtures & Metric Reference (T4.6 / AUB-EVL-01):**
+  - Authored `docs/evaluation/METRICS.md` documenting exact mathematical formulas, denominators, boundary conditions, and safety rationale for all metrics.
+  - Authored `tests/unit/test_aub_phase4_metric_fixtures.py` verifying Recall@{1,3,5,10}, MRR, nDCG@{5,10}, FAR, WSR, legacy WPR, per-code abstention, Cohen's $\kappa$, and ECE against pencil-and-paper hand calculations (7 tests).
+- **Benchmark Validity Self-Tests & Hard Performance Gates (T4.5 / AUB-EVL-01):**
+  - Implemented `validate_benchmark_gate()` in `eval/run_retrieval.py` enforcing two automated validity self-tests: random candidate baseline Recall@5 must be $< 60.0\%$ (pool non-triviality) and position-prior Recall@1 must be lower than system Recall@1 with paired difference CI strictly excluding zero.
+  - Automatically fails and labels benchmark collection `BENCHMARK_INVALID` on self-test violation.
+  - Hard performance gates enforce: `false_accept_rate == 0.0`, `wrong_syndrome_rate == 0.0`, `wrong_protocol_rate == 0.0`, `abstain_recall_hard_negatives == 1.0`, syndrome-provided Recall@5 $\ge 95.0\%$, and bit-for-bit determinism.
+  - Added unit test suite `tests/unit/test_aub_phase4_gates.py` (5 tests).
+- **Honest Metrics, Granular Abstention, and Calibration (T4.4 / AUB-EVL-01 / AUB-ABS-02):**
+  - Disentangled `wrong_protocol_rate` into `false_accept_rate` (FAR) and `wrong_syndrome_rate` (WSR).
+  - Replaced artificial hardcoded confidence with genuine normalized retrieval scores in `_compute_ece()`.
+  - Added `per_code_abstention` metrics recording precision, recall, and support per `AbstainCode`.
+  - Extended reporting to Recall@{1, 3, 5, 10}, MRR, and graded nDCG@{5, 10}.
+  - Implemented cluster-robust group (template-level) bootstrap 95% confidence intervals via `_group_bootstrap_ci95()`.
+  - Added unit test suite `tests/unit/test_aub_phase4_metrics.py` (4 tests).
+- **Random and Position-Prior Baselines (T4.3 / AUB-EVL-01):**
+  - Implemented `PositionPriorRetriever` in `eval/run_retrieval.py` fitted strictly on development split data with deterministic tie-breaking.
+  - Implemented `run_position_prior_baseline()` calculating paired difference 95% bootstrap CIs comparing system against position prior.
+  - Answered Reviewer B's challenge question: Production BM25 test Recall@1 (54.00%) significantly beats label frequency prior (24.00%) with +30.00 pt advantage (95% CI `[12.0, 48.0]`).
+  - Added unit test suite `tests/unit/test_aub_phase4_baselines.py` (5 tests).
+- **Blinded Relevance Labels and Annotator Agreement Tooling (T4.2 / AUB-EVL-01):**
+  - Authored `docs/evaluation/ANNOTATION_GUIDE.md` defining 3-level relevance grading rubric.
+  - Authored schema `eval/annotations/schema.json` and export/agreement CLI `tools/export_annotations.py`.
+  - Generated blinded export of 100 cases (`eval/annotations/blinded_cases.json`).
+  - Recorded honest agreement status `BLOCKED_PENDING_INDEPENDENT_HUMAN_ANNOTATION` in `eval/annotations/agreement_status.json`.
+  - Added unit test suite `tests/unit/test_aub_phase4_annotations.py` (6 tests).
+- **Template-Grouped Dataset Splits with Hash Lock (T4.1 / AUB-EVL-01):**
+  - Implemented `derive_template_id()` and `stratified_template_group_split()` in `eval/retrieval/build_dataset.py`.
+  - Grouped all 224 cases by clinical scenario template across 55 groups (42 dev, 13 test) with 0 template leakage and 0 target node-set leakage.
+  - Generated `eval/retrieval/dataset.lock` and `eval/retrieval/split_manifest.json`.
+  - Added unit test suite `tests/unit/test_aub_phase4_splits.py` (4 tests).
+- **Architecture Decision Record:**
+  - Authored **ADR-0013** in `docs/adr/0013-evaluation-rebuild-and-validity-gates.md`.
+
 ## [Unreleased] - AUB Phase 3: Corpus Growth and Evidence Ingestion
 
 ### Added & Hardened
