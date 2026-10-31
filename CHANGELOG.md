@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 2: Patient-Aware Retrieval
 
 ### Added & Hardened
+- **Reachable Vitals-Only Syndrome Inference Path & HD-4 Confirmation Gate (T2.7 / HD-4):**
+  - Resolved unreachable vitals-only syndrome inference (where 0/56 cases previously reached candidate search, failing closed under `EMPTY_QUERY`).
+  - Synthesized candidate queries for unrouted presentations (`suspected_syndrome is None`) from acute presenting vitals cues (`syndrome_cue: true` in `data/retrieval/cues.yaml`).
+  - Expanded candidate search pool across protocols and applied predicate-conditioned rescoring to identify winning syndrome candidates.
+  - Implemented margin-based discrimination: requires relative margin $\ge 0.25$ between top distinct syndromes; cleanly abstains with `AbstainCode.AMBIGUOUS_MARGIN` on ambiguous vitals presentations.
+  - When candidate margin is clear, returns `AbstainCode.SYNDROME_INFERRED` with candidate chunks restricted strictly to the winning inferred syndrome.
+  - Enforced HD-4 clinical confirmation gate in `orchestrator.py` / `plan_verifier.py`: all verified plan steps generated under `SYNDROME_INFERRED` are capped at `StepStatus.REQUIRES_CLINICIAN_CONFIRMATION` (inferred syndromes never auto-approve plan steps).
+  - Added unit test suite `tests/unit/test_aub_phase2_inference.py` (7 tests).
+  - Authored **ADR-0011** in `docs/adr/0011-patient-aware-retrieval-scoring.md`.
 - **Score-Scale Integrity Across Retrieval Backends (T2.6 / AUB-RET-02):**
   - Hardened `LexicalOverlapReranker` in `src/triagerag/rag/hybrid.py`: removed arbitrary 1.5x score inflation (`1 + 0.5 * overlap`); scores are now bounded by `base_score * (1.0 - boost * (1.0 - overlap_ratio))` such that maximum score never exceeds unreranked base score.
   - Eliminated artificial RRF-to-BM25 rescaling (`max_bm25 / max_rrf`) in `HybridRRFRetriever.search`: hybrid retrievers now emit authentic, unmanipulated Reciprocal Rank Fusion scores.
