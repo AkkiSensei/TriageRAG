@@ -53,7 +53,8 @@ def test_no_function_exceeds_120_lines_in_orchestrator() -> None:
 
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            length = node.end_lineno - node.lineno + 1
+            end_lineno = node.end_lineno or node.lineno
+            length = end_lineno - node.lineno + 1
             functions_checked += 1
             assert length <= 120, (
                 f"Function '{node.name}' has {length} lines, exceeding the 120-line maximum"
