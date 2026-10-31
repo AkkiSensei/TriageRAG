@@ -70,7 +70,7 @@ def rescore_chunks_with_patient_predicates(
     *,
     match_weight: float = 1.0,
     conflict_weight: float = 2.0,
-    score_decimal_places: int = 4,
+    score_decimal_places: int = 2,
 ) -> tuple[list[tuple[ProtocolChunk, float]], dict[str, dict[str, float]]]:
     """Rescore candidate chunks with patient applicability predicates.
 

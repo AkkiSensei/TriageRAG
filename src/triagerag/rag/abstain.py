@@ -43,6 +43,10 @@ class RetrievalConfig(BaseModel):
     score_decimal_places: int
     predicate_match_weight: float = 1.0
     predicate_conflict_weight: float = 2.0
+    raw_token_weight: float = 1.0
+    stem_token_weight: float = 0.5
+    synonym_token_weight: float = 0.5
+    cue_token_weight: float = 0.5
     provenance: Provenance
     config_hash: str = ""
 

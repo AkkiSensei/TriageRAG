@@ -92,12 +92,15 @@ synthetic: true
     # Raw text must NOT contain the contextual header prefix
     assert "Acute Pericarditis Guideline ›" not in child.text
     assert child.text.startswith("1. IF pulsus paradoxus")
-    # Indexed text MUST contain the contextual header
-    expected_header = (
+    # Indexed text MUST contain the discriminative contextual header (T2.5 / AUB-RET-06)
+    expected_indexed_header = "Acute Pericarditis Guideline › Hemodynamic Tamponade Screening"
+    assert expected_indexed_header in child.indexed_text
+    # Full header is preserved in display_header
+    expected_display_header = (
         "Acute Pericarditis Guideline › Hemodynamic Tamponade Screening › "
         "chest_pain › CTX_01_NODE_1"
     )
-    assert expected_header in child.indexed_text
+    assert expected_display_header in child.display_header
 
     # Searching for section/title terms ('pericarditis tamponade') must match the child node
     # via its contextual header even though those words do not appear in child.text!

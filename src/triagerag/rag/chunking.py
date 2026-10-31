@@ -51,6 +51,19 @@ def compute_content_hash(text: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
+def build_display_header(
+    *,
+    title: str,
+    doc_id: str,
+    section: str,
+    syndrome: str,
+    chunk_id: str,
+) -> str:
+    """Build full display header for citations and UI inspection."""
+    display_title = title.strip() if title and title.strip() else doc_id
+    return f"{display_title} › {section} › {syndrome} › {chunk_id}"
+
+
 def build_contextual_header(
     *,
     title: str,
@@ -60,9 +73,18 @@ def build_contextual_header(
     chunk_id: str,
     text: str,
 ) -> str:
-    """Build contextualized text for indexing while keeping raw text separate for citations."""
+    """Build contextualized text for indexing while keeping raw text separate for citations.
+
+    T2.5 (AUB-RET-06): Strips non-discriminative fragments (positional node digits and redundant
+    syndrome tokens) so they do not leak into BM25 indexed_text or distort document length.
+    Full header is preserved on chunk.display_header.
+    """
     display_title = title.strip() if title and title.strip() else doc_id
-    header = f"{display_title} › {section} › {syndrome} › {chunk_id}"
+    clean_section = section.strip()
+    parts = [display_title]
+    if clean_section and clean_section.lower() != display_title.lower():
+        parts.append(clean_section)
+    header = " › ".join(parts)
     return f"{header}\n{text}"
 
 
@@ -136,6 +158,7 @@ class ProtocolChunk(BaseModel):
     parent_id: str | None = None
     text: str
     indexed_text: str = ""
+    display_header: str = ""
     population: str
     syndrome: str
     synthetic: bool = True
@@ -169,6 +192,14 @@ class ProtocolChunk(BaseModel):
 
             if not data.get("content_hash"):
                 data["content_hash"] = compute_content_hash(text)
+            if not data.get("display_header"):
+                data["display_header"] = build_display_header(
+                    title=title,
+                    doc_id=doc_id,
+                    section=section,
+                    syndrome=syndrome,
+                    chunk_id=chunk_id,
+                )
             if not data.get("indexed_text"):
                 data["indexed_text"] = build_contextual_header(
                     title=title,

@@ -320,14 +320,14 @@ def build_retrieval_query(
     norm_syndrome = normalize_syndrome(patient.suspected_syndrome, context=ctx)
     if norm_syndrome:
         query_parts.append(norm_syndrome)
+        # Evaluate patient predicates and expand satisfied ones into protocol cue terms
+        patient_evals = evaluate_patient_predicates(patient, ctx.predicates.predicates)
+        satisfied_preds = [
+            pid for pid, res in patient_evals.items() if res == PredicateEvalResult.SATISFIED
+        ]
+        cue_terms = expand_predicates_to_cues(satisfied_preds, ctx.cues)
+        query_parts.extend(cue_terms)
 
-    # Evaluate patient predicates and expand satisfied ones into protocol cue terms
-    patient_evals = evaluate_patient_predicates(patient, ctx.predicates.predicates)
-    satisfied_preds = [
-        pid for pid, res in patient_evals.items() if res == PredicateEvalResult.SATISFIED
-    ]
-    cue_terms = expand_predicates_to_cues(satisfied_preds, ctx.cues)
-    query_parts.extend(cue_terms)
     query_parts.extend(flags)
 
     # Deduplicate tokens while preserving order
@@ -462,23 +462,31 @@ def retrieve_protocol_chunks(
             config_hash=cfg.config_hash,
         )
 
-    candidate_k = max(eff_top_k * 3, 20) if norm_syndrome else max(eff_top_k * 5, 30)
     raw_scored_chunks = index.search(
         query=query_str,
         population=pop,
-        top_k=candidate_k,
+        top_k=eff_top_k,
         syndrome=norm_syndrome,
     )
 
-    # Patient-conditioned predicate rescoring (T2.4 / AUB-RET-01)
-    patient_evals = evaluate_patient_predicates(patient, ctx.predicates.predicates)
-    rescored_chunks, stage_scores = rescore_chunks_with_patient_predicates(
-        raw_scored_chunks,
-        patient_evals,
-        match_weight=cfg.predicate_match_weight,
-        conflict_weight=cfg.predicate_conflict_weight,
-        score_decimal_places=cfg.score_decimal_places,
-    )
+    if norm_syndrome is not None:
+        # Patient-conditioned predicate rescoring (T2.4 / AUB-RET-01)
+        patient_evals = evaluate_patient_predicates(patient, ctx.predicates.predicates)
+        rescored_chunks, stage_scores = rescore_chunks_with_patient_predicates(
+            raw_scored_chunks,
+            patient_evals,
+            match_weight=cfg.predicate_match_weight,
+            conflict_weight=cfg.predicate_conflict_weight,
+            score_decimal_places=cfg.score_decimal_places,
+        )
+    else:
+        rescored_chunks = raw_scored_chunks
+        stage_scores = {
+            "bm25": {
+                chunk.chunk_id: round(float(sc), cfg.score_decimal_places)
+                for chunk, sc in raw_scored_chunks
+            }
+        }
 
     scored_chunks = rescored_chunks[:eff_top_k]
 

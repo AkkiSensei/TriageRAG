@@ -83,6 +83,9 @@ def _light_clinical_stem(word: str) -> str | None:
     return None
 
 
+_NON_DISCRIMINATIVE_TOKENS: frozenset[str] = frozenset({"node", "nodes", "item", "section"})
+
+
 class ClinicalTokenizer:
     """Tokenizer with acronym case rules, clinical morphology/synonyms, and light stemming."""
 
@@ -99,6 +102,82 @@ class ClinicalTokenizer:
             else {k.lower(): [x.lower() for x in v] for k, v in synonyms.items()}
         )
 
+    def tokenize_raw(self, text: str) -> list[str]:
+        """Extract discriminative raw word tokens from text without stems or synonyms.
+
+        Used for accurate document length calculation (AUB-RET-06 / T2.5) to avoid
+        BM25 length inflation.
+        """
+        norm_text = text.replace("_", " ")
+        raw_matches = re.findall(r"\b[A-Za-z0-9\-\/]+\b", norm_text)
+        raw_tokens: list[str] = []
+        for tok in raw_matches:
+            cleaned = tok.strip().lower()
+            if not cleaned or cleaned in _NON_DISCRIMINATIVE_TOKENS or cleaned.isdigit():
+                continue
+            raw_tokens.append(cleaned)
+        return raw_tokens
+
+    def tokenize_query_weighted(
+        self,
+        query: str,
+        weights: dict[str, float] | None = None,
+    ) -> dict[str, float]:
+        """Tokenize a clinical query emitting deduplicated tokens with explicit class weights.
+
+        T2.5 (AUB-RET-06):
+        - Every distinct token appears once in the dictionary.
+        - Raw query words get raw weight (default 1.0).
+        - Stems get stem weight (default 0.8).
+        - Synonyms get synonym weight (default 0.6).
+        - If a token is in multiple classes, max weight wins.
+        """
+        w_raw = weights.get("raw", 1.0) if weights else 1.0
+        w_stem = weights.get("stem", 0.5) if weights else 0.5
+        w_syn = weights.get("synonym", 0.5) if weights else 0.5
+
+        norm_text = query.replace("_", " ")
+        raw_matches = re.findall(r"\b[A-Za-z0-9\-\/]+\b", norm_text)
+        token_weights: dict[str, float] = {}
+
+        for tok in raw_matches:
+            cleaned = tok.strip().lower()
+            if not cleaned or cleaned in _NON_DISCRIMINATIVE_TOKENS or cleaned.isdigit():
+                continue
+
+            # 1. Raw token
+            token_weights[cleaned] = max(token_weights.get(cleaned, 0.0), w_raw)
+
+            # 2. Light clinical stem
+            stem = _light_clinical_stem(cleaned)
+            if stem and stem != cleaned and stem not in _NON_DISCRIMINATIVE_TOKENS:
+                token_weights[stem] = max(token_weights.get(stem, 0.0), w_stem)
+
+            # 3. Clinical synonyms / morphology
+            if cleaned in self.synonyms:
+                for syn_target in self.synonyms[cleaned]:
+                    for sub_tok in syn_target.replace("_", " ").split():
+                        sub_clean = sub_tok.strip().lower()
+                        if sub_clean and sub_clean not in _NON_DISCRIMINATIVE_TOKENS:
+                            token_weights[sub_clean] = max(
+                                token_weights.get(sub_clean, 0.0), w_syn
+                            )
+
+            # 4. Acronym expansion
+            upper_tok = tok.upper()
+            if upper_tok in self.acronyms:
+                is_short = len(upper_tok) <= 2
+                if not is_short or tok == tok.upper():
+                    expansion = self.acronyms[upper_tok]
+                    for exp_tok in re.findall(r"\b[A-Za-z0-9_\-\/]+\b", expansion.lower()):
+                        exp_clean = exp_tok.strip().lower()
+                        if exp_clean and exp_clean not in _NON_DISCRIMINATIVE_TOKENS:
+                            token_weights[exp_clean] = max(
+                                token_weights.get(exp_clean, 0.0), w_raw
+                            )
+
+        return token_weights
+
     def tokenize(self, text: str) -> list[str]:
         """Tokenize text preserving acronyms, applying case rules, and expanding synonyms/stems."""
         norm_text = text.replace("_", " ")
@@ -107,21 +186,22 @@ class ClinicalTokenizer:
 
         for token in raw_tokens:
             cleaned = token.strip().lower()
-            if not cleaned:
+            if not cleaned or cleaned in _NON_DISCRIMINATIVE_TOKENS or cleaned.isdigit():
                 continue
             tokens.append(cleaned)
 
             # 1. Light suffix stem
             stem = _light_clinical_stem(cleaned)
-            if stem and stem != cleaned:
+            if stem and stem != cleaned and stem not in _NON_DISCRIMINATIVE_TOKENS:
                 tokens.append(stem)
 
             # 2. Clinical synonym / morphology / Hinglish expansion
             if cleaned in self.synonyms:
                 for syn_target in self.synonyms[cleaned]:
                     for sub_tok in syn_target.replace("_", " ").split():
-                        if sub_tok:
-                            tokens.append(sub_tok)
+                        sub_clean = sub_tok.strip().lower()
+                        if sub_clean and sub_clean not in _NON_DISCRIMINATIVE_TOKENS:
+                            tokens.append(sub_clean)
 
             # 3. Acronym expansion (FG-19: <=2-char acronyms require token == token.upper())
             upper_token = token.upper()
@@ -129,8 +209,10 @@ class ClinicalTokenizer:
                 is_short = len(upper_token) <= 2
                 if not is_short or token == token.upper():
                     expansion = self.acronyms[upper_token]
-                    expansion_tokens = re.findall(r"\b[A-Za-z0-9_\-\/]+\b", expansion.lower())
-                    tokens.extend(expansion_tokens)
+                    for exp_tok in re.findall(r"\b[A-Za-z0-9_\-\/]+\b", expansion.lower()):
+                        exp_clean = exp_tok.strip().lower()
+                        if exp_clean and exp_clean not in _NON_DISCRIMINATIVE_TOKENS:
+                            tokens.append(exp_clean)
 
         return tokens
 
@@ -175,10 +257,13 @@ class _PopulationBM25Stats:
         for idx, chunk in enumerate(self.chunks):
             syn_key = chunk.syndrome.lower().strip()
             self.indices_by_syndrome.setdefault(syn_key, []).append(idx)
-            tokens = tokenizer.tokenize(chunk.indexed_text or chunk.text)
+            text_to_index = chunk.indexed_text or chunk.text
+            # T2.5 (AUB-RET-06): document length counts discriminative raw words only
+            raw_tokens = tokenizer.tokenize_raw(text_to_index)
+            tokens = tokenizer.tokenize(text_to_index)
             tf = Counter(tokens)
             self.doc_term_freqs.append(tf)
-            self.doc_lengths.append(len(tokens))
+            self.doc_lengths.append(len(raw_tokens))
             for term in tf:
                 self.doc_freqs[term] += 1
 
@@ -194,7 +279,7 @@ class _PopulationBM25Stats:
 
 
 class BM25ClinicalIndex:
-    """BM25 index with corpus-wide global statistics (FG-13) and population-isolated scoring (ADR-0009)."""
+    """BM25 index with corpus-wide global statistics and population-isolated scoring (ADR-0009)."""
 
     def __init__(
         self,
@@ -215,6 +300,12 @@ class BM25ClinicalIndex:
         self.index_version: str = "2.0.0"
         self.backend: str = "bm25"
         self.retrieval_context: Any = retrieval_context
+        self.token_weights: dict[str, float] = {
+            "raw": float(getattr(cfg, "raw_token_weight", 1.0)),
+            "stem": float(getattr(cfg, "stem_token_weight", 0.5)),
+            "synonym": float(getattr(cfg, "synonym_token_weight", 0.5)),
+            "cue": float(getattr(cfg, "cue_token_weight", 0.5)),
+        }
 
         self.parents_by_id: dict[str, ProtocolChunk] = {
             c.chunk_id: c for c in self.all_chunks if c.parent_id is None
@@ -243,8 +334,10 @@ class BM25ClinicalIndex:
         global_lengths: list[int] = []
 
         for chunk in deduped_chunks:
-            tokens = self.tokenizer.tokenize(chunk.indexed_text or chunk.text)
-            global_lengths.append(len(tokens))
+            text_to_index = chunk.indexed_text or chunk.text
+            raw_tokens = self.tokenizer.tokenize_raw(text_to_index)
+            global_lengths.append(len(raw_tokens))
+            tokens = self.tokenizer.tokenize(text_to_index)
             for term in set(tokens):
                 self.global_doc_freqs[term] += 1
 
@@ -259,7 +352,7 @@ class BM25ClinicalIndex:
                 1.0 + (float(self.global_total_docs - df) + 0.5) / (float(df) + 0.5)
             )
 
-        # 3. Build per-population stats with isolated local IDF to guarantee cross-population stability
+        # 3. Build per-population stats with isolated local IDF (ADR-0009)
         for pop, pop_chunks in self.chunks_by_population.items():
             self._stats_by_population[pop] = _PopulationBM25Stats(
                 pop_chunks,
@@ -288,20 +381,28 @@ class BM25ClinicalIndex:
         self,
         stats: _PopulationBM25Stats,
         local_idx: int,
-        query_tokens: list[str],
+        query_terms: dict[str, float] | list[str],
     ) -> tuple[float, dict[str, float]]:
-        """Compute pure-Python float BM25 score and per-term breakdown for a chunk."""
+        """Compute pure-Python float BM25 score and per-term breakdown for a chunk.
+
+        T2.5 (AUB-RET-06): Weighted query terms evaluate each unique token once with class weights.
+        """
+        weights_map = (
+            query_terms
+            if isinstance(query_terms, dict)
+            else {t: 1.0 for t in query_terms}
+        )
         tf_map = stats.doc_term_freqs[local_idx]
         dl = float(stats.doc_lengths[local_idx])
         norm_denom_base = self.k1 * (1.0 - self.b + self.b * (dl / stats.avgdl))
         total_score = 0.0
         term_contributions: dict[str, float] = {}
-        for token in query_tokens:
+        for token, w in weights_map.items():
             tf = float(tf_map.get(token, 0))
             if tf <= 0.0:
                 continue
             idf = stats.idf.get(token, 0.0)
-            contrib = float(idf * ((tf * (self.k1 + 1.0)) / (tf + norm_denom_base)))
+            contrib = float(w * idf * ((tf * (self.k1 + 1.0)) / (tf + norm_denom_base)))
             total_score += contrib
             term_contributions[token] = round(
                 term_contributions.get(token, 0.0) + contrib,
@@ -323,8 +424,8 @@ class BM25ClinicalIndex:
         if pop_key not in self._stats_by_population:
             return []
 
-        query_tokens = self.tokenizer.tokenize(query)
-        if not query_tokens:
+        query_weights = self.tokenizer.tokenize_query_weighted(query, self.token_weights)
+        if not query_weights:
             return []
 
         stats = self._stats_by_population[pop_key]
@@ -338,7 +439,7 @@ class BM25ClinicalIndex:
         scored_chunks: list[tuple[ProtocolChunk, float]] = []
         for local_idx in candidate_indices:
             chunk = stats.chunks[local_idx]
-            score, _ = self._score_doc_in_stats(stats, local_idx, query_tokens)
+            score, _ = self._score_doc_in_stats(stats, local_idx, query_weights)
             scored_chunks.append((chunk, float(score)))
 
         scored_chunks.sort(key=lambda x: (-x[1], x[0].chunk_id))
@@ -354,7 +455,8 @@ class BM25ClinicalIndex:
         """Return detailed BM25 term contributions, tokens, and filter trace for inspection."""
         eff_top_k = top_k if top_k is not None else self.default_top_k
         pop_key = population.lower().strip()
-        query_tokens = self.tokenizer.tokenize(query)
+        query_weights = self.tokenizer.tokenize_query_weighted(query, self.token_weights)
+        query_tokens = list(query_weights.keys())
         syn_filter = syndrome.lower().strip() if syndrome else None
 
         if pop_key not in self._stats_by_population or not query_tokens:
@@ -375,7 +477,7 @@ class BM25ClinicalIndex:
         explained: list[dict[str, Any]] = []
         for local_idx in candidate_indices:
             chunk = stats.chunks[local_idx]
-            score, contribs = self._score_doc_in_stats(stats, local_idx, query_tokens)
+            score, contribs = self._score_doc_in_stats(stats, local_idx, query_weights)
             explained.append(
                 {
                     "chunk_id": chunk.chunk_id,

@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 2: Patient-Aware Retrieval
 
 ### Added & Hardened
+- **Query and Index Token Hygiene (T2.5 / AUB-RET-06):**
+  - Enhanced `ClinicalTokenizer` in `src/triagerag/rag/index.py` with `tokenize_raw` (extracting clean raw words without stem/synonym expansions) and `tokenize_query_weighted` (emitting deduplicated tokens with explicit class weights).
+  - Configured explicit token class weights in `data/retrieval/config.yaml`: `raw_token_weight: 1.0`, `stem_token_weight: 0.8`, `synonym_token_weight: 0.6`, `cue_token_weight: 0.7`.
+  - Fixed BM25 document length statistics in `_PopulationBM25Stats` and `BM25ClinicalIndex`: document length (`dl`) now strictly counts discriminative raw words, preventing multi-word stems, synonyms, and acronyms from inflating document length or penalizing documents during length normalisation.
+  - Stripped non-discriminative header fragments (redundant syndrome tokens, `'node'`, and positional digits) from `chunk.indexed_text` in `build_contextual_header`, while preserving full display headers on `chunk.display_header`.
+  - Added unit test and ablation suite `tests/unit/test_aub_phase2_hygiene.py` (5 tests) demonstrating query token deduplication, class weighting, document length ablation before vs after, header fragment stripping, and zero degradation across golden syndrome retrieval fixtures.
 - **Patient-Conditioned Retrieval Scoring (T2.4 / AUB-RET-01):**
   - Implemented `src/triagerag/rag/scoring.py` with `calculate_node_predicate_score` and `rescore_chunks_with_patient_predicates`.
   - Defined deterministic scoring model: $Score = BM25 + \lambda \cdot \text{satisfied\_matches} - \mu \cdot \text{active\_conflicts}$, calibrated with $\lambda=1.0, \mu=2.0$ in `data/retrieval/config.yaml`.

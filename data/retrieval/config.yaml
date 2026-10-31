@@ -11,6 +11,10 @@ child_node_boost: 1.0
 score_decimal_places: 4
 predicate_match_weight: 1.0
 predicate_conflict_weight: 2.0
+raw_token_weight: 1.0
+stem_token_weight: 0.8
+synonym_token_weight: 0.6
+cue_token_weight: 0.7
 
 provenance:
   source_doc: "TRIAGERAG_RETRIEVAL_CALIBRATION_REPORT"
