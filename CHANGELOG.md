@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 1: Trust and Honesty of Outputs
 
 ### Fixed & Hardened
+- **Pipeline Decomposition into Seven Typed Stages (T1.6 / AUB-OPS-02):**
+  - Refactored monolithic `run_triage` in `src/triagerag/orchestrator.py` into 7 typed, pure pipeline stages:
+    1. `stage_normalise`: Patient data normalization, age categorization, and physiological scoring.
+    2. `stage_intake_checks`: Pass 1 baseline clinical rules, fail-closed coverage gaps, and formulary filters.
+    3. `stage_retrieve`: Guarded candidate chunk retrieval and abstention handling.
+    4. `stage_draft`: Fault-isolated mock LLM drafting with fallback coordination.
+    5. `stage_verify`: Pass 2 verification, structured repair loop, logged overrides (R11 block protection), and verdict lattice.
+    6. `stage_audit`: Cryptographic tamper-evident audit logging.
+    7. `stage_explain`: EngineReport compilation and user-facing explanation assembly.
+  - Introduced typed result dataclasses (`NormaliseStageResult`, `IntakeChecksStageResult`, `RetrieveStageResult`, `DraftStageResult`, `VerifyStageResult`, `AuditStageResult`, `ExplainStageResult`).
+  - Enforced that no function in `src/triagerag/orchestrator.py` exceeds 120 lines (verified via programmatic AST inspection).
+  - Added unit test suite `tests/unit/test_aub_phase1_orchestrator_pipeline.py`.
 - **Fail-Closed Citation Child-Node Verification (T1.5 / AUB-GRD-02):**
   - Eliminated fail-open `except Exception: pass` during corpus re-ingestion for child node checks in `src/triagerag/verify/citations.py`.
   - Enforced fail-closed rejection returning `(False, 0.0, reason)` and logging structured error details if corpus ingestion fails.
