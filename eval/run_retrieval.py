@@ -19,6 +19,7 @@ import math
 import random
 import sys
 import time
+from collections import Counter, defaultdict
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -30,9 +31,10 @@ from triagerag.config import get_data_dir
 from triagerag.contracts.enums import AgeUnit, Consciousness
 from triagerag.contracts.schemas import Age, Measured, Patient, Vitals
 from triagerag.rag.abstain import normalize_relevance_score
+from triagerag.rag.aliases import load_node_aliases, resolve_chunk_id
 from triagerag.rag.chunking import chunk_protocol_markdown
 from triagerag.rag.index import BM25ClinicalIndex
-from triagerag.rag.aliases import load_node_aliases, resolve_chunk_id
+from triagerag.rag.retrieve import normalize_syndrome
 from triagerag.rag.service import RetrievalService
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -394,7 +396,11 @@ def _evaluate_split(
                     wrong_protocol_count += 1
 
                 # Target relevance grade >= 2 (resolving aliases to content-addressed IDs)
-                grade2_targets = {resolve_chunk_id(cid, alias_map) for cid, g in relevance_grades.items() if g >= 2}
+                grade2_targets = {
+                    resolve_chunk_id(cid, alias_map)
+                    for cid, g in relevance_grades.items()
+                    if g >= 2
+                }
                 canon_retrieved = [resolve_chunk_id(cid, alias_map) for cid in retrieved_ids]
                 hit_ranks = [
                     idx + 1 for idx, cid in enumerate(canon_retrieved) if cid in grade2_targets
@@ -404,7 +410,9 @@ def _evaluate_split(
                 r3_val = 1.0 if (hit_ranks and hit_ranks[0] <= 3) else 0.0
                 r5_val = 1.0 if (hit_ranks and hit_ranks[0] <= 5) else 0.0
                 rr_val = (1.0 / float(hit_ranks[0])) if hit_ranks else 0.0
-                ndcg_val = _compute_ndcg_at_k(retrieved_ids, relevance_grades, k=5, alias_map=alias_map)
+                ndcg_val = _compute_ndcg_at_k(
+                    retrieved_ids, relevance_grades, k=5, alias_map=alias_map
+                )
 
                 recalls_at_1.append(r1_val)
                 recalls_at_3.append(r3_val)
@@ -572,7 +580,11 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
                 candidates = [ch for ch in all_chunks if ch.population == pop_cat]
 
             alias_map = load_node_aliases(get_data_dir())
-            targets = {resolve_chunk_id(cid, alias_map) for cid, g in (c.get("relevance_grades") or {}).items() if g >= 2}
+            targets = {
+                resolve_chunk_id(cid, alias_map)
+                for cid, g in (c.get("relevance_grades") or {}).items()
+                if g >= 2
+            }
             if not candidates or not targets:
                 continue
 
@@ -581,8 +593,10 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
             # 1. Evaluate BM25 retrieval on this exact patient case
             rep = service.retrieve(patient, top_k=5)
             if not rep.abstained and rep.chunks:
-                b_top1 = 1.0 if resolve_chunk_id(rep.chunks[0].chunk_id, alias_map) in targets else 0.0
-                b_top5 = 1.0 if any(resolve_chunk_id(ch.chunk_id, alias_map) in targets for ch in rep.chunks[:5]) else 0.0
+                top_id = resolve_chunk_id(rep.chunks[0].chunk_id, alias_map)
+                b_top1 = 1.0 if top_id in targets else 0.0
+                top5_ids = {resolve_chunk_id(ch.chunk_id, alias_map) for ch in rep.chunks[:5]}
+                b_top5 = 1.0 if (top5_ids & targets) else 0.0
                 b_rr = 0.0
                 for rank, ch in enumerate(rep.chunks, start=1):
                     if resolve_chunk_id(ch.chunk_id, alias_map) in targets:
@@ -718,6 +732,245 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
     }
 
 
+class PositionPriorRetriever:
+    """Baseline retriever that predicts the most frequent grade-2 node per syndrome (T4.3).
+
+    Safety Properties:
+    1. Fits strictly on the provided training/dev split; never inspects test labels.
+    2. Deterministic tie-breaking using alphabetical sort on canonical chunk IDs.
+    3. Normalizes syndromes using production normalize_syndrome.
+    4. Provides top-k ranking for Recall@k and MRR computation.
+    """
+
+    def __init__(
+        self,
+        syndrome_priors: dict[str, list[str]],
+        overall_prior: list[str],
+        frequency_table: dict[str, dict[str, int]],
+    ) -> None:
+        self.syndrome_priors = syndrome_priors
+        self.overall_prior = overall_prior
+        self.frequency_table = frequency_table
+
+    @classmethod
+    def fit(
+        cls,
+        cases: list[dict[str, Any]],
+        alias_map: dict[str, str] | None = None,
+    ) -> PositionPriorRetriever:
+        syn_counts: dict[str, Counter[str]] = defaultdict(Counter)
+        overall_counts: Counter[str] = Counter()
+
+        for c in cases:
+            if c.get("expect_abstain"):
+                continue
+            raw_syn = c.get("suspected_syndrome") or c.get("expected_syndrome")
+            syn = normalize_syndrome(raw_syn) if raw_syn else None
+            for cid, g in (c.get("relevance_grades") or {}).items():
+                if int(g) >= 2:
+                    canon = resolve_chunk_id(cid, alias_map) if alias_map else cid
+                    if syn:
+                        syn_counts[syn][canon] += 1
+                    overall_counts[canon] += 1
+
+        syndrome_priors: dict[str, list[str]] = {}
+        freq_table: dict[str, dict[str, int]] = {}
+        for s, counts in sorted(syn_counts.items()):
+            ranked = sorted(counts.keys(), key=lambda ch_id: (-counts[ch_id], ch_id))
+            syndrome_priors[s] = ranked
+            freq_table[s] = dict(counts)
+
+        overall_ranked = sorted(
+            overall_counts.keys(), key=lambda ch_id: (-overall_counts[ch_id], ch_id)
+        )
+        freq_table["_overall_"] = dict(overall_counts)
+
+        return cls(
+            syndrome_priors=syndrome_priors,
+            overall_prior=overall_ranked,
+            frequency_table=freq_table,
+        )
+
+    def retrieve_ids(self, patient: Patient, top_k: int = 5) -> list[str]:
+        raw_syn = patient.suspected_syndrome
+        syn = normalize_syndrome(raw_syn) if raw_syn else None
+        if syn and syn in self.syndrome_priors:
+            prior = self.syndrome_priors[syn]
+        else:
+            prior = self.overall_prior
+        return prior[:top_k]
+
+
+def run_position_prior_baseline(seed: int = 42) -> dict[str, Any]:
+    """Evaluate Position-Prior baseline on test set strictly fitted on dev split.
+
+    Answers Reviewer B's challenge question (AUB-EVL-01, T4.3):
+    'Is Recall@1 more than label frequency?'
+    """
+    dataset_path = _REPO_ROOT / "eval" / "retrieval" / "dataset.yaml"
+    raw_ds = yaml.safe_load(dataset_path.read_text(encoding="utf-8"))
+    dev_cases = [c for c in raw_ds["cases"] if c["split"] == "dev"]
+    test_cases = [c for c in raw_ds["cases"] if c["split"] == "test" and not c["expect_abstain"]]
+
+    alias_map = load_node_aliases(get_data_dir())
+    prior_retriever = PositionPriorRetriever.fit(dev_cases, alias_map=alias_map)
+    service = RetrievalService.create_default(get_data_dir())
+
+    rng = random.Random(seed)
+
+    def _eval_cases(cases: list[dict[str, Any]]) -> dict[str, Any]:
+        if not cases:
+            return {
+                "test_cases": 0,
+                "bm25_recall_at_1": 0.0,
+                "bm25_recall_at_5": 0.0,
+                "bm25_mrr": 0.0,
+                "position_prior_recall_at_1": 0.0,
+                "position_prior_recall_at_5": 0.0,
+                "position_prior_mrr": 0.0,
+                "paired_diff_r1_points": 0.0,
+                "paired_diff_r1_ci_95": [0.0, 0.0],
+                "relative_r1_multiplier": None,
+                "is_recall_at_1_above_label_frequency": False,
+            }
+
+        bm25_r1_list: list[float] = []
+        bm25_r5_list: list[float] = []
+        bm25_rr_list: list[float] = []
+        pp_r1_list: list[float] = []
+        pp_r5_list: list[float] = []
+        pp_rr_list: list[float] = []
+
+        for c in cases:
+            patient = build_patient_from_eval_case(c)
+            targets = {
+                resolve_chunk_id(cid, alias_map)
+                for cid, g in (c.get("relevance_grades") or {}).items()
+                if g >= 2
+            }
+            if not targets:
+                continue
+
+            # BM25 evaluation
+            rep = service.retrieve(patient, top_k=5)
+            if not rep.abstained and rep.chunks:
+                top1_canon = resolve_chunk_id(rep.chunks[0].chunk_id, alias_map)
+                b_r1 = 1.0 if top1_canon in targets else 0.0
+                b_r5 = 1.0 if any(
+                    resolve_chunk_id(ch.chunk_id, alias_map) in targets
+                    for ch in rep.chunks[:5]
+                ) else 0.0
+                b_rr = 0.0
+                for rank, ch in enumerate(rep.chunks, start=1):
+                    if resolve_chunk_id(ch.chunk_id, alias_map) in targets:
+                        b_rr = 1.0 / float(rank)
+                        break
+            else:
+                b_r1, b_r5, b_rr = 0.0, 0.0, 0.0
+
+            # Position-prior evaluation
+            pp_ids = prior_retriever.retrieve_ids(patient, top_k=5)
+            pp_r1 = 1.0 if (pp_ids and pp_ids[0] in targets) else 0.0
+            pp_r5 = 1.0 if any(pid in targets for pid in pp_ids[:5]) else 0.0
+            pp_rr = 0.0
+            for rank, pid in enumerate(pp_ids, start=1):
+                if pid in targets:
+                    pp_rr = 1.0 / float(rank)
+                    break
+
+            bm25_r1_list.append(b_r1)
+            bm25_r5_list.append(b_r5)
+            bm25_rr_list.append(b_rr)
+            pp_r1_list.append(pp_r1)
+            pp_r5_list.append(pp_r5)
+            pp_rr_list.append(pp_rr)
+
+        n_eval = len(bm25_r1_list)
+        if n_eval == 0:
+            return {
+                "test_cases": 0,
+                "bm25_recall_at_1": 0.0,
+                "bm25_recall_at_5": 0.0,
+                "bm25_mrr": 0.0,
+                "position_prior_recall_at_1": 0.0,
+                "position_prior_recall_at_5": 0.0,
+                "position_prior_mrr": 0.0,
+                "paired_diff_r1_points": 0.0,
+                "paired_diff_r1_ci_95": [0.0, 0.0],
+                "relative_r1_multiplier": None,
+                "is_recall_at_1_above_label_frequency": False,
+            }
+
+        bm25_r1_pct = round((sum(bm25_r1_list) / float(n_eval)) * 100.0, 2)
+        bm25_r5_pct = round((sum(bm25_r5_list) / float(n_eval)) * 100.0, 2)
+        bm25_mrr_val = round(sum(bm25_rr_list) / float(n_eval), 4)
+
+        pp_r1_pct = round((sum(pp_r1_list) / float(n_eval)) * 100.0, 2)
+        pp_r5_pct = round((sum(pp_r5_list) / float(n_eval)) * 100.0, 2)
+        pp_mrr_val = round(sum(pp_rr_list) / float(n_eval), 4)
+
+        paired_diffs = [b - p for b, p in zip(bm25_r1_list, pp_r1_list, strict=True)]
+        mean_diff = round((sum(paired_diffs) / float(n_eval)) * 100.0, 2)
+
+        boot_diffs: list[float] = []
+        for _ in range(1000):
+            resample = [rng.choice(paired_diffs) for _ in range(n_eval)]
+            boot_diffs.append((sum(resample) / float(n_eval)) * 100.0)
+        boot_diffs.sort()
+        ci_lower = round(boot_diffs[25], 2)
+        ci_upper = round(boot_diffs[975], 2)
+
+        multiplier = round(bm25_r1_pct / pp_r1_pct, 2) if pp_r1_pct > 0 else None
+        above_label_freq = bool(mean_diff > 0 and ci_lower > 0)
+
+        return {
+            "test_cases": n_eval,
+            "bm25_recall_at_1": bm25_r1_pct,
+            "bm25_recall_at_5": bm25_r5_pct,
+            "bm25_mrr": bm25_mrr_val,
+            "position_prior_recall_at_1": pp_r1_pct,
+            "position_prior_recall_at_5": pp_r5_pct,
+            "position_prior_mrr": pp_mrr_val,
+            "paired_diff_r1_points": mean_diff,
+            "paired_diff_r1_ci_95": [ci_lower, ci_upper],
+            "relative_r1_multiplier": multiplier,
+            "is_recall_at_1_above_label_frequency": above_label_freq,
+        }
+
+    syn_cases = [c for c in test_cases if c.get("suspected_syndrome")]
+    vit_cases = [c for c in test_cases if not c.get("suspected_syndrome")]
+
+    overall_stats = _eval_cases(test_cases)
+    syn_stats = _eval_cases(syn_cases)
+    vit_stats = _eval_cases(vit_cases)
+
+    above = overall_stats["is_recall_at_1_above_label_frequency"]
+    pts = overall_stats["paired_diff_r1_points"]
+    ci = overall_stats["paired_diff_r1_ci_95"]
+
+    r1_sys = overall_stats["bm25_recall_at_1"]
+    r1_pp = overall_stats["position_prior_recall_at_1"]
+    verdict_text = (
+        "System Recall@1 significantly exceeds label frequency prior."
+        if above
+        else "System Recall@1 does not exceed label frequency prior."
+    )
+    interpretation = (
+        f"Position-prior baseline evaluated across {overall_stats['test_cases']} test cases: "
+        f"BM25 R@1={r1_sys}% vs Position-Prior R@1={r1_pp}% "
+        f"(paired difference +{pts} pts, 95% CI {ci}). {verdict_text}"
+    )
+
+    return {
+        "interpretation": interpretation,
+        "is_recall_at_1_above_label_frequency": above,
+        "overall_test": overall_stats,
+        "routed_syndrome_provided": syn_stats,
+        "unrouted_vitals_only": vit_stats,
+        "frequency_table": prior_retriever.frequency_table,
+    }
+
+
 def run_retrieval_benchmark(
     backend: str = "bm25",
     write_reports: bool = False,
@@ -777,6 +1030,7 @@ def run_retrieval_benchmark(
         "wrong_protocol_rate": test_metrics["wrong_protocol_rate"],
         "ece": test_metrics["ece"],
         "random_candidate_baseline": run_candidate_pool_random_baseline(),
+        "position_prior_baseline": run_position_prior_baseline(),
         "dev": dev_metrics,
         "test": test_metrics,
         "overall": all_metrics,
