@@ -1,0 +1,102 @@
+version: "1.0.0"
+source_status: "SYNTHETIC_AUTHORED"
+
+# HUMAN DECISION HD-16 / AUB Task T2.3:
+# Synthetic retrieval cues mapping patient predicates to protocol vocabulary.
+# These terms are retrieval-query bridges ONLY and are NOT clinical facts or thresholds.
+provenance:
+  source_doc: "SYNTHETIC_RETRIEVAL_CUES_DRAFT"
+  section_ref: "AUB_T2_3"
+  version_or_date: "2026-DRAFT"
+  source_status: "SYNTHETIC_AUTHORED"
+  content_origin: "AGENT_DRAFT_SYNTHETIC"
+  verified: false
+  reviewer: null
+
+cues:
+  low_systolic_bp:
+    terms:
+      - "hypotension"
+      - "hypoperfusion"
+      - "shock"
+      - "collapse"
+
+  normal_or_high_systolic_bp:
+    terms:
+      - "hemodynamically stable"
+      - "not low"
+
+  tachycardia:
+    terms:
+      - "tachycardia"
+
+  bradycardia:
+    terms:
+      - "bradycardia"
+
+  severe_tachypnea:
+    terms:
+      - "tachypnea"
+      - "wheezing"
+      - "bronchospasm"
+
+  respiratory_depression:
+    terms:
+      - "respiratory depression"
+      - "ventilatory drive"
+
+  hypoxemia:
+    terms:
+      - "low oxygen saturation"
+      - "hypoxia"
+
+  fever:
+    terms:
+      - "fever"
+      - "febrile"
+
+  hypothermia:
+    terms:
+      - "hypothermia"
+
+  hypoglycemia:
+    terms:
+      - "hypoglycemia"
+      - "capillary glucose"
+      - "neuroglycopenic"
+
+  altered_consciousness:
+    terms:
+      - "confusion"
+      - "obtundation"
+      - "depressed consciousness"
+
+  conscious_alert:
+    terms:
+      - "conscious"
+      - "alert"
+
+  beta_blocker_active:
+    terms:
+      - "beta blocker"
+      - "metoprolol"
+      - "atenolol"
+
+  pde5_inhibitor_active:
+    terms:
+      - "sildenafil"
+      - "tadalafil"
+
+  penicillin_allergy:
+    terms:
+      - "anaphylactic reaction"
+      - "aminopenicillins"
+
+  neonate_age:
+    terms:
+      - "neonate"
+      - "twenty-eight days"
+
+  paediatric_age:
+    terms:
+      - "paediatric"

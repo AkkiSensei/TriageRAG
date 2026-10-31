@@ -231,6 +231,19 @@ def validate_all() -> None:
     except Exception as e:
         errors.append(f"node_predicates.yaml validation failed: {e}")
 
+    # 11. Validate retrieval/cues.yaml (AUB T2.3 / HD-16)
+    from triagerag.rag.cues import load_retrieval_cues
+
+    try:
+        load_retrieval_cues.cache_clear()
+        cues_cfg = load_retrieval_cues(data_dir)
+        print(
+            f"  [OK] data/retrieval/cues.yaml "
+            f"({len(cues_cfg.cues)} synthetic cue mappings validated)"
+        )
+    except Exception as e:
+        errors.append(f"cues.yaml validation failed: {e}")
+
     if errors:
         print("\nDATA VALIDATION FAILED WITH ERRORS:")
         for err in errors:

@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 2: Patient-Aware Retrieval
 
 ### Added & Hardened
+- **Synthetic Retrieval Cues and Vocabulary Expansion (T2.3 / HD-16):**
+  - Created `data/retrieval/cues.yaml` mapping 17 structured patient predicates to explicit protocol vocabulary terms.
+  - Implemented `src/triagerag/rag/cues.py` with typed models (`PredicateCueMapping`, `RetrievalCuesConfig`) and deterministic term deduplication.
+  - Added `expand_predicates_to_cues` for deterministic query bridging without uncontrolled synonym expansion.
+  - Enforced strict architectural isolation: verified clinical rule engine (`triagerag.engine`) never imports from `cues.py` or references `cues.yaml`.
+  - Integrated cues schema validation into `tools/validate_data.py`.
+  - Added unit test suite `tests/unit/test_aub_phase2_cues.py` (5 tests).
 - **Patient-Aware Node Predicates and Applicability Metadata (T2.2 / D2):**
   - Created `data/retrieval/node_predicates.yaml` providing sidecar applicability metadata for all 21 IF/THEN decision nodes across the 6 synthetic protocols.
   - Supported `requires_predicates`, `contraindicated_by`, `always_applicable`, and `predicate_review_required`.
