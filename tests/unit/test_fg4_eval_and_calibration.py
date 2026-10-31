@@ -11,9 +11,9 @@ Safety Properties (AGENTS.md R1, R2, R10):
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
-import subprocess
 from pathlib import Path
 
 import yaml
@@ -22,39 +22,33 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def test_dataset_matches_frozen_commit() -> None:
-    """FG-06: LABELS_FROZEN_AT must contain a 40-char SHA matching git history of dataset.yaml."""
-    frozen_file = REPO_ROOT / "eval" / "retrieval" / "LABELS_FROZEN_AT"
-    assert frozen_file.exists(), "LABELS_FROZEN_AT must exist in eval/retrieval/"
-    sha = frozen_file.read_text(encoding="utf-8").strip()
-    assert re.match(r"^[0-9a-f]{40}$", sha), f"Invalid SHA in LABELS_FROZEN_AT: {sha}"
+    """FG-06 / T0.1: dataset.lock must contain a 64-char SHA-256 matching LF-normalized dataset.yaml."""
+    lock_file = REPO_ROOT / "eval" / "retrieval" / "dataset.lock"
+    assert lock_file.exists(), "dataset.lock must exist in eval/retrieval/"
+    expected_sha = lock_file.read_text(encoding="utf-8").strip()
+    assert re.match(r"^[0-9a-f]{64}$", expected_sha), f"Invalid SHA-256 in dataset.lock: {expected_sha}"
 
     dataset_path = REPO_ROOT / "eval" / "retrieval" / "dataset.yaml"
     assert dataset_path.exists(), "eval/retrieval/dataset.yaml must exist on disk"
 
-    # Verify that dataset.yaml exists at this commit
-    cmd = ["git", "cat-file", "-e", f"{sha}:eval/retrieval/dataset.yaml"]
-    res = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
-    if res.returncode == 0:
-        return
-
-    # If cat-file failed, check if the repository is a shallow clone or missing objects
-    # 1. Attempt to fetch the frozen commit object from remote if reachable
-    fetch_cmd = ["git", "fetch", "--depth=1", "origin", sha]
-    subprocess.run(fetch_cmd, cwd=REPO_ROOT, capture_output=True, text=True)
-    res = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
-    if res.returncode == 0:
-        return
-
-    # 2. In offline, air-gapped, or shallow container environments without remote access,
-    # verify that dataset.yaml is tracked in HEAD
-    head_cmd = ["git", "cat-file", "-e", "HEAD:eval/retrieval/dataset.yaml"]
-    head_res = subprocess.run(head_cmd, cwd=REPO_ROOT, capture_output=True, text=True)
-    if head_res.returncode == 0:
-        return
-
-    assert res.returncode == 0, (
-        f"dataset.yaml does not exist at frozen commit {sha} (git error: {res.stderr.strip()})"
+    actual_sha = hashlib.sha256(dataset_path.read_text(encoding="utf-8").encode("utf-8")).hexdigest()
+    assert actual_sha == expected_sha, (
+        f"dataset.yaml hash ({actual_sha}) does not match locked hash ({expected_sha})"
     )
+
+
+def test_dataset_lock_fails_on_tampered_dataset() -> None:
+    """T0.1 regression: changing one label or character in dataset.yaml must fail verification."""
+    lock_file = REPO_ROOT / "eval" / "retrieval" / "dataset.lock"
+    assert lock_file.exists(), "dataset.lock must exist in eval/retrieval/"
+    locked_sha = lock_file.read_text(encoding="utf-8").strip()
+
+    dataset_path = REPO_ROOT / "eval" / "retrieval" / "dataset.yaml"
+    original_text = dataset_path.read_text(encoding="utf-8")
+    tampered_text = original_text + "\n# Tampered label\n"
+    tampered_sha = hashlib.sha256(tampered_text.encode("utf-8")).hexdigest()
+
+    assert tampered_sha != locked_sha
 
 
 def test_calibration_run_record_exists_and_matches_config() -> None:

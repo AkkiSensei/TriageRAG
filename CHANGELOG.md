@@ -5,6 +5,14 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - AUB Phase 0: Re-baseline and Hygiene
+
+### Added
+- **Hermetic Evaluation Dataset Lock (T0.1 / AUB-EVL-03):**
+  - Added `eval/retrieval/dataset.lock` storing LF-normalized SHA-256 (`fdce9c040a0b...`) of `eval/retrieval/dataset.yaml`.
+  - Refactored `tests/unit/test_fg4_eval_and_calibration.py` to verify against `dataset.lock` without invoking `git cat-file`, enabling hermetic execution in `.git`-less copies, archives, and container builds.
+  - Added `test_dataset_lock_fails_on_tampered_dataset` regression test.
+
 ## [0.3.1] - 2026-10-30
 
 ### Added
