@@ -50,9 +50,13 @@ Starting HEAD for Phase 0: `3e8a45bded1a9bd39e5e644a0957c62bb0fb8315` (branch `a
 | LOCAL-01 | `tests/unit/test_explainability_and_intake_hardening.py` (previous session) used non-existent `StepStatus` members, broke `mypy src tests tools eval` and therefore `tools/tasks.py verify` at HEAD; its vitals-inference test also passed vacuously (`INDEX_UNAVAILABLE`, 0 steps). | FIXED | `b8924fe` |
 | VERIFY-FAST-01 | `tools/tasks.py verify-fast` exited with code 1 due to `ruff check` failing on 65 lines > 100 chars (E501) across existing files and tests. AUB.md Section D explicitly records that `ruff` was never executed during baseline audit ("Tests not executed: ruff, mypy, import-linter, eslint..."). Pre-existing style mismatch. | DOCUMENTED / IN_PROGRESS | T1.1+ |
 
-## Non-Phase-1 register rows (not touched in this session)
+## Phase 2 register rows
 
-All subsequent AUB register rows (AUB-RET-01, AUB-RET-02, AUB-RET-06, AUB-UX-04, AUB-EVL-01, AUB-GRD-01, AUB-GEN-01 (generator), AUB-COR-01..03, AUB-ABS-02, AUB-ENG-01..06, AUB-KB-01, AUB-OPS-04) are `TODO` and will be addressed in their own phases.
+| ID | Repro on HEAD (date, commit) | Status | Task | Commit | Test added | Notes |
+|----|------------------------------|--------|------|--------|-----------|-------|
+| D2-PRED | 2026-10-31 `7dc0c40`: retrieval had no structured predicate vocabulary; all 51 vitals rules were NEEDS_SOURCE, preventing patient attributes from connecting to protocols | FIXED | T2.1 | `25fceda` | `tests/unit/test_aub_phase2_predicates.py` (7 tests) | Created `data/retrieval/predicates.yaml` with 17 SYNTHETIC_AUTHORED predicates; typed loader/evaluator in `src/triagerag/rag/predicates.py` with strict schema validation and tri-state evaluation |
 
-Observation relevant to Phase 2 (recorded, **not fixed here**): with no clinician-confirmed syndrome and normal-or-abnormal vitals, retrieval abstains with `EMPTY_QUERY`; the ADR-0007 inference path (`SYNDROME_INFERRED`) is unreachable with the current `NEEDS_SOURCE` vitals flags (consistent with AUB-RET-01).
+## Non-Phase-2 register rows (not touched in this session)
+
+All subsequent AUB register rows (AUB-UX-04, AUB-EVL-01, AUB-GRD-01, AUB-GEN-01 (generator), AUB-COR-01..03, AUB-ABS-02, AUB-ENG-01..06, AUB-KB-01, AUB-OPS-04) are `TODO` and will be addressed in their own phases.
 

@@ -205,6 +205,19 @@ def validate_all() -> None:
     except Exception as e:
         errors.append(f"vitals_flags.yaml validation failed: {e}")
 
+    # 9. Validate retrieval/predicates.yaml (AUB T2.1 / D2)
+    from triagerag.rag.predicates import load_predicate_vocabulary
+
+    try:
+        load_predicate_vocabulary.cache_clear()
+        pred_cfg = load_predicate_vocabulary(data_dir)
+        print(
+            f"  [OK] data/retrieval/predicates.yaml "
+            f"({len(pred_cfg.predicates)} synthetic predicates validated)"
+        )
+    except Exception as e:
+        errors.append(f"predicates.yaml validation failed: {e}")
+
     if errors:
         print("\nDATA VALIDATION FAILED WITH ERRORS:")
         for err in errors:

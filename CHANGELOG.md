@@ -5,7 +5,20 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - AUB Phase 1: Trust and Honesty of Outputs
+## [Unreleased] - AUB Phase 2: Patient-Aware Retrieval
+
+### Added & Hardened
+- **Structured Retrieval Predicate Vocabulary (T2.1 / D2):**
+  - Created `data/retrieval/predicates.yaml` containing 17 typed retrieval predicates with explicit `source_status: SYNTHETIC_AUTHORED` provenance.
+  - Implemented `src/triagerag/rag/predicates.py` with typed Pydantic models (`PredicateDefinition`, `PredicateVocabularyConfig`).
+  - Enforced strict target field validation against real `Patient` schema fields (`vitals.*`, `age.*`, `medications`, `allergies`, etc.); rejected invalid fields, unsupported operators, and duplicate predicate IDs.
+  - Implemented tri-state evaluation semantics (`SATISFIED`, `NOT_SATISFIED`, `UNKNOWN`); unknown, missing, or unobtainable patient data strictly evaluates to `UNKNOWN` and never silently becomes `False`.
+  - Added `SourceStatus.SYNTHETIC_AUTHORED` and `ContentOrigin.AGENT_DRAFT_SYNTHETIC` to contracts enum.
+  - Verified architectural isolation: clinical rule engine (`triagerag.engine`) never imports or reads retrieval predicates.
+  - Added unit test suite `tests/unit/test_aub_phase2_predicates.py` (7 tests).
+  - Integrated predicate validation into `tools/validate_data.py`.
+
+## [0.3.1] - 2026-10-31 - AUB Phase 1: Trust and Honesty of Outputs
 
 ### Fixed & Hardened
 - **Frontend Component Test Expansion and Scope Rendering (T1.7 / AUB-UX-03):**
