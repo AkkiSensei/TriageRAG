@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 0: Re-baseline and Hygiene
 
 ### Added
+- **Automated Documentation Metrics Generator and Drift Detection (T0.6 / AUB-DOC-01 / AUB-DOC-02):**
+  - Created `tools/gen_docs_metrics.py` reading canonical JSON reports (`eval/reports/*.json`) and injecting exact values between `<!-- AUTOGEN:start:<tag> -->` and `<!-- AUTOGEN:end:<tag> -->` markers in `README.md`, `HANDOFF.md`, and `docs/evaluation/ENGINEERING_FINAL_RESULTS.md`.
+  - Added `--check` flag to verify documentation numbers in CI.
+  - Synchronized `pyproject.toml` version to `0.3.1`, corrected `dose.py` path to `dose_engine.py`, and eliminated ungrounded manual metric claims.
+  - Added regression test `tests/unit/test_docs_drift.py`.
 - **Hermetic Evaluation Dataset Lock (T0.1 / AUB-EVL-03):**
   - Added `eval/retrieval/dataset.lock` storing LF-normalized SHA-256 (`fdce9c040a0b...`) of `eval/retrieval/dataset.yaml`.
   - Refactored `tests/unit/test_fg4_eval_and_calibration.py` to verify against `dataset.lock` without invoking `git cat-file`, enabling hermetic execution in `.git`-less copies, archives, and container builds.

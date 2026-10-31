@@ -26,12 +26,14 @@ All evaluation suites run **100% offline**, produce **zero dirty working tree st
 ### 2.2 Four-Arm Retrieval Ablation Evaluation
 Evaluated across 224 clinical presentations (136 dev cases, 88 test cases) with calibrated fail-closed thresholding:
 
+<!-- AUTOGEN:start:ablation-table -->
 | Retrieval Arm | Backend Implementation | Test R@1 | Test R@5 | Test MRR | Test Latency (p95) | Wrong Protocol | Hard Negative Abstain |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Arm 1: BM25 Lexical** | BM25ClinicalIndex + ClinicalTokenizer (Default) | 39.29% | 73.21% | 0.5417 | 0.051 ms | **0.0%** | **100.0%** |
-| **Arm 2: Char N-Gram Dense** | CharNgramRetriever (trigram TF-IDF) | 37.50% | 73.21% | 0.5045 | 0.074 ms | **0.0%** | **100.0%** |
-| **Arm 3: Hybrid RRF** | HybridRRFRetriever (Reciprocal Rank Fusion) | **41.07%** | **73.21%** | **0.5491** | 0.097 ms | **0.0%** | **100.0%** |
-| **Arm 4: Hybrid RRF + Rerank** | HybridRRFRetriever + LexicalOverlapReranker | **41.07%** | **73.21%** | **0.5491** | 0.215 ms | **0.0%** | **100.0%** |
+| **Arm 1: BM25 Lexical** | BM25ClinicalIndex + ClinicalTokenizer (Default) | 39.29% | 69.86% | 0.4715 | 0.049 ms | **0.0%** | **100.0%** |
+| **Arm 2: Char N-Gram Dense** | CharNgramRetriever (trigram TF-IDF) | 37.50% | 69.86% | 0.4281 | 0.077 ms | **0.0%** | **100.0%** |
+| **Arm 3: Hybrid RRF** | HybridRRFRetriever (Reciprocal Rank Fusion) | **41.07%** | **69.86%** | **0.4829** | 0.090 ms | **0.0%** | **100.0%** |
+| **Arm 4: Hybrid RRF + Rerank** | HybridRRFRetriever + LexicalOverlapReranker | **41.07%** | **69.86%** | **0.4829** | 0.198 ms | **0.0%** | **100.0%** |
+<!-- AUTOGEN:end:ablation-table -->
 
 **Stratified Performance (Syndrome-Provided Subset, N=41 Test):**
 - **BM25 Recall@1:** 53.66% [95% CI: 39.02% - 68.29%]
@@ -50,6 +52,7 @@ Evaluated across 224 clinical presentations (136 dev cases, 88 test cases) with 
 ### 2.3 Scale Latency Benchmark (10,000 Chunks)
 Synthetic scale corpus evaluated under simulated emergency triage load (`eval/reports/latency_benchmark.json`):
 
+<!-- AUTOGEN:start:latency-summary -->
 - **Corpus Size:** 10,000 chunks (3.8 MB text index).
 - **Queries Evaluated:** 100 queries.
 - **Index Build Time:** 566.72 ms.
@@ -58,6 +61,7 @@ Synthetic scale corpus evaluated under simulated emergency triage load (`eval/re
 - **BM25 Search Latency (p95):** 6.687 ms (Target: <= 50.0 ms).
 - **BM25 Search Latency (p99):** 7.507 ms.
 - **Deterministic Math:** Sub-millisecond Decimal scoring for physiological vitals.
+<!-- AUTOGEN:end:latency-summary -->
 
 ---
 

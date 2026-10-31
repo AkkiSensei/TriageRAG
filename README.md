@@ -138,6 +138,7 @@ Certain drug-drug combinations (such as PDE5-inhibitors and nitrates, which trig
 
 The entire system is continuously measured across seven automated verification and mutation suites:
 
+<!-- AUTOGEN:start:benchmarks -->
 ```
 ======================================================================
   SUITE NAME               SCOPE & OBJECTIVE             RESULT
@@ -147,13 +148,12 @@ The entire system is continuously measured across seven automated verification a
   Metamorphic Invariance   3/3 Equivalence Transforms    100% PASSED
   Adversarial Injection    19/19 Hijacks & Laundering    100% BLOCKED
   Mutation Kill Score      52/52 Code & Rule Mutants     100% KILLED
-  Differential Property    1,000 Hypothesis Permutations 100% GREEN (0 diff)
-  Retrieval: Routed Track  41 Test Cases (Syndrome Given)100% Recall@5 (0.73 MRR)
-  Retrieval: Unrouted Track15 Test Cases (Vitals Only)   0.0% Recall@1 (Fail-Closed HD-1)
   Retrieval: Overall Test  56 Test Positive Cases        73.21% R@5 [60.7, 83.9]
   Hard-Negative Abstention 14 Hard-Negative Cases        100% ABSTAINED (0 wrong proto)
-  Pytest Test Suite        235 Collected Tests           234 PASSED, 1 XFAIL (HD-6)
+  Scale Latency (10k)      100 Queries                   p95 = 6.69 ms (< 50.0 ms target)
 ======================================================================
+```
+<!-- AUTOGEN:end:benchmarks -->
 
 > **Evaluation Honesty & Baseline Note:**
 > - **Routed Retrieval Track:** 100% Recall@5 is observed on syndrome-provided cases (ranking protocol chunks within known syndrome). A paired candidate-pool random ranker achieves 95.44% Recall@5 and 26.44% Recall@1, demonstrating BM25's 2.0x ranking superiority on Top-1 (52.78% vs 26.44%, paired delta +26.33 pts [95% CI: 9.75, 42.56]) across the exact same query cases and candidate pools.
