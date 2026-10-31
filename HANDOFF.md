@@ -4,38 +4,60 @@
 
 ## Current State
 
-- **Current Status:** AUB Phase 2 (Patient-Aware Retrieval) completed on branch `aub/phase-2-patient-aware-retrieval`. Tasks T2.1 through T2.7 implemented, verified, and documented with ADR-0011 and updated status ledger. Overall Test Recall@1 = 71.43% (up from 39.29%), Test Recall@5 = 98.21% (up from 73.21%), Vitals-Only Recall@1 = 73.33% (up from 0.00%), Wrong-Protocol Rate = 0.0000. All 295 unit tests passing (294 passed, 1 xfailed for HD-6).
+- **Current Status:** AUB Phase 3 (Corpus Growth and Evidence Ingestion) completed on branch `aub/phase-3-corpus-expansion`. Tasks T3.1 through T3.6 implemented, verified, and documented with ADR-0012 and updated status ledger. Corpus expanded from 6 to 65 protocol documents (617 total chunks across 36 controlled syndromes), content-addressed node IDs deployed with zero collisions, dual-key legacy alias map established (552 aliases), licensing tags enforced, experimental contextual chunking arm added, and 688 Tier-2 openFDA regulatory evidence chunks ingested with strict Provenance. All 35 Phase 3 unit tests passing in 2.88s. All 295 prior unit tests passing (294 passed, 1 xfailed for HD-6).
 - **Verification:** All gates green:
-  - **294 passed, 1 xfailed (HD-6 non-overridable overdose BLOCK), 0 failed** in Pytest test suite (including unit, integration, property, UI smoke, safety boundary, intake hardening, WP0–WP9 RAG suites, test isolation, route verification, differential engine, and Phase 2 suites).
-  - **8/8 Vitest frontend unit & component tests green.**
-  - **0 lint / format errors** (Python ruff check & format; 159 files checked).
+  - **100% pass rate** on all unit, integration, property, and RAG suites.
+  - **0 lint / format errors** (Python ruff check & format).
   - **0 type errors** (Python mypy strict in `src/` & TypeScript `tsc --noEmit`).
   - **0 import isolation contract violations** (import-linter: 2 contracts kept, 0 broken).
-  - **Vite production build succeeds** (bundle compiled in ~2s).
-  - **Zero tracked report mutations**: Running `pytest` does not dirty git working tree.
-  - **52/52 mutants killed** (100% kill score).
-  - **65/65 Golden cases green** (100% recall on BLOCK and HIGH contraindications).
-  - **19/19 Adversarial prompt injection attacks neutralized.**
-  - **4-Arm Retrieval Ablation**: All 4 arms benchmarked across 224 cases with 0.0 wrong-protocol rate and 100% hard-negative abstention recall.
+  - **Zero tracked report mutations**: Running tests leaves git working tree clean.
+  - **0 quarantined documents** during protocol ingestion; 100% round-trip invariant verified.
+  - **0 numeric clinical doses** in any synthetic protocol markdown (Rule R9 verified).
+  - **100% offline execution**: zero network calls during automated testing.
 
-## AUB Phase 2 Deliverables Summary
+## AUB Phase 3 Deliverables Summary
 
-1. **T2.1 / D2 — Structured Clinical Predicate Vocabulary (`af6a410`):**
-   - 17 synthetic predicates (`data/retrieval/predicates.yaml`) with tri-state evaluation (`SATISFIED`, `UNSATISFIED`, `UNKNOWN`) in `src/triagerag/rag/predicates.py`. Strict clinical engine isolation upheld.
-2. **T2.2 / D2 — Protocol Node Applicability Metadata (`93e5521`):**
-   - 21 decision nodes catalogued in `data/retrieval/node_predicates.yaml` with `requires_predicates`, `contraindicated_by`, and `always_applicable`. Attached to `ProtocolChunk` during ingestion.
-3. **T2.3 / HD-16 — Synthetic Retrieval Cues & Query Expansion (`e73e69b`):**
-   - Mapped 17 patient predicates to protocol vocabulary in `data/retrieval/cues.yaml` and `src/triagerag/rag/cues.py`. Distinguished presenting findings (`syndrome_cue: true`) from qualifiers (`syndrome_cue: false`).
-4. **T2.4 / AUB-RET-01 — Patient-Conditioned Retrieval Scoring (`5f26092`):**
-   - Implemented linear scoring model $Score = BM25 + \lambda \times \text{matches} - \mu \times \text{conflicts}$ in `src/triagerag/rag/scoring.py` with deterministic tie-breaking sorted by `(-round(score, 4), chunk_id)`.
-5. **T2.5 / AUB-RET-06 — Query and Index Token Hygiene (`dbe44bf`):**
-   - Added `tokenize_raw` so BM25 document length strictly counts discriminative raw words, avoiding length normalisation penalties from synonyms/stems. Cleaned `indexed_text` and preserved `display_header` for citations.
-6. **T2.6 / AUB-RET-02 — Score-Scale Integrity Across Retrieval Backends (`17b0d90`):**
-   - Removed 1.5x reranker multiplier; bounded reranked score $\le$ base score; eliminated artificial RRF-to-BM25 rescaling; added $[0.0, 1.0)$ confidence normalization.
-7. **T2.7 / HD-4 — Reachable Vitals-Only Syndrome Inference Path (`d27dc07`):**
-   - Re-enabled vitals-only triage candidate retrieval using presenting vitals cues; implemented margin-based discrimination ($\ge 0.25$ required, else `AMBIGUOUS_MARGIN`); enforced HD-4 clinical confirmation gate in `orchestrator.py` capping all verified steps at `StepStatus.REQUIRES_CLINICIAN_CONFIRMATION`.
-8. **ADR-0011 & Documentation Ledger (`da14533`):**
-   - Authored `docs/adr/0011-patient-aware-retrieval-scoring.md` and updated `docs/AUB_STATUS.md` and `CHANGELOG.md`.
+1. **T3.1 / AUB-COR-01 — Synthetic Corpus Expansion Across 36 Syndromes (`85d0985`):**
+   - Expanded protocol coverage from 6 to 65 documents (6 manual baseline documents, 57 adult protocols, 6 paediatric protocols, 2 neonatal protocols) across 36 controlled syndromes.
+   - Generated 617 total structured chunks with 8–10 decision nodes per syndrome.
+   - Candidate pools exceed $top\_k = 5$ across all partitions; ingestion report shows 0 quarantined files and 100% round-trip invariant verification. Added `tests/unit/test_aub_phase3_corpus.py` (7 tests).
+2. **T3.2 — Deterministic Synthetic Protocol Generator Tooling (`6f49916`):**
+   - Built `tools/generate_synthetic_protocols.py` featuring bit-for-bit seeded determinism (`seed: 42`), template variation, and non-overwriting manual protocol protection.
+   - Enforced Rule R9: zero numeric dosages in synthetic protocol text. Added `tests/unit/test_aub_phase3_generator.py` (4 tests).
+3. **T3.3 / AUB-COR-02 — Content-Addressed Node Identifiers and Dual-Key Aliases (`92f3b5d`):**
+   - Implemented `canonicalize_node_text` (NFKC normalization, list prefix stripping, LF newline normalization, line trim) and `compute_node_hash`: `{chunk_id}_{hash8(canonical_text)}`.
+   - Node identifiers are 100% invariant to line reordering, node insertion, and list renumbering.
+   - Built dual-key backward compatibility: `ProtocolChunk` and `RetrievedChunk` store canonical `chunk_id` and `legacy_id` (`{chunk_id}_NODE_{i}`).
+   - Created `data/corpus/node_aliases.yaml` (552 aliases) and `src/triagerag/rag/aliases.py` with transparent resolution across citation verification, evaluation benchmarks, and API responses. 0 collisions across corpus. Added `tests/unit/test_aub_phase3_content_ids.py` (6 tests).
+4. **T3.4 / HD-9 — Document Licensing Tags and Source Provenance (`8b20795`):**
+   - Added `license_tag: Literal["synthetic", "public_domain", "cc_by_nc_sa", "restricted"]` to `ProtocolFrontmatter`, `ProtocolChunk`, `RetrievedChunk`, and `CorpusManifestEntry`.
+   - Updated all 65 protocol frontmatters and `data/corpus/manifest.yaml` with `license_tag: synthetic`.
+   - Hardened `.gitignore` to strictly exclude non-synthetic raw evidence (`data/evidence_raw/*`), restricted clinical guidelines (`data/protocols_restricted/*`), and local dense indexes (`data/indexes_local/*`). Added `tests/unit/test_aub_phase3_licensing.py` (4 tests).
+5. **T3.5 / AUB-COR-03 — Contextual Chunking Research Arm (`a9c741f`):**
+   - Implemented `extract_if_condition` in `src/triagerag/rag/chunking.py` and updated `build_contextual_header` to optionally prepend root governing conditions (`Governing Context: <condition>`) to dependent child nodes (`idx > 1`) in `indexed_text`.
+   - Preserved verbatim `chunk.text` and `content_hash` 100% untouched for exact span citation verification.
+   - Added `contextual_chunking: bool = False` configuration flag in `data/retrieval/config.yaml` and `RetrievalConfig`.
+   - Added `bm25_contextual` arm to `eval/run_retrieval_ablation.py` evaluated under deterministic `decide_backend()`. Added `tests/unit/test_aub_phase3_contextual_chunking.py` (8 tests).
+6. **T3.6 — Tier-2 openFDA Regulatory Evidence Ingestion Pipeline (`ac21b62`):**
+   - Built `tools/fetch_openfda_labels.py` and `src/triagerag/rag/evidence.py` to ingest, cache, and chunk openFDA SPL drug labels into Tier-2 evidence chunks for clinical citation verification and rule grounding.
+   - Ingested 688 section chunks across 62 generics in Waves 1–2 into `data/corpus/evidence_chunks.json`.
+   - Chunks organized by canonical SPL sections (Boxed Warning, Contraindications, Warnings and Precautions, Drug Interactions, Specific Populations, Dosage/Administration, Overdosage, Adverse Reactions).
+   - Explicit fail-closed handling for Indian-only formulations (`deriphyllin`, `etofylline`): recorded in `unretrieved_generics` with `no_evidence_chunk=True`, preventing fabricated FDA facts (Rule R3).
+   - Recorded CC0 / public domain `license_tag='public_domain'` and full Provenance on every chunk.
+   - Established offline recorded test fixtures in `tests/fixtures/openfda/`; added test suite `tests/unit/test_aub_phase3_openfda.py` (6 tests).
+7. **ADR-0012 & Documentation Ledger:**
+   - Authored `docs/adr/0012-corpus-growth-and-content-addressed-nodes.md` and updated `docs/AUB_STATUS.md` and `CHANGELOG.md`.
+
+## Next Session Focus: AUB Phase 4 — Evaluation Rebuild
+
+The next engineer will execute **AUB Phase 4: Evaluation Rebuild (AUB-EVL-01)**:
+- **T4.1 Template-grouped splits**: Split by scenario template/node-set, not random rows; freeze via dataset hash (`dataset.lock`).
+- **T4.2 Labels with agreement**: Double-annotate a ~100-case subset; report Cohen's kappa; mark single-annotated labels clearly.
+- **T4.3 Baselines**: Add position-prior per syndrome (always return the most frequent grade-2 node) next to random; report with paired CIs.
+- **T4.4 Honest metrics**: Split `wrong_protocol_rate` into `false_accept_rate` and `wrong_syndrome_rate`; use real confidences for ECE; report Recall@{1,3,5,10}, MRR, nDCG@10; report abstention precision/recall per abstain code.
+- **T4.5 Gate that can fail**: PASS requires vitals-only Recall@k >= stated threshold; validity self-test: random baseline Recall@5 < 0.6 and position-prior R@1 < system R@1 by a CI-excluding margin.
+- **T4.6 Hand-computed fixtures** for each metric function; document in `docs/evaluation/METRICS.md`.
+- **T4.7 Arms re-run** on the rebuilt benchmark (char_ngram, BM25, RRF, +lexical rerank, ±contextual headers, ±predicate scoring); re-run `decide_backend()`.
 
 ## Prior Architecture Highlights
 

@@ -5,6 +5,47 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - AUB Phase 3: Corpus Growth and Evidence Ingestion
+
+### Added & Hardened
+- **Tier-2 openFDA Regulatory Drug Label Evidence Pipeline (T3.6 / AUB-COR-01):**
+  - Built `tools/fetch_openfda_labels.py` and `src/triagerag/rag/evidence.py` to ingest, cache, and chunk openFDA SPL drug labels into Tier-2 evidence chunks for clinical citation verification and rule grounding.
+  - Ingested 688 section chunks across 62 generics in Waves 1–2 into `data/corpus/evidence_chunks.json`.
+  - Chunks organized by canonical SPL sections (Boxed Warning, Contraindications, Warnings and Precautions, Drug Interactions, Specific Populations, Dosage/Administration, Overdosage, Adverse Reactions).
+  - Explicit fail-closed handling for Indian-only formulations (`deriphyllin`, `etofylline`): recorded in `unretrieved_generics` with `no_evidence_chunk=True`, preventing fabricated FDA facts (Rule R3).
+  - Recorded CC0 / public domain `license_tag='public_domain'` and full Provenance on every chunk.
+  - Established offline recorded test fixtures in `tests/fixtures/openfda/`; added test suite `tests/unit/test_aub_phase3_openfda.py` (6 tests).
+- **Contextual Chunking Research Arm (T3.5 / AUB-COR-03):**
+  - Implemented `extract_if_condition` in `src/triagerag/rag/chunking.py` and updated `build_contextual_header` to optionally prepend root governing conditions (`Governing Context: <condition>`) to dependent child nodes (`idx > 1`) in `indexed_text`.
+  - Preserved verbatim `chunk.text` and `content_hash` 100% untouched for exact span citation verification.
+  - Added `contextual_chunking: bool = False` configuration flag in `data/retrieval/config.yaml` and `RetrievalConfig`.
+  - Added `bm25_contextual` arm to `eval/run_retrieval_ablation.py` evaluated under deterministic `decide_backend()`.
+  - Added test suite `tests/unit/test_aub_phase3_contextual_chunking.py` (8 tests).
+- **Document Licensing Tags and Provenance Strictness (T3.4 / HD-9):**
+  - Added `license_tag: Literal["synthetic", "public_domain", "cc_by_nc_sa", "restricted"]` to `ProtocolFrontmatter`, `ProtocolChunk`, `RetrievedChunk`, and `CorpusManifestEntry`.
+  - Updated all 65 protocol frontmatters and `data/corpus/manifest.yaml` with `license_tag: synthetic`.
+  - Hardened `.gitignore` to strictly exclude non-synthetic raw evidence (`data/evidence_raw/*`), restricted clinical guidelines (`data/protocols_restricted/*`), and local dense indexes (`data/indexes_local/*`).
+  - Added test suite `tests/unit/test_aub_phase3_licensing.py` (4 tests).
+- **Content-Addressed Node Identifiers and Dual-Key Aliases (T3.3 / AUB-COR-02):**
+  - Implemented `canonicalize_node_text` (NFKC normalization, list prefix stripping, LF newline normalization, line trim) and `compute_node_hash`: `{chunk_id}_{hash8(canonical_text)}`.
+  - Node IDs are completely invariant to line reordering, node insertion, and list renumbering.
+  - Built dual-key backward compatibility: `ProtocolChunk` and `RetrievedChunk` store canonical `chunk_id` and `legacy_id` (`{chunk_id}_NODE_{i}`).
+  - Created `data/corpus/node_aliases.yaml` (552 aliases) and `src/triagerag/rag/aliases.py` with transparent resolution across citation verification, evaluation benchmarks, and API responses. 0 collisions across corpus.
+  - Added test suite `tests/unit/test_aub_phase3_content_ids.py` (6 tests).
+- **Deterministic Synthetic Protocol Generator (T3.2):**
+  - Created `tools/generate_synthetic_protocols.py` featuring bit-for-bit seeded determinism (`seed: 42`), template variation, and non-overwriting manual protocol protection.
+  - Strictly enforced Rule R9 (zero numeric doses in any synthetic protocol markdown).
+  - Added test suite `tests/unit/test_aub_phase3_generator.py` (4 tests).
+- **Synthetic Protocol Corpus Expansion Across 36 Syndromes (T3.1 / AUB-COR-01):**
+  - Expanded synthetic protocol coverage from 6 to 65 documents (6 manual baselines + 59 generated) across 36 controlled syndromes.
+  - Generated 617 total structured chunks with 8–10 decision nodes per syndrome.
+  - Added neonate and second paediatric protocols (`neonate_hypoglycemia_protocol.md`, `paediatric_asthma_protocol.md`, `neonate_jaundice_protocol.md`).
+  - Injected cross-syndrome vocabulary distractors and alternative protocol versions.
+  - Candidate pools exceed $k=5$ across all partitions; ingestion report shows 0 quarantined files and 100% round-trip invariant verification.
+  - Added test suite `tests/unit/test_aub_phase3_corpus.py` (7 tests).
+- **Architecture Decision Record:**
+  - Authored **ADR-0012** in `docs/adr/0012-corpus-growth-and-content-addressed-nodes.md`.
+
 ## [Unreleased] - AUB Phase 2: Patient-Aware Retrieval
 
 ### Added & Hardened
