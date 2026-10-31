@@ -34,6 +34,7 @@ class RetrievalConfig(BaseModel):
     version: str
     calibration_run_id: str
     top_k: int
+    contextual_chunking: bool = False
     calibrated_threshold: float
     syndrome_inferred_threshold: float
     min_syndrome_margin: float

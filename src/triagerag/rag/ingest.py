@@ -131,6 +131,7 @@ def ingest_protocols_with_report(
     *,
     strict_unparsed: bool = True,
     derive_manifest: bool = False,
+    contextual_chunking: bool = False,
 ) -> IngestReport:
     """Ingest and validate all protocol markdown files from data directories.
 
@@ -189,7 +190,11 @@ def ingest_protocols_with_report(
     for md_file in md_files:
         try:
             content = md_file.read_text(encoding="utf-8")
-            doc_chunks = chunk_protocol_markdown(content, source_path=md_file)
+            doc_chunks = chunk_protocol_markdown(
+                content,
+                source_path=md_file,
+                contextual_chunking=contextual_chunking,
+            )
         except Exception as exc:
             reason = str(exc)
             logger.warning("Quarantining protocol %s: %s", md_file.name, reason)

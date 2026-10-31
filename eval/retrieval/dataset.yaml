@@ -874,7 +874,7 @@ cases:
     value: '45'
     unit: years
   population: adult
-  suspected_syndrome: gi_bleed
+  suspected_syndrome: radiation_sickness
   vitals:
     systolic_bp_mmhg: 80
     heart_rate_bpm: 130
@@ -883,7 +883,7 @@ cases:
   relevance_grades: {}
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
-  notes: Unknown syndrome 'gi_bleed' with hypotension/tachycardia/hypoxia must abstain
+  notes: Unknown syndrome 'radiation_sickness' with hypotension/tachycardia/hypoxia must abstain
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_044_HN_PAED
   family: hard_negatives
@@ -892,7 +892,7 @@ cases:
     value: '6'
     unit: years
   population: paediatric
-  suspected_syndrome: gi_bleed
+  suspected_syndrome: radiation_sickness
   vitals:
     temperature_c: '39.4'
     heart_rate_bpm: 158
@@ -901,7 +901,7 @@ cases:
   relevance_grades: {}
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
-  notes: Paediatric unknown syndrome 'gi_bleed' with fever/tachycardia must abstain
+  notes: Paediatric unknown syndrome 'radiation_sickness' with fever/tachycardia must abstain
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_045_HN_ADULT
   family: hard_negatives
@@ -1173,7 +1173,7 @@ cases:
     value: '45'
     unit: years
   population: adult
-  suspected_syndrome: status_epilepticus
+  suspected_syndrome: anthrax_inhalation
   vitals:
     systolic_bp_mmhg: 80
     heart_rate_bpm: 130
@@ -1182,7 +1182,7 @@ cases:
   relevance_grades: {}
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
-  notes: Unknown syndrome 'status_epilepticus' with hypotension/tachycardia/hypoxia
+  notes: Unknown syndrome 'anthrax_inhalation' with hypotension/tachycardia/hypoxia
     must abstain
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_060_HN_PAED
@@ -1192,7 +1192,7 @@ cases:
     value: '6'
     unit: years
   population: paediatric
-  suspected_syndrome: status_epilepticus
+  suspected_syndrome: anthrax_inhalation
   vitals:
     temperature_c: '39.4'
     heart_rate_bpm: 158
@@ -1201,7 +1201,7 @@ cases:
   relevance_grades: {}
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
-  notes: Paediatric unknown syndrome 'status_epilepticus' with fever/tachycardia must
+  notes: Paediatric unknown syndrome 'anthrax_inhalation' with fever/tachycardia must
     abstain
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_061_HN_ADULT
@@ -1249,7 +1249,7 @@ cases:
     value: '45'
     unit: years
   population: adult
-  suspected_syndrome: heat_stroke
+  suspected_syndrome: decompression_sickness
   vitals:
     systolic_bp_mmhg: 80
     heart_rate_bpm: 130
@@ -1258,7 +1258,7 @@ cases:
   relevance_grades: {}
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
-  notes: Unknown syndrome 'heat_stroke' with hypotension/tachycardia/hypoxia must
+  notes: Unknown syndrome 'decompression_sickness' with hypotension/tachycardia/hypoxia must
     abstain
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_064_HN_PAED
@@ -1268,7 +1268,7 @@ cases:
     value: '6'
     unit: years
   population: paediatric
-  suspected_syndrome: heat_stroke
+  suspected_syndrome: decompression_sickness
   vitals:
     temperature_c: '39.4'
     heart_rate_bpm: 158
@@ -1277,7 +1277,7 @@ cases:
   relevance_grades: {}
   expect_abstain: true
   expected_abstain_code: UNKNOWN_SYNDROME
-  notes: Paediatric unknown syndrome 'heat_stroke' with fever/tachycardia must abstain
+  notes: Paediatric unknown syndrome 'decompression_sickness' with fever/tachycardia must abstain
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_065_HN_NEARDUP
   family: hard_negatives

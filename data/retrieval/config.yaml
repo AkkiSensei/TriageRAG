@@ -2,6 +2,7 @@ version: "1.0.0"
 calibration_run_id: "CALIB_FG4_DEV_SWEEP_V1"
 
 top_k: 5
+contextual_chunking: false
 calibrated_threshold: 0.15
 syndrome_inferred_threshold: 0.35
 min_syndrome_margin: 0.25

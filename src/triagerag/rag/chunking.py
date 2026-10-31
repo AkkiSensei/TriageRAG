@@ -74,6 +74,18 @@ def compute_node_hash(node_text: str) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:8]
 
 
+def extract_if_condition(node_text: str) -> str | None:
+    """Extract condition part from an IF...THEN decision node (AUB-COR-03)."""
+    m = re.search(
+        r"^\s*(?:\d+\.\s*)?IF\s+(.*?)(?::\s*THEN|\s+THEN)\b",
+        node_text,
+        re.DOTALL | re.IGNORECASE,
+    )
+    if m:
+        return " ".join(m.group(1).strip().split())
+    return None
+
+
 def build_display_header(
     *,
     title: str,
@@ -95,18 +107,23 @@ def build_contextual_header(
     syndrome: str,
     chunk_id: str,
     text: str,
+    governing_context: str | None = None,
 ) -> str:
     """Build contextualized text for indexing while keeping raw text separate for citations.
 
     T2.5 (AUB-RET-06): Strips non-discriminative fragments (positional node digits and redundant
     syndrome tokens) so they do not leak into BM25 indexed_text or distort document length.
     Full header is preserved on chunk.display_header.
+    T3.5 (AUB-COR-03): If governing_context is supplied, prepends it to provide cross-node
+    condition context without modifying verbatim node text.
     """
     display_title = title.strip() if title and title.strip() else doc_id
     clean_section = section.strip()
     parts = [display_title]
     if clean_section and clean_section.lower() != display_title.lower():
         parts.append(clean_section)
+    if governing_context and governing_context.strip():
+        parts.append(f"Governing Context: {governing_context.strip()}")
     header = " › ".join(parts)
     return f"{header}\n{text}"
 
@@ -208,6 +225,7 @@ class ProtocolChunk(BaseModel):
     contraindicated_by: tuple[str, ...] = ()
     always_applicable: bool = False
     predicate_review_required: bool = False
+    contextual_chunking_applied: bool = False
 
     @model_validator(mode="before")
     @classmethod
@@ -277,7 +295,11 @@ def _parse_frontmatter(
     return fm, body_raw
 
 
-def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> list[ProtocolChunk]:
+def chunk_protocol_markdown(
+    content: str,
+    source_path: Path | None = None,
+    contextual_chunking: bool = False,
+) -> list[ProtocolChunk]:
     """Parse protocol markdown file with YAML frontmatter into structured parent/child chunks.
 
     Enforces a grammar-based state machine over body lines:
@@ -403,11 +425,32 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
 
     chunks: list[ProtocolChunk] = [parent_chunk]
 
+    governing_condition: str | None = None
+    if contextual_chunking and valid_nodes:
+        governing_condition = extract_if_condition(valid_nodes[0])
+
     for idx, node_text in enumerate(valid_nodes, start=1):
         node_hash = compute_node_hash(node_text)
         child_chunk_id = f"{fm.chunk_id}_{node_hash}"
         legacy_id = f"{fm.chunk_id}_NODE_{idx}"
         node_drug_actions = parse_clause_drug_actions(node_text)
+
+        node_gov_context: str | None = None
+        applied = False
+        if contextual_chunking and idx > 1 and governing_condition:
+            node_gov_context = governing_condition
+            applied = True
+
+        indexed_text = build_contextual_header(
+            title=doc_title,
+            doc_id=fm.doc_id,
+            section=fm.section,
+            syndrome=fm.syndrome,
+            chunk_id=child_chunk_id,
+            text=node_text,
+            governing_context=node_gov_context,
+        )
+
         chunks.append(
             ProtocolChunk(
                 doc_id=fm.doc_id,
@@ -418,6 +461,7 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
                 legacy_id=legacy_id,
                 aliases=(legacy_id,),
                 text=node_text,
+                indexed_text=indexed_text,
                 population=fm.population,
                 syndrome=fm.syndrome,
                 synthetic=fm.synthetic,
@@ -430,6 +474,7 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
                 reviewed_by=fm.reviewed_by,
                 source_status=fm.status,
                 drug_actions=node_drug_actions,
+                contextual_chunking_applied=applied,
             )
         )
 
@@ -476,7 +521,10 @@ def verify_round_trip_invariant(content: str, chunks: list[ProtocolChunk]) -> bo
     return True
 
 
-def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]:
+def chunk_decision_graph_json(
+    graph_data: dict[str, Any],
+    contextual_chunking: bool = False,
+) -> list[ProtocolChunk]:
     """Convert a structured JSON decision graph (flowchart adapter) into ProtocolChunks.
 
     Supports converting structured clinical flowcharts (nodes + edges) into
@@ -524,11 +572,33 @@ def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]
         source_status=fm.status,
     )
     result = [parent]
+    gov_cond: str | None = None
+    if contextual_chunking and nodes_raw:
+        first_cond = str(nodes_raw[0].get("if_condition", "")).strip()
+        if first_cond:
+            gov_cond = first_cond
+
     for idx, node_text in enumerate(rendered_nodes, start=1):
         node_hash = compute_node_hash(node_text)
         child_chunk_id = f"{fm.chunk_id}_{node_hash}"
         legacy_id = f"{fm.chunk_id}_NODE_{idx}"
         node_drug_actions = parse_clause_drug_actions(node_text)
+        node_gov_context: str | None = None
+        applied = False
+        if contextual_chunking and idx > 1 and gov_cond:
+            node_gov_context = gov_cond
+            applied = True
+
+        indexed_text = build_contextual_header(
+            title=doc_title,
+            doc_id=fm.doc_id,
+            section=fm.section,
+            syndrome=fm.syndrome,
+            chunk_id=child_chunk_id,
+            text=node_text,
+            governing_context=node_gov_context,
+        )
+
         result.append(
             ProtocolChunk(
                 doc_id=fm.doc_id,
@@ -539,6 +609,7 @@ def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]
                 legacy_id=legacy_id,
                 aliases=(legacy_id,),
                 text=node_text,
+                indexed_text=indexed_text,
                 population=fm.population,
                 syndrome=fm.syndrome,
                 synthetic=fm.synthetic,
@@ -551,6 +622,7 @@ def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]
                 reviewed_by=fm.reviewed_by,
                 source_status=fm.status,
                 drug_actions=node_drug_actions,
+                contextual_chunking_applied=applied,
             )
         )
     return result

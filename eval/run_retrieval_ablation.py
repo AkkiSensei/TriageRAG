@@ -30,6 +30,7 @@ RETRIEVAL_ARMS: tuple[tuple[str, str], ...] = (
     ("char_ngram", "Arm 2: Char-Trigram TF-IDF Vector Retriever (CharNgramRetriever)"),
     ("hybrid_rrf", "Arm 3: Hybrid Reciprocal Rank Fusion (BM25 + CharNgram)"),
     ("hybrid_rrf_rerank", "Arm 4: Hybrid RRF + Lexical Overlap Reranker (LexicalOverlapReranker)"),
+    ("bm25_contextual", "Arm 5: BM25 + Contextual Chunking (AUB-COR-03)"),
 )
 
 
@@ -102,7 +103,7 @@ def run_retrieval_ablation_suite(
     test_cases = [c for c in all_cases if c.get("split") == "test"]
 
     print(
-        f"Executing 4-Arm Retrieval Ablation across {len(all_cases)} cases "
+        f"Executing Multi-Arm Retrieval Ablation across {len(all_cases)} cases "
         f"(held-out test={len(test_cases)})..."
     )
 
