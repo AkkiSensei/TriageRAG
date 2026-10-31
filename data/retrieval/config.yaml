@@ -16,6 +16,20 @@ stem_token_weight: 0.8
 synonym_token_weight: 0.6
 cue_token_weight: 0.7
 
+backend_thresholds:
+  bm25:
+    calibrated_threshold: 0.15
+    syndrome_inferred_threshold: 0.35
+  char_ngram:
+    calibrated_threshold: 0.15
+    syndrome_inferred_threshold: 0.35
+  hybrid_rrf:
+    calibrated_threshold: 0.15
+    syndrome_inferred_threshold: 0.35
+  hybrid_rrf_rerank:
+    calibrated_threshold: 0.15
+    syndrome_inferred_threshold: 0.35
+
 provenance:
   source_doc: "TRIAGERAG_RETRIEVAL_CALIBRATION_REPORT"
   section_ref: "TO_BE_RESOLVED"

@@ -47,6 +47,7 @@ class RetrievalConfig(BaseModel):
     stem_token_weight: float = 0.5
     synonym_token_weight: float = 0.5
     cue_token_weight: float = 0.5
+    backend_thresholds: dict[str, dict[str, float]] | None = None
     provenance: Provenance
     config_hash: str = ""
 
@@ -68,10 +69,24 @@ def load_retrieval_config(data_dir: Path | None = None) -> RetrievalConfig:
     return RetrievalConfig.model_validate(parsed)
 
 
-def normalize_relevance_score(raw_score: float) -> float:
-    """Map non-negative BM25 score onto [0.0, 1.0) saturation curve s / (s + 1.0)."""
+def normalize_relevance_score(
+    raw_score: float,
+    backend: str = "bm25",
+    top_k: int = 1,
+) -> float:
+    """Map non-negative retrieval score onto [0.0, 1.0) calibrated confidence scale (T2.6)."""
     if raw_score <= 0.0:
         return 0.0
+    b_norm = backend.lower().strip()
+    if b_norm in ("hybrid_rrf", "hybrid_rrf_rerank"):
+        rrf_k = float(top_k * top_k)
+        max_theoretical_rrf = 2.0 / (rrf_k + 1.0)
+        if max_theoretical_rrf <= 0.0:
+            return 0.0
+        return min(1.0, float(raw_score / max_theoretical_rrf))
+    if b_norm in ("char_ngram", "dense"):
+        norm_factor = 2.0 + 0.5
+        return min(1.0, float(raw_score / norm_factor))
     return float(raw_score / (raw_score + 1.0))
 
 
@@ -84,6 +99,7 @@ def evaluate_abstention_with_code(
     min_margin: float | None = None,
     config: RetrievalConfig | None = None,
     *,
+    backend: str = "bm25",
     use_calibrated_for_inferred: bool = False,
 ) -> tuple[bool, AbstainCode, str | None]:
     """Evaluate calibrated abstention and top-1/top-2 syndrome margin rules."""
@@ -114,7 +130,7 @@ def evaluate_abstention_with_code(
         )
 
     best_score = float(scored_chunks[0][1])
-    norm_best = normalize_relevance_score(best_score)
+    norm_best = normalize_relevance_score(best_score, backend=backend, top_k=cfg.top_k)
 
     if norm_best < eff_threshold or best_score <= 0.0:
         msg = (

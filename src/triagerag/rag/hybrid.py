@@ -21,7 +21,7 @@ from triagerag.rag.ingest import compute_corpus_hash
 
 
 def _extract_char_ngrams(text: str, tokenizer: ClinicalTokenizer) -> Counter[str]:
-    """Build combined token + character trigram feature vector for character n-gram cosine similarity."""
+    """Build combined token + character trigram vector for cosine similarity."""
     tokens = tokenizer.tokenize(text)
     features: Counter[str] = Counter()
     ngram_len = 2 + 1
@@ -160,7 +160,7 @@ DenseRetriever = CharNgramRetriever
 
 
 class LexicalOverlapReranker:
-    """Lexical overlap reranker computing token intersection ratio (FG-14 / HD-5)."""
+    """Lexical overlap reranker without score inflation (T2.6 / AUB-RET-02)."""
 
     def rerank(
         self,
@@ -169,15 +169,22 @@ class LexicalOverlapReranker:
         base_score: float,
         boost: float = 0.5,
     ) -> float:
-        """Scale base score by token intersection ratio against query terms."""
+        """Adjust base score by token intersection ratio bounded by base_score (no 1.5x inflation).
+
+        T2.6 (AUB-RET-02): Uses uninflated overlap adjustment:
+        score = base_score * (1.0 - boost * (1.0 - overlap_ratio)).
+        When overlap_ratio == 1.0, score == base_score.
+        When overlap_ratio < 1.0, score is proportionally discounted.
+        """
         if not query_tokens or base_score <= 0.0:
             return float(base_score)
         overlap_ratio = float(len(query_tokens & doc_tokens)) / float(len(query_tokens))
-        return float(base_score * (1.0 + boost * overlap_ratio))
+        factor = 1.0 - boost * (1.0 - overlap_ratio)
+        return float(base_score * factor)
 
 
 class HybridRRFRetriever:
-    """Reciprocal Rank Fusion (RRF) combining lexical BM25 and CharNgram retrievers (FG-14 / T0.3)."""
+    """Reciprocal Rank Fusion (RRF) combining BM25 and CharNgram retrievers (FG-14)."""
 
     def __init__(
         self,
@@ -273,20 +280,15 @@ class HybridRRFRetriever:
                 1.0 / (rrf_k + float(rank_idx))
             )
 
-        # Scale fused RRF score by top BM25 magnitude so calibrated thresholds apply consistently
-        max_bm25 = max(bm25_raw.values(), default=0.0)
-        max_rrf = max(rrf_scores.values(), default=1.0)
-        scale = max_bm25 / max_rrf if max_rrf > 0.0 and max_bm25 > 0.0 else 1.0
-
         query_tokens = set(self.bm25.tokenizer.tokenize(query))
         final_scored: list[tuple[ProtocolChunk, float]] = []
         for cid, rrf_val in rrf_scores.items():
             chunk = chunk_map[cid]
-            scaled_score = float(rrf_val * scale)
-            if self.reranker and query_tokens and scaled_score > 0.0:
+            score = float(rrf_val)
+            if self.reranker and query_tokens and score > 0.0:
                 doc_tokens = set(self.bm25.tokenizer.tokenize(chunk.indexed_text or chunk.text))
-                scaled_score = self.reranker.rerank(query_tokens, doc_tokens, scaled_score)
-            final_scored.append((chunk, scaled_score))
+                score = self.reranker.rerank(query_tokens, doc_tokens, score)
+            final_scored.append((chunk, score))
 
         final_scored.sort(key=lambda x: (-x[1], x[0].chunk_id))
         return final_scored[:eff_top_k]

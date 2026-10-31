@@ -497,6 +497,7 @@ def retrieve_protocol_chunks(
         threshold=threshold,
         syndrome_provided=(norm_syndrome is not None),
         config=cfg,
+        backend=index.backend,
     )
 
     if abstained:

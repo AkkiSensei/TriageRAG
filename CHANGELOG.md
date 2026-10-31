@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 2: Patient-Aware Retrieval
 
 ### Added & Hardened
+- **Score-Scale Integrity Across Retrieval Backends (T2.6 / AUB-RET-02):**
+  - Hardened `LexicalOverlapReranker` in `src/triagerag/rag/hybrid.py`: removed arbitrary 1.5x score inflation (`1 + 0.5 * overlap`); scores are now bounded by `base_score * (1.0 - boost * (1.0 - overlap_ratio))` such that maximum score never exceeds unreranked base score.
+  - Eliminated artificial RRF-to-BM25 rescaling (`max_bm25 / max_rrf`) in `HybridRRFRetriever.search`: hybrid retrievers now emit authentic, unmanipulated Reciprocal Rank Fusion scores.
+  - Separated ranking scores from abstention confidence scores; introduced backend-specific confidence normalization contracts in `src/triagerag/rag/abstain.py` mapping raw backend scores onto a calibrated $[0.0, 1.0)$ scale:
+    - BM25: $s / (s + 1.0)$
+    - Hybrid RRF: $s / \text{max\_theoretical\_rrf}$
+    - Char-Ngram: $s / (k_1 + 1.0)$
+  - Threaded `backend` identity to `evaluate_abstention_with_code` from `retrieve_protocol_chunks`.
+  - Added unit test suite `tests/unit/test_aub_phase2_scale_integrity.py` (4 tests) verifying uninflated reranker scores, authentic RRF output, confidence normalization contracts, and cross-backend threshold stability.
 - **Query and Index Token Hygiene (T2.5 / AUB-RET-06):**
   - Enhanced `ClinicalTokenizer` in `src/triagerag/rag/index.py` with `tokenize_raw` (extracting clean raw words without stem/synonym expansions) and `tokenize_query_weighted` (emitting deduplicated tokens with explicit class weights).
   - Configured explicit token class weights in `data/retrieval/config.yaml`: `raw_token_weight: 1.0`, `stem_token_weight: 0.8`, `synonym_token_weight: 0.6`, `cue_token_weight: 0.7`.
