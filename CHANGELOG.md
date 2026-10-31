@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 1: Trust and Honesty of Outputs
 
 ### Fixed & Hardened
+- **Fail-Closed Citation Child-Node Verification (T1.5 / AUB-GRD-02):**
+  - Eliminated fail-open `except Exception: pass` during corpus re-ingestion for child node checks in `src/triagerag/verify/citations.py`.
+  - Enforced fail-closed rejection returning `(False, 0.0, reason)` and logging structured error details if corpus ingestion fails.
+  - Ensured plan verifier marks steps `CITATION_UNVERIFIED` and retains structured rejection reasons when corpus checks encounter IO/runtime exceptions.
+  - Added unit regression tests in `tests/unit/test_aub_phase1_citations.py`.
 - **Accurate Population-Coverage vs No-Results Abstention Semantics (T1.4 / AUB-ABS-01):**
   - Added `NO_RESULTS` to `AbstainCode` enum in `src/triagerag/contracts/enums.py`.
   - Disentangled population availability from retrieval match failure in `src/triagerag/rag/abstain.py`:
