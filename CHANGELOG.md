@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `test_dataset_lock_fails_on_tampered_dataset` regression test.
 
 ### Fixed & Hardened
+- **Honest Retrieval Terminology (`char_ngram` Primary) (T0.4 / AUB-RET-05 / D6):**
+  - Renamed internal attributes from `self.dense` to `self.char_ngram` in `HybridRRFRetriever`.
+  - Added runtime `DeprecationWarning` when querying deprecated `HybridRRFRetriever.dense` or requesting backend `"dense"`.
+  - Reconciled docstrings in `rag/hybrid.py`, `rag/index.py`, `cli.py`, and `docs/ARCHITECTURE.md` to consistently refer to character n-gram lexical retrieval rather than neural dense retrieval.
+  - Added regression test `test_char_ngram_primary_and_dense_deprecation_warning`.
 - **Threaded Explicit Configuration and Fail-Closed Config Resolution (T0.3 / AUB-RET-04):**
   - Updated `CharNgramRetriever` and `HybridRRFRetriever` to accept explicit `config`, `retrieval_context`, `synonyms`, and `data_dir` without hidden global fallbacks.
   - Removed unparameterized `load_retrieval_config()` calls inside `search()` methods, using bound instance config.

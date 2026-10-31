@@ -376,7 +376,7 @@ def retrieve_cmd(
     ] = True,
     backend: Annotated[
         str,
-        typer.Option("--backend", help="Retriever backend: bm25 | dense | hybrid_rrf"),
+        typer.Option("--backend", help="Retriever backend: bm25 | char_ngram | hybrid_rrf"),
     ] = "bm25",
 ) -> None:
     """Execute protocol retrieval and render the Retrieval Inspector diagnostic trace."""

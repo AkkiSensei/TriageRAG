@@ -1,4 +1,4 @@
-"""Dense, Hybrid Reciprocal Rank Fusion (RRF), and Rerank retrievers (RAG-08).
+"""Char n-gram, Hybrid Reciprocal Rank Fusion (RRF), and Lexical Rerank retrievers (RAG-08 / T0.4).
 
 Safety Properties (Section 8, RAG-01, RAG-08, Rule R12):
 1. All retriever backends implement the Retriever protocol and enforce identical
@@ -21,7 +21,7 @@ from triagerag.rag.ingest import compute_corpus_hash
 
 
 def _extract_char_ngrams(text: str, tokenizer: ClinicalTokenizer) -> Counter[str]:
-    """Build combined token + character trigram feature vector for dense cosine similarity."""
+    """Build combined token + character trigram feature vector for character n-gram cosine similarity."""
     tokens = tokenizer.tokenize(text)
     features: Counter[str] = Counter()
     ngram_len = 2 + 1
@@ -200,7 +200,7 @@ class HybridRRFRetriever:
             config=self.config,
             retrieval_context=retrieval_context,
         )
-        self.dense = CharNgramRetriever(
+        self.char_ngram = CharNgramRetriever(
             chunks,
             acronyms=acronyms,
             synonyms=synonyms,
@@ -215,6 +215,18 @@ class HybridRRFRetriever:
         self.backend: str = "hybrid_rrf_rerank" if rerank else "hybrid_rrf"
         self.index_by_population: dict[str, list[int]] = self.bm25.index_by_population
         self.retrieval_context: Any = retrieval_context
+
+    @property
+    def dense(self) -> CharNgramRetriever:
+        """Deprecated property alias for char_ngram (T0.4)."""
+        import warnings
+
+        warnings.warn(
+            "HybridRRFRetriever.dense is deprecated; use .char_ngram instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.char_ngram
 
     def known_syndromes(self, population: str | None = None) -> set[str]:
         return self.bm25.known_syndromes(population=population)
@@ -236,11 +248,11 @@ class HybridRRFRetriever:
         bm25_hits = self.bm25.search(
             query=query, population=population, top_k=pool_k, syndrome=syndrome
         )
-        dense_hits = self.dense.search(
+        ngram_hits = self.char_ngram.search(
             query=query, population=population, top_k=pool_k, syndrome=syndrome
         )
 
-        if not bm25_hits and not dense_hits:
+        if not bm25_hits and not ngram_hits:
             return []
 
         rrf_k = float(cfg.top_k * cfg.top_k)
@@ -255,7 +267,7 @@ class HybridRRFRetriever:
                 1.0 / (rrf_k + float(rank_idx))
             )
 
-        for rank_idx, (chunk, _sc) in enumerate(dense_hits, start=1):
+        for rank_idx, (chunk, _sc) in enumerate(ngram_hits, start=1):
             chunk_map[chunk.chunk_id] = chunk
             rrf_scores[chunk.chunk_id] = rrf_scores.get(chunk.chunk_id, 0.0) + (
                 1.0 / (rrf_k + float(rank_idx))
@@ -300,6 +312,14 @@ def build_retriever_backend(
             retrieval_context=retrieval_context,
         )
     if b_norm in ("char_ngram", "dense"):
+        if b_norm == "dense":
+            import warnings
+
+            warnings.warn(
+                "Retriever backend 'dense' is deprecated; use 'char_ngram' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         return CharNgramRetriever(
             chunks,
             acronyms=acronyms,

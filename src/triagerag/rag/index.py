@@ -137,7 +137,7 @@ class ClinicalTokenizer:
 
 @runtime_checkable
 class Retriever(Protocol):
-    """Protocol for clinical guideline retrievers (BM25, Dense, Hybrid RRF)."""
+    """Protocol for clinical guideline retrievers (BM25, Char-Ngram, Hybrid RRF)."""
 
     backend: str
     corpus_hash: str

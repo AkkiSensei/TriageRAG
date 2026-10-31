@@ -15,6 +15,8 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
+
 from triagerag.config import get_data_dir, get_repo_root
 from triagerag.contracts.enums import AgeUnit
 from triagerag.contracts.schemas import Age, Measured, Patient, Vitals
@@ -124,6 +126,30 @@ def test_hybrid_retrievers_thread_explicit_config_and_data_dir(tmp_path: Path) -
     assert svc_a.config.calibrated_threshold != svc_b.config.calibrated_threshold
     assert getattr(svc_a.index, "config").top_k == 5
     assert getattr(svc_b.index, "config").top_k == 8
-    assert getattr(svc_a.index, "dense").config.top_k == 5
-    assert getattr(svc_b.index, "dense").config.top_k == 8
+    assert getattr(svc_a.index, "char_ngram").config.top_k == 5
+    assert getattr(svc_b.index, "char_ngram").config.top_k == 8
+
+
+def test_char_ngram_primary_and_dense_deprecation_warning() -> None:
+    """T0.4 / AUB-RET-05: char_ngram is primary; using 'dense' issues DeprecationWarning."""
+    import warnings
+    from triagerag.rag.hybrid import CharNgramRetriever, build_retriever_backend
+    from triagerag.rag.ingest import ingest_protocols
+
+    chunks = ingest_protocols(get_data_dir())
+
+    with pytest.deprecated_call():
+        retriever_dense = build_retriever_backend("dense", chunks)
+    assert isinstance(retriever_dense, CharNgramRetriever)
+
+    retriever_ngram = build_retriever_backend("char_ngram", chunks)
+    assert isinstance(retriever_ngram, CharNgramRetriever)
+
+    hybrid = build_retriever_backend("hybrid_rrf", chunks)
+    assert isinstance(hybrid, HybridRRFRetriever)
+    assert hasattr(hybrid, "char_ngram")
+
+    with pytest.deprecated_call():
+        _ = hybrid.dense
+
 
