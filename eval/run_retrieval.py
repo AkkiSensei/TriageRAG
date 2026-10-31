@@ -708,7 +708,8 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
 
 def run_retrieval_benchmark(
     backend: str = "bm25",
-    write_reports: bool = True,
+    write_reports: bool = False,
+    output_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Run the 224-case dev/test retrieval benchmark and verify safety gates."""
     t_build0 = time.perf_counter()
@@ -770,13 +771,10 @@ def run_retrieval_benchmark(
         "status": "PASS" if passed else "FAIL",
     }
 
-    if write_reports:
-        reports_dir = _REPO_ROOT / "eval" / "reports"
+    if write_reports or output_dir is not None:
+        reports_dir = output_dir or (_REPO_ROOT / "eval" / "reports")
         reports_dir.mkdir(parents=True, exist_ok=True)
         (reports_dir / "retrieval.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-        baseline_path = reports_dir / "retrieval_baseline.json"
-        if not baseline_path.exists():
-            baseline_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
 
         r5_ci_str = (
             f"[{test_metrics['recall_at_5_ci95'][0]:.2f}%, "
@@ -897,9 +895,12 @@ def run_retrieval_benchmark(
     return summary
 
 
-def run_retrieval_suite() -> tuple[bool, float, float, float]:
+def run_retrieval_suite(
+    write_reports: bool = False,
+    output_dir: Path | None = None,
+) -> tuple[bool, float, float, float]:
     """Execute retrieval benchmark and print results for CLI / task runner."""
-    summary = run_retrieval_benchmark(backend="bm25", write_reports=True)
+    summary = run_retrieval_benchmark(backend="bm25", write_reports=write_reports, output_dir=output_dir)
     t = summary["test"]
     syn = t["syndrome_provided"]
     vit = t["vitals_only"]
@@ -925,6 +926,14 @@ def run_retrieval_suite() -> tuple[bool, float, float, float]:
 
 
 if __name__ == "__main__":
-    ok, _r5, _mrr, _abstain = run_retrieval_suite()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run node-level retrieval benchmark.")
+    parser.add_argument("--write", action="store_true", help="Write reports to eval/reports/")
+    parser.add_argument("--output-dir", type=str, default=None, help="Output directory for reports")
+    args = parser.parse_args()
+
+    out_dir = Path(args.output_dir) if args.output_dir else None
+    ok, _r5, _mrr, _abstain = run_retrieval_suite(write_reports=args.write, output_dir=out_dir)
     if not ok:
         sys.exit(1)

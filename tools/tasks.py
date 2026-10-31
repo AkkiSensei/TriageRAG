@@ -124,9 +124,13 @@ def eval(
             "mutation, retrieval, ablation"
         ),
     ] = "all",
+    write: Annotated[
+        bool,
+        typer.Option("--write", help="Write evaluation reports to disk"),
+    ] = False,
 ) -> None:
-    """Run evaluation suites."""
-    typer.secho(f"=== Running Evaluation Suite: {suite} ===", fg=typer.colors.BLUE, bold=True)
+    """Run evaluation suites (default: read-only, non-mutating; pass --write to update reports)."""
+    typer.secho(f"=== Running Evaluation Suite: {suite} (write={write}) ===", fg=typer.colors.BLUE, bold=True)
     suites = {
         "golden": "eval/run_golden.py",
         "mechanics": "eval/run_mechanics.py",
@@ -150,10 +154,27 @@ def eval(
     for target in targets:
         target_path = REPO_ROOT / target
         if target_path.exists():
-            _run([sys.executable, target])
+            cmd = [sys.executable, target]
+            if write and target in ("eval/run_retrieval.py", "eval/run_retrieval_ablation.py", "eval/run_latency_benchmark.py"):
+                cmd.append("--write")
+            _run(cmd)
         else:
             typer.secho(f"Skipping {target} (not yet implemented)", fg=typer.colors.YELLOW)
     typer.secho("[OK] Evaluation suite complete", fg=typer.colors.GREEN)
+
+
+@app.command("eval-write")
+def eval_write(
+    suite: Annotated[
+        str,
+        typer.Argument(
+            help="Suite to run with report writing enabled: all, golden, mechanics, metamorphic, adversarial, "
+            "mutation, retrieval, ablation"
+        ),
+    ] = "all",
+) -> None:
+    """Run evaluation suites with report writing enabled (--write)."""
+    eval(suite=suite, write=True)
 
 
 @app.command()

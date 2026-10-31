@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `test_dataset_lock_fails_on_tampered_dataset` regression test.
 
 ### Fixed & Hardened
+- **Non-Mutating Evaluation Runners by Default (T0.8 / AUB-EVL-02):**
+  - Updated `eval/run_retrieval.py`, `eval/run_retrieval_ablation.py`, and `eval/run_latency_benchmark.py` to default to `write_reports=False` / `write_report=False`.
+  - Added explicit `--write` CLI flag and `eval-write` task in `tools/tasks.py`.
+  - Prohibited automatic re-writing of `retrieval_baseline.json` on missing file checks.
+  - Added regression test `test_eval_retrieval_leaves_tracked_reports_unmodified` verifying git working tree remains 100% clean when running evaluations.
 - **Honest Architecture Descriptions and README Terminology (T0.7 / AUB-GEN-01 / AUB-DOC-03):**
   - Updated `README.md` to plainly qualify plan drafting as an offline deterministic mock generator (`FakeLLM`) implementing the `LLMProvider` contract.
   - Reconciled system descriptions to accurately characterize the audit log as a sequential SHA-256 hash chain and protocol search as lexical retrieval.

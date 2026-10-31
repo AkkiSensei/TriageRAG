@@ -83,7 +83,7 @@ def decide_backend(arms: dict[str, Any]) -> str:
 
 def run_retrieval_ablation_suite(
     output_dir: Path | None = None,
-    write_reports: bool = True,
+    write_reports: bool = False,
 ) -> int:
     """Execute 4-arm retrieval ablation across all cases and held-out test split."""
     import sys
@@ -150,7 +150,7 @@ def run_retrieval_ablation_suite(
         "arms": arms_report,
         "status": "PASS",
     }
-    if write_reports:
+    if write_reports or output_dir is not None:
         (reports_dir / "retrieval_ablation.json").write_text(
             json.dumps(json_payload, indent=2),
             encoding="utf-8",
@@ -220,4 +220,12 @@ def run_retrieval_ablation_suite(
 
 
 if __name__ == "__main__":
-    sys.exit(run_retrieval_ablation_suite())
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run 4-arm retrieval ablation.")
+    parser.add_argument("--write", action="store_true", help="Write reports to eval/reports/")
+    parser.add_argument("--output-dir", type=str, default=None, help="Output directory for reports")
+    args = parser.parse_args()
+
+    out_dir = Path(args.output_dir) if args.output_dir else None
+    sys.exit(run_retrieval_ablation_suite(output_dir=out_dir, write_reports=args.write))

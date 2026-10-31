@@ -34,9 +34,36 @@ def test_evaluation_functions_support_non_mutating_execution(tmp_path: Path) -> 
     assert (repo_root / "eval" / "reports" / "latency_benchmark.json").read_bytes() == latency_orig
 
     # 3. Ablation suite with output_dir=tmp_path must not mutate retrieval_ablation.json
-    rc = run_retrieval_ablation_suite(output_dir=tmp_path)
+    rc = run_retrieval_ablation_suite(output_dir=tmp_path, write_reports=True)
     assert rc == 0
     assert (tmp_path / "retrieval_ablation.json").exists()
     assert (
         repo_root / "eval" / "reports" / "retrieval_ablation.json"
     ).read_bytes() == ablation_orig
+
+
+def test_eval_retrieval_leaves_tracked_reports_unmodified(tmp_path: Path) -> None:
+    """T0.8 / AUB-EVL-02: run_retrieval_benchmark defaults to write_reports=False and does not dirty git."""
+    from eval.run_retrieval import run_retrieval_benchmark
+    from triagerag.config import get_repo_root
+
+    repo_root = get_repo_root()
+    ret_json_path = repo_root / "eval" / "reports" / "retrieval.json"
+    calib_md_path = repo_root / "eval" / "reports" / "retrieval_calibration.md"
+
+    ret_json_orig = ret_json_path.read_bytes()
+    calib_md_orig = calib_md_path.read_bytes()
+
+    # 1. Default run_retrieval_benchmark() must not mutate tracked files
+    summary = run_retrieval_benchmark(backend="bm25")
+    assert summary["status"] == "PASS"
+    assert ret_json_path.read_bytes() == ret_json_orig
+    assert calib_md_path.read_bytes() == calib_md_orig
+
+    # 2. When write_reports=True with output_dir=tmp_path, writes only to tmp_path
+    run_retrieval_benchmark(backend="bm25", write_reports=True, output_dir=tmp_path)
+    assert (tmp_path / "retrieval.json").exists()
+    assert (tmp_path / "retrieval_calibration.md").exists()
+    assert ret_json_path.read_bytes() == ret_json_orig
+    assert calib_md_path.read_bytes() == calib_md_orig
+
