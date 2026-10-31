@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 0: Re-baseline and Hygiene
 
 ### Added
+- **Validated Retrieval Backend Enum and Explain Route Support (T0.9 / AUB-OPS-01):**
+  - Added `RetrievalBackend(StrEnum)` to `src/triagerag/contracts/enums.py` (`bm25`, `char_ngram`, `hybrid_rrf`, `hybrid_rrf_rerank`, and deprecated aliases).
+  - Strongly typed `retrieval_backend` on `TriageApiRequest` and `ExplainApiRequest`, returning HTTP 422 for unrecognized backends rather than unhandled 500 exceptions.
+  - Wired requested `retrieval_backend` through `/triage/explain` diagnostic route and included `backend` in trace payload.
+  - Added API contract regression tests `test_invalid_retrieval_backend_returns_422` and `test_explain_route_honors_requested_retrieval_backend`.
 - **Automated Documentation Metrics Generator and Drift Detection (T0.6 / AUB-DOC-01 / AUB-DOC-02):**
   - Created `tools/gen_docs_metrics.py` reading canonical JSON reports (`eval/reports/*.json`) and injecting exact values between `<!-- AUTOGEN:start:<tag> -->` and `<!-- AUTOGEN:end:<tag> -->` markers in `README.md`, `HANDOFF.md`, and `docs/evaluation/ENGINEERING_FINAL_RESULTS.md`.
   - Added `--check` flag to verify documentation numbers in CI.

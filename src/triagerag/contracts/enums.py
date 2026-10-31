@@ -55,6 +55,17 @@ class ScoreBand(StrEnum):
     UNSCORED = "UNSCORED"
 
 
+class RetrievalBackend(StrEnum):
+    """Supported protocol retrieval backends (T0.9 / AUB-OPS-01)."""
+
+    BM25 = "bm25"
+    CHAR_NGRAM = "char_ngram"
+    DENSE = "dense"  # Deprecated alias for char_ngram
+    HYBRID_RRF = "hybrid_rrf"
+    HYBRID_RRF_RERANK = "hybrid_rrf_rerank"
+    HYBRID_RERANK = "hybrid_rerank"  # Deprecated alias for hybrid_rrf_rerank
+
+
 class AgeUnit(StrEnum):
     """Units of chronological age."""
 

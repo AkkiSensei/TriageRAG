@@ -42,7 +42,12 @@ def get_retrieval_service(backend: str | None = None) -> RetrievalService:
 @router.post("", response_model=TriageResponse)
 def execute_triage(request: TriageApiRequest) -> TriageResponse:
     registry = get_cached_registry()
-    eff_backend = (request.retrieval_backend or get_retrieval_backend()).strip().lower()
+    raw_backend = (
+        request.retrieval_backend.value
+        if request.retrieval_backend is not None
+        else get_retrieval_backend()
+    )
+    eff_backend = raw_backend.strip().lower()
     retrieval_service = get_retrieval_service(eff_backend)
 
     llm = FakeLLM(profile=request.llm_profile)
@@ -86,5 +91,11 @@ def execute_triage(request: TriageApiRequest) -> TriageResponse:
 @router.post("/explain")
 def explain_triage_retrieval(request: ExplainApiRequest) -> dict[str, Any]:
     """Return full Retrieval Inspector diagnostic trace for a patient presentation."""
-    retrieval_service = get_retrieval_service()
+    raw_backend = (
+        request.retrieval_backend.value
+        if request.retrieval_backend is not None
+        else get_retrieval_backend()
+    )
+    eff_backend = raw_backend.strip().lower()
+    retrieval_service = get_retrieval_service(eff_backend)
     return retrieval_service.explain(request.to_patient())

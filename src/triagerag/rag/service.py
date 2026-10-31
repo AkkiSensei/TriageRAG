@@ -187,6 +187,7 @@ class RetrievalService:
             )
 
         return {
+            "backend": self.index.backend,
             "query": query_str,
             "vitals_derived_flags": flags,
             "population": pop,

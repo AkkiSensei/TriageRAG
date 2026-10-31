@@ -303,3 +303,46 @@ def test_triage_provider_metadata_and_hybrid_backend_selection() -> None:
     assert hybrid_data["provider_info"]["generation_mode"] == "deterministic_mock"
     assert hybrid_data["provider_info"]["retrieval_backend"] == "hybrid_rrf"
     assert hybrid_data["retrieval"]["backend"] == "hybrid_rrf"
+
+
+def test_invalid_retrieval_backend_returns_422() -> None:
+    """T0.9 / AUB-OPS-01: Invalid retrieval backend returns 422 Unprocessable Entity instead of 500."""
+    patient, _ = get_preloaded_scenario("CLEAN")
+    patient_dict = json.loads(patient.model_dump_json())
+
+    # 1. /api/triage with invalid backend -> 422
+    resp_triage = client.post(
+        "/api/triage",
+        json={"patient": patient_dict, "retrieval_backend": "nonsense"},
+    )
+    assert resp_triage.status_code == 422, f"Expected 422, got {resp_triage.status_code}"
+
+    # 2. /api/triage/explain with invalid backend -> 422
+    resp_explain = client.post(
+        "/api/triage/explain",
+        json={"patient": patient_dict, "retrieval_backend": "nonsense"},
+    )
+    assert resp_explain.status_code == 422, f"Expected 422, got {resp_explain.status_code}"
+
+
+def test_explain_route_honors_requested_retrieval_backend() -> None:
+    """T0.9 / AUB-OPS-01: /api/triage/explain honors requested retrieval_backend."""
+    patient, _ = get_preloaded_scenario("CLEAN")
+    patient_dict = json.loads(patient.model_dump_json())
+
+    # 1. char_ngram backend
+    resp_ngram = client.post(
+        "/api/triage/explain",
+        json={"patient": patient_dict, "retrieval_backend": "char_ngram"},
+    )
+    assert resp_ngram.status_code == 200
+    assert resp_ngram.json()["backend"] == "char_ngram"
+
+    # 2. hybrid_rrf backend
+    resp_hybrid = client.post(
+        "/api/triage/explain",
+        json={"patient": patient_dict, "retrieval_backend": "hybrid_rrf"},
+    )
+    assert resp_hybrid.status_code == 200
+    assert resp_hybrid.json()["backend"] == "hybrid_rrf"
+

@@ -13,7 +13,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from triagerag.contracts.enums import AgeUnit
+from triagerag.contracts.enums import AgeUnit, RetrievalBackend
 from triagerag.contracts.schemas import Age, Measured, OverrideRecord, Patient, Vitals
 from triagerag.llm.fake import FakeLLMProfile
 
@@ -48,7 +48,7 @@ class TriageApiRequest(BaseModel):
     overrides: list[OverrideRecord] | None = None
     llm_profile: FakeLLMProfile = FakeLLMProfile.COMPLIANT
     include_complaint_in_llm: bool = False
-    retrieval_backend: str | None = None
+    retrieval_backend: RetrievalBackend | None = None
 
     @field_validator("llm_profile", mode="before")
     @classmethod
@@ -72,6 +72,7 @@ class ExplainApiRequest(BaseModel):
     suspected_syndrome: str | None = None
     vitals: Vitals | dict[str, Any] = Field(default_factory=dict)
     assessed_at: datetime | None = None
+    retrieval_backend: RetrievalBackend | None = None
 
     @model_validator(mode="before")
     @classmethod
