@@ -101,8 +101,15 @@ def verify_citation(
             f"{cfg.min_span_chars} characters)",
         )
 
-    # 2. Check chunk existence
-    chunk_map = {c.chunk_id: c for c in retrieved_chunks}
+    # 2. Check chunk existence (supporting content-addressed IDs and legacy aliases - AUB-COR-02)
+    chunk_map: dict[str, RetrievedChunk] = {}
+    for c in retrieved_chunks:
+        chunk_map[c.chunk_id] = c
+        if getattr(c, "legacy_id", None):
+            chunk_map[c.legacy_id] = c
+        for alias in getattr(c, "aliases", ()):
+            chunk_map[alias] = c
+
     if citation.chunk_id not in chunk_map:
         return (
             False,

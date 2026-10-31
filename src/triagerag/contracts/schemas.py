@@ -383,6 +383,8 @@ class RetrievedChunk(BaseModel):
     section: str
     chunk_id: str
     parent_id: str | None = None
+    legacy_id: str | None = None
+    aliases: tuple[str, ...] = ()
     text: str
     population: str
     syndrome: str

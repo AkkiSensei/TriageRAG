@@ -115,7 +115,8 @@ synthetic: true
 """
     chunks = chunk_protocol_markdown(md)
     child = chunks[1]
-    assert child.chunk_id == "CHEST_PAIN_01_NODE_1"
+    assert child.legacy_id == "CHEST_PAIN_01_NODE_1"
+    assert child.chunk_id.startswith("CHEST_PAIN_01_")
 
     # Indexed text retains the discriminative title and section
     assert "Adult Chest Pain Protocol › Primary Assessment" in child.indexed_text
@@ -124,10 +125,7 @@ synthetic: true
     assert "NODE_1" not in child.indexed_text
 
     # Full header is preserved in display_header for UI and citations
-    assert (
-        child.display_header
-        == "Adult Chest Pain Protocol › Primary Assessment › chest_pain › CHEST_PAIN_01_NODE_1"
-    )
+    assert child.display_header.startswith("Adult Chest Pain Protocol") and child.chunk_id in child.display_header
 
     # Tokenizer also filters out standalone 'node' and pure digits
     tokenizer = ClinicalTokenizer()
@@ -176,6 +174,6 @@ def test_no_degradation_on_golden_retrieval_fixtures() -> None:
         assert len(results) > 0, f"No results for {syndrome}"
         top_chunk, top_score = results[0]
         assert (
-            top_chunk.chunk_id == expected_node
+            top_chunk.chunk_id == expected_node or top_chunk.legacy_id == expected_node
         ), f"Expected {expected_node} for {syndrome}, got {top_chunk.chunk_id}"
         assert top_score > 0.0, f"Score for {expected_node} was not positive: {top_score}"

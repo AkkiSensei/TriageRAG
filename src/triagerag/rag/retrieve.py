@@ -537,6 +537,8 @@ def retrieve_protocol_chunks(
                 section=chunk.section,
                 chunk_id=chunk.chunk_id,
                 parent_id=chunk.parent_id,
+                legacy_id=chunk.legacy_id,
+                aliases=chunk.aliases,
                 text=chunk.text,
                 population=chunk.population,
                 syndrome=chunk.syndrome,

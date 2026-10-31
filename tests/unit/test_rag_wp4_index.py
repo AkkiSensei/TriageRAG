@@ -39,7 +39,7 @@ def test_paediatric_sepsis_child_nodes_have_positive_float_scores() -> None:
         assert score > 0.0, f"Child node {chunk.chunk_id} scored {score} <= 0.0!"
 
     # Node 1 explicitly mentions fever and severe tachycardia -> must rank #1
-    assert results[0][0].chunk_id == "PAED_SEPSIS_01_NODE_1"
+    assert results[0][0].legacy_id == "PAED_SEPSIS_01_NODE_1" or "PAED_SEPSIS_01_NODE_1" in results[0][0].aliases
 
 
 def test_parent_child_deduplication_and_parent_expansion() -> None:

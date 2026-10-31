@@ -153,6 +153,8 @@ class ProtocolChunkDto(BaseModel):
     chunk_id: str
     doc_id: str
     parent_id: str | None = None
+    legacy_id: str | None = None
+    aliases: list[str] = Field(default_factory=list)
     title: str = ""
     section: str
     population: str

@@ -77,6 +77,17 @@ def load_node_predicates_config(data_dir: Path | None = None) -> NodePredicatesC
             entry_copy["contraindicated_by"] = tuple(contra)
             parsed_nodes[chunk_id] = NodePredicateDeclaration.model_validate(entry_copy)
 
+    # Also index declarations by canonical content-addressed ID via alias map (AUB-COR-02)
+    try:
+        from triagerag.rag.aliases import load_node_aliases
+        aliases = load_node_aliases(target_dir)
+        for legacy_id, content_id in aliases.items():
+            if legacy_id in parsed_nodes and content_id not in parsed_nodes:
+                decl = parsed_nodes[legacy_id]
+                parsed_nodes[content_id] = decl.model_copy(update={"chunk_id": content_id})
+    except Exception:
+        pass
+
     raw_data_copy = dict(raw_data)
     raw_data_copy["nodes"] = parsed_nodes
     return NodePredicatesConfig.model_validate(raw_data_copy)

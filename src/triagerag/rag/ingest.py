@@ -223,8 +223,14 @@ def ingest_protocols_with_report(
                 doc_has_flagged = True
                 flagged_chunks[chunk.chunk_id] = list(suspicious)
                 pred_update["suspicious_patterns"] = suspicious
-            if node_pred_cfg and chunk.chunk_id in node_pred_cfg.nodes:
-                decl = node_pred_cfg.nodes[chunk.chunk_id]
+            decl = None
+            if node_pred_cfg:
+                if chunk.chunk_id in node_pred_cfg.nodes:
+                    decl = node_pred_cfg.nodes[chunk.chunk_id]
+                elif chunk.legacy_id and chunk.legacy_id in node_pred_cfg.nodes:
+                    decl = node_pred_cfg.nodes[chunk.legacy_id]
+
+            if decl is not None:
                 pred_update.update(
                     {
                         "requires_predicates": decl.requires_predicates,
@@ -262,6 +268,12 @@ def ingest_protocols_with_report(
 
         loaded_docs.append(parent.doc_id)
         all_chunks.extend(checked_chunks)
+
+    from triagerag.rag.aliases import build_corpus_alias_map, save_node_aliases
+
+    alias_map = build_corpus_alias_map(all_chunks)
+    if alias_map:
+        save_node_aliases(alias_map, data_dir)
 
     corpus_hash = compute_corpus_hash(all_chunks)
     return IngestReport(

@@ -21,9 +21,9 @@ cases:
     spo2_percent: 96
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
-    CHEST_PAIN_01_NODE_2: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
+    CHEST_PAIN_01_9a29a22a: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -42,9 +42,9 @@ cases:
     spo2_percent: 96
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
-    CHEST_PAIN_01_NODE_2: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
+    CHEST_PAIN_01_9a29a22a: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -63,9 +63,9 @@ cases:
     spo2_percent: 96
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_4: 2
-    CHEST_PAIN_01_NODE_1: 1
-    CHEST_PAIN_01_NODE_2: 1
+    CHEST_PAIN_01_96913db6: 2
+    CHEST_PAIN_01_8175c66c: 1
+    CHEST_PAIN_01_9a29a22a: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -84,9 +84,9 @@ cases:
     spo2_percent: 96
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_4: 2
-    CHEST_PAIN_01_NODE_1: 1
-    CHEST_PAIN_01_NODE_2: 1
+    CHEST_PAIN_01_96913db6: 2
+    CHEST_PAIN_01_8175c66c: 1
+    CHEST_PAIN_01_9a29a22a: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -105,9 +105,9 @@ cases:
     spo2_percent: 96
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_1: 2
-    CHEST_PAIN_01_NODE_2: 2
-    CHEST_PAIN_01_NODE_3: 1
+    CHEST_PAIN_01_8175c66c: 2
+    CHEST_PAIN_01_9a29a22a: 2
+    CHEST_PAIN_01_6ab48e91: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -126,9 +126,9 @@ cases:
     spo2_percent: 96
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
-    CHEST_PAIN_01_NODE_2: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
+    CHEST_PAIN_01_9a29a22a: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -147,9 +147,9 @@ cases:
     heart_rate_bpm: 112
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_4: 2
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_d137389d: 2
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -168,9 +168,9 @@ cases:
     heart_rate_bpm: 112
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_4: 2
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_d137389d: 2
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -189,9 +189,9 @@ cases:
     heart_rate_bpm: 112
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_4: 2
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_d137389d: 2
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -210,9 +210,9 @@ cases:
     heart_rate_bpm: 112
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_2: 2
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_eba06b98: 2
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -231,9 +231,9 @@ cases:
     heart_rate_bpm: 112
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_4: 2
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_d137389d: 2
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -252,9 +252,9 @@ cases:
     heart_rate_bpm: 112
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_2: 2
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_eba06b98: 2
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -273,9 +273,9 @@ cases:
     heart_rate_bpm: 110
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -294,9 +294,9 @@ cases:
     heart_rate_bpm: 110
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -315,9 +315,9 @@ cases:
     heart_rate_bpm: 110
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -336,9 +336,9 @@ cases:
     heart_rate_bpm: 110
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -357,9 +357,9 @@ cases:
     heart_rate_bpm: 110
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -378,9 +378,9 @@ cases:
     heart_rate_bpm: 110
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -399,9 +399,9 @@ cases:
     heart_rate_bpm: 96
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -420,9 +420,9 @@ cases:
     heart_rate_bpm: 96
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -441,9 +441,9 @@ cases:
     heart_rate_bpm: 96
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -462,9 +462,9 @@ cases:
     heart_rate_bpm: 96
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -483,9 +483,9 @@ cases:
     heart_rate_bpm: 96
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -504,9 +504,9 @@ cases:
     heart_rate_bpm: 96
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -524,9 +524,9 @@ cases:
     blood_glucose_mg_dl: '85'
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 2
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 2
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -544,9 +544,9 @@ cases:
     blood_glucose_mg_dl: '52'
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 2
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 2
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -564,9 +564,9 @@ cases:
     blood_glucose_mg_dl: '90'
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 2
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 2
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -584,9 +584,9 @@ cases:
     blood_glucose_mg_dl: '45'
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 2
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 2
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -604,9 +604,9 @@ cases:
     blood_glucose_mg_dl: '58'
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 2
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 2
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -624,9 +624,9 @@ cases:
     blood_glucose_mg_dl: '95'
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 2
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 2
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -645,9 +645,9 @@ cases:
     respiratory_rate_bpm: 36
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -666,9 +666,9 @@ cases:
     respiratory_rate_bpm: 34
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -687,9 +687,9 @@ cases:
     respiratory_rate_bpm: 40
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -708,9 +708,9 @@ cases:
     respiratory_rate_bpm: 32
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -729,9 +729,9 @@ cases:
     respiratory_rate_bpm: 35
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -750,9 +750,9 @@ cases:
     respiratory_rate_bpm: 42
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -1640,9 +1640,9 @@ cases:
     heart_rate_bpm: 128
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1661,9 +1661,9 @@ cases:
     spo2_percent: 88
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1682,9 +1682,9 @@ cases:
     consciousness: C
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_2: 1
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_eba06b98: 1
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1703,9 +1703,9 @@ cases:
     heart_rate_bpm: 52
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_2: 1
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_eba06b98: 1
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1724,9 +1724,9 @@ cases:
     heart_rate_bpm: 54
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1745,9 +1745,9 @@ cases:
     temperature_c: '38.6'
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1766,9 +1766,9 @@ cases:
     spo2_percent: 88
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_1: 2
-    CHEST_PAIN_01_NODE_2: 1
-    CHEST_PAIN_01_NODE_3: 1
+    CHEST_PAIN_01_8175c66c: 2
+    CHEST_PAIN_01_9a29a22a: 1
+    CHEST_PAIN_01_6ab48e91: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1787,9 +1787,9 @@ cases:
     respiratory_rate_bpm: 26
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_1: 2
-    CHEST_PAIN_01_NODE_2: 1
-    CHEST_PAIN_01_NODE_3: 1
+    CHEST_PAIN_01_8175c66c: 2
+    CHEST_PAIN_01_9a29a22a: 1
+    CHEST_PAIN_01_6ab48e91: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1808,9 +1808,9 @@ cases:
     heart_rate_bpm: 125
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 1
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 1
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1829,9 +1829,9 @@ cases:
     spo2_percent: 89
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 1
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 1
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1850,10 +1850,10 @@ cases:
     heart_rate_bpm: 50
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_1: 1
-    ANAPHYLAXIS_01_NODE_2: 1
-    ANAPHYLAXIS_01_NODE_3: 1
-    ANAPHYLAXIS_01_NODE_4: 2
+    ANAPHYLAXIS_01_0f4e3ea4: 1
+    ANAPHYLAXIS_01_eba06b98: 1
+    ANAPHYLAXIS_01_b2ee1788: 1
+    ANAPHYLAXIS_01_d137389d: 2
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1872,10 +1872,10 @@ cases:
     consciousness: C
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_1: 1
-    CHEST_PAIN_01_NODE_2: 1
-    CHEST_PAIN_01_NODE_3: 1
-    CHEST_PAIN_01_NODE_5: 2
+    CHEST_PAIN_01_8175c66c: 1
+    CHEST_PAIN_01_9a29a22a: 1
+    CHEST_PAIN_01_6ab48e91: 1
+    CHEST_PAIN_01_185ad605: 2
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1894,9 +1894,9 @@ cases:
     consciousness: V
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1915,9 +1915,9 @@ cases:
     temperature_c: '38.7'
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1936,9 +1936,9 @@ cases:
     heart_rate_bpm: 55
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 1
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 1
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1957,9 +1957,9 @@ cases:
     consciousness: V
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1978,9 +1978,9 @@ cases:
     heart_rate_bpm: 135
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_1: 2
-    CHEST_PAIN_01_NODE_2: 1
-    CHEST_PAIN_01_NODE_3: 1
+    CHEST_PAIN_01_8175c66c: 2
+    CHEST_PAIN_01_9a29a22a: 1
+    CHEST_PAIN_01_6ab48e91: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -1999,9 +1999,9 @@ cases:
     heart_rate_bpm: 48
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -2020,9 +2020,9 @@ cases:
     spo2_percent: 99
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_2: 1
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_eba06b98: 1
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -2041,9 +2041,9 @@ cases:
     spo2_percent: 84
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -2062,9 +2062,9 @@ cases:
     blood_glucose_mg_dl: '180'
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 1
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 1
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -2083,9 +2083,9 @@ cases:
     spo2_percent: 99
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -2104,9 +2104,9 @@ cases:
     temperature_c: '36.2'
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_1: 2
-    CHEST_PAIN_01_NODE_2: 1
-    CHEST_PAIN_01_NODE_3: 1
+    CHEST_PAIN_01_8175c66c: 2
+    CHEST_PAIN_01_9a29a22a: 1
+    CHEST_PAIN_01_6ab48e91: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -2125,9 +2125,9 @@ cases:
     consciousness: C
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Hard syndrome filter prevents cross-syndrome leakage despite conflicting
@@ -2351,8 +2351,8 @@ cases:
     respiratory_rate_bpm: 48
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2371,8 +2371,8 @@ cases:
     respiratory_rate_bpm: 46
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2391,8 +2391,8 @@ cases:
     respiratory_rate_bpm: 42
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2411,8 +2411,8 @@ cases:
     respiratory_rate_bpm: 38
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2431,8 +2431,8 @@ cases:
     respiratory_rate_bpm: 40
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2451,8 +2451,8 @@ cases:
     respiratory_rate_bpm: 36
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2471,8 +2471,8 @@ cases:
     respiratory_rate_bpm: 34
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2491,8 +2491,8 @@ cases:
     respiratory_rate_bpm: 32
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2511,8 +2511,8 @@ cases:
     respiratory_rate_bpm: 30
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2531,8 +2531,8 @@ cases:
     respiratory_rate_bpm: 28
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2551,8 +2551,8 @@ cases:
     respiratory_rate_bpm: 26
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2571,8 +2571,8 @@ cases:
     respiratory_rate_bpm: 24
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2591,8 +2591,8 @@ cases:
     respiratory_rate_bpm: 25
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2611,8 +2611,8 @@ cases:
     respiratory_rate_bpm: 24
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Paediatric fever + tachycardia + tachypnea infers paediatric_sepsis
@@ -2631,8 +2631,8 @@ cases:
     heart_rate_bpm: 112
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
@@ -2651,8 +2651,8 @@ cases:
     heart_rate_bpm: 118
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
@@ -2671,8 +2671,8 @@ cases:
     heart_rate_bpm: 105
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
@@ -2691,8 +2691,8 @@ cases:
     heart_rate_bpm: 122
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
@@ -2711,8 +2711,8 @@ cases:
     heart_rate_bpm: 102
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
@@ -2731,8 +2731,8 @@ cases:
     heart_rate_bpm: 115
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
@@ -2751,8 +2751,8 @@ cases:
     heart_rate_bpm: 110
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
@@ -2771,8 +2771,8 @@ cases:
     heart_rate_bpm: 120
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
@@ -2791,8 +2791,8 @@ cases:
     heart_rate_bpm: 104
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
@@ -2811,8 +2811,8 @@ cases:
     heart_rate_bpm: 125
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult tachypnea + hypoxia infers severe_asthma with SYNDROME_INFERRED
@@ -2831,8 +2831,8 @@ cases:
     heart_rate_bpm: 98
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
@@ -2851,8 +2851,8 @@ cases:
     heart_rate_bpm: 105
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
@@ -2871,8 +2871,8 @@ cases:
     heart_rate_bpm: 110
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
@@ -2891,8 +2891,8 @@ cases:
     heart_rate_bpm: 95
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
@@ -2911,8 +2911,8 @@ cases:
     heart_rate_bpm: 102
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
@@ -2931,8 +2931,8 @@ cases:
     heart_rate_bpm: 115
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
@@ -2951,8 +2951,8 @@ cases:
     heart_rate_bpm: 92
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
@@ -2971,8 +2971,8 @@ cases:
     heart_rate_bpm: 100
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
@@ -2991,8 +2991,8 @@ cases:
     heart_rate_bpm: 108
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
@@ -3011,8 +3011,8 @@ cases:
     heart_rate_bpm: 96
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult severe hypoglycemia with altered consciousness infers hypoglycemia
@@ -3031,8 +3031,8 @@ cases:
     spo2_percent: 95
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
@@ -3051,8 +3051,8 @@ cases:
     spo2_percent: 96
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
@@ -3071,8 +3071,8 @@ cases:
     spo2_percent: 94
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
@@ -3091,8 +3091,8 @@ cases:
     spo2_percent: 98
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
@@ -3111,8 +3111,8 @@ cases:
     spo2_percent: 92
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
@@ -3131,8 +3131,8 @@ cases:
     spo2_percent: 95
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
@@ -3151,8 +3151,8 @@ cases:
     spo2_percent: 97
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
@@ -3171,8 +3171,8 @@ cases:
     spo2_percent: 93
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
@@ -3191,8 +3191,8 @@ cases:
     spo2_percent: 99
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
@@ -3211,8 +3211,8 @@ cases:
     spo2_percent: 91
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: SYNDROME_INFERRED
   notes: Adult shock hypotension with bradycardia infers chest_pain cardiogenic shock
@@ -3315,9 +3315,9 @@ cases:
     heart_rate_bpm: 150
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3335,9 +3335,9 @@ cases:
     heart_rate_bpm: 150
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3355,9 +3355,9 @@ cases:
     heart_rate_bpm: 150
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3375,9 +3375,9 @@ cases:
     heart_rate_bpm: 150
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3443,9 +3443,9 @@ cases:
     heart_rate_bpm: 115
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_4: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_96913db6: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3463,9 +3463,9 @@ cases:
     heart_rate_bpm: 115
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_4: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_96913db6: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3515,9 +3515,9 @@ cases:
   vitals: {}
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_1: 2
-    CHEST_PAIN_01_NODE_2: 1
-    CHEST_PAIN_01_NODE_3: 1
+    CHEST_PAIN_01_8175c66c: 2
+    CHEST_PAIN_01_9a29a22a: 1
+    CHEST_PAIN_01_6ab48e91: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
@@ -3533,9 +3533,9 @@ cases:
   vitals: {}
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_2: 1
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_eba06b98: 1
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
@@ -3551,9 +3551,9 @@ cases:
   vitals: {}
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
@@ -3569,9 +3569,9 @@ cases:
   vitals: {}
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
@@ -3587,9 +3587,9 @@ cases:
   vitals: {}
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 1
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 1
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
@@ -3605,9 +3605,9 @@ cases:
   vitals: {}
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: All vitals unknown/missing but known syndrome still retrieves protocol nodes
@@ -3744,9 +3744,9 @@ cases:
     systolic_bp_mmhg: 84
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_1: 2
-    CHEST_PAIN_01_NODE_2: 1
-    CHEST_PAIN_01_NODE_3: 1
+    CHEST_PAIN_01_8175c66c: 2
+    CHEST_PAIN_01_9a29a22a: 1
+    CHEST_PAIN_01_6ab48e91: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3763,9 +3763,9 @@ cases:
     heart_rate_bpm: 118
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_1: 2
-    CHEST_PAIN_01_NODE_2: 1
-    CHEST_PAIN_01_NODE_3: 1
+    CHEST_PAIN_01_8175c66c: 2
+    CHEST_PAIN_01_9a29a22a: 1
+    CHEST_PAIN_01_6ab48e91: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3782,9 +3782,9 @@ cases:
     systolic_bp_mmhg: 82
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_1: 2
-    CHEST_PAIN_01_NODE_2: 1
-    CHEST_PAIN_01_NODE_3: 1
+    CHEST_PAIN_01_8175c66c: 2
+    CHEST_PAIN_01_9a29a22a: 1
+    CHEST_PAIN_01_6ab48e91: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3801,9 +3801,9 @@ cases:
     systolic_bp_mmhg: 78
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_2: 1
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_eba06b98: 1
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3821,9 +3821,9 @@ cases:
     spo2_percent: 88
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3840,9 +3840,9 @@ cases:
     respiratory_rate_bpm: 28
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3859,9 +3859,9 @@ cases:
     consciousness: C
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 1
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 1
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3878,9 +3878,9 @@ cases:
     consciousness: V
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 1
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 1
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3898,9 +3898,9 @@ cases:
     heart_rate_bpm: 152
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3918,9 +3918,9 @@ cases:
     heart_rate_bpm: 148
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3937,9 +3937,9 @@ cases:
     blood_glucose_mg_dl: '45'
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3956,9 +3956,9 @@ cases:
     systolic_bp_mmhg: 85
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_2: 1
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_eba06b98: 1
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -3975,9 +3975,9 @@ cases:
     heart_rate_bpm: 115
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_1: 2
-    CHEST_PAIN_01_NODE_2: 1
-    CHEST_PAIN_01_NODE_3: 1
+    CHEST_PAIN_01_8175c66c: 2
+    CHEST_PAIN_01_9a29a22a: 1
+    CHEST_PAIN_01_6ab48e91: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
@@ -3994,9 +3994,9 @@ cases:
     heart_rate_bpm: 115
   expected_syndrome: anaphylaxis
   relevance_grades:
-    ANAPHYLAXIS_01_NODE_1: 2
-    ANAPHYLAXIS_01_NODE_2: 1
-    ANAPHYLAXIS_01_NODE_3: 1
+    ANAPHYLAXIS_01_0f4e3ea4: 2
+    ANAPHYLAXIS_01_eba06b98: 1
+    ANAPHYLAXIS_01_b2ee1788: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
@@ -4013,9 +4013,9 @@ cases:
     heart_rate_bpm: 115
   expected_syndrome: severe_asthma
   relevance_grades:
-    SEVERE_ASTHMA_01_NODE_1: 2
-    SEVERE_ASTHMA_01_NODE_2: 1
-    SEVERE_ASTHMA_01_NODE_3: 1
+    SEVERE_ASTHMA_01_618fe184: 2
+    SEVERE_ASTHMA_01_48925f9f: 1
+    SEVERE_ASTHMA_01_c21b0089: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
@@ -4032,9 +4032,9 @@ cases:
     heart_rate_bpm: 115
   expected_syndrome: hypoglycemia
   relevance_grades:
-    HYPOGLYCEMIA_01_NODE_1: 2
-    HYPOGLYCEMIA_01_NODE_2: 1
-    HYPOGLYCEMIA_01_NODE_3: 1
+    HYPOGLYCEMIA_01_2456c31c: 2
+    HYPOGLYCEMIA_01_4ec772ca: 1
+    HYPOGLYCEMIA_01_b35e71f0: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
@@ -4051,9 +4051,9 @@ cases:
     heart_rate_bpm: 115
   expected_syndrome: altered_mental_status
   relevance_grades:
-    ALTERED_MENTAL_STATUS_01_NODE_1: 2
-    ALTERED_MENTAL_STATUS_01_NODE_2: 1
-    ALTERED_MENTAL_STATUS_01_NODE_3: 1
+    ALTERED_MENTAL_STATUS_01_66ea4198: 2
+    ALTERED_MENTAL_STATUS_01_1765e3c9: 1
+    ALTERED_MENTAL_STATUS_01_c2799c94: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
@@ -4070,9 +4070,9 @@ cases:
     heart_rate_bpm: 150
   expected_syndrome: paediatric_sepsis
   relevance_grades:
-    PAED_SEPSIS_01_NODE_1: 2
-    PAED_SEPSIS_01_NODE_2: 1
-    PAED_SEPSIS_01_NODE_3: 1
+    PAED_SEPSIS_01_2f88a3e6: 2
+    PAED_SEPSIS_01_ff0a9b8c: 1
+    PAED_SEPSIS_01_8230b579: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Retrieval ignores cross-syndrome poisoned chunks and flags suspicious patterns
@@ -4090,8 +4090,8 @@ cases:
     heart_rate_bpm: 52
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
@@ -4109,8 +4109,8 @@ cases:
     heart_rate_bpm: 52
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
@@ -4128,8 +4128,8 @@ cases:
     heart_rate_bpm: 52
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
@@ -4147,8 +4147,8 @@ cases:
     heart_rate_bpm: 52
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
@@ -4166,8 +4166,8 @@ cases:
     heart_rate_bpm: 52
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
@@ -4185,8 +4185,8 @@ cases:
     heart_rate_bpm: 52
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: Deterministic tie-breaking by (-score, chunk_id) across runs
@@ -4209,9 +4209,9 @@ cases:
     consciousness: C
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_4: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_96913db6: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -4234,9 +4234,9 @@ cases:
     consciousness: C
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_4: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_96913db6: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -4259,9 +4259,9 @@ cases:
     consciousness: C
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_4: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_96913db6: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -4284,9 +4284,9 @@ cases:
     consciousness: C
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_4: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_96913db6: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -4309,9 +4309,9 @@ cases:
     consciousness: C
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_4: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_96913db6: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''
@@ -4334,9 +4334,9 @@ cases:
     consciousness: C
   expected_syndrome: chest_pain
   relevance_grades:
-    CHEST_PAIN_01_NODE_5: 2
-    CHEST_PAIN_01_NODE_4: 2
-    CHEST_PAIN_01_NODE_1: 1
+    CHEST_PAIN_01_185ad605: 2
+    CHEST_PAIN_01_96913db6: 2
+    CHEST_PAIN_01_8175c66c: 1
   expect_abstain: false
   expected_abstain_code: NONE
   notes: ''

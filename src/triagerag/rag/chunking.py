@@ -51,6 +51,29 @@ def compute_content_hash(text: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
+def canonicalize_node_text(text: str) -> str:
+    """Canonicalize clinical node text for deterministic content-addressing (AUB-COR-02).
+
+    1. NFKC unicode normalization.
+    2. Strips leading list/enumeration markers (e.g. '1. IF ...' or '4. IF ...')
+       to guarantee node reordering and insertion invariance.
+    3. Normalizes all line endings (CRLF/CR) to LF.
+    4. Strips leading and trailing whitespace per line and drops empty lines.
+    """
+    import unicodedata
+    normalized = unicodedata.normalize("NFKC", text)
+    normalized = re.sub(r"^\s*\d+\.\s*", "", normalized)
+    normalized = normalized.replace("\r\n", "\n").replace("\r", "\n")
+    lines = [line.strip() for line in normalized.split("\n") if line.strip()]
+    return "\n".join(lines)
+
+
+def compute_node_hash(node_text: str) -> str:
+    """Compute 8-character hex SHA-256 hash of canonicalized node text (AUB-COR-02)."""
+    canonical = canonicalize_node_text(node_text)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:8]
+
+
 def build_display_header(
     *,
     title: str,
@@ -156,6 +179,8 @@ class ProtocolChunk(BaseModel):
     section: str
     chunk_id: str
     parent_id: str | None = None
+    legacy_id: str | None = None
+    aliases: tuple[str, ...] = ()
     text: str
     indexed_text: str = ""
     display_header: str = ""
@@ -373,7 +398,9 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
     chunks: list[ProtocolChunk] = [parent_chunk]
 
     for idx, node_text in enumerate(valid_nodes, start=1):
-        child_chunk_id = f"{fm.chunk_id}_NODE_{idx}"
+        node_hash = compute_node_hash(node_text)
+        child_chunk_id = f"{fm.chunk_id}_{node_hash}"
+        legacy_id = f"{fm.chunk_id}_NODE_{idx}"
         node_drug_actions = parse_clause_drug_actions(node_text)
         chunks.append(
             ProtocolChunk(
@@ -382,6 +409,8 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
                 section=fm.section,
                 chunk_id=child_chunk_id,
                 parent_id=fm.chunk_id,
+                legacy_id=legacy_id,
+                aliases=(legacy_id,),
                 text=node_text,
                 population=fm.population,
                 syndrome=fm.syndrome,
@@ -488,14 +517,19 @@ def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]
     )
     result = [parent]
     for idx, node_text in enumerate(rendered_nodes, start=1):
+        node_hash = compute_node_hash(node_text)
+        child_chunk_id = f"{fm.chunk_id}_{node_hash}"
+        legacy_id = f"{fm.chunk_id}_NODE_{idx}"
         node_drug_actions = parse_clause_drug_actions(node_text)
         result.append(
             ProtocolChunk(
                 doc_id=fm.doc_id,
                 title=doc_title,
                 section=fm.section,
-                chunk_id=f"{fm.chunk_id}_NODE_{idx}",
+                chunk_id=child_chunk_id,
                 parent_id=fm.chunk_id,
+                legacy_id=legacy_id,
+                aliases=(legacy_id,),
                 text=node_text,
                 population=fm.population,
                 syndrome=fm.syndrome,

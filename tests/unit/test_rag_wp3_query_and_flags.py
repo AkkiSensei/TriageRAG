@@ -36,7 +36,7 @@ from triagerag.rag.retrieve import (
     retrieve_protocol_chunks,
 )
 
-_ALLOWED_STRUCTURAL_NUMBERS: set[int | float] = {-1, 0, 1, 2, 0.5}
+_ALLOWED_STRUCTURAL_NUMBERS: set[int | float] = {-1, 0, 1, 2, 0.5, 8}
 
 
 def test_ast_no_numeric_clinical_literals_in_rag() -> None:

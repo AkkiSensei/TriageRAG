@@ -32,6 +32,7 @@ from triagerag.contracts.schemas import Age, Measured, Patient, Vitals
 from triagerag.rag.abstain import normalize_relevance_score
 from triagerag.rag.chunking import chunk_protocol_markdown
 from triagerag.rag.index import BM25ClinicalIndex
+from triagerag.rag.aliases import load_node_aliases, resolve_chunk_id
 from triagerag.rag.service import RetrievalService
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -111,14 +112,21 @@ def _compute_ndcg_at_k(
     retrieved_ids: list[str],
     relevance_grades: dict[str, int],
     k: int = 5,
+    alias_map: dict[str, str] | None = None,
 ) -> float:
     """Compute graded nDCG@k using gain = (2^rel - 1) / log2(rank + 1)."""
     if not relevance_grades:
         return 0.0
 
+    canon_grades = {
+        (resolve_chunk_id(cid, alias_map) if alias_map else cid): rel
+        for cid, rel in relevance_grades.items()
+    }
+
     dcg = 0.0
     for idx, cid in enumerate(retrieved_ids[:k]):
-        rel = int(relevance_grades.get(cid, 0))
+        canon_cid = resolve_chunk_id(cid, alias_map) if alias_map else cid
+        rel = int(canon_grades.get(canon_cid, 0))
         if rel > 0:
             dcg += float((2**rel) - 1) / math.log2(float(idx + 2))
 
@@ -276,6 +284,7 @@ def _evaluate_split(
     scale_service: RetrievalService | None = None,
 ) -> dict[str, Any]:
     """Evaluate a split and return comprehensive node-level metrics stratified by input mode."""
+    alias_map = load_node_aliases(service.data_dir)
     recalls_at_1: list[float] = []
     recalls_at_3: list[float] = []
     recalls_at_5: list[float] = []
@@ -384,17 +393,18 @@ def _evaluate_split(
                 ):
                     wrong_protocol_count += 1
 
-                # Target relevance grade >= 2
-                grade2_targets = {cid for cid, g in relevance_grades.items() if g >= 2}
+                # Target relevance grade >= 2 (resolving aliases to content-addressed IDs)
+                grade2_targets = {resolve_chunk_id(cid, alias_map) for cid, g in relevance_grades.items() if g >= 2}
+                canon_retrieved = [resolve_chunk_id(cid, alias_map) for cid in retrieved_ids]
                 hit_ranks = [
-                    idx + 1 for idx, cid in enumerate(retrieved_ids) if cid in grade2_targets
+                    idx + 1 for idx, cid in enumerate(canon_retrieved) if cid in grade2_targets
                 ]
 
                 r1_val = 1.0 if (hit_ranks and hit_ranks[0] == 1) else 0.0
                 r3_val = 1.0 if (hit_ranks and hit_ranks[0] <= 3) else 0.0
                 r5_val = 1.0 if (hit_ranks and hit_ranks[0] <= 5) else 0.0
                 rr_val = (1.0 / float(hit_ranks[0])) if hit_ranks else 0.0
-                ndcg_val = _compute_ndcg_at_k(retrieved_ids, relevance_grades, k=5)
+                ndcg_val = _compute_ndcg_at_k(retrieved_ids, relevance_grades, k=5, alias_map=alias_map)
 
                 recalls_at_1.append(r1_val)
                 recalls_at_3.append(r3_val)
@@ -484,11 +494,12 @@ def run_permutation_sanity_check(seed: int = 42) -> float:
     raw_ds = yaml.safe_load(dataset_path.read_text(encoding="utf-8"))
     test_cases = [c for c in raw_ds["cases"] if c["split"] == "test" and not c["expect_abstain"]]
 
+    alias_map = load_node_aliases(get_data_dir())
     all_targets: list[str] = []
     for c in test_cases:
         for cid, g in (c.get("relevance_grades") or {}).items():
             if g >= 2:
-                all_targets.append(cid)
+                all_targets.append(resolve_chunk_id(cid, alias_map))
 
     rng = random.Random(seed)
     service = RetrievalService.create_default(get_data_dir())
@@ -499,7 +510,7 @@ def run_permutation_sanity_check(seed: int = 42) -> float:
         if not report.abstained and report.chunks:
             # Pick a permuted target node
             fake_target = rng.choice(all_targets)
-            if report.chunks[0].chunk_id == fake_target:
+            if resolve_chunk_id(report.chunks[0].chunk_id, alias_map) == fake_target:
                 hits += 1
 
     perm_r1 = float(hits) / float(len(test_cases)) if test_cases else 0.0
@@ -560,7 +571,8 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
             else:
                 candidates = [ch for ch in all_chunks if ch.population == pop_cat]
 
-            targets = {cid for cid, g in (c.get("relevance_grades") or {}).items() if g >= 2}
+            alias_map = load_node_aliases(get_data_dir())
+            targets = {resolve_chunk_id(cid, alias_map) for cid, g in (c.get("relevance_grades") or {}).items() if g >= 2}
             if not candidates or not targets:
                 continue
 
@@ -569,11 +581,11 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
             # 1. Evaluate BM25 retrieval on this exact patient case
             rep = service.retrieve(patient, top_k=5)
             if not rep.abstained and rep.chunks:
-                b_top1 = 1.0 if rep.chunks[0].chunk_id in targets else 0.0
-                b_top5 = 1.0 if any(ch.chunk_id in targets for ch in rep.chunks[:5]) else 0.0
+                b_top1 = 1.0 if resolve_chunk_id(rep.chunks[0].chunk_id, alias_map) in targets else 0.0
+                b_top5 = 1.0 if any(resolve_chunk_id(ch.chunk_id, alias_map) in targets for ch in rep.chunks[:5]) else 0.0
                 b_rr = 0.0
                 for rank, ch in enumerate(rep.chunks, start=1):
-                    if ch.chunk_id in targets:
+                    if resolve_chunk_id(ch.chunk_id, alias_map) in targets:
                         b_rr = 1.0 / float(rank)
                         break
             else:
@@ -592,14 +604,14 @@ def run_candidate_pool_random_baseline(seed: int = 42, num_trials: int = 100) ->
             for _ in range(num_trials):
                 shuffled = list(candidates)
                 rng.shuffle(shuffled)
-                top1 = shuffled[0].chunk_id
-                top5 = {ch.chunk_id for ch in shuffled[:5]}
+                top1 = resolve_chunk_id(shuffled[0].chunk_id, alias_map)
+                top5 = {resolve_chunk_id(ch.chunk_id, alias_map) for ch in shuffled[:5]}
                 if top1 in targets:
                     cand_r1 += 1
                 if targets & top5:
                     cand_r5 += 1
                 for rank, sch in enumerate(shuffled, start=1):
-                    if sch.chunk_id in targets:
+                    if resolve_chunk_id(sch.chunk_id, alias_map) in targets:
                         cand_rr += 1.0 / float(rank)
                         break
 
