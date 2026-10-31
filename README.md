@@ -13,9 +13,11 @@
 
 <br/>
 
-**Code decides. The LLM explains.**
+**Code decides. The LLM interface explains (deterministic mock generator).**
 
 *An emergency clinical decision support system that never lets a language model make safety-critical decisions.*
+
+*(Research Prototype Note: Plan drafting in this offline prototype is executed strictly via deterministic mock generation (`FakeLLM`) behind the `LLMProvider` contract. No external neural generative model is bundled or queried; see [LIMITATIONS.md](docs/LIMITATIONS.md).)*
 
 [Key Features](#-the-core-breakthrough) • [Live Clinical Flow](#-the-2-page-clinical-workflow) • [Safety Architecture](#-safety-architecture) • [Evidence & Benchmarks](#-empirical-benchmarks) • [Quickstart](#-quickstart)
 
@@ -29,7 +31,7 @@ Most medical AI prototypes pipe patient data into an LLM and pray it doesn’t h
 
 **TriageRAG flips this upside down.**
 
-Safety rules, physiological scores (NEWS2), dose arithmetic, and contraindication interlocks are executed **strictly in pure, deterministic Python code**. The LLM is used **only** as an extractive draftsman to propose protocol text from retrieved guidelines—and every single word it drafts must pass a **rigorous machine verification gate** before a clinician ever sees it.
+Safety rules, physiological scores (NEWS2), dose arithmetic, and contraindication interlocks are executed **strictly in pure, deterministic Python code**. The LLM interface is used **only** as an extractive draftsman (simulated offline via deterministic `FakeLLM`) to propose protocol text from retrieved guidelines—and every single word it drafts must pass a **rigorous machine verification gate** before a clinician ever sees it.
 
 ```
        ┌────────────────────────────────────────────────────────┐

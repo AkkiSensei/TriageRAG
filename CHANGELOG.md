@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `test_dataset_lock_fails_on_tampered_dataset` regression test.
 
 ### Fixed & Hardened
+- **Honest Architecture Descriptions and README Terminology (T0.7 / AUB-GEN-01 / AUB-DOC-03):**
+  - Updated `README.md` to plainly qualify plan drafting as an offline deterministic mock generator (`FakeLLM`) implementing the `LLMProvider` contract.
+  - Reconciled system descriptions to accurately characterize the audit log as a sequential SHA-256 hash chain and protocol search as lexical retrieval.
+  - Added regression test `tests/unit/test_docs_honesty.py` forbidding "Merkle", "dense", and unqualified "LLM explains" claims in user documentation.
 - **Strict Corpus Manifest Enforcement and Fail-Closed Ingestion (T0.5 / AUB-COR-04):**
   - Removed silent fallback manifest derivation and hardcoded `paediatric_sepsis_screen` alias in `load_corpus_manifest()`.
   - Ingestion now strictly fails closed, quarantining all protocol files when `manifest.yaml` is absent unless `derive_manifest=True` is explicitly passed.
