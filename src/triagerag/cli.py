@@ -150,10 +150,10 @@ def run(
         )
     )
 
-    verdict_display = engine.verdict.value
-    if engine.verdict == Verdict.CHECKED_CLEAR:
-        # Section 12 wording rule: never show the bare word "CLEAR"
-        verdict_display = "No rules fired (within covered scope) — ruleset unreviewed"
+    from triagerag.contracts.wording import get_verdict_entry
+
+    verdict_entry = get_verdict_entry(engine.verdict.value)
+    verdict_display = str(verdict_entry.get("display", engine.verdict.value))
 
     score_val = engine.score.total_score if engine.score else "N/A"
     score_band = engine.score.band.value if engine.score else "UNSCORED"
@@ -463,7 +463,10 @@ def corpus_validate(
     ] = None,
     derive_manifest: Annotated[
         bool,
-        typer.Option("--derive-manifest", help="Allow deriving corpus manifest when manifest.yaml is missing"),
+        typer.Option(
+            "--derive-manifest",
+            help="Allow deriving corpus manifest when manifest.yaml is missing",
+        ),
     ] = False,
 ) -> None:
     """Validate all protocol files, frontmatter provenance, and round-trip chunking invariants."""
@@ -499,7 +502,9 @@ def corpus_validate(
         except Exception as exc:
             errors.append(f"Manifest validation failed: {exc}")
     elif not derive_manifest:
-        errors.append(f"Missing corpus manifest: {manifest_path} (pass --derive-manifest to override)")
+        errors.append(
+            f"Missing corpus manifest: {manifest_path} (pass --derive-manifest to override)"
+        )
 
     if not report.loaded_docs and not errors:
         errors.append(f"FAILED: No valid protocol documents found in {target_dir}")
@@ -528,7 +533,10 @@ def corpus_report(
     ] = None,
     derive_manifest: Annotated[
         bool,
-        typer.Option("--derive-manifest", help="Allow deriving corpus manifest when manifest.yaml is missing"),
+        typer.Option(
+            "--derive-manifest",
+            help="Allow deriving corpus manifest when manifest.yaml is missing",
+        ),
     ] = False,
 ) -> None:
     """Print detailed corpus provenance, population/syndrome distribution, and quarantine report."""

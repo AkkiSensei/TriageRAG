@@ -40,9 +40,13 @@ def format_verdict_display(verdict: Verdict) -> str:
 
     Never display the bare word 'CLEAR'.
     """
-    if verdict == Verdict.CHECKED_CLEAR:
-        return "No rules fired (within covered scope) — ruleset unreviewed"
-    return verdict.value
+    from triagerag.contracts.wording import get_verdict_entry
+
+    entry = get_verdict_entry(verdict.value)
+    display_str = str(entry.get("display", verdict.value))
+    if verdict == Verdict.CHECKED_ALERTS:
+        return f"{display_str} ({verdict.value})"
+    return display_str
 
 
 def format_step_status_display(status: StepStatus) -> str:

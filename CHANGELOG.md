@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 1: Trust and Honesty of Outputs
 
 ### Fixed & Hardened
+- **Canonical Shared Verdict Wording Contract and Ellipsis Correction (T1.3 / AUB-UX-02):**
+  - Created canonical JSON contract `data/wording/verdicts.json` mirrored to `web/src/lib/wording.json` as the authoritative source of verdict copy.
+  - Implemented `src/triagerag/contracts/wording.py` to provide typed access to shared labels, displays, badges, headlines, summaries, and actions.
+  - Removed "order administration" from clear-state action recommendations across API and web.
+  - Corrected `evidence_summary` ellipsis behaviour: `...` is appended only when text is genuinely truncated (> 140 chars).
+  - Added snapshot and byte-for-byte drift tests in `tests/unit/test_aub_phase1_wording.py`.
 - **Truthful Execution Explanations and Timeline Stage Accuracy (T1.2 / AUB-UX-01):**
   - Dynamically derived `completed_checks` from `checks_run - checks_skipped` and confirmed patient parameters; omitted false claims of completed allergy, DDI, and weight checks in the UNVERIFIED preset and when inputs are unknown.
   - Constrained machine-verified step counts in `completed_checks` to strictly count `APPROVED` steps, excluding struck-through, citation-unverified, and missing-data steps.

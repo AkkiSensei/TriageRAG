@@ -4,21 +4,26 @@
  * Always qualify safety verdicts with rule coverage or unresolved data notice.
  */
 
-export const MANDATORY_DISCLAIMER =
+import wordingData from './wording.json'
+
+export const MANDATORY_DISCLAIMER: string =
+  wordingData.disclaimer ||
   'Research prototype. Synthetic data only. Not a medical device. Not for clinical use.'
 
+export const VERDICT_CONTRACT = wordingData
+
 export const VERDICT_WORDING = {
-  BLOCK: 'BLOCKED (contraindication / unsafe)',
-  HIGH: 'HIGH ALERT (override required)',
-  MODERATE: 'MODERATE ALERT',
-  INFO: 'INFORMATION',
-  UNVERIFIED: 'UNVERIFIED (missing/unresolved data)',
-  NO_RULES_FIRED: 'NO RULES FIRED IN THIS RULESET',
-  CHECKED_ALERTS: 'CHECKED WITH ACTIVE ALERTS',
+  BLOCK: wordingData.verdicts.BLOCKED.display,
+  HIGH: wordingData.auxiliary.HIGH,
+  MODERATE: wordingData.auxiliary.MODERATE,
+  INFO: wordingData.auxiliary.INFO,
+  UNVERIFIED: wordingData.verdicts.UNVERIFIED.display,
+  NO_RULES_FIRED: wordingData.auxiliary.NO_RULES_FIRED,
+  CHECKED_ALERTS: wordingData.verdicts.CHECKED_ALERTS.display,
   CHECKED_CLEAR: (ruleCount?: number) =>
     ruleCount !== undefined
-      ? `CHECKED CLEAR (ruleset coverage: ${ruleCount} active rules)`
-      : 'CHECKED CLEAR (within current ruleset coverage)',
+      ? wordingData.verdicts.CHECKED_CLEAR.display_with_count.replace('{ruleCount}', String(ruleCount))
+      : wordingData.verdicts.CHECKED_CLEAR.display,
 } as const
 
 export type VerdictType =

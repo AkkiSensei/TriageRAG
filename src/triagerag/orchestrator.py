@@ -39,6 +39,7 @@ from triagerag.contracts.schemas import (
     TriageResponse,
     VerifiedStep,
 )
+from triagerag.contracts.wording import get_verdict_entry
 from triagerag.engine.rule_engine import evaluate_baseline
 from triagerag.engine.scores import calculate_early_warning_score
 from triagerag.engine.verdict import resolve_verdict_with_reason
@@ -599,14 +600,9 @@ def build_triage_explanation(
 ) -> TriageExplanation:
     """Construct an understandable explanation grounded in engine/retrieval output."""
     verdict_str = engine.verdict.value if hasattr(engine.verdict, "value") else str(engine.verdict)
+    verdict_entry = get_verdict_entry(verdict_str)
 
-    # 1. Headline
-    headline_map = {
-        "BLOCKED": "BLOCKED: Absolute Safety Interlock Triggered",
-        "UNVERIFIED": "UNVERIFIED: Insufficient or Unresolved Clinical Data",
-        "CHECKED_ALERTS": "CHECKED WITH ALERTS: Clinical Warnings Require Review",
-        "CHECKED_CLEAR": "CHECKED CLEAR: No Configured Safety Rules Triggered",
-    }
+    # 1. Headline (T1.1 / T1.3: derived from shared canonical wording)
     if verdict_str == "UNVERIFIED" and retrieval and retrieval.abstained:
         ac_val = (
             retrieval.abstain_code.value
@@ -615,38 +611,20 @@ def build_triage_explanation(
         )
         headline = f"UNVERIFIED: Protocol Retrieval Abstained ({ac_val})"
     else:
-        headline = headline_map.get(verdict_str, f"Triage Result: {verdict_str}")
+        headline = str(verdict_entry.get("headline", f"Triage Result: {verdict_str}"))
 
     if verdict_str != "CHECKED_CLEAR":
         assert "CLEAR" not in headline, (
             f"Safety invariant violated: Non-clear verdict has CLEAR in headline: {headline}"
         )
 
-    # 2. Plain Language Summary
-    if verdict_str == "BLOCKED":
-        plain_language_summary = (
-            "A deterministic clinical safety rule blocked this proposal. One or more active "
-            "medications, severe contraindications, or dose tripwires prohibit requested orders. "
-            "Under safety rule R11, absolute BLOCK interlocks cannot be overridden."
+    # 2. Plain Language Summary (T1.3: derived from shared canonical wording)
+    plain_language_summary = str(
+        verdict_entry.get(
+            "summary",
+            "Clinical safety evaluation complete.",
         )
-    elif verdict_str == "UNVERIFIED":
-        plain_language_summary = (
-            "The system could not establish a verified clinical plan. Essential physiological "
-            "parameters, medication history, or protocol evidence were missing or below retrieval "
-            "thresholds. Under fail-closed safety rule R2, no unverified orders can proceed."
-        )
-    elif verdict_str == "CHECKED_ALERTS":
-        plain_language_summary = (
-            "Deterministic safety checks were completed and identified non-blocking warnings "
-            "(such as duplicate therapies, moderate interactions, or elevated scores). "
-            "Clinician review and logged override justifications are required before proceeding."
-        )
-    else:  # CHECKED_CLEAR
-        plain_language_summary = (
-            "All applicable deterministic rules in the active ruleset fired clear without "
-            "triggering alerts. Disclaimer: This confirms compliance with configured prototype "
-            "rules, not absolute clinical safety."
-        )
+    )
 
     # 3. Outcome Reasons
     outcome_reasons: list[str] = []
@@ -723,12 +701,14 @@ def build_triage_explanation(
             f"vocabulary, not clinical confidence probabilities."
         )
 
-    # 5. Evidence Summary
+    # 5. Evidence Summary (T1.3: conditional ellipsis only upon truncation)
     if retrieval and retrieval.chunks:
         top_c = retrieval.chunks[0]
+        excerpt = top_c.text[:140]
+        ellipsis = "..." if len(top_c.text) > 140 else ""
         evidence_summary = (
             f"Top retrieved evidence: Document '{top_c.doc_id}', Section '{top_c.section}' "
-            f'(Rank 1). Excerpt: "{top_c.text[:140]}..."'
+            f'(Rank 1). Excerpt: "{excerpt}{ellipsis}"'
         )
     else:
         evidence_summary = "No protocol evidence chunks were retrieved or verified for this case."
@@ -858,31 +838,9 @@ def build_triage_explanation(
                 " Patient narrative was excluded from drafting context under Rule R7 isolation."
             )
 
-    # 9. Permitted UI Actions
-    if verdict_str == "BLOCKED":
-        permitted_ui_actions = [
-            "Review contraindicated medication and select alternative protocol therapy",
-            "Consult senior clinical staff or full reference guideline",
-            "Rule R11: Overrides are strictly prohibited for BLOCK verdicts",
-        ]
-    elif verdict_str == "UNVERIFIED":
-        permitted_ui_actions = [
-            "Provide missing patient vitals, weight, or history to enable unverified checks",
-            "Explicitly select or confirm suspected clinical syndrome",
-            "Re-run triage verification after data entry",
-        ]
-    elif verdict_str == "CHECKED_ALERTS":
-        permitted_ui_actions = [
-            "Review non-blocking alerts and drug interactions",
-            "Enter logged clinician override with rationale if proceeding with HIGH warnings",
-            "Administer verified steps with continuous monitoring",
-        ]
-    else:  # CHECKED_CLEAR
-        permitted_ui_actions = [
-            "Review verified protocol steps and order administration",
-            "Confirm patient identification and presentation consistency",
-            "Re-assess vitals according to protocol observation schedule",
-        ]
+    # 9. Permitted UI Actions (T1.3: derived from shared canonical wording)
+    raw_actions = verdict_entry.get("actions", ["Review triage verification report."])
+    permitted_ui_actions = [str(act) for act in raw_actions]
 
     return TriageExplanation(
         headline=headline,
