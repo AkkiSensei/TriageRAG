@@ -135,3 +135,16 @@ def test_retriever_protocol_and_zero_type_ignores_in_rag() -> None:
     for py_file in sorted(rag_dir.glob("*.py")):
         content = py_file.read_text(encoding="utf-8")
         assert "type: ignore" not in content, f"Found '# type: ignore' in {py_file.name}"
+
+
+def test_population_bm25_stats_has_no_unused_parameters() -> None:
+    """T0.2 / AUB-RET-03: _PopulationBM25Stats accepts only chunks and tokenizer; no dead kwargs."""
+    import inspect
+
+    from triagerag.rag.index import _PopulationBM25Stats
+
+    sig = inspect.signature(_PopulationBM25Stats.__init__)
+    params = list(sig.parameters.keys())
+    assert params == ["self", "chunks", "tokenizer"], f"Unexpected parameters in _PopulationBM25Stats: {params}"
+    assert "backed by global IDF" not in (_PopulationBM25Stats.__doc__ or "")
+

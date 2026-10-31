@@ -159,14 +159,12 @@ class Retriever(Protocol):
 
 
 class _PopulationBM25Stats:
-    """Precomputed BM25 statistics for a population partition backed by global IDF (FG-13)."""
+    """Precomputed BM25 statistics for a population partition with isolated local IDF (ADR-0009)."""
 
     def __init__(
         self,
         chunks: list[ProtocolChunk],
         tokenizer: ClinicalTokenizer,
-        global_idf: dict[str, float] | None = None,
-        global_avgdl: float | None = None,
     ) -> None:
         self.chunks: list[ProtocolChunk] = list(chunks)
         self.doc_term_freqs: list[Counter[str]] = []
@@ -196,7 +194,7 @@ class _PopulationBM25Stats:
 
 
 class BM25ClinicalIndex:
-    """BM25 index with global IDF stats (FG-13), parent/child deduplication, and isolation."""
+    """BM25 index with corpus-wide global statistics (FG-13) and population-isolated scoring (ADR-0009)."""
 
     def __init__(
         self,
@@ -261,13 +259,11 @@ class BM25ClinicalIndex:
                 1.0 + (float(self.global_total_docs - df) + 0.5) / (float(df) + 0.5)
             )
 
-        # 3. Build per-population stats backed by global IDF and avgdl
+        # 3. Build per-population stats with isolated local IDF to guarantee cross-population stability
         for pop, pop_chunks in self.chunks_by_population.items():
             self._stats_by_population[pop] = _PopulationBM25Stats(
                 pop_chunks,
                 self.tokenizer,
-                global_idf=self.global_idf,
-                global_avgdl=self.global_avgdl,
             )
 
     def known_syndromes(self, population: str | None = None) -> set[str]:

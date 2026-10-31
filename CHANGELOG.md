@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Refactored `tests/unit/test_fg4_eval_and_calibration.py` to verify against `dataset.lock` without invoking `git cat-file`, enabling hermetic execution in `.git`-less copies, archives, and container builds.
   - Added `test_dataset_lock_fails_on_tampered_dataset` regression test.
 
+### Fixed & Hardened
+- **Removed Unused BM25 Parameters & Corrected Documentation (T0.2 / AUB-RET-03):**
+  - Removed dead `global_idf` and `global_avgdl` parameters from `_PopulationBM25Stats.__init__` in `src/triagerag/rag/index.py`.
+  - Reconciled docstrings in `index.py` with ADR-0009: population partitions strictly compute local non-negative smoothed IDF for population score invariance.
+  - Added `test_population_bm25_stats_has_no_unused_parameters` regression test.
+
 ## [0.3.1] - 2026-10-30
 
 ### Added
