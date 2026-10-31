@@ -1,0 +1,174 @@
+version: "1.0.0"
+source_status: "SYNTHETIC_AUTHORED"
+
+# HUMAN DECISION HD-2 / AUB Task T2.2:
+# Sidecar metadata declaring structured predicate applicability for each IF/THEN decision node.
+# These conditions are retrieval ranking signals ONLY and are NOT clinical approval conditions.
+provenance:
+  source_doc: "SYNTHETIC_PROTOCOL_NODE_PREDICATES"
+  section_ref: "AUB_T2_2"
+  version_or_date: "2026-DRAFT"
+  source_status: "SYNTHETIC_AUTHORED"
+  content_origin: "AGENT_DRAFT_SYNTHETIC"
+  verified: false
+  reviewer: null
+
+nodes:
+  # --- Anaphylaxis Protocol Nodes ---
+  ANAPHYLAXIS_01_NODE_1:
+    requires_predicates:
+      - "low_systolic_bp"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  ANAPHYLAXIS_01_NODE_2:
+    requires_predicates:
+      - "severe_tachypnea"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  ANAPHYLAXIS_01_NODE_3:
+    requires_predicates:
+      - "low_systolic_bp"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  ANAPHYLAXIS_01_NODE_4:
+    requires_predicates:
+      - "beta_blocker_active"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  # --- Chest Pain Protocol Nodes ---
+  CHEST_PAIN_01_NODE_1:
+    requires_predicates: []
+    contraindicated_by: []
+    always_applicable: true
+    predicate_review_required: false
+
+  CHEST_PAIN_01_NODE_2:
+    requires_predicates:
+      - "normal_or_high_systolic_bp"
+    contraindicated_by:
+      - "low_systolic_bp"
+      - "pde5_inhibitor_active"
+    always_applicable: false
+    predicate_review_required: false
+
+  CHEST_PAIN_01_NODE_3:
+    requires_predicates:
+      - "pde5_inhibitor_active"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  CHEST_PAIN_01_NODE_4:
+    requires_predicates:
+      - "tachycardia"
+      - "normal_or_high_systolic_bp"
+    contraindicated_by:
+      - "bradycardia"
+      - "low_systolic_bp"
+    always_applicable: false
+    predicate_review_required: false
+
+  CHEST_PAIN_01_NODE_5:
+    requires_predicates:
+      - "low_systolic_bp"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  # --- Altered Mental Status Protocol Nodes ---
+  ALTERED_MENTAL_STATUS_01_NODE_1:
+    requires_predicates:
+      - "altered_consciousness"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  ALTERED_MENTAL_STATUS_01_NODE_2:
+    requires_predicates:
+      - "hypoglycemia"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  ALTERED_MENTAL_STATUS_01_NODE_3:
+    requires_predicates:
+      - "respiratory_depression"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  # --- Hypoglycemia Protocol Nodes ---
+  HYPOGLYCEMIA_01_NODE_1:
+    requires_predicates:
+      - "hypoglycemia"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  HYPOGLYCEMIA_01_NODE_2:
+    requires_predicates:
+      - "conscious_alert"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  HYPOGLYCEMIA_01_NODE_3:
+    requires_predicates:
+      - "altered_consciousness"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  # --- Paediatric Sepsis Protocol Nodes ---
+  PAED_SEPSIS_01_NODE_1:
+    requires_predicates:
+      - "fever"
+      - "tachycardia"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  PAED_SEPSIS_01_NODE_2:
+    requires_predicates:
+      - "penicillin_allergy"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  PAED_SEPSIS_01_NODE_3:
+    requires_predicates:
+      - "neonate_age"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  # --- Severe Asthma Protocol Nodes ---
+  SEVERE_ASTHMA_01_NODE_1:
+    requires_predicates:
+      - "severe_tachypnea"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  SEVERE_ASTHMA_01_NODE_2:
+    requires_predicates:
+      - "severe_tachypnea"
+      - "hypoxemia"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false
+
+  SEVERE_ASTHMA_01_NODE_3:
+    requires_predicates:
+      - "beta_blocker_active"
+    contraindicated_by: []
+    always_applicable: false
+    predicate_review_required: false

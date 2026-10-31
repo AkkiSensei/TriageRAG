@@ -218,6 +218,19 @@ def validate_all() -> None:
     except Exception as e:
         errors.append(f"predicates.yaml validation failed: {e}")
 
+    # 10. Validate retrieval/node_predicates.yaml (AUB T2.2 / D2)
+    from triagerag.rag.node_predicates import load_node_predicates_config
+
+    try:
+        load_node_predicates_config.cache_clear()
+        np_cfg = load_node_predicates_config(data_dir)
+        print(
+            f"  [OK] data/retrieval/node_predicates.yaml "
+            f"({len(np_cfg.nodes)} decision nodes validated)"
+        )
+    except Exception as e:
+        errors.append(f"node_predicates.yaml validation failed: {e}")
+
     if errors:
         print("\nDATA VALIDATION FAILED WITH ERRORS:")
         for err in errors:

@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 2: Patient-Aware Retrieval
 
 ### Added & Hardened
+- **Patient-Aware Node Predicates and Applicability Metadata (T2.2 / D2):**
+  - Created `data/retrieval/node_predicates.yaml` providing sidecar applicability metadata for all 21 IF/THEN decision nodes across the 6 synthetic protocols.
+  - Supported `requires_predicates`, `contraindicated_by`, `always_applicable`, and `predicate_review_required`.
+  - Enforced that every active decision node declares at least one valid predicate or explicit `always_applicable: true`.
+  - Extended `ProtocolChunk` in `src/triagerag/rag/chunking.py` and connected ingestion in `src/triagerag/rag/ingest.py` to attach predicate declarations without altering verbatim node text or violating the line-based round-trip invariant.
+  - Implemented typed validator in `src/triagerag/rag/node_predicates.py` and integrated into `tools/validate_data.py`.
+  - Added unit test suite `tests/unit/test_aub_phase2_node_predicates.py` (6 tests).
 - **Structured Retrieval Predicate Vocabulary (T2.1 / D2):**
   - Created `data/retrieval/predicates.yaml` containing 17 typed retrieval predicates with explicit `source_status: SYNTHETIC_AUTHORED` provenance.
   - Implemented `src/triagerag/rag/predicates.py` with typed Pydantic models (`PredicateDefinition`, `PredicateVocabularyConfig`).

@@ -16,7 +16,7 @@ import hashlib
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
@@ -25,6 +25,7 @@ from triagerag.config import get_data_dir
 from triagerag.contracts.enums import SourceStatus
 from triagerag.normalize.sanitizer import detect_suspicious_patterns
 from triagerag.rag.chunking import ProtocolChunk, chunk_protocol_markdown
+from triagerag.rag.node_predicates import load_node_predicates_config
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +102,7 @@ def load_corpus_manifest(
     *,
     allow_derive: bool = False,
 ) -> CorpusManifest:
-    """Load data/corpus/manifest.yaml if present, or derive when explicitly permitted (fail-closed, R2)."""
+    """Load data/corpus/manifest.yaml if present, or derive when permitted (fail-closed, R2)."""
     target_dir = (data_dir if data_dir is not None else get_data_dir()).resolve()
     manifest_path = target_dir / "corpus" / "manifest.yaml"
     if manifest_path.exists():
@@ -177,6 +178,12 @@ def ingest_protocols_with_report(
         manifest = load_corpus_manifest(data_dir)
         manifest_map = {d.doc_id: d for d in manifest.documents}
 
+    node_pred_cfg = None
+    try:
+        node_pred_cfg = load_node_predicates_config(data_dir)
+    except Exception as exc:
+        logger.warning("Node predicates config not loaded during ingest: %s", exc)
+
     for md_file in md_files:
         try:
             content = md_file.read_text(encoding="utf-8")
@@ -205,15 +212,30 @@ def ingest_protocols_with_report(
                 quarantined.append(QuarantinedDocument(path=str(md_file), reason=reason))
                 continue
 
-        # Check for corpus-borne prompt injection patterns (RAG-11 / FG-17)
+        # Check for corpus-borne prompt injection patterns (RAG-11 / FG-17) and attach predicates
         checked_chunks: list[ProtocolChunk] = []
         doc_has_flagged = False
         for chunk in doc_chunks:
             suspicious = detect_suspicious_patterns(chunk.text)
+            pred_update: dict[str, Any] = {}
             if suspicious:
                 doc_has_flagged = True
                 flagged_chunks[chunk.chunk_id] = list(suspicious)
-                chunk = chunk.model_copy(update={"suspicious_patterns": suspicious})
+                pred_update["suspicious_patterns"] = suspicious
+            if node_pred_cfg and chunk.chunk_id in node_pred_cfg.nodes:
+                decl = node_pred_cfg.nodes[chunk.chunk_id]
+                pred_update.update(
+                    {
+                        "requires_predicates": decl.requires_predicates,
+                        "contraindicated_by": decl.contraindicated_by,
+                        "always_applicable": decl.always_applicable,
+                        "predicate_review_required": decl.predicate_review_required,
+                    }
+                )
+            elif chunk.parent_id is None:
+                pred_update["always_applicable"] = True
+            if pred_update:
+                chunk = chunk.model_copy(update=pred_update)
             checked_chunks.append(chunk)
 
         entry = manifest_map.get(parent.doc_id)

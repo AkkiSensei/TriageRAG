@@ -151,6 +151,10 @@ class ProtocolChunk(BaseModel):
     parse_warnings: tuple[str, ...] = ()
     suspicious_patterns: tuple[str, ...] = ()
     drug_actions: tuple[DrugAction, ...] = ()
+    requires_predicates: tuple[str, ...] = ()
+    contraindicated_by: tuple[str, ...] = ()
+    always_applicable: bool = False
+    predicate_review_required: bool = False
 
     @model_validator(mode="before")
     @classmethod
