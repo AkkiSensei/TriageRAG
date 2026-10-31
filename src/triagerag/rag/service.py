@@ -98,6 +98,10 @@ class RetrievalService:
                 backend=backend,
                 chunks=ingest_report.chunks,
                 acronyms=acronyms,
+                synonyms=synonyms,
+                config=context.config,
+                retrieval_context=context,
+                data_dir=target_dir,
             )
             index.retrieval_context = context
 

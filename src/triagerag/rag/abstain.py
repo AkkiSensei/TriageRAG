@@ -47,11 +47,11 @@ class RetrievalConfig(BaseModel):
 
 @lru_cache
 def load_retrieval_config(data_dir: Path | None = None) -> RetrievalConfig:
-    """Load and validate calibrated retrieval configuration from YAML."""
-    target_dir = data_dir if data_dir is not None else get_data_dir()
+    """Load and validate calibrated retrieval configuration from YAML (fail-closed, R2)."""
+    target_dir = (data_dir or get_data_dir()).resolve()
     cfg_path = target_dir / "retrieval" / "config.yaml"
     if not cfg_path.exists():
-        cfg_path = get_data_dir() / "retrieval" / "config.yaml"
+        raise FileNotFoundError(f"Retrieval config not found at {cfg_path}")
 
     raw_text = cfg_path.read_text(encoding="utf-8")
     cfg_hash = hashlib.sha256(raw_text.encode("utf-8")).hexdigest()

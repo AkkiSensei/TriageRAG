@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `test_dataset_lock_fails_on_tampered_dataset` regression test.
 
 ### Fixed & Hardened
+- **Threaded Explicit Configuration and Fail-Closed Config Resolution (T0.3 / AUB-RET-04):**
+  - Updated `CharNgramRetriever` and `HybridRRFRetriever` to accept explicit `config`, `retrieval_context`, `synonyms`, and `data_dir` without hidden global fallbacks.
+  - Removed unparameterized `load_retrieval_config()` calls inside `search()` methods, using bound instance config.
+  - Made `load_retrieval_config()` strictly fail-closed (raising `FileNotFoundError` if config is missing in an explicit `data_dir`).
+  - Added multi-environment isolation test `test_hybrid_retrievers_thread_explicit_config_and_data_dir`.
 - **Removed Unused BM25 Parameters & Corrected Documentation (T0.2 / AUB-RET-03):**
   - Removed dead `global_idf` and `global_avgdl` parameters from `_PopulationBM25Stats.__init__` in `src/triagerag/rag/index.py`.
   - Reconciled docstrings in `index.py` with ADR-0009: population partitions strictly compute local non-negative smoothed IDF for population score invariance.
