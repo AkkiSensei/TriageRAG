@@ -9,6 +9,8 @@ bm25_k1: 1.5
 bm25_b: 0.75
 child_node_boost: 1.0
 score_decimal_places: 4
+predicate_match_weight: 1.0
+predicate_conflict_weight: 2.0
 
 provenance:
   source_doc: "TRIAGERAG_RETRIEVAL_CALIBRATION_REPORT"

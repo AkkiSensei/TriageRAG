@@ -41,6 +41,8 @@ class RetrievalConfig(BaseModel):
     bm25_b: float
     child_node_boost: float
     score_decimal_places: int
+    predicate_match_weight: float = 1.0
+    predicate_conflict_weight: float = 2.0
     provenance: Provenance
     config_hash: str = ""
 

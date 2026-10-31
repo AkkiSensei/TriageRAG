@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - AUB Phase 2: Patient-Aware Retrieval
 
 ### Added & Hardened
+- **Patient-Conditioned Retrieval Scoring (T2.4 / AUB-RET-01):**
+  - Implemented `src/triagerag/rag/scoring.py` with `calculate_node_predicate_score` and `rescore_chunks_with_patient_predicates`.
+  - Defined deterministic scoring model: $Score = BM25 + \lambda \cdot \text{satisfied\_matches} - \mu \cdot \text{active\_conflicts}$, calibrated with $\lambda=1.0, \mu=2.0$ in `data/retrieval/config.yaml`.
+  - Added deterministic tie-breaking sorted by `(-round(score, decimals), chunk_id)` for rock-solid stability across repeat runs.
+  - Connected scoring into `src/triagerag/rag/retrieve.py` (`RetrievalContext`, `build_retrieval_query` with synthetic cues, and rescoring pipeline).
+  - Maintained fail-closed handling of uncertainty: `UNKNOWN` patient predicates add 0 match and 0 conflict.
+  - Added unit test suite `tests/unit/test_aub_phase2_scoring.py` (9 tests) verifying hand-computed scores, deterministic tie-breaking, and paired-patient top-node flips across all 6 syndromes (`chest_pain`, `anaphylaxis`, `altered_mental_status`, `hypoglycemia`, `paediatric_sepsis`, `severe_asthma`).
 - **Synthetic Retrieval Cues and Vocabulary Expansion (T2.3 / HD-16):**
   - Created `data/retrieval/cues.yaml` mapping 17 structured patient predicates to explicit protocol vocabulary terms.
   - Implemented `src/triagerag/rag/cues.py` with typed models (`PredicateCueMapping`, `RetrievalCuesConfig`) and deterministic term deduplication.

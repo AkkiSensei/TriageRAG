@@ -30,7 +30,23 @@ from triagerag.rag.abstain import (
     evaluate_abstention_with_code,
     load_retrieval_config,
 )
+from triagerag.rag.cues import (
+    RetrievalCuesConfig,
+    expand_predicates_to_cues,
+    load_retrieval_cues,
+)
 from triagerag.rag.ingest import CorpusManifest, load_corpus_manifest
+from triagerag.rag.node_predicates import (
+    NodePredicatesConfig,
+    load_node_predicates_config,
+)
+from triagerag.rag.predicates import (
+    PredicateEvalResult,
+    PredicateVocabularyConfig,
+    evaluate_patient_predicates,
+    load_predicate_vocabulary,
+)
+from triagerag.rag.scoring import rescore_chunks_with_patient_predicates
 
 if TYPE_CHECKING:
     from triagerag.contracts.schemas import Patient
@@ -121,6 +137,9 @@ class RetrievalContext(BaseModel):
     vitals_flags: VitalsFlagsConfig
     manifest: CorpusManifest
     action_cues: ActionCuesConfig
+    predicates: PredicateVocabularyConfig
+    node_predicates: NodePredicatesConfig
+    cues: RetrievalCuesConfig
 
 
 @lru_cache
@@ -143,6 +162,9 @@ def build_retrieval_context(data_dir: Path | None = None) -> RetrievalContext:
         vitals_flags=load_vitals_flags_config(target_dir),
         manifest=load_corpus_manifest(target_dir),
         action_cues=load_action_cues(target_dir),
+        predicates=load_predicate_vocabulary(target_dir),
+        node_predicates=load_node_predicates_config(target_dir),
+        cues=load_retrieval_cues(target_dir),
     )
 
 
@@ -285,22 +307,38 @@ def build_retrieval_query(
     config: VitalsFlagsConfig | None = None,
     context: RetrievalContext | None = None,
 ) -> tuple[str, list[str]]:
-    """Build a search query from structured clinical attributes.
+    """Build a search query from structured clinical attributes and synthetic cues.
 
     Rule R7: chief_complaint_untrusted is explicitly forbidden from query construction.
     RAG-07: No arbitrary ×3 token repetition; syndrome is enforced as a hard metadata filter.
+    T2.3: Synthetically bridges structured patient predicates to protocol vocabulary.
     """
-    flags = derive_vitals_flags(patient, data_dir=data_dir, config=config, context=context)
+    ctx = context if context is not None else build_retrieval_context(data_dir)
+    flags = derive_vitals_flags(patient, config=config, context=ctx)
     query_parts: list[str] = []
 
-    norm_syndrome = normalize_syndrome(
-        patient.suspected_syndrome, data_dir=data_dir, context=context
-    )
+    norm_syndrome = normalize_syndrome(patient.suspected_syndrome, context=ctx)
     if norm_syndrome:
         query_parts.append(norm_syndrome)
 
+    # Evaluate patient predicates and expand satisfied ones into protocol cue terms
+    patient_evals = evaluate_patient_predicates(patient, ctx.predicates.predicates)
+    satisfied_preds = [
+        pid for pid, res in patient_evals.items() if res == PredicateEvalResult.SATISFIED
+    ]
+    cue_terms = expand_predicates_to_cues(satisfied_preds, ctx.cues)
+    query_parts.extend(cue_terms)
     query_parts.extend(flags)
-    query_string = " ".join(query_parts).strip()
+
+    # Deduplicate tokens while preserving order
+    seen: set[str] = set()
+    deduped_parts: list[str] = []
+    for part in query_parts:
+        if part not in seen:
+            seen.add(part)
+            deduped_parts.append(part)
+
+    query_string = " ".join(deduped_parts).strip()
     return query_string, flags
 
 
@@ -329,11 +367,7 @@ def retrieve_protocol_chunks(
         patient, config=vf_cfg, context=ctx
     )
     norm_syndrome = normalize_syndrome(patient.suspected_syndrome, manifest=manifest, context=ctx)
-    query_parts: list[str] = []
-    if norm_syndrome:
-        query_parts.append(norm_syndrome)
-    query_parts.extend(flags)
-    query_str = " ".join(query_parts).strip()
+    query_str, _query_flags = build_retrieval_query(patient, config=vf_cfg, context=ctx)
 
     filters: dict[str, str] = {
         "population": pop,
@@ -428,19 +462,25 @@ def retrieve_protocol_chunks(
             config_hash=cfg.config_hash,
         )
 
-    scored_chunks = index.search(
+    candidate_k = max(eff_top_k * 3, 20) if norm_syndrome else max(eff_top_k * 5, 30)
+    raw_scored_chunks = index.search(
         query=query_str,
         population=pop,
-        top_k=eff_top_k,
+        top_k=candidate_k,
         syndrome=norm_syndrome,
     )
 
-    stage_scores: dict[str, dict[str, float]] = {
-        "bm25": {
-            chunk.chunk_id: round(float(sc), cfg.score_decimal_places)
-            for chunk, sc in scored_chunks
-        }
-    }
+    # Patient-conditioned predicate rescoring (T2.4 / AUB-RET-01)
+    patient_evals = evaluate_patient_predicates(patient, ctx.predicates.predicates)
+    rescored_chunks, stage_scores = rescore_chunks_with_patient_predicates(
+        raw_scored_chunks,
+        patient_evals,
+        match_weight=cfg.predicate_match_weight,
+        conflict_weight=cfg.predicate_conflict_weight,
+        score_decimal_places=cfg.score_decimal_places,
+    )
+
+    scored_chunks = rescored_chunks[:eff_top_k]
 
     abstained, abstain_code, reason = evaluate_abstention_with_code(
         scored_chunks=scored_chunks,
