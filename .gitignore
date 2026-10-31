@@ -68,3 +68,11 @@ web/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# HD-9: Non-synthetic / restricted clinical corpora and evidence raw text & indexes
+data/protocols_restricted/*
+!data/protocols_restricted/.gitkeep
+data/evidence_raw/*
+!data/evidence_raw/.gitkeep
+data/indexes_local/*
+!data/indexes_local/.gitkeep

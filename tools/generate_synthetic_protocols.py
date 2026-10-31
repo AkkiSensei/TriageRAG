@@ -1773,6 +1773,7 @@ def generate_protocol_markdown(
         "synthetic": True,
         "version": "1.0.0",
         "license": "synthetic",
+        "license_tag": "synthetic",
         "attribution": "TriageRAG Synthetic Research Corpus",
         "source_url": None,
         "retrieved_at": None,

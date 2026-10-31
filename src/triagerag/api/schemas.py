@@ -164,6 +164,7 @@ class ProtocolChunkDto(BaseModel):
     version: str = "1.0.0"
     content_hash: str = ""
     license: str | None = None
+    license_tag: str = "synthetic"
     attribution: str | None = None
     source_url: str | None = None
     source_status: str = "PLACEHOLDER_UNRETRIEVED"

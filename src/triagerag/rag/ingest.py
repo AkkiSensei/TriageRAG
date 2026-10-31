@@ -42,6 +42,7 @@ class CorpusManifestEntry(BaseModel):
     syndrome: str
     synthetic: bool
     license: str | None = None
+    license_tag: Literal["synthetic", "public_domain", "cc_by_nc_sa", "restricted"] = "synthetic"
     attribution: str | None = None
     source_url: str | None = None
     version: str = "1.0.0"

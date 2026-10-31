@@ -111,8 +111,11 @@ def build_contextual_header(
     return f"{header}\n{text}"
 
 
+LicenseTag = Literal["synthetic", "public_domain", "cc_by_nc_sa", "restricted"]
+
+
 class ProtocolFrontmatter(BaseModel):
-    """Strict schema for protocol markdown YAML frontmatter (RAG-04)."""
+    """Strict schema for protocol markdown YAML frontmatter (RAG-04 / T3.4)."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -125,6 +128,7 @@ class ProtocolFrontmatter(BaseModel):
     synthetic: StrictBool
     version: str = "1.0.0"
     license: str | None = None
+    license_tag: LicenseTag = "synthetic"
     attribution: str | None = None
     source_url: str | None = None
     retrieved_at: str | None = None
@@ -190,6 +194,7 @@ class ProtocolChunk(BaseModel):
     version: str = "1.0.0"
     content_hash: str = ""
     license: str | None = None
+    license_tag: LicenseTag = "synthetic"
     attribution: str | None = None
     source_url: str | None = None
     retrieved_at: str | None = None
@@ -386,6 +391,7 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
         synthetic=fm.synthetic,
         version=fm.version,
         license=fm.license,
+        license_tag=fm.license_tag,
         attribution=fm.attribution,
         source_url=fm.source_url,
         retrieved_at=fm.retrieved_at,
@@ -417,6 +423,7 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
                 synthetic=fm.synthetic,
                 version=fm.version,
                 license=fm.license,
+                license_tag=fm.license_tag,
                 attribution=fm.attribution,
                 source_url=fm.source_url,
                 retrieved_at=fm.retrieved_at,
@@ -509,6 +516,7 @@ def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]
         synthetic=fm.synthetic,
         version=fm.version,
         license=fm.license,
+        license_tag=fm.license_tag,
         attribution=fm.attribution,
         source_url=fm.source_url,
         retrieved_at=fm.retrieved_at,
@@ -536,6 +544,7 @@ def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]
                 synthetic=fm.synthetic,
                 version=fm.version,
                 license=fm.license,
+                license_tag=fm.license_tag,
                 attribution=fm.attribution,
                 source_url=fm.source_url,
                 retrieved_at=fm.retrieved_at,
