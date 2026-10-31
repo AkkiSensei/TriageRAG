@@ -101,9 +101,15 @@ def evaluate_abstention_with_code(
     *,
     backend: str = "bm25",
     use_calibrated_for_inferred: bool = False,
+    base_best_score: float | None = None,
 ) -> tuple[bool, AbstainCode, str | None]:
     """Evaluate calibrated abstention and top-1/top-2 syndrome margin rules."""
     cfg = config if config is not None else load_retrieval_config()
+    _backend_thresh = (
+        cfg.backend_thresholds.get(backend.lower().strip())
+        if cfg.backend_thresholds is not None
+        else None
+    )
     eff_threshold = (
         threshold
         if threshold is not None
@@ -130,11 +136,16 @@ def evaluate_abstention_with_code(
         )
 
     best_score = float(scored_chunks[0][1])
-    norm_best = normalize_relevance_score(best_score, backend=backend, top_k=cfg.top_k)
+    eval_score = (
+        base_best_score
+        if (syndrome_provided and base_best_score is not None)
+        else best_score
+    )
+    norm_best = normalize_relevance_score(eval_score, backend=backend, top_k=cfg.top_k)
 
-    if norm_best < eff_threshold or best_score <= 0.0:
+    if norm_best < eff_threshold or eval_score <= 0.0:
         msg = (
-            f"Top retrieval relevance {norm_best:.2f} (raw {best_score:.2f}) is below "
+            f"Top retrieval relevance {norm_best:.2f} (raw {eval_score:.2f}) is below "
             f"calibrated threshold {eff_threshold:.2f}"
         )
         return True, AbstainCode.LOW_CONFIDENCE, msg

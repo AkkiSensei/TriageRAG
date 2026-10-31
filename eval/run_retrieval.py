@@ -900,7 +900,9 @@ def run_retrieval_suite(
     output_dir: Path | None = None,
 ) -> tuple[bool, float, float, float]:
     """Execute retrieval benchmark and print results for CLI / task runner."""
-    summary = run_retrieval_benchmark(backend="bm25", write_reports=write_reports, output_dir=output_dir)
+    summary = run_retrieval_benchmark(
+        backend="bm25", write_reports=write_reports, output_dir=output_dir
+    )
     t = summary["test"]
     syn = t["syndrome_provided"]
     vit = t["vitals_only"]

@@ -333,10 +333,10 @@ def test_no_active_rule_without_verified_provenance() -> None:
 
 
 def test_vitals_only_retrieval_degrades_to_abstain_when_flags_needs_source() -> None:
-    """FG-02: With all flags NEEDS_SOURCE, a no-syndrome query abstains EMPTY_QUERY."""
+    """FG-02: With all flags NEEDS_SOURCE and normal vitals, a no-syndrome query abstains EMPTY_QUERY."""
     data_dir = get_data_dir()
     index = BM25ClinicalIndex(ingest_protocols(data_dir))
-    patient = _make_patient("50", AgeUnit.years, hr=130, sbp=80, rr=28, syndrome=None)
+    patient = _make_patient("50", AgeUnit.years, hr=75, sbp=120, rr=16, syndrome=None)
 
     report = retrieve_protocol_chunks(patient, index)
     assert report.abstained is True

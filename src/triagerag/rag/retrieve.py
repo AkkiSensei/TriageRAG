@@ -320,13 +320,18 @@ def build_retrieval_query(
     norm_syndrome = normalize_syndrome(patient.suspected_syndrome, context=ctx)
     if norm_syndrome:
         query_parts.append(norm_syndrome)
-        # Evaluate patient predicates and expand satisfied ones into protocol cue terms
-        patient_evals = evaluate_patient_predicates(patient, ctx.predicates.predicates)
-        satisfied_preds = [
-            pid for pid, res in patient_evals.items() if res == PredicateEvalResult.SATISFIED
-        ]
-        cue_terms = expand_predicates_to_cues(satisfied_preds, ctx.cues)
-        query_parts.extend(cue_terms)
+
+    # Evaluate patient predicates and expand satisfied ones into protocol cue terms (T2.3 / T2.7)
+    patient_evals = evaluate_patient_predicates(patient, ctx.predicates.predicates)
+    satisfied_preds = [
+        pid for pid, res in patient_evals.items() if res == PredicateEvalResult.SATISFIED
+    ]
+    cue_terms = expand_predicates_to_cues(
+        satisfied_preds,
+        ctx.cues,
+        syndrome_cues_only=(norm_syndrome is None),
+    )
+    query_parts.extend(cue_terms)
 
     query_parts.extend(flags)
 
@@ -462,42 +467,34 @@ def retrieve_protocol_chunks(
             config_hash=cfg.config_hash,
         )
 
+    search_k = eff_top_k if norm_syndrome is not None else eff_top_k * (2 + 2)
     raw_scored_chunks = index.search(
         query=query_str,
         population=pop,
-        top_k=eff_top_k,
+        top_k=search_k,
         syndrome=norm_syndrome,
     )
 
-    if norm_syndrome is not None:
-        # Patient-conditioned predicate rescoring (T2.4 / AUB-RET-01)
-        patient_evals = evaluate_patient_predicates(patient, ctx.predicates.predicates)
-        rescored_chunks, stage_scores = rescore_chunks_with_patient_predicates(
-            raw_scored_chunks,
-            patient_evals,
-            match_weight=cfg.predicate_match_weight,
-            conflict_weight=cfg.predicate_conflict_weight,
-            score_decimal_places=cfg.score_decimal_places,
-        )
-    else:
-        rescored_chunks = raw_scored_chunks
-        stage_scores = {
-            "bm25": {
-                chunk.chunk_id: round(float(sc), cfg.score_decimal_places)
-                for chunk, sc in raw_scored_chunks
-            }
-        }
+    # Patient-conditioned predicate rescoring (T2.4 / AUB-RET-01 / T2.7)
+    patient_evals = evaluate_patient_predicates(patient, ctx.predicates.predicates)
+    rescored_chunks, stage_scores = rescore_chunks_with_patient_predicates(
+        raw_scored_chunks,
+        patient_evals,
+        match_weight=cfg.predicate_match_weight,
+        conflict_weight=cfg.predicate_conflict_weight,
+        score_decimal_places=cfg.score_decimal_places,
+    )
 
-    scored_chunks = rescored_chunks[:eff_top_k]
-
+    raw_best_score = float(raw_scored_chunks[0][1]) if raw_scored_chunks else 0.0
     abstained, abstain_code, reason = evaluate_abstention_with_code(
-        scored_chunks=scored_chunks,
+        scored_chunks=rescored_chunks,
         population=pop,
         population_available=pop_available,
         threshold=threshold,
         syndrome_provided=(norm_syndrome is not None),
         config=cfg,
         backend=index.backend,
+        base_best_score=raw_best_score,
     )
 
     if abstained:
@@ -517,11 +514,16 @@ def retrieve_protocol_chunks(
         )
 
     # When syndrome was inferred from vitals, restrict returned chunks to the winning syndrome
-    if norm_syndrome is None and scored_chunks:
-        winning_syndrome = scored_chunks[0][0].syndrome
+    if norm_syndrome is None and rescored_chunks:
+        winning_syndrome = rescored_chunks[0][0].syndrome
+        filters["inferred_syndrome"] = winning_syndrome
         scored_chunks = [
-            (chunk, sc) for chunk, sc in scored_chunks if chunk.syndrome == winning_syndrome
+            (chunk, sc) for chunk, sc in rescored_chunks if chunk.syndrome == winning_syndrome
         ]
+    else:
+        scored_chunks = rescored_chunks
+
+    scored_chunks = scored_chunks[:eff_top_k]
 
     retrieved: list[RetrievedChunk] = []
     for chunk, score in scored_chunks:

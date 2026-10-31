@@ -301,10 +301,10 @@ class BM25ClinicalIndex:
         self.backend: str = "bm25"
         self.retrieval_context: Any = retrieval_context
         self.token_weights: dict[str, float] = {
-            "raw": float(getattr(cfg, "raw_token_weight", 1.0)),
-            "stem": float(getattr(cfg, "stem_token_weight", 0.5)),
-            "synonym": float(getattr(cfg, "synonym_token_weight", 0.5)),
-            "cue": float(getattr(cfg, "cue_token_weight", 0.5)),
+            "raw": float(cfg.raw_token_weight),
+            "stem": float(cfg.stem_token_weight),
+            "synonym": float(cfg.synonym_token_weight),
+            "cue": float(cfg.cue_token_weight),
         }
 
         self.parents_by_id: dict[str, ProtocolChunk] = {

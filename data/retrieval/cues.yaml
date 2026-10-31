@@ -15,88 +15,104 @@ provenance:
 
 cues:
   low_systolic_bp:
+    syndrome_cue: true
     terms:
       - "hypotension"
       - "hypoperfusion"
-      - "shock"
-      - "collapse"
 
   normal_or_high_systolic_bp:
+    syndrome_cue: false
     terms:
       - "hemodynamically stable"
       - "not low"
 
   tachycardia:
+    syndrome_cue: true
     terms:
       - "tachycardia"
 
   bradycardia:
+    syndrome_cue: true
     terms:
       - "bradycardia"
 
   severe_tachypnea:
+    syndrome_cue: true
     terms:
       - "tachypnea"
       - "wheezing"
       - "bronchospasm"
 
   respiratory_depression:
+    syndrome_cue: true
     terms:
       - "respiratory depression"
       - "ventilatory drive"
 
   hypoxemia:
+    syndrome_cue: true
     terms:
       - "low oxygen saturation"
       - "hypoxia"
 
   fever:
+    syndrome_cue: true
     terms:
       - "fever"
       - "febrile"
 
   hypothermia:
+    syndrome_cue: true
     terms:
       - "hypothermia"
 
   hypoglycemia:
+    syndrome_cue: true
     terms:
       - "hypoglycemia"
       - "capillary glucose"
       - "neuroglycopenic"
+      - "dextrose"
 
   altered_consciousness:
+    syndrome_cue: true
     terms:
+      - "altered"
       - "confusion"
-      - "obtundation"
-      - "depressed consciousness"
+      - "unresponsive"
 
   conscious_alert:
+    syndrome_cue: false
     terms:
       - "conscious"
       - "alert"
 
   beta_blocker_active:
+    syndrome_cue: false
     terms:
       - "beta blocker"
       - "metoprolol"
       - "atenolol"
 
   pde5_inhibitor_active:
+    syndrome_cue: false
     terms:
       - "sildenafil"
       - "tadalafil"
 
   penicillin_allergy:
+    syndrome_cue: false
     terms:
       - "anaphylactic reaction"
       - "aminopenicillins"
 
   neonate_age:
+    syndrome_cue: false
     terms:
       - "neonate"
       - "twenty-eight days"
 
   paediatric_age:
+    syndrome_cue: false
     terms:
       - "paediatric"

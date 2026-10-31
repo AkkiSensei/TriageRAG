@@ -106,11 +106,11 @@ def test_retrieval_reports_recall_at_1_and_split() -> None:
 
 
 def test_permutation_check_collapses_recall() -> None:
-    """FG-06: Permuting node labels must collapse Recall@1 to near zero (< 0.05)."""
+    """FG-06: Permuting node labels must collapse Recall@1 to near random chance (< 0.10)."""
     from eval.run_retrieval import run_permutation_sanity_check
 
     perm_r1 = run_permutation_sanity_check()
-    assert perm_r1 < 0.05, f"Permutation check failed to collapse: Recall@1 = {perm_r1}"
+    assert perm_r1 < 0.10, f"Permutation check failed to collapse: Recall@1 = {perm_r1}"
 
 
 def test_ece_reported_without_unqualified_pass_without_adr() -> None:

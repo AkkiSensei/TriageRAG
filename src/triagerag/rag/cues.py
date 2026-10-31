@@ -30,6 +30,7 @@ class PredicateCueMapping(BaseModel):
 
     predicate_id: str
     terms: tuple[str, ...] = Field(default_factory=tuple)
+    syndrome_cue: bool = False
 
     @model_validator(mode="before")
     @classmethod
@@ -84,14 +85,22 @@ def load_retrieval_cues(data_dir: Path | None = None) -> RetrievalCuesConfig:
 def expand_predicates_to_cues(
     satisfied_predicate_ids: Iterable[str],
     cues_config: RetrievalCuesConfig,
+    *,
+    syndrome_cues_only: bool = False,
 ) -> list[str]:
-    """Deterministically expand satisfied predicates into deduplicated protocol vocabulary."""
+    """Deterministically expand satisfied predicates into deduplicated protocol vocabulary.
+
+    If syndrome_cues_only is True, filters to cues that indicate acute clinical
+    presentation findings for vitals-only syndrome inference (T2.7).
+    """
     seen: set[str] = set()
     expanded_terms: list[str] = []
 
     for pred_id in sorted(satisfied_predicate_ids):
         mapping = cues_config.cues.get(pred_id)
         if mapping is None:
+            continue
+        if syndrome_cues_only and not mapping.syndrome_cue:
             continue
         for term in mapping.terms:
             if term not in seen:

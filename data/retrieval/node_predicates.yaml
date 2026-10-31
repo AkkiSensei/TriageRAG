@@ -79,7 +79,8 @@ nodes:
   CHEST_PAIN_01_NODE_5:
     requires_predicates:
       - "low_systolic_bp"
-    contraindicated_by: []
+    contraindicated_by:
+      - "tachycardia"
     always_applicable: false
     predicate_review_required: false
 
@@ -154,7 +155,8 @@ nodes:
   SEVERE_ASTHMA_01_NODE_1:
     requires_predicates:
       - "severe_tachypnea"
-    contraindicated_by: []
+    contraindicated_by:
+      - "low_systolic_bp"
     always_applicable: false
     predicate_review_required: false
 
@@ -162,7 +164,8 @@ nodes:
     requires_predicates:
       - "severe_tachypnea"
       - "hypoxemia"
-    contraindicated_by: []
+    contraindicated_by:
+      - "low_systolic_bp"
     always_applicable: false
     predicate_review_required: false
 
