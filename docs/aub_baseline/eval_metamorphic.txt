@@ -1,0 +1,7 @@
+=== metamorphic ===
+Executing Metamorphic Testing Suite (3 transformations)...
+  [PASS] brand_generic_equivalence
+  [PASS] list_reordering_invariance
+  [PASS] equivalent_units_tripwire
+
+Metamorphic Suite Results: 3/3 passed.

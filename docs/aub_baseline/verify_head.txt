@@ -1,0 +1,16 @@
+============================================================
+   TRIAGERAG FULL VERIFICATION GATE RUNNER
+============================================================
+=== Running Linters ===
+--> Running: C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG\.venv\Scripts\python.exe -m ruff check src tests tools eval
+All checks passed!
+--> Running: C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG\.venv\Scripts\python.exe -m ruff format --check src tests tools eval
+125 files already formatted
+[OK] Linting clean
+=== Running Type Checking (mypy) ===
+--> Running: C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG\.venv\Scripts\python.exe -m mypy src tests tools eval
+tests\unit\test_explainability_and_intake_hardening.py:148: error: "type[StepStatus]" has no attribute "BLOCKED_BY_CONTRAINDICATION"  [attr-defined]
+tests\unit\test_explainability_and_intake_hardening.py:151: error: "type[StepStatus]" has no attribute "UNVERIFIED"  [attr-defined]
+tests\unit\test_explainability_and_intake_hardening.py:153: error: "type[StepStatus]" has no attribute "BLOCKED_BY_CONTRAINDICATION"  [attr-defined]
+Found 3 errors in 1 file (checked 121 source files)
+FAILED (code 1): C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG\.venv\Scripts\python.exe -m mypy src tests tools eval

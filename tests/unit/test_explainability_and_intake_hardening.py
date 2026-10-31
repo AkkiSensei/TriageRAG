@@ -12,10 +12,11 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from triagerag.api.routes.triage import execute_triage
+from triagerag.api.routes.triage import execute_triage, get_retrieval_service
 from triagerag.api.schemas import TriageApiRequest
 from triagerag.config import get_data_dir
 from triagerag.contracts.enums import (
+    AbstainCode,
     ActionType,
     DoseUnit,
     Route,
@@ -136,22 +137,18 @@ def test_vitals_inferred_syndrome_enforces_clinician_confirmation() -> None:
         suspected_syndrome=None,  # Not clinician confirmed!
     )
 
-    report = run_triage(
-        patient=patient,
-        registry=registry,
-    )
+    index = get_retrieval_service().index
+    report = run_triage(patient=patient, registry=registry, index=index)
 
-    assert isinstance(report.verified_steps, list)
-    # If the engine inferred anaphylaxis from vitals without clinician confirmation,
-    # steps must be capped at REQUIRES_CLINICIAN_CONFIRMATION
-    for step in report.verified_steps:
-        if step.status != StepStatus.BLOCKED_BY_CONTRAINDICATION:
-            assert step.status in (
-                StepStatus.REQUIRES_CLINICIAN_CONFIRMATION,
-                StepStatus.UNVERIFIED,
-                StepStatus.FLAGGED_HIGH,
-                StepStatus.BLOCKED_BY_CONTRAINDICATION,
-            )
+    # The real index must have been consulted (not INDEX_UNAVAILABLE), otherwise
+    # this test would pass vacuously with zero steps.
+    assert report.retrieval is not None
+    assert report.retrieval.abstain_code != AbstainCode.INDEX_UNAVAILABLE
+    # Without a clinician-confirmed syndrome, no step may be auto-approved (ADR-0007, R2).
+    assert all(step.status != StepStatus.APPROVED for step in report.verified_steps)
+    # Never CHECKED_CLEAR when retrieval produced no applicable protocol evidence.
+    if report.retrieval.abstained:
+        assert report.engine.verdict != Verdict.CHECKED_CLEAR
 
 
 def test_triage_explanation_structure_and_coverage() -> None:

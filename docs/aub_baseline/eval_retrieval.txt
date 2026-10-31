@@ -1,0 +1,10 @@
+=== retrieval ===
+Executing WP5/FG-06 Node-Level Retrieval Benchmark (224 cases: 136 dev, 88 test)...
+  Test Overall Recall@1: 39.29% (95% CI: [26.79, 53.57])
+  Test Overall Recall@5: 73.21% (95% CI: [60.71, 83.93])
+  Syndrome-Provided Recall@5 (Test): 100.00% (95% CI: [100.0, 100.0])
+  Vitals-Only Recall@1 (Test, HD-1): 0.00% (95% CI: [0.0, 0.0])
+  Wrong-Protocol Rate (Test): 0.0000 (Gate == 0.0)
+  Hard-Negative Abstain Recall: 1.0000 (Gate == 1.0)
+  Abstain Accuracy (Test): 82.95%
+  ECE (Test): 0.1453 (Observational) | Latency p95: 0.085 ms
