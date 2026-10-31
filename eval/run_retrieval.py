@@ -179,12 +179,42 @@ def _compute_ece(confidences: list[float], correctness: list[int], num_bins: int
     return round(float(ece), 4)
 
 
+def _group_bootstrap_ci95(
+    values_by_group: dict[str, list[float]],
+    n_boot: int = 1000,
+    seed: int = 42,
+) -> list[float]:
+    """Compute 95% group-level (template-level) bootstrap confidence interval."""
+    if not values_by_group:
+        return [0.0, 0.0]
+    group_keys = sorted(values_by_group.keys())
+    n_groups = len(group_keys)
+    rng = random.Random(seed)
+    means: list[float] = []
+    for _ in range(n_boot):
+        sampled_keys = [group_keys[rng.randrange(n_groups)] for _ in range(n_groups)]
+        sample_vals: list[float] = []
+        for k in sampled_keys:
+            sample_vals.extend(values_by_group[k])
+        if sample_vals:
+            means.append(sum(sample_vals) / float(len(sample_vals)))
+        else:
+            means.append(0.0)
+    means.sort()
+    low_idx = max(0, int(0.025 * n_boot))
+    high_idx = min(n_boot - 1, int(0.975 * n_boot))
+    return [round(means[low_idx], 4), round(means[high_idx], 4)]
+
+
 def _summarize_positives(
     r1: list[float],
     r3: list[float],
     r5: list[float],
+    r10: list[float],
     rr: list[float],
-    ndcg: list[float],
+    ndcg5: list[float],
+    ndcg10: list[float],
+    groups_r5: dict[str, list[float]] | None = None,
 ) -> dict[str, Any]:
     """Compute summary statistics and 95% bootstrap CIs for positive case subset."""
     n = len(r5)
@@ -197,23 +227,33 @@ def _summarize_positives(
             "recall_at_3_ci95": [0.0, 0.0],
             "recall_at_5": 0.0,
             "recall_at_5_ci95": [0.0, 0.0],
+            "recall_at_10": 0.0,
+            "recall_at_10_ci95": [0.0, 0.0],
             "mrr": 0.0,
             "mrr_ci95": [0.0, 0.0],
             "ndcg_at_5": 0.0,
             "ndcg_at_5_ci95": [0.0, 0.0],
+            "ndcg_at_10": 0.0,
+            "ndcg_at_10_ci95": [0.0, 0.0],
+            "recall_at_5_group_ci95": [0.0, 0.0],
         }
 
     m_r1 = sum(r1) / float(n)
     m_r3 = sum(r3) / float(n)
     m_r5 = sum(r5) / float(n)
+    m_r10 = sum(r10) / float(n)
     m_rr = sum(rr) / float(n)
-    m_ndcg = sum(ndcg) / float(n)
+    m_ndcg5 = sum(ndcg5) / float(n)
+    m_ndcg10 = sum(ndcg10) / float(n)
 
     ci_r1 = _bootstrap_ci95(r1)
     ci_r3 = _bootstrap_ci95(r3)
     ci_r5 = _bootstrap_ci95(r5)
+    ci_r10 = _bootstrap_ci95(r10)
     ci_rr = _bootstrap_ci95(rr)
-    ci_ndcg = _bootstrap_ci95(ndcg)
+    ci_ndcg5 = _bootstrap_ci95(ndcg5)
+    ci_ndcg10 = _bootstrap_ci95(ndcg10)
+    grp_ci_r5 = _group_bootstrap_ci95(groups_r5) if groups_r5 else ci_r5
 
     return {
         "positive_cases": n,
@@ -223,10 +263,15 @@ def _summarize_positives(
         "recall_at_3_ci95": [round(ci_r3[0] * 100.0, 2), round(ci_r3[1] * 100.0, 2)],
         "recall_at_5": round(m_r5 * 100.0, 2),
         "recall_at_5_ci95": [round(ci_r5[0] * 100.0, 2), round(ci_r5[1] * 100.0, 2)],
+        "recall_at_10": round(m_r10 * 100.0, 2),
+        "recall_at_10_ci95": [round(ci_r10[0] * 100.0, 2), round(ci_r10[1] * 100.0, 2)],
         "mrr": round(m_rr, 4),
         "mrr_ci95": ci_rr,
-        "ndcg_at_5": round(m_ndcg, 4),
-        "ndcg_at_5_ci95": ci_ndcg,
+        "ndcg_at_5": round(m_ndcg5, 4),
+        "ndcg_at_5_ci95": ci_ndcg5,
+        "ndcg_at_10": round(m_ndcg10, 4),
+        "ndcg_at_10_ci95": ci_ndcg10,
+        "recall_at_5_group_ci95": [round(grp_ci_r5[0] * 100.0, 2), round(grp_ci_r5[1] * 100.0, 2)],
     }
 
 
@@ -290,22 +335,33 @@ def _evaluate_split(
     recalls_at_1: list[float] = []
     recalls_at_3: list[float] = []
     recalls_at_5: list[float] = []
+    recalls_at_10: list[float] = []
     reciprocal_ranks: list[float] = []
     ndcgs_at_5: list[float] = []
+    ndcgs_at_10: list[float] = []
     latencies_ms: list[float] = []
 
-    # Stratified metric tracking (FG-06)
+    # Stratified metric tracking (FG-06, T4.4)
     syn_r1: list[float] = []
     syn_r3: list[float] = []
     syn_r5: list[float] = []
+    syn_r10: list[float] = []
     syn_rr: list[float] = []
-    syn_ndcg: list[float] = []
+    syn_ndcg5: list[float] = []
+    syn_ndcg10: list[float] = []
 
     vit_r1: list[float] = []
     vit_r3: list[float] = []
     vit_r5: list[float] = []
+    vit_r10: list[float] = []
     vit_rr: list[float] = []
-    vit_ndcg: list[float] = []
+    vit_ndcg5: list[float] = []
+    vit_ndcg10: list[float] = []
+
+    # Group-level (template-level) value tracking for cluster-robust CIs
+    group_r5: dict[str, list[float]] = defaultdict(list)
+    syn_group_r5: dict[str, list[float]] = defaultdict(list)
+    vit_group_r5: dict[str, list[float]] = defaultdict(list)
 
     abstain_tp = 0
     abstain_fp = 0
@@ -314,7 +370,17 @@ def _evaluate_split(
     abstain_code_matches = 0
     hard_neg_total = 0
     hard_neg_abstained = 0
-    wrong_protocol_count = 0
+
+    # T4.4 Honest metrics
+    false_accept_count = 0
+    wrong_syndrome_count = 0
+    legacy_wrong_protocol_count = 0
+
+    # Per-code tracking
+    all_codes: set[str] = set()
+    code_tp_counts: dict[str, int] = Counter()
+    code_pred_counts: dict[str, int] = Counter()
+    code_support_counts: dict[str, int] = Counter()
 
     confidences: list[float] = []
     correctness: list[int] = []
@@ -322,6 +388,7 @@ def _evaluate_split(
     for case in cases:
         patient = build_patient_from_eval_case(case)
         family = case.get("family")
+        template_id = str(case.get("template_id") or "TMPL_UNKNOWN")
 
         # Select target service based on family under test (FG-06)
         active_service = service
@@ -331,18 +398,28 @@ def _evaluate_split(
             active_service = scale_service
 
         t0 = time.perf_counter()
-        report = active_service.retrieve(patient, top_k=5)
+        report = active_service.retrieve(patient, top_k=10)
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
         latencies_ms.append(elapsed_ms)
 
         expect_abstain = bool(case["expect_abstain"])
         expected_code = str(case.get("expected_abstain_code", "NONE"))
+        actual_code = report.abstain_code.value
         expected_syndrome = case.get("expected_syndrome")
         relevance_grades: dict[str, int] = {
             str(k): int(v) for k, v in (case.get("relevance_grades") or {}).items()
         }
 
-        if report.abstain_code.value == expected_code:
+        if expected_code != "NONE":
+            all_codes.add(expected_code)
+            code_support_counts[expected_code] += 1
+        if actual_code != "NONE":
+            all_codes.add(actual_code)
+            code_pred_counts[actual_code] += 1
+        if expected_code == actual_code and expected_code != "NONE":
+            code_tp_counts[expected_code] += 1
+
+        if actual_code == expected_code:
             abstain_code_matches += 1
 
         if family == "hard_negatives":
@@ -355,11 +432,11 @@ def _evaluate_split(
         if expect_abstain:
             if report.abstained:
                 abstain_tp += 1
-                confidences.append(0.95)
-                correctness.append(1)
             else:
                 abstain_fn += 1
-                wrong_protocol_count += 1
+                false_accept_count += 1
+                legacy_wrong_protocol_count += 1
+                # When non-abstaining chunk was retrieved, genuine confidence can be evaluated
                 top_raw = float(report.chunks[0].score) if report.chunks else 0.0
                 confidences.append(normalize_relevance_score(top_raw))
                 correctness.append(0)
@@ -369,23 +446,30 @@ def _evaluate_split(
                 recalls_at_1.append(0.0)
                 recalls_at_3.append(0.0)
                 recalls_at_5.append(0.0)
+                recalls_at_10.append(0.0)
                 reciprocal_ranks.append(0.0)
                 ndcgs_at_5.append(0.0)
-                confidences.append(0.0)
-                correctness.append(0)
+                ndcgs_at_10.append(0.0)
+                group_r5[template_id].append(0.0)
 
                 if has_syndrome:
                     syn_r1.append(0.0)
                     syn_r3.append(0.0)
                     syn_r5.append(0.0)
+                    syn_r10.append(0.0)
                     syn_rr.append(0.0)
-                    syn_ndcg.append(0.0)
+                    syn_ndcg5.append(0.0)
+                    syn_ndcg10.append(0.0)
+                    syn_group_r5[template_id].append(0.0)
                 else:
                     vit_r1.append(0.0)
                     vit_r3.append(0.0)
                     vit_r5.append(0.0)
+                    vit_r10.append(0.0)
                     vit_rr.append(0.0)
-                    vit_ndcg.append(0.0)
+                    vit_ndcg5.append(0.0)
+                    vit_ndcg10.append(0.0)
+                    vit_group_r5[template_id].append(0.0)
             else:
                 abstain_tn += 1
                 retrieved_ids = [c.chunk_id for c in report.chunks]
@@ -393,7 +477,8 @@ def _evaluate_split(
                 if expected_syndrome and any(
                     c.syndrome != expected_syndrome for c in report.chunks
                 ):
-                    wrong_protocol_count += 1
+                    wrong_syndrome_count += 1
+                    legacy_wrong_protocol_count += 1
 
                 # Target relevance grade >= 2 (resolving aliases to content-addressed IDs)
                 grade2_targets = {
@@ -409,29 +494,42 @@ def _evaluate_split(
                 r1_val = 1.0 if (hit_ranks and hit_ranks[0] == 1) else 0.0
                 r3_val = 1.0 if (hit_ranks and hit_ranks[0] <= 3) else 0.0
                 r5_val = 1.0 if (hit_ranks and hit_ranks[0] <= 5) else 0.0
+                r10_val = 1.0 if (hit_ranks and hit_ranks[0] <= 10) else 0.0
                 rr_val = (1.0 / float(hit_ranks[0])) if hit_ranks else 0.0
-                ndcg_val = _compute_ndcg_at_k(
+                ndcg5_val = _compute_ndcg_at_k(
                     retrieved_ids, relevance_grades, k=5, alias_map=alias_map
+                )
+                ndcg10_val = _compute_ndcg_at_k(
+                    retrieved_ids, relevance_grades, k=10, alias_map=alias_map
                 )
 
                 recalls_at_1.append(r1_val)
                 recalls_at_3.append(r3_val)
                 recalls_at_5.append(r5_val)
+                recalls_at_10.append(r10_val)
                 reciprocal_ranks.append(rr_val)
-                ndcgs_at_5.append(ndcg_val)
+                ndcgs_at_5.append(ndcg5_val)
+                ndcgs_at_10.append(ndcg10_val)
+                group_r5[template_id].append(r5_val)
 
                 if has_syndrome:
                     syn_r1.append(r1_val)
                     syn_r3.append(r3_val)
                     syn_r5.append(r5_val)
+                    syn_r10.append(r10_val)
                     syn_rr.append(rr_val)
-                    syn_ndcg.append(ndcg_val)
+                    syn_ndcg5.append(ndcg5_val)
+                    syn_ndcg10.append(ndcg10_val)
+                    syn_group_r5[template_id].append(r5_val)
                 else:
                     vit_r1.append(r1_val)
                     vit_r3.append(r3_val)
                     vit_r5.append(r5_val)
+                    vit_r10.append(r10_val)
                     vit_rr.append(rr_val)
-                    vit_ndcg.append(ndcg_val)
+                    vit_ndcg5.append(ndcg5_val)
+                    vit_ndcg10.append(ndcg10_val)
+                    vit_group_r5[template_id].append(r5_val)
 
                 top_raw = float(report.chunks[0].score) if report.chunks else 0.0
                 confidences.append(normalize_relevance_score(top_raw))
@@ -441,45 +539,93 @@ def _evaluate_split(
     mean_r1 = sum(recalls_at_1) / float(n_pos) if n_pos else 0.0
     mean_r3 = sum(recalls_at_3) / float(n_pos) if n_pos else 0.0
     mean_r5 = sum(recalls_at_5) / float(n_pos) if n_pos else 0.0
+    mean_r10 = sum(recalls_at_10) / float(n_pos) if n_pos else 0.0
     mean_mrr = sum(reciprocal_ranks) / float(n_pos) if n_pos else 0.0
-    mean_ndcg = sum(ndcgs_at_5) / float(n_pos) if n_pos else 0.0
+    mean_ndcg5 = sum(ndcgs_at_5) / float(n_pos) if n_pos else 0.0
+    mean_ndcg10 = sum(ndcgs_at_10) / float(n_pos) if n_pos else 0.0
 
+    total_abstain_cases = abstain_tp + abstain_fn
     abstain_precision = (
-        float(abstain_tp) / float(abstain_tp + abstain_fp) if (abstain_tp + abstain_fp) > 0 else 1.0
+        float(abstain_tp) / float(abstain_tp + abstain_fp)
+        if (abstain_tp + abstain_fp) > 0
+        else 1.0
     )
     abstain_recall = (
-        float(abstain_tp) / float(abstain_tp + abstain_fn) if (abstain_tp + abstain_fn) > 0 else 1.0
+        float(abstain_tp) / float(abstain_tp + abstain_fn)
+        if (abstain_tp + abstain_fn) > 0
+        else 1.0
     )
     abstain_acc = float(abstain_tp + abstain_tn) / float(len(cases)) if cases else 1.0
     hn_recall = float(hard_neg_abstained) / float(hard_neg_total) if hard_neg_total > 0 else 1.0
-    wrong_proto_rate = float(wrong_protocol_count) / float(len(cases)) if cases else 0.0
+
+    # T4.4 Honest metrics
+    false_accept_rate = (
+        float(false_accept_count) / float(total_abstain_cases)
+        if total_abstain_cases > 0
+        else 0.0
+    )
+    positive_retrieved = abstain_tn
+    wrong_syndrome_rate = (
+        float(wrong_syndrome_count) / float(positive_retrieved)
+        if positive_retrieved > 0
+        else 0.0
+    )
+    wrong_proto_rate = (
+        float(legacy_wrong_protocol_count) / float(len(cases)) if cases else 0.0
+    )
+
+    # Per-code breakdown
+    per_code_stats: dict[str, dict[str, Any]] = {}
+    for code in sorted(all_codes):
+        supp = code_support_counts[code]
+        pred = code_pred_counts[code]
+        tp = code_tp_counts[code]
+        p = round(float(tp) / float(pred), 4) if pred > 0 else 1.0
+        r = round(float(tp) / float(supp), 4) if supp > 0 else 1.0
+        per_code_stats[code] = {
+            "support": supp,
+            "predicted": pred,
+            "true_positives": tp,
+            "precision": p,
+            "recall": r,
+        }
 
     sorted_lat = sorted(latencies_ms)
     p50_ms = sorted_lat[len(sorted_lat) // 2] if sorted_lat else 0.0
     p95_ms = (
-        sorted_lat[min(len(sorted_lat) - 1, int(len(sorted_lat) * 0.95))] if sorted_lat else 0.0
+        sorted_lat[min(len(sorted_lat) - 1, int(len(sorted_lat) * 0.95))]
+        if sorted_lat
+        else 0.0
     )
 
     r1_ci = _bootstrap_ci95(recalls_at_1)
     r3_ci = _bootstrap_ci95(recalls_at_3)
     r5_ci = _bootstrap_ci95(recalls_at_5)
+    r10_ci = _bootstrap_ci95(recalls_at_10)
+    grp_r5_ci = _group_bootstrap_ci95(group_r5)
     mrr_ci = _bootstrap_ci95(reciprocal_ranks)
-    ndcg_ci = _bootstrap_ci95(ndcgs_at_5)
+    ndcg5_ci = _bootstrap_ci95(ndcgs_at_5)
+    ndcg10_ci = _bootstrap_ci95(ndcgs_at_10)
 
     return {
         "total_cases": len(cases),
         "positive_cases": n_pos,
-        "abstain_cases": abstain_tp + abstain_fn,
+        "abstain_cases": total_abstain_cases,
         "recall_at_1": round(mean_r1 * 100.0, 2),
         "recall_at_1_ci95": [round(r1_ci[0] * 100.0, 2), round(r1_ci[1] * 100.0, 2)],
         "recall_at_3": round(mean_r3 * 100.0, 2),
         "recall_at_3_ci95": [round(r3_ci[0] * 100.0, 2), round(r3_ci[1] * 100.0, 2)],
         "recall_at_5": round(mean_r5 * 100.0, 2),
         "recall_at_5_ci95": [round(r5_ci[0] * 100.0, 2), round(r5_ci[1] * 100.0, 2)],
+        "recall_at_10": round(mean_r10 * 100.0, 2),
+        "recall_at_10_ci95": [round(r10_ci[0] * 100.0, 2), round(r10_ci[1] * 100.0, 2)],
+        "recall_at_5_group_ci95": [round(grp_r5_ci[0] * 100.0, 2), round(grp_r5_ci[1] * 100.0, 2)],
         "mrr": round(mean_mrr, 4),
         "mrr_ci95": mrr_ci,
-        "ndcg_at_5": round(mean_ndcg, 4),
-        "ndcg_at_5_ci95": ndcg_ci,
+        "ndcg_at_5": round(mean_ndcg5, 4),
+        "ndcg_at_5_ci95": ndcg5_ci,
+        "ndcg_at_10": round(mean_ndcg10, 4),
+        "ndcg_at_10_ci95": ndcg10_ci,
         "abstain_precision": round(abstain_precision, 4),
         "abstain_recall": round(abstain_recall, 4),
         "abstain_accuracy": round(abstain_acc * 100.0, 2),
@@ -487,12 +633,19 @@ def _evaluate_split(
             (float(abstain_code_matches) / float(len(cases))) * 100.0, 2
         ),
         "abstain_recall_hard_negatives": round(hn_recall, 4),
+        "false_accept_rate": round(false_accept_rate, 4),
+        "wrong_syndrome_rate": round(wrong_syndrome_rate, 4),
         "wrong_protocol_rate": round(wrong_proto_rate, 4),
+        "per_code_abstention": per_code_stats,
         "ece": _compute_ece(confidences, correctness),
         "latency_p50_ms": round(p50_ms, 3),
         "latency_p95_ms": round(p95_ms, 3),
-        "syndrome_provided": _summarize_positives(syn_r1, syn_r3, syn_r5, syn_rr, syn_ndcg),
-        "vitals_only": _summarize_positives(vit_r1, vit_r3, vit_r5, vit_rr, vit_ndcg),
+        "syndrome_provided": _summarize_positives(
+            syn_r1, syn_r3, syn_r5, syn_r10, syn_rr, syn_ndcg5, syn_ndcg10, syn_group_r5
+        ),
+        "vitals_only": _summarize_positives(
+            vit_r1, vit_r3, vit_r5, vit_r10, vit_rr, vit_ndcg5, vit_ndcg10, vit_group_r5
+        ),
     }
 
 
@@ -1002,9 +1155,11 @@ def run_retrieval_benchmark(
         and test_metrics["wrong_protocol_rate"] == test_metrics_repeat["wrong_protocol_rate"]
     )
 
-    # Gated safety criteria (ADR-0008 / FG-06)
+    # Gated safety criteria (ADR-0008 / FG-06 / T4.4 / AUB-EVL-01)
     passed = (
-        test_metrics["wrong_protocol_rate"] == 0.0
+        test_metrics["false_accept_rate"] == 0.0
+        and test_metrics["wrong_syndrome_rate"] == 0.0
+        and test_metrics["wrong_protocol_rate"] == 0.0
         and test_metrics["abstain_recall_hard_negatives"] == 1.0
         and test_metrics["syndrome_provided"]["recall_at_5"] >= 95.0
         and deterministic
@@ -1024,10 +1179,16 @@ def run_retrieval_benchmark(
         "recall_at_1": test_metrics["recall_at_1"],
         "recall_at_3": test_metrics["recall_at_3"],
         "recall_at_5": test_metrics["recall_at_5"],
+        "recall_at_10": test_metrics["recall_at_10"],
+        "recall_at_5_group_ci95": test_metrics["recall_at_5_group_ci95"],
         "mrr": test_metrics["mrr"],
         "ndcg_at_5": test_metrics["ndcg_at_5"],
+        "ndcg_at_10": test_metrics["ndcg_at_10"],
         "abstain_accuracy": test_metrics["abstain_accuracy"],
+        "false_accept_rate": test_metrics["false_accept_rate"],
+        "wrong_syndrome_rate": test_metrics["wrong_syndrome_rate"],
         "wrong_protocol_rate": test_metrics["wrong_protocol_rate"],
+        "per_code_abstention": test_metrics["per_code_abstention"],
         "ece": test_metrics["ece"],
         "random_candidate_baseline": run_candidate_pool_random_baseline(),
         "position_prior_baseline": run_position_prior_baseline(),
