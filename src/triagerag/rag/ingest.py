@@ -57,6 +57,7 @@ class CorpusManifest(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     manifest_version: str = "1.0.0"
+    generator_seed: int | None = None
     controlled_syndromes: list[str] = Field(default_factory=list)
     syndrome_aliases: dict[str, str] = Field(default_factory=dict)
     documents: list[CorpusManifestEntry] = Field(default_factory=list)
@@ -232,7 +233,7 @@ def ingest_protocols_with_report(
                         "predicate_review_required": decl.predicate_review_required,
                     }
                 )
-            elif chunk.parent_id is None:
+            else:
                 pred_update["always_applicable"] = True
             if pred_update:
                 chunk = chunk.model_copy(update=pred_update)

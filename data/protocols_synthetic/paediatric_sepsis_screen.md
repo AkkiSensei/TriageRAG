@@ -12,7 +12,7 @@ synthetic: true
 > **DISCLAIMER:** Research prototype. Synthetic protocol text only. Not for clinical use. NO numeric doses.
 
 ## Paediatric Resuscitation & Antimicrobial Guidelines
-1. IF the paediatric patient exhibits physiological fever, severe tachycardia, and poor peripheral perfusion:
+1. IF the paediatric patient exhibits physiological fever, severe tachycardia, tachypnea, and poor peripheral perfusion:
    THEN obtain urgent blood cultures and administer broad-spectrum intravenous ceftriaxone.
 2. IF patient has a documented severe anaphylactic reaction to aminopenicillins:
    THEN withhold amoxicillin and select non-cross-reactive alternatives under specialist guidance.
