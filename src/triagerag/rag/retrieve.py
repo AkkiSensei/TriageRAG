@@ -35,6 +35,12 @@ from triagerag.rag.cues import (
     expand_predicates_to_cues,
     load_retrieval_cues,
 )
+from triagerag.rag.diagnostics import (
+    RetrievalDiagnostics,
+    apply_mmr_rerank,
+    calculate_nearest_misses,
+    explain_chunk_predicates,
+)
 from triagerag.rag.ingest import CorpusManifest, load_corpus_manifest
 from triagerag.rag.node_predicates import (
     NodePredicatesConfig,
@@ -396,13 +402,19 @@ def retrieve_protocol_chunks(
     corpus_hash = getattr(index, "corpus_hash", "")
     index_version = getattr(index, "index_version", "1.0.0")
 
-    if not index.index_by_population:
+    def _make_early_abstain_report(code: AbstainCode, reason_str: str) -> RetrievalReport:
+        diag = RetrievalDiagnostics(
+            inferred_mode=(norm_syndrome is None),
+            mmr_applied=False,
+            abstention_code=code.value if hasattr(code, "value") else str(code),
+            abstention_reason=reason_str,
+        )
         return RetrievalReport(
             chunks=[],
             backend=index.backend,
             abstained=True,
-            abstain_code=AbstainCode.INDEX_UNAVAILABLE,
-            reason="No verified protocol chunks available in empty index",
+            abstain_code=code,
+            reason=reason_str,
             query=search_query,
             filters=filters,
             skipped_flags=skipped_flags,
@@ -411,82 +423,42 @@ def retrieve_protocol_chunks(
             config_hash=cfg.config_hash,
             expansion_mode=expansion_mode,
             expansion_trace=expansion_trace.model_dump(),
+            diagnostics=diag.model_dump(),
+        )
+
+    if not index.index_by_population:
+        return _make_early_abstain_report(
+            AbstainCode.INDEX_UNAVAILABLE,
+            "No verified protocol chunks available in empty index",
         )
 
     pop_available = pop in index.index_by_population
     if not pop_available:
-        return RetrievalReport(
-            chunks=[],
-            backend=index.backend,
-            abstained=True,
-            abstain_code=AbstainCode.NO_POPULATION_COVERAGE,
-            reason=f"No verified protocol chunks available for population '{pop}'",
-            query=search_query,
-            filters=filters,
-            skipped_flags=skipped_flags,
-            corpus_hash=corpus_hash,
-            index_version=index_version,
-            config_hash=cfg.config_hash,
-            expansion_mode=expansion_mode,
-            expansion_trace=expansion_trace.model_dump(),
+        return _make_early_abstain_report(
+            AbstainCode.NO_POPULATION_COVERAGE,
+            f"No verified protocol chunks available for population '{pop}'",
         )
 
     # RAG-01: When suspected_syndrome is provided, validate against controlled vocabulary
     if norm_syndrome is not None:
         known_global = set(manifest.controlled_syndromes) | index.known_syndromes()
         if norm_syndrome not in known_global:
-            return RetrievalReport(
-                chunks=[],
-                backend=index.backend,
-                abstained=True,
-                abstain_code=AbstainCode.UNKNOWN_SYNDROME,
-                reason=(
-                    f"Suspected syndrome '{patient.suspected_syndrome}' is not in controlled "
-                    f"protocol vocabulary (abstained)"
-                ),
-                query=search_query,
-                filters=filters,
-                skipped_flags=skipped_flags,
-                corpus_hash=corpus_hash,
-                index_version=index_version,
-                config_hash=cfg.config_hash,
-                expansion_mode=expansion_mode,
-                expansion_trace=expansion_trace.model_dump(),
+            return _make_early_abstain_report(
+                AbstainCode.UNKNOWN_SYNDROME,
+                f"Suspected syndrome '{patient.suspected_syndrome}' is not in controlled protocol vocabulary (abstained)",
             )
 
         known_in_pop = index.known_syndromes(population=pop)
         if norm_syndrome not in known_in_pop:
-            return RetrievalReport(
-                chunks=[],
-                backend=index.backend,
-                abstained=True,
-                abstain_code=AbstainCode.NO_POPULATION_COVERAGE,
-                reason=(f"No protocol chunks for syndrome '{norm_syndrome}' in population '{pop}'"),
-                query=search_query,
-                filters=filters,
-                skipped_flags=skipped_flags,
-                corpus_hash=corpus_hash,
-                index_version=index_version,
-                config_hash=cfg.config_hash,
-                expansion_mode=expansion_mode,
-                expansion_trace=expansion_trace.model_dump(),
+            return _make_early_abstain_report(
+                AbstainCode.NO_POPULATION_COVERAGE,
+                f"No protocol chunks for syndrome '{norm_syndrome}' in population '{pop}'",
             )
 
     if not query_str:
-        return RetrievalReport(
-            chunks=[],
-            backend=index.backend,
-            abstained=True,
-            abstain_code=AbstainCode.EMPTY_QUERY,
-            reason="Empty clinical query: no suspected syndrome or abnormal vitals flags",
-            query=search_query,
-            filters=filters,
-            skipped_flags=skipped_flags,
-            corpus_hash=corpus_hash,
-            index_version=index_version,
-            config_hash=cfg.config_hash,
-            expansion_mode=expansion_mode,
-            expansion_trace=expansion_trace.model_dump(),
+        return _make_early_abstain_report(
+            AbstainCode.EMPTY_QUERY,
+            "Empty clinical query: no suspected syndrome or abnormal vitals flags",
         )
 
     search_k = eff_top_k if norm_syndrome is not None else eff_top_k * (2 + 2)
@@ -519,7 +491,24 @@ def retrieve_protocol_chunks(
         base_best_score=raw_best_score,
     )
 
+    eff_threshold = threshold if threshold is not None else cfg.calibrated_threshold
+
     if abstained:
+        nearest_misses = calculate_nearest_misses(
+            all_scored_candidates=rescored_chunks,
+            selected_chunk_ids=set(),
+            threshold=eff_threshold,
+            max_misses=5,
+        )
+        diagnostics = RetrievalDiagnostics(
+            inferred_mode=(norm_syndrome is None),
+            mmr_applied=False,
+            nearest_misses=nearest_misses,
+            abstention_code=abstain_code.value
+            if hasattr(abstain_code, "value")
+            else str(abstain_code),
+            abstention_reason=reason,
+        )
         return RetrievalReport(
             chunks=[],
             backend=index.backend,
@@ -535,19 +524,40 @@ def retrieve_protocol_chunks(
             config_hash=cfg.config_hash,
             expansion_mode=expansion_mode,
             expansion_trace=expansion_trace.model_dump(),
+            diagnostics=diagnostics.model_dump(),
         )
 
-    # When syndrome was inferred from vitals, restrict returned chunks to the winning syndrome
+    # When syndrome was inferred from vitals, restrict returned chunks to winning syndrome and apply MMR diversity
+    mmr_applied = False
     if norm_syndrome is None and rescored_chunks:
         winning_syndrome = rescored_chunks[0][0].syndrome
         filters["inferred_syndrome"] = winning_syndrome
-        scored_chunks = [
+        candidate_pool = [
             (chunk, sc) for chunk, sc in rescored_chunks if chunk.syndrome == winning_syndrome
         ]
+        scored_chunks = apply_mmr_rerank(candidate_pool, top_k=eff_top_k, lambda_param=0.7)
+        mmr_applied = True
     else:
-        scored_chunks = rescored_chunks
+        scored_chunks = rescored_chunks[:eff_top_k]
 
-    scored_chunks = scored_chunks[:eff_top_k]
+    selected_ids = {chunk.chunk_id for chunk, _ in scored_chunks}
+    nearest_misses = calculate_nearest_misses(
+        all_scored_candidates=rescored_chunks,
+        selected_chunk_ids=selected_ids,
+        threshold=eff_threshold,
+        max_misses=5,
+    )
+    predicate_eval_details = {
+        chunk.chunk_id: explain_chunk_predicates(chunk, patient_evals) for chunk, _ in scored_chunks
+    }
+    diagnostics = RetrievalDiagnostics(
+        inferred_mode=(norm_syndrome is None),
+        mmr_applied=mmr_applied,
+        nearest_misses=nearest_misses,
+        predicate_evaluations=predicate_eval_details,
+        abstention_code=abstain_code.value if hasattr(abstain_code, "value") else str(abstain_code),
+        abstention_reason=reason,
+    )
 
     retrieved: list[RetrievedChunk] = []
     for chunk, score in scored_chunks:
@@ -586,4 +596,5 @@ def retrieve_protocol_chunks(
         config_hash=cfg.config_hash,
         expansion_mode=expansion_mode,
         expansion_trace=expansion_trace.model_dump(),
+        diagnostics=diagnostics.model_dump(),
     )

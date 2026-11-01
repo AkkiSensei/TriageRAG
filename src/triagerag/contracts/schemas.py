@@ -424,6 +424,7 @@ class RetrievalReport(BaseModel):
     config_hash: str = ""
     expansion_mode: str = "predicate_aware_bm25"
     expansion_trace: dict[str, Any] | None = None
+    diagnostics: dict[str, Any] | None = None
 
 
 class PlanContext(BaseModel):

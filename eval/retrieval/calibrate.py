@@ -32,6 +32,29 @@ from triagerag.rag.service import RetrievalService
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
+class CalibrationDataRefusalError(ValueError):
+    """Raised when isotonic/conformal calibration is requested without verified clinician annotations (AUB HD-12)."""
+
+    pass
+
+
+def fit_isotonic_calibrator(annotations: list[dict[str, Any]] | None = None) -> None:
+    """Refuse to fit isotonic/Platt/conformal calibration models without clinician review (AUB HD-12).
+
+    Safety:
+    Under Rule R3 (No invented clinical facts) and Rule R10 (Measured, not claimed),
+    fitting statistical probability calibration curves on unverified or synthetic-only
+    labels presents an unverified illusion of certainty. This operation is blocked until
+    independent clinician annotations are formally reviewed and loaded.
+    """
+    if not annotations or not any(a.get("verified_clinician_id") for a in annotations):
+        raise CalibrationDataRefusalError(
+            "Calibration Refusal (AUB HD-12): Isotonic and conformal probability calibration "
+            "requires independent verified clinician annotations. Synthetic or unverified labels "
+            "cannot be used to produce calibrated clinical probabilities (Rules R3, R10)."
+        )
+
+
 def _compute_ece(confidences: list[float], correctness: list[int], num_bins: int = 5) -> float:
     """Compute Expected Calibration Error (ECE) over equal-width confidence bins in [0, 1]."""
     if not confidences:
