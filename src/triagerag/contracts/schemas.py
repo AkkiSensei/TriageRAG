@@ -246,10 +246,14 @@ class Patient(BaseModel):
     ]
     allergies: list[AllergyEntry] = Field(default_factory=list)
     medications: list[MedicationEntry] = Field(default_factory=list)
-    renal_impairment: Literal["yes", "no", "unknown"] = "unknown"
-    hepatic_impairment: Literal["yes", "no", "unknown"] = "unknown"
+    renal_impairment: Literal["yes", "no", "unknown", "none", "mild", "moderate", "severe"] = "unknown"
+    hepatic_impairment: Literal["yes", "no", "unknown", "none", "mild", "moderate", "severe"] = "unknown"
     suspected_syndrome: str | None = None
     chief_complaint_untrusted: str = Field(default="", max_length=500)
+    conditions: dict[str, Literal["yes", "no", "unknown"]] = Field(default_factory=dict)
+    labs: dict[str, Measured[Decimal]] = Field(default_factory=dict)
+    gestation_weeks: int | None = None
+    lactating: Literal["yes", "no", "unknown"] = "unknown"
 
     @model_validator(mode="after")
     def validate_patient_constraints(self) -> Patient:
@@ -316,7 +320,11 @@ class PlanStepDraft(BaseModel):
     drug_id: str | None = None
     requested_dose: ExplicitDose | None = None
     route: Route | None = None
-    citations: list[SpanCitation] = Field(min_length=1)
+    citations: list[SpanCitation] = Field(default_factory=list)
+    concentration_mg_per_ml: Decimal | None = None
+    diluent: str | None = None
+    rate_mg_per_min: Decimal | None = None
+    frequency_hours: Decimal | None = None
     relative_time_minutes: int | None = Field(
         default=0,
         ge=0,

@@ -22,9 +22,15 @@ from triagerag.contracts.data_schemas import (
 from triagerag.contracts.rules_schema import (
     AllergyCrossReactivityRule,
     ClassInteractionRule,
+    CoAdministrationRule,
+    ConditionContraindicationRule,
     DuplicationRule,
+    LabInterlockRule,
+    OrganFunctionRule,
     PairRule,
     PopulationRule,
+    RateLimitRule,
+    RouteConcentrationRule,
     VitalsInterlockRule,
 )
 from triagerag.normalize.yaml_loader import load_yaml_decimal
@@ -105,6 +111,12 @@ def validate_all() -> None:
         "vitals_interlock": VitalsInterlockRule,
         "population": PopulationRule,
         "duplication": DuplicationRule,
+        "condition_contraindication": ConditionContraindicationRule,
+        "lab_interlock": LabInterlockRule,
+        "route_concentration": RouteConcentrationRule,
+        "organ_function": OrganFunctionRule,
+        "co_administration": CoAdministrationRule,
+        "rate_limit": RateLimitRule,
     }
 
     if not rules_dir.exists():
