@@ -153,6 +153,26 @@ def validate_all() -> None:
                 errors.append(f"Rule file {rule_file.name} failed: {e}")
         print(f"  [OK] data/rules/ ({total_rules} rules validated)")
 
+    # 5b. Validate rules_candidates/*.yaml
+    cand_dir = data_dir / "rules_candidates"
+    if cand_dir.exists():
+        total_cand = 0
+        for cand_file in cand_dir.glob("*.yaml"):
+            try:
+                data = load_yaml_decimal(cand_file)
+                raw_rules = data.get("rules", [])
+                for r in raw_rules:
+                    rtype = r.get("type")
+                    if rtype not in rule_type_map:
+                        errors.append(f"Unknown candidate rule type '{rtype}' in {cand_file.name}")
+                        continue
+                    rule_model = rule_type_map[rtype]
+                    rule_model.model_validate(r)
+                    total_cand += 1
+            except Exception as e:
+                errors.append(f"Candidate rule file {cand_file.name} failed: {e}")
+        print(f"  [OK] data/rules_candidates/ ({total_cand} candidate rules validated)")
+
     # 6. Validate scoring/*.yaml
     scoring_dir = data_dir / "scoring"
     if not scoring_dir.exists():

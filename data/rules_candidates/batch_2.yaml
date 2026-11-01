@@ -1,0 +1,307 @@
+# TRIAGERAG — CANDIDATE RULE BATCH 2 (Needs Conditions / Labs, Schema V2)
+# Research prototype. Synthetic data only. Not a medical device. Not for clinical use.
+
+rules:
+  - id: "CV-09"
+    type: "condition_contraindication"
+    class_name: "BETA_BLOCKERS"
+    condition: "av_block_second_or_third_degree"
+    prohibited_status: "yes"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Beta-blockers further impair AV nodal conduction in high-degree AV block, precipitating complete heart block and asystole."
+    action: "Absolute contraindication: do not administer beta-blockers in second or third degree AV block without a functioning pacemaker."
+    requires_fields:
+      - "conditions"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CV-10"
+    type: "condition_contraindication"
+    drug_id: "metoprolol"
+    condition: "asthma"
+    prohibited_status: "yes"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Beta-blockers in reactive airway disease trigger severe bronchoconstriction and acute respiratory failure."
+    action: "Avoid beta-blockers in patients with active asthma; select alternative rate-controlling agent."
+    requires_fields:
+      - "conditions"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CV-16"
+    type: "lab_interlock"
+    class_name: "ACE_INHIBITORS"
+    lab_name: "potassium_mmol_l"
+    operator: "gt"
+    threshold_value: 5.5
+    unit: "mmol/L"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "ACE inhibitors in patients with baseline hyperkalemia cause life-threatening cardiac conduction disturbances."
+    action: "Withhold ACE inhibitors until serum potassium is stabilized below 5.5 mmol/L."
+    requires_fields:
+      - "labs.potassium_mmol_l"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CV-18"
+    type: "population"
+    drug_id: "lisinopril"
+    contraindicated_pregnancy: true
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "RAAS inhibitors across second and third trimesters induce oligohydramnios, neonatal renal failure, and fetal death."
+    action: "Absolute contraindication in pregnancy: withhold and initiate pregnancy-safe antihypertensive therapy."
+    requires_fields:
+      - "pregnancy"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "AN-01"
+    type: "condition_contraindication"
+    drug_id: "aspirin"
+    condition: "severe_asthma"
+    prohibited_status: "yes"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Aspirin-exacerbated respiratory disease (AERD) causes acute severe bronchospasm in asthmatic patients."
+    action: "Avoid aspirin and non-selective NSAIDs in patients with severe asthma and nasal polyps."
+    requires_fields:
+      - "conditions"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "AN-02"
+    type: "co_administration"
+    drug_or_class_a: "ceftriaxone"
+    drug_or_class_b: "calcium_gluconate"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Co-administration of ceftriaxone and calcium salts creates insoluble crystalline precipitates in lungs and kidneys."
+    action: "Do not co-administer ceftriaxone and IV calcium products; flush lines thoroughly or use separate sites."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "AN-03"
+    type: "condition_contraindication"
+    class_name: "NSAIDS"
+    condition: "dengue"
+    prohibited_status: "yes"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "NSAIDs in dengue fever inhibit platelet function and increase risk of severe hemorrhagic manifestations."
+    action: "Contraindicated in dengue: use paracetamol exclusively for antipyresis and analgesia."
+    requires_fields:
+      - "conditions"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "AC-06"
+    type: "organ_function"
+    drug_id: "enoxaparin"
+    organ: "renal"
+    egfr_cutoff_ml_min: 30
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Enoxaparin clearance is primarily renal; eGFR < 30 mL/min leads to progressive accumulation and major bleeding."
+    action: "Reduce enoxaparin dose by 50% or substitute unfractionated heparin with anti-Xa/aPTT monitoring."
+    requires_fields:
+      - "labs.egfr_ml_min"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "EN-12"
+    type: "lab_interlock"
+    drug_id: "potassium_chloride"
+    lab_name: "potassium_mmol_l"
+    operator: "gt"
+    threshold_value: 5.0
+    unit: "mmol/L"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Administering potassium supplementation in the presence of hyperkalemia risks fatal ventricular arrhythmias."
+    action: "Withhold potassium supplementation and initiate potassium lowering protocol if indicated."
+    requires_fields:
+      - "labs.potassium_mmol_l"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "ID-19"
+    type: "condition_contraindication"
+    drug_id: "primaquine"
+    condition: "g6pd_deficiency"
+    prohibited_status: "yes"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Primaquine triggers acute oxidative hemolysis in G6PD-deficient erythrocytes."
+    action: "Screen for G6PD deficiency prior to primaquine; do not administer if G6PD deficient."
+    requires_fields:
+      - "conditions"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "VL-05"
+    type: "lab_interlock"
+    class_name: "QT_PROLONGING_AGENTS"
+    lab_name: "qtc_interval_ms"
+    operator: "gt"
+    threshold_value: 500
+    unit: "ms"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Administering QT-prolonging drugs with baseline QTc > 500 ms dramatically escalates torsades de pointes risk."
+    action: "Avoid QT-prolonging agents when QTc > 500 ms; correct electrolytes and review medications."
+    requires_fields:
+      - "labs.qtc_interval_ms"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CV-14"
+    type: "condition_contraindication"
+    drug_id: "adenosine"
+    condition: "asthma"
+    prohibited_status: "yes"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Adenosine stimulates mast cell receptors, provoking profound acute bronchoconstriction in asthmatics."
+    action: "Contraindicated in active asthma: select alternative AV nodal blocker such as verapamil or diltiazem."
+    requires_fields:
+      - "conditions"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CV-19"
+    type: "condition_contraindication"
+    class_name: "ACE_INHIBITORS"
+    condition: "angioedema_history"
+    prohibited_status: "yes"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "ACE inhibitors in patients with prior angioedema trigger recurrent and potentially fatal laryngeal edema."
+    action: "Absolute contraindication: do not administer ACE inhibitors to patients with a history of angioedema."
+    requires_fields:
+      - "conditions"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CNS-16"
+    type: "condition_contraindication"
+    drug_id: "ketamine"
+    condition: "severe_hypertension"
+    prohibited_status: "yes"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Ketamine-induced sympathomimetic surge causes dangerous blood pressure elevations in hypertensive emergencies."
+    action: "Avoid ketamine in severe uncontrolled hypertension; select alternative non-sympathomimetic sedative."
+    requires_fields:
+      - "conditions"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "AN-09"
+    type: "condition_contraindication"
+    class_name: "PENICILLINS"
+    condition: "sjs_ten_history"
+    prohibited_status: "yes"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Prior history of severe cutaneous adverse reactions (SJS/TEN) to beta-lactams is an absolute contraindication to re-exposure."
+    action: "Do not re-challenge with beta-lactam antibiotics; document severe allergy and use unrelated class."
+    requires_fields:
+      - "conditions"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null

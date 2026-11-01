@@ -336,27 +336,64 @@ def _evaluate_single_rule(
         not patient.allergies or rule.target_class not in active_classes
     ):
         return None, None
+    if isinstance(rule, ConditionContraindicationRule):
+        drug_active = (rule.drug_id is not None and rule.drug_id in active_drugs) or (
+            rule.class_name is not None and rule.class_name in active_classes
+        )
+        if not drug_active:
+            return None, None
+    if isinstance(rule, LabInterlockRule):
+        drug_active = (rule.drug_id is not None and rule.drug_id in active_drugs) or (
+            rule.class_name is not None and rule.class_name in active_classes
+        )
+        if not drug_active:
+            return None, None
+    if isinstance(rule, OrganFunctionRule) and rule.drug_id not in active_drugs:
+        return None, None
+    if isinstance(rule, CoAdministrationRule):
+        a_match = rule.drug_or_class_a in active_drugs or rule.drug_or_class_a in active_classes
+        b_match = rule.drug_or_class_b in active_drugs or rule.drug_or_class_b in active_classes
+        if not (a_match and b_match):
+            return None, None
+    if (
+        isinstance(rule, (RouteConcentrationRule, RateLimitRule))
+        and rule.drug_id not in active_drugs
+    ):
+        return None, None
 
     # 3. Check remaining required fields (vitals) for applicable rules
     if rule.requires_fields:
         for req_field in rule.requires_fields:
-            if req_field not in (
-                "medications",
-                "medication_history_status",
-                "allergies",
-                "allergy_history_status",
-                "pregnancy",
-                "age",
+            if (
+                req_field
+                in (
+                    "medications",
+                    "medication_history_status",
+                    "allergies",
+                    "allergy_history_status",
+                    "pregnancy",
+                    "age",
+                    "conditions",
+                    "labs",
+                    "renal",
+                    "hepatic",
+                    "renal_impairment",
+                    "hepatic_impairment",
+                )
+                or req_field.startswith("labs.")
+                or req_field.startswith("conditions.")
+                or req_field.startswith("plan_step.")
             ):
-                val = _extract_patient_vital(patient, req_field)
-                if val is None:
-                    return None, SkippedCheck(
-                        rule_id=rule.id,
-                        rule_type=rule.type,
-                        reason=f"Required vital sign '{req_field}' is unknown or missing",
-                        missing_fields=[req_field],
-                        provenance=rule.provenance,
-                    )
+                continue
+            val = _extract_patient_vital(patient, req_field)
+            if val is None:
+                return None, SkippedCheck(
+                    rule_id=rule.id,
+                    rule_type=rule.type,
+                    reason=f"Required vital sign '{req_field}' is unknown or missing",
+                    missing_fields=[req_field],
+                    provenance=rule.provenance,
+                )
 
     # 4. Check rule status (NEEDS_SOURCE)
     if rule.status == RuleStatus.NEEDS_SOURCE:
@@ -1008,6 +1045,24 @@ def evaluate_plan(
                                 rule_type="route_concentration",
                                 drug_ids=[step.drug_id],
                                 consequence=f"Route '{step.route}' not permitted; allowed routes: {[r.value for r in rule.allowed_routes]}",
+                                action=rule.action,
+                                provenance=rule.provenance,
+                                unverified=not rule.provenance.verified,
+                                step_number=step.step_number,
+                            )
+                        )
+                    if (
+                        rule.prohibited_routes
+                        and step.route
+                        and step.route in rule.prohibited_routes
+                    ):
+                        alerts.append(
+                            Alert(
+                                rule_id=rule.id,
+                                severity=rule.severity,
+                                rule_type="route_concentration",
+                                drug_ids=[step.drug_id],
+                                consequence=f"Route '{step.route}' is strictly prohibited for '{step.drug_id}'",
                                 action=rule.action,
                                 provenance=rule.provenance,
                                 unverified=not rule.provenance.verified,

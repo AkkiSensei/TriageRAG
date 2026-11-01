@@ -149,6 +149,7 @@ class RouteConcentrationRule(BaseRule):
     drug_id: str
     max_concentration_mg_per_ml: Decimal | None = None
     allowed_routes: list[Route] = Field(default_factory=list)
+    prohibited_routes: list[Route] = Field(default_factory=list)
     allowed_diluents: list[str] = Field(default_factory=list)
     requires_central_line: bool = False
 

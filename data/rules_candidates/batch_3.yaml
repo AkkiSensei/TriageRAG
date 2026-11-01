@@ -1,0 +1,215 @@
+# TRIAGERAG — CANDIDATE RULE BATCH 3 (Needs Route / Concentration / Rate, Schema V2)
+# Research prototype. Synthetic data only. Not a medical device. Not for clinical use.
+
+rules:
+  - id: "NE-01"
+    type: "route_concentration"
+    drug_id: "epinephrine"
+    max_concentration_mg_per_ml: 0.1
+    allowed_routes:
+      - "iv"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "IV bolus administration of undiluted 1 mg/mL (1:1,000) epinephrine causes severe tachyarrhythmias, malignant hypertension, and intracranial hemorrhage."
+    action: "Do not give 1 mg/mL epinephrine IV bolus. Dilute to 0.1 mg/mL (1:10,000) or 0.01 mg/mL for intravenous administration."
+    requires_fields:
+      - "plan_step.concentration_mg_per_ml"
+      - "plan_step.route"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "NE-02"
+    type: "route_concentration"
+    drug_id: "epinephrine"
+    max_concentration_mg_per_ml: 1.0
+    allowed_routes:
+      - "im"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "IM epinephrine must be administered using standard 1 mg/mL concentration to prevent excessive injection volume."
+    action: "Use 1 mg/mL (1:1,000) concentration for intramuscular injection in the anterolateral thigh."
+    requires_fields:
+      - "plan_step.route"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "NE-03"
+    type: "route_concentration"
+    drug_id: "potassium_chloride"
+    max_concentration_mg_per_ml: 0.4
+    allowed_routes:
+      - "iv"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Undiluted or concentrated IV potassium administration causes instantaneous cardiac arrest and asystole."
+    action: "Never administer potassium chloride undiluted or as an IV push. Must be diluted in IV infusion fluids."
+    requires_fields:
+      - "plan_step.concentration_mg_per_ml"
+      - "plan_step.route"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CNS-14"
+    type: "rate_limit"
+    drug_id: "phenytoin"
+    max_rate_mg_per_min: 50
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Infusing IV phenytoin faster than 50 mg/min induces severe hypotension, bradycardia, and cardiovascular collapse."
+    action: "Limit IV phenytoin infusion rate to no more than 50 mg/min (and 1 to 3 mg/kg/min in pediatrics) with cardiac monitoring."
+    requires_fields:
+      - "plan_step.rate_mg_per_min"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "ID-10"
+    type: "rate_limit"
+    drug_id: "vancomycin"
+    max_rate_mg_per_min: 10
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Rapid IV vancomycin infusion triggers massive histamine release, profound hypotension, and red man syndrome."
+    action: "Infuse vancomycin at a rate not exceeding 10 mg/min (or over at least 60 minutes, whichever is longer)."
+    requires_fields:
+      - "plan_step.rate_mg_per_min"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "EN-06"
+    type: "route_concentration"
+    drug_id: "insulin"
+    allowed_routes:
+      - "sc"
+      - "iv"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Mismatched insulin concentration (U-40 vs U-100) and syringe calibration causes catastrophic 2.5x overdose or underdose."
+    action: "Verify syringe calibration matches insulin vial concentration (U-40 syringe for U-40 vial, U-100 syringe for U-100 vial)."
+    requires_fields:
+      - "plan_step.route"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "AC-08"
+    type: "route_concentration"
+    drug_id: "heparin"
+    allowed_routes:
+      - "iv"
+      - "sc"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Heparin vial concentration confusion between catheter-flush strengths (10-100 U/mL) and therapeutic strengths (1,000-10,000 U/mL) causes fatal hemorrhage."
+    action: "Double-check vial concentration and total unit dose before administering heparin."
+    requires_fields:
+      - "plan_step.route"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "AN-10"
+    type: "route_concentration"
+    drug_id: "promethazine"
+    allowed_routes:
+      - "oral"
+      - "im"
+      - "iv"
+    prohibited_routes:
+      - "sc"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Subcutaneous or intra-arterial administration of promethazine causes severe chemical irritation, tissue necrosis, and gangrene."
+    action: "Do not administer promethazine subcutaneously or intra-arterially. Deep IM is preferred; if IV, use large-bore vein with free-flowing fluid."
+    requires_fields:
+      - "plan_step.route"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "EN-11"
+    type: "route_concentration"
+    drug_id: "potassium_chloride"
+    prohibited_routes:
+      - "im"
+      - "sc"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Intramuscular or subcutaneous administration of potassium chloride causes severe localized tissue necrosis and sloughing."
+    action: "Administer potassium chloride only by slow intravenous infusion in suitable diluent or orally."
+    requires_fields:
+      - "plan_step.route"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "EN-09"
+    type: "route_concentration"
+    drug_id: "dextrose"
+    max_concentration_mg_per_ml: 100
+    allowed_routes:
+      - "iv"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Dextrose concentrations exceeding 10% (100 mg/mL) in pediatric peripheral IV lines cause severe phlebitis and hyperosmolar tissue injury."
+    action: "Do not exceed 10% dextrose (D10W) via peripheral veins in pediatric resuscitation."
+    requires_fields:
+      - "plan_step.concentration_mg_per_ml"
+      - "plan_step.route"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null

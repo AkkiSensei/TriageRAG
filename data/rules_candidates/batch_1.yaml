@@ -1,0 +1,288 @@
+# TRIAGERAG — CANDIDATE RULE BATCH 1 (Wave 1 / Tier A, No Schema Change)
+# Research prototype. Synthetic data only. Not a medical device. Not for clinical use.
+
+rules:
+  - id: "CV-05"
+    type: "class_interaction"
+    class_a: "ANTIARRHYTHMICS"
+    class_b: "BETA_BLOCKERS"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Concurrent amiodarone and beta-blocker therapy risks severe additive bradycardia and AV nodal blockade."
+    action: "Monitor heart rate and rhythm continuously; consider dose reduction or alternative agent."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CV-12"
+    type: "class_interaction"
+    class_a: "ANTIARRHYTHMICS"
+    class_b: "METHYLXANTHINES"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Methylxanthines competitively antagonize adenosine receptors, blunting adenosine efficacy during SVT conversion."
+    action: "Larger doses of adenosine or an alternative AV nodal blocking agent may be required."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CV-17"
+    type: "class_interaction"
+    class_a: "ACE_INHIBITORS"
+    class_b: "ARBS"
+    severity: "MODERATE"
+    status: "ACTIVE"
+    consequence: "Dual RAAS blockade increases risk of hyperkalemia, syncope, and acute kidney injury without added clinical benefit."
+    action: "Avoid combination of ACE inhibitors and ARBs unless specifically indicated under specialist care."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CNS-01"
+    type: "class_interaction"
+    class_a: "OPIOIDS"
+    class_b: "BENZODIAZEPINES"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Concurrent opioid and benzodiazepine administration causes profound additive respiratory depression, sedation, and coma."
+    action: "Limit concurrent prescribing; ensure immediate availability of reversal agents and continuous SpO2/ETCO2 monitoring."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CNS-04"
+    type: "pair"
+    drug_a: "tramadol"
+    drug_b: "linezolid"
+    severity: "BLOCK"
+    status: "ACTIVE"
+    consequence: "Co-administration of tramadol and linezolid causes severe serotonin syndrome, neuromuscular excitation, and hyperthermia."
+    action: "Do not administer tramadol to patients taking linezolid. Select alternative non-serotonergic analgesia."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CNS-11"
+    type: "duplication"
+    class_name: "QT_PROLONGING_AGENTS"
+    max_concurrent: 1
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Concurrent administration of multiple QT-prolonging agents markedly elevates torsades de pointes and ventricular arrhythmia risk."
+    action: "Avoid stacking multiple QT-prolonging drugs; obtain baseline ECG and serum electrolytes."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "CNS-12"
+    type: "class_interaction"
+    class_a: "QT_PROLONGING_AGENTS"
+    class_b: "ANTIARRHYTHMICS"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Concurrent QT-prolonging drugs with amiodarone dramatically prolongs cardiac repolarization and triggers ventricular dysrhythmias."
+    action: "Monitor QT interval closely and correct hypokalemia/hypomagnesemia."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "AC-01"
+    type: "duplication"
+    class_name: "ANTICOAGULANTS"
+    max_concurrent: 1
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Duplication of systemic anticoagulation therapy causes life-threatening internal hemorrhage."
+    action: "Discontinue overlapping anticoagulant unless transitioning under strict therapeutic protocol."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "AC-02"
+    type: "class_interaction"
+    class_a: "ANTICOAGULANTS"
+    class_b: "NSAIDS"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Concurrent anticoagulant and NSAID therapy compromises gastric mucosal defenses and platelet aggregation, increasing bleeding risk."
+    action: "Avoid NSAIDs in anticoagulated patients; use paracetamol or non-ulcerogenic alternative analgesia."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "EN-01"
+    type: "class_interaction"
+    class_a: "BETA2_AGONISTS"
+    class_b: "BETA_BLOCKERS"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Beta-blockers antagonize beta-2 receptor bronchodilation, provoking severe acute bronchospasm in respiratory patients."
+    action: "Withhold non-cardioselective beta-blockers in patients requiring beta-2 agonist therapy."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "EN-03"
+    type: "pair"
+    drug_a: "theophylline"
+    drug_b: "ciprofloxacin"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Ciprofloxacin inhibits CYP1A2 metabolism of theophylline, precipitating toxic theophylline serum levels, seizures, and arrhythmias."
+    action: "Reduce theophylline dose by 50% and monitor serum levels, or select alternative non-interacting antimicrobial."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "ID-01"
+    type: "pair"
+    drug_a: "ciprofloxacin"
+    drug_b: "calcium_gluconate"
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Multivalent cations chelate ciprofloxacin in the gastrointestinal tract, drastically reducing oral bioavailability."
+    action: "Separate oral fluoroquinolone and multivalent mineral administrations by at least 2 to 4 hours."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "DUP-03"
+    type: "duplication"
+    class_name: "OPIOIDS"
+    max_concurrent: 1
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Concurrent administration of multiple opioids causes unmonitored respiratory depression and severe sedation."
+    action: "Consolidate opioid therapy to a single monitored agent titrated to clinical effect."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "DUP-04"
+    type: "duplication"
+    class_name: "NSAIDS"
+    max_concurrent: 1
+    severity: "HIGH"
+    status: "ACTIVE"
+    consequence: "Concurrent use of multiple systemic NSAIDs compounds nephrotoxicity, ulceration, and platelet inhibition."
+    action: "Avoid concurrent systemic NSAID therapy; discontinue duplicate agent."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  - id: "AN-08"
+    type: "class_interaction"
+    class_a: "SYMPATHOMIMETICS"
+    class_b: "BETA_BLOCKERS"
+    severity: "MODERATE"
+    status: "ACTIVE"
+    consequence: "Beta-blocker presence reduces epinephrine responsiveness in anaphylaxis and may unmask unopposed alpha-adrenergic vasoconstriction."
+    action: "Be prepared to administer glucagon (1 to 5 mg IV) if patient is refractory to epinephrine."
+    requires_fields:
+      - "medications"
+    provenance:
+      source_doc: "TRIAGERAG_CANDIDATE_RULE_CATALOGUE_V1"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
