@@ -263,7 +263,7 @@ def verify_dose(
     ):
         notes += (
             f" [WARNING: Calculated IM volume {calculated_volume_ml:.2f} mL "
-            "exceeds 3.0 mL single-site injection limit]"
+            "exceeds 3.0 mL single-site injection limit (illustrative engineering threshold; status: NEEDS_SOURCE)]"
         )
 
     if patient.weight_kg.source == "estimated":

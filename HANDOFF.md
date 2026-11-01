@@ -196,7 +196,7 @@ The next engineer will execute **AUB Phase 6: Engine, Schema V2 and Rule Expansi
 | **Layer Contracts** | Import-linter | 0 violations | Clean | PASS |
 | **Backend Tests** | Pytest unit, integration, property | 100% | 236 passed, 1 xfailed (HD-6) | PASS |
 | **Safety Boundary Tests** | AST scans & rule checks | 100% | 4/4 passed | PASS |
-| **Golden Ruleset** | Shipped clinical cases & rule-isolation | 100% | 65/65 passed (100% in isolation) | PASS |
+| **Golden Ruleset** | Shipped clinical cases & rule-isolation | 100% | 86/86 passed (100% in isolation) | PASS |
 | **Mechanics Suite** | Edge cases & unit trips | 100% | 41/41 passed | PASS |
 | **Metamorphic Suite** | Equivalence transformations | 100% | 3/3 passed | PASS |
 | **Adversarial Suite** | Prompt injection attacks | 100% | 19/19 passed | PASS |

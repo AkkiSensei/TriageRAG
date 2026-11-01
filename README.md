@@ -145,7 +145,7 @@ The entire system is continuously measured across seven automated verification a
 ======================================================================
   SUITE NAME               SCOPE & OBJECTIVE             RESULT
 ======================================================================
-  Shipped Golden Cases     65/65 Ruleset Cases (isolated)100% PASSED
+  Shipped Golden Cases     86/86 Ruleset Cases (isolated)100% PASSED
   Mechanics Suite          41/41 Edge-Case Patients      100% PASSED
   Metamorphic Invariance   3/3 Equivalence Transforms    100% PASSED
   Adversarial Injection    19/19 Hijacks & Laundering    100% BLOCKED

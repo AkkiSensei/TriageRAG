@@ -40,6 +40,7 @@ from triagerag.contracts.enums import (
 from triagerag.contracts.rules_schema import (
     BaseRule,
     ClinicalRule,
+    CoAdministrationRule,
     ConditionContraindicationRule,
     LabInterlockRule,
     OrganFunctionRule,
@@ -334,3 +335,52 @@ def test_route_concentration_and_rate_limit_rules(base_registry: ClinicalRegistr
     fired_ids = {a.rule_id for a in alerts}
     assert "RULE_POTASSIUM_CONCENTRATION_CAP" in fired_ids
     assert "RULE_PHENYTOIN_RATE_CAP" in fired_ids
+
+
+def test_co_administration_rule_isolation(base_registry: ClinicalRegistry) -> None:
+    """T6.1 / Schema V2: CoAdministrationRule detects concurrent combination and route conflicts."""
+    prov = Provenance(
+        source_doc="TEST_SCHEMA_V2",
+        section_ref="SEC_COADMIN",
+        version_or_date="2026",
+        source_status=SourceStatus.REVIEWED,
+        content_origin=ContentOrigin.SOURCE_EXTRACT,
+        verified=True,
+        reviewer="DR_CLINICIAN",
+    )
+    r_coadmin = CoAdministrationRule(
+        id="RULE_CEFTRIAXONE_CALCIUM_COADMIN",
+        type="co_administration",
+        drug_or_class_a="ceftriaxone",
+        drug_or_class_b="calcium_gluconate",
+        severity=Severity.BLOCK,
+        status=RuleStatus.ACTIVE,
+        consequence="Precipitation of ceftriaxone-calcium salt with risk of organ damage",
+        action="Do not co-administer ceftriaxone and calcium-containing solutions",
+        provenance=prov,
+    )
+    registry = base_registry.with_rules([r_coadmin])
+    patient = _build_test_patient()
+
+    # Step administering ceftriaxone and calcium gluconate concurrently
+    step_cef = PlanStepDraft(
+        step_number=1,
+        action_type=ActionType.administer,
+        drug_id="ceftriaxone",
+        route=Route.iv,
+        narrative_instruction="Administer IV ceftriaxone",
+    )
+    step_calc = PlanStepDraft(
+        step_number=2,
+        action_type=ActionType.administer,
+        drug_id="calcium_gluconate",
+        route=Route.iv,
+        narrative_instruction="Administer IV calcium gluconate",
+    )
+
+    alerts, skips, _ = evaluate_plan(patient, [step_cef, step_calc], [], registry)
+    fired_ids = {a.rule_id for a in alerts}
+    assert "RULE_CEFTRIAXONE_CALCIUM_COADMIN" in fired_ids
+    alert = next(a for a in alerts if a.rule_id == "RULE_CEFTRIAXONE_CALCIUM_COADMIN")
+    assert alert.severity == Severity.BLOCK
+    assert "Precipitation" in alert.consequence
