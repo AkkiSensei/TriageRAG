@@ -7,8 +7,8 @@
 - **Current Status:** AUB Phase 5 (Applicability-Aware Grounding and Qualifier Verification) completed on branch `aub/phase-5-applicability-grounding`. Tasks T5.1 through T5.4 implemented, verified, and documented with ADR-0014 and updated status ledger (`docs/AUB_STATUS.md`).
 - **Target Defect Resolved:** **AUB-GRD-01** (Verifier approves clinically inapplicable protocol nodes because citation check only tested text presence, not patient applicability; "Administer immediately" dropping "repeat" qualifier).
 - **Core Results & Verifications:**
-  - **100% pass rate** on all 21 Phase 5 unit tests across 4 dedicated test modules (`test_aub_phase5_*.py`).
-  - **100% pass rate** across entire test suite.
+  - **100% pass rate** on all 23 Phase 5 unit tests across 4 dedicated test modules (`test_aub_phase5_*.py`).
+  - **100% pass rate** across entire test suite (431 passed, 1 xfailed under HD-6).
   - **0 lint / format errors** (Python ruff check & format).
   - **0 type errors** (Python mypy strict in `src/` & TypeScript `tsc --noEmit`).
   - **0 import isolation contract violations** (import-linter).
@@ -17,18 +17,18 @@
 
 ## AUB Phase 5 Deliverables Summary
 
-1. **T5.1 / AUB-GRD-01 — Patient Applicability Verification (`5f2f73a`):**
+1. **T5.1 / AUB-GRD-01 — Patient Applicability Verification (`5f2f73a`, `78baa6d`):**
    - Authored `src/triagerag/verify/applicability.py`.
    - Evaluates cited protocol node preconditions (`requires_predicates`) and contraindications (`contraindicated_by`) against structured patient data with tri-state outcomes (`MET`, `NOT_MET`, `UNKNOWN`).
-   - Supports both positional IDs and content-addressed IDs via bidirectional alias map.
+   - Supports both positional IDs and content-addressed IDs via bidirectional alias map with LRU caching (`load_node_aliases`, `load_reverse_node_aliases`).
    - Added `StepStatus.NOT_APPLICABLE` to backend enums and web client types.
    - Added `tests/unit/test_aub_phase5_applicability.py` (6 tests).
 
-2. **T5.2 / AUB-GRD-01 — THEN-Clause Qualifier Verification (`8192d9f`):**
+2. **T5.2 / AUB-GRD-01 — THEN-Clause Qualifier Verification (`8192d9f`, `78baa6d`):**
    - Authored `src/triagerag/verify/qualifiers.py`.
-   - Detects conditional, temporal, and discretionary qualifiers ("repeat", "consider", "after", "following", "continue", "withhold", "until") in source THEN clauses.
+   - Detects conditional, temporal, and discretionary qualifiers ("repeat", "consider", "after", "following", "continue", "withhold", "until", "if") in source THEN clauses.
    - Refuses citations where essential qualifiers are dropped with `QUALIFIER_DROPPED: cited node contains '{qualifier}' qualifier ({description}) not present in drafted instruction`.
-   - Added `tests/unit/test_aub_phase5_qualifiers.py` (9 tests).
+   - Added `tests/unit/test_aub_phase5_qualifiers.py` (11 tests).
 
 3. **T5.3 / AUB-GRD-01 — Verdict Lattice Integration & Fail-Closed Safety (`87d5133`):**
    - Wired applicability and qualifier checks into `verify_plan` in `src/triagerag/verify/plan_verifier.py`.
