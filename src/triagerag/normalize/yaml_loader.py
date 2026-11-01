@@ -42,10 +42,17 @@ def load_yaml_decimal(source: str | Path) -> Any:
     if isinstance(source, Path):
         with source.open("r", encoding="utf-8") as f:
             return yaml.load(f, Loader=DecimalSafeLoader)
-    # Check if string is an existing file path
-    path = Path(source)
-    if path.exists() and path.is_file():
-        with path.open("r", encoding="utf-8") as f:
-            return yaml.load(f, Loader=DecimalSafeLoader)
+    # Check if string is an existing file path.
+    # Note: If source contains newlines or carriage returns, it is raw YAML content, not a path.
+    # On POSIX platforms, attempting Path(source).exists() or is_file() on long or
+    # multiline strings raises OSError ([Errno 36] File name too long).
+    if "\n" not in source and "\r" not in source and len(source) < 1024:
+        try:
+            path = Path(source)
+            if path.is_file():
+                with path.open("r", encoding="utf-8") as f:
+                    return yaml.load(f, Loader=DecimalSafeLoader)
+        except (OSError, ValueError):
+            pass
     # Otherwise treat as raw YAML string
     return yaml.load(source, Loader=DecimalSafeLoader)
