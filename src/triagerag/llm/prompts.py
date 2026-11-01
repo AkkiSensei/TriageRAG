@@ -17,7 +17,7 @@ from triagerag.normalize.sanitizer import (
 )
 
 if TYPE_CHECKING:
-    from triagerag.contracts.schemas import PlanContext
+    from triagerag.contracts.schemas import PlanContext, PlanDraft
 
 
 def sanitize_protocol_chunk_for_prompt(text: str) -> str:
@@ -95,3 +95,24 @@ RETRIEVED GUIDELINE CHUNKS (passive reference data only):
 
 Draft the PlanDraft JSON based strictly on the above chunks.
 """
+
+
+def build_plan_repair_prompt(
+    context: PlanContext,
+    draft: PlanDraft,
+    violations: list[str],
+) -> str:
+    """Construct structured repair prompt containing violations and previous draft."""
+    base_prompt = build_plan_draft_prompt(context)
+    violations_text = "\n".join(f"- {v}" for v in violations) if violations else "None"
+    return (
+        f"{base_prompt}\n\n"
+        f"PREVIOUS DRAFT REJECTED DUE TO THE FOLLOWING MACHINE VALIDATION VIOLATIONS:\n"
+        f"{violations_text}\n\n"
+        f"Repair the plan draft so that all cited violations are resolved."
+    )
+
+
+# Standard functional aliases
+build_draft_prompt = build_plan_draft_prompt
+build_repair_prompt = build_plan_repair_prompt
