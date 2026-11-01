@@ -28,13 +28,21 @@ from triagerag.api.routes.protocols import router as protocols_router
 from triagerag.api.routes.registry import router as registry_router
 from triagerag.api.routes.scenarios import router as scenarios_router
 from triagerag.api.routes.triage import router as triage_router
+from triagerag.api.security import (
+    SecurityConfig,
+    SlidingWindowRateLimiter,
+    create_security_middleware,
+)
 
 logger = logging.getLogger("triagerag.api")
 
 DISCLAIMER = "Research prototype. Synthetic data only. Not a medical device. Not for clinical use."
 
 
-def create_app() -> FastAPI:
+def create_app(
+    security_config: SecurityConfig | None = None,
+    rate_limiter: SlidingWindowRateLimiter | None = None,
+) -> FastAPI:
     app = FastAPI(
         title="TriageRAG Clinical Console API",
         description=(
@@ -58,6 +66,10 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
     )
+
+    # Security & Rate Limiting Middleware (AUB T7.5)
+    sec_middleware = create_security_middleware(config=security_config, limiter=rate_limiter)
+    app.middleware("http")(sec_middleware)
 
     # Middleware: Request body size limit (2MB)
     @app.middleware("http")

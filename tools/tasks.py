@@ -369,6 +369,33 @@ def verify_full() -> None:
     typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
 
 
+@app.command("security-audit")
+def security_audit() -> None:
+    """Run dependency vulnerability and security audits (AUB T7.5)."""
+    typer.secho(
+        "=== Running Security and Vulnerability Audits ===", fg=typer.colors.BLUE, bold=True
+    )
+    import shutil
+
+    pip_audit = shutil.which("pip-audit")
+    if pip_audit:
+        typer.secho("--> Running pip-audit on python environment...", fg=typer.colors.CYAN)
+        _run([pip_audit, "--local"], check=False)
+    else:
+        typer.secho(
+            "pip-audit not installed; skipping python dependency audit (optional tool)",
+            fg=typer.colors.YELLOW,
+        )
+
+    npm = shutil.which("npm")
+    web_dir = REPO_ROOT / "web"
+    if npm and (web_dir / "package.json").exists():
+        typer.secho("--> Running npm audit in web/...", fg=typer.colors.CYAN)
+        _run(["npm", "audit", "--audit-level=high"], cwd=web_dir, check=False)
+
+    typer.secho("[OK] Security audit completed", fg=typer.colors.GREEN)
+
+
 @app.command(name="release-preflight")
 def release_preflight() -> None:
     """Release preflight gate: verification, report integrity, dependency lock, security posture."""
@@ -377,6 +404,7 @@ def release_preflight() -> None:
     typer.secho("=" * 60, fg=typer.colors.CYAN, bold=True)
 
     verify_full()
+    security_audit()
 
     typer.secho("=== Checking Dependency Lockfile ===", fg=typer.colors.BLUE, bold=True)
     lock_file = REPO_ROOT / "requirements.lock"
