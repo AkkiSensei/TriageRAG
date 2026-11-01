@@ -38,7 +38,12 @@ from triagerag.contracts.schemas import (
     PlanStepDraft,
     SkippedCheck,
 )
-from triagerag.engine.dose_engine import verify_cumulative_daily_exposure, verify_dose
+from triagerag.engine.dose_engine import (
+    verify_administration_rate,
+    verify_cumulative_daily_exposure,
+    verify_dose,
+    verify_dosing_intervals,
+)
 
 if TYPE_CHECKING:
     from triagerag.contracts.rules_schema import ClinicalRule
@@ -147,11 +152,13 @@ def _is_rule_relevant(
             return any(_drug_has_class(d, rule.target_class) for d in proposed_drugs)
         if isinstance(rule, ConditionContraindicationRule):
             return (rule.drug_id is not None and rule.drug_id in proposed_drugs) or (
-                rule.class_name is not None and any(_drug_has_class(d, rule.class_name) for d in proposed_drugs)
+                rule.class_name is not None
+                and any(_drug_has_class(d, rule.class_name) for d in proposed_drugs)
             )
         if isinstance(rule, LabInterlockRule):
             return (rule.drug_id is not None and rule.drug_id in proposed_drugs) or (
-                rule.class_name is not None and any(_drug_has_class(d, rule.class_name) for d in proposed_drugs)
+                rule.class_name is not None
+                and any(_drug_has_class(d, rule.class_name) for d in proposed_drugs)
             )
         if isinstance(rule, OrganFunctionRule):
             return rule.drug_id in proposed_drugs
@@ -163,7 +170,11 @@ def _is_rule_relevant(
             return (
                 rule.drug_or_class_a in proposed_drugs
                 or rule.drug_or_class_b in proposed_drugs
-                or any(_drug_has_class(d, rule.drug_or_class_a) or _drug_has_class(d, rule.drug_or_class_b) for d in proposed_drugs)
+                or any(
+                    _drug_has_class(d, rule.drug_or_class_a)
+                    or _drug_has_class(d, rule.drug_or_class_b)
+                    for d in proposed_drugs
+                )
             )
         return True
 
@@ -718,15 +729,18 @@ def _evaluate_single_rule(
             thresh = rule.threshold_value
             op = rule.operator
             fired = False
-            if op == "lt" and dec_val < thresh:
-                fired = True
-            elif op == "lte" and dec_val <= thresh:
-                fired = True
-            elif op == "gt" and dec_val > thresh:
-                fired = True
-            elif op == "gte" and dec_val >= thresh:
-                fired = True
-            elif op == "eq" and dec_val == thresh:
+            if (
+                op == "lt"
+                and dec_val < thresh
+                or op == "lte"
+                and dec_val <= thresh
+                or op == "gt"
+                and dec_val > thresh
+                or op == "gte"
+                and dec_val >= thresh
+                or op == "eq"
+                and dec_val == thresh
+            ):
                 fired = True
 
             if fired:
@@ -744,27 +758,28 @@ def _evaluate_single_rule(
     elif isinstance(rule, OrganFunctionRule):
         if rule.drug_id in active_drugs:
             status_val = (
-                patient.renal_impairment
-                if rule.organ == "renal"
-                else patient.hepatic_impairment
+                patient.renal_impairment if rule.organ == "renal" else patient.hepatic_impairment
             )
             stages = {"none": 0, "mild": 1, "moderate": 2, "severe": 3}
             max_stg = stages.get(rule.max_stage_allowed, 1)
 
             if rule.organ == "renal" and rule.egfr_cutoff_ml_min is not None:
                 egfr_entry = patient.labs.get("egfr_ml_min")
-                if egfr_entry and egfr_entry.value is not None:
-                    if egfr_entry.value < rule.egfr_cutoff_ml_min:
-                        return Alert(
-                            rule_id=rule.id,
-                            severity=rule.severity,
-                            rule_type="organ_function",
-                            drug_ids=[rule.drug_id],
-                            consequence=rule.consequence,
-                            action=rule.action,
-                            provenance=rule.provenance,
-                            unverified=not rule.provenance.verified,
-                        ), None
+                if (
+                    egfr_entry
+                    and egfr_entry.value is not None
+                    and egfr_entry.value < rule.egfr_cutoff_ml_min
+                ):
+                    return Alert(
+                        rule_id=rule.id,
+                        severity=rule.severity,
+                        rule_type="organ_function",
+                        drug_ids=[rule.drug_id],
+                        consequence=rule.consequence,
+                        action=rule.action,
+                        provenance=rule.provenance,
+                        unverified=not rule.provenance.verified,
+                    ), None
 
             cur_stg = stages.get(
                 status_val,
@@ -783,6 +798,7 @@ def _evaluate_single_rule(
                 ), None
 
     elif isinstance(rule, CoAdministrationRule):
+
         def _matches_target(drug_or_class: str) -> bool:
             return drug_or_class in active_drugs or drug_or_class in active_classes
 
@@ -869,6 +885,7 @@ def evaluate_plan(
                     requested_dose=step.requested_dose,
                     registry=registry,
                     step_number=step.step_number,
+                    step=step,
                 )
                 dose_reports.append(dose_report)
                 prov = drug.provenance if drug else registry.rules[0].provenance
@@ -959,6 +976,24 @@ def evaluate_plan(
     )
     alerts.extend(cum_alerts)
     skipped_checks.extend(cum_skips)
+
+    # Minimum interval / frequency verification (AUB-ENG-02)
+    interval_alerts, interval_skips = verify_dosing_intervals(
+        patient=patient,
+        steps=steps,
+        registry=registry,
+    )
+    alerts.extend(interval_alerts)
+    skipped_checks.extend(interval_skips)
+
+    # Administration rate verification (AUB-ENG-02)
+    rate_alerts, rate_skips = verify_administration_rate(
+        patient=patient,
+        steps=steps,
+        registry=registry,
+    )
+    alerts.extend(rate_alerts)
+    skipped_checks.extend(rate_skips)
 
     # Schema V2 Step-level rule checks: RouteConcentrationRule & RateLimitRule
     for step in steps:

@@ -12,7 +12,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import TYPE_CHECKING, Literal
 
-from triagerag.contracts.enums import ActionType, DoseUnit, RuleStatus, Severity
+from triagerag.contracts.enums import ActionType, DoseUnit, Route, RuleStatus, Severity
 from triagerag.contracts.schemas import (
     Alert,
     CalculatedDoseReport,
@@ -23,6 +23,7 @@ from triagerag.contracts.schemas import (
 from triagerag.normalize.units import check_magnitude_tripwire, convert_dose
 
 if TYPE_CHECKING:
+    from triagerag.contracts.data_schemas import FormularyDrug
     from triagerag.contracts.schemas import Patient
     from triagerag.engine.registry import ClinicalRegistry
 
@@ -36,12 +37,68 @@ def _get_mass_unit_for_weight_basis(unit: DoseUnit) -> DoseUnit:
     return DoseUnit.mg
 
 
+def calculate_administration_volume(
+    drug: FormularyDrug,
+    dose: ExplicitDose,
+    patient: Patient | None = None,
+    step: PlanStepDraft | None = None,
+) -> Decimal | None:
+    """Calculate liquid volume in mL for administration based on concentration.
+
+    Safety Property (Rule R8):
+    Uses exact Decimal arithmetic.
+    Prefers step-specified concentration; falls back to formulary concentration table.
+    """
+    actual_dose = dose
+    if dose.unit in (DoseUnit.mg_per_kg, DoseUnit.mcg_per_kg):
+        if (
+            patient is None
+            or patient.weight_kg.source == "unknown"
+            or patient.weight_kg.value is None
+        ):
+            return None
+        base_unit = DoseUnit.mg if dose.unit == DoseUnit.mg_per_kg else DoseUnit.mcg
+        actual_dose = ExplicitDose(amount=dose.amount * patient.weight_kg.value, unit=base_unit)
+
+    # 1. Step-level explicit concentration (mg/mL)
+    if step is not None and step.concentration_mg_per_ml is not None:
+        conc = step.concentration_mg_per_ml
+        if conc <= Decimal("0"):
+            return None
+        try:
+            dose_mg = convert_dose(actual_dose, DoseUnit.mg)
+            return dose_mg.amount / conc
+        except ValueError:
+            return None
+
+    # 2. Formulary concentration table
+    if not drug.concentrations:
+        return None
+
+    matching_concs = drug.concentrations
+    if step is not None and step.route is not None:
+        route_concs = [c for c in drug.concentrations if c.route == step.route]
+        if route_concs:
+            matching_concs = route_concs
+
+    selected_conc = matching_concs[0]
+    if selected_conc.amount <= Decimal("0") or selected_conc.volume_ml <= Decimal("0"):
+        return None
+
+    try:
+        dose_in_conc_unit = convert_dose(actual_dose, selected_conc.unit)
+        return (dose_in_conc_unit.amount / selected_conc.amount) * selected_conc.volume_ml
+    except ValueError:
+        return None
+
+
 def verify_dose(
     patient: Patient,
     drug_id: str,
     requested_dose: ExplicitDose,
     registry: ClinicalRegistry,
     step_number: int | None = None,
+    step: PlanStepDraft | None = None,
 ) -> CalculatedDoseReport:
     """Verify a proposed medication dose against formulary population limits and tripwires."""
     drug = registry.get_drug(drug_id)
@@ -94,7 +151,9 @@ def verify_dose(
         target_unit = _get_mass_unit_for_weight_basis(pop_rule.unit)
 
         calc_max_amount = pop_rule.per_dose_max * weight
-        if pop_rule.daily_max is not None and calc_max_amount > pop_rule.daily_max:
+        if pop_rule.max_single_dose is not None and calc_max_amount > pop_rule.max_single_dose:
+            calc_max_amount = pop_rule.max_single_dose
+        elif pop_rule.daily_max is not None and calc_max_amount > pop_rule.daily_max:
             calc_max_amount = pop_rule.daily_max
 
         calc_min_amount = (
@@ -189,6 +248,24 @@ def verify_dose(
         status = "OK"
         notes = "Dose within verified limits"
 
+    calculated_volume_ml = calculate_administration_volume(
+        drug=drug,
+        dose=actual_requested,
+        patient=patient,
+        step=step,
+    )
+
+    if (
+        step is not None
+        and step.route in (Route.im, "im")
+        and calculated_volume_ml is not None
+        and calculated_volume_ml > Decimal("3.0")
+    ):
+        notes += (
+            f" [WARNING: Calculated IM volume {calculated_volume_ml:.2f} mL "
+            "exceeds 3.0 mL single-site injection limit]"
+        )
+
     if patient.weight_kg.source == "estimated":
         notes += " [Patient weight is ESTIMATED]"
 
@@ -197,6 +274,7 @@ def verify_dose(
         requested_dose=requested_dose,
         calculated_ceiling=calculated_ceiling,
         calculated_recommended=calculated_recommended,
+        calculated_volume_ml=calculated_volume_ml,
         magnitude_tripwire_triggered=tripwire,
         status=status,
         notes=notes,
@@ -251,8 +329,16 @@ def verify_cumulative_daily_exposure(
         if patient.weight_kg.source != "unknown" and patient.weight_kg.value is not None:
             patient_weight = patient.weight_kg.value
 
+        target_unit: DoseUnit
         if pop_rule.dose_basis == "weight":
-            if pop_rule.unit in (DoseUnit.mg_per_kg, DoseUnit.mcg_per_kg):
+            # If explicitly specified as an absolute mass unit:
+            if pop_rule.daily_max_unit in (DoseUnit.mg, DoseUnit.g, DoseUnit.mcg):
+                target_unit = pop_rule.daily_max_unit
+                daily_max_amount = pop_rule.daily_max
+            elif pop_rule.unit in (
+                DoseUnit.mg_per_kg,
+                DoseUnit.mcg_per_kg,
+            ) or pop_rule.daily_max_unit in (DoseUnit.mg_per_kg, DoseUnit.mcg_per_kg):
                 if patient_weight is None:
                     skipped_checks.append(
                         SkippedCheck(
@@ -427,6 +513,177 @@ def verify_cumulative_daily_exposure(
                     provenance=pop_rule.provenance,
                     unverified=True,
                     step_number=breach_step_number,
+                )
+            )
+
+    return alerts, skipped_checks
+
+
+def verify_dosing_intervals(
+    patient: Patient,
+    steps: list[PlanStepDraft],
+    registry: ClinicalRegistry,
+) -> tuple[list[Alert], list[SkippedCheck]]:
+    """Verify that proposed administrations obey minimum dosing intervals and frequencies.
+
+    Safety Property (Rule R8, AUB-ENG-02):
+    - Validates step.frequency_hours against formulary min_interval_hours.
+    - Validates lookback to patient.medications within min_interval_hours.
+    - Fails closed if last_dose_time is missing for a recent medication in confirmed list.
+    """
+    alerts: list[Alert] = []
+    skipped_checks: list[SkippedCheck] = []
+    pop_cat = str(patient.age.population_category)
+
+    for step in steps:
+        if step.action_type != ActionType.administer or not step.drug_id:
+            continue
+
+        drug = registry.get_drug(step.drug_id)
+        if drug is None:
+            continue
+
+        pop_rule = drug.population_rules.get(pop_cat)
+        if pop_rule is None or pop_rule.min_interval_hours is None:
+            continue
+
+        min_interval = pop_rule.min_interval_hours
+
+        # 1. Step-level frequency check
+        if step.frequency_hours is not None and step.frequency_hours < min_interval:
+            alerts.append(
+                Alert(
+                    rule_id=f"MIN_INTERVAL_{drug.drug_id.upper()}",
+                    severity=Severity.HIGH,
+                    rule_type="frequency_limit",
+                    drug_ids=[drug.drug_id],
+                    consequence=(
+                        f"Proposed dosing frequency every {step.frequency_hours} hours for "
+                        f"'{drug.drug_id}' violates minimum dosing interval of {min_interval} hours"
+                    ),
+                    action=(
+                        f"Increase dosing interval for '{drug.drug_id}' to at least {min_interval} hours"
+                    ),
+                    provenance=pop_rule.provenance,
+                    unverified=not pop_rule.provenance.verified,
+                    step_number=step.step_number,
+                )
+            )
+
+        # 2. Prior medication history lookback check
+        drug_identifiers = {drug.drug_id.lower()} | {ing.lower() for ing in drug.ingredient_ids}
+        if patient.medication_history_status in ("incomplete", "unknown_unobtainable"):
+            skipped_checks.append(
+                SkippedCheck(
+                    rule_id=f"MIN_INTERVAL_{drug.drug_id.upper()}",
+                    rule_type="frequency_limit",
+                    reason=(
+                        f"Patient prior medication history is '{patient.medication_history_status}'; "
+                        f"minimum dosing interval ({min_interval}h) for '{drug.drug_id}' cannot be confirmed safe"
+                    ),
+                    missing_fields=["medication_history"],
+                    provenance=pop_rule.provenance,
+                )
+            )
+        elif patient.medication_history_status == "confirmed_list":
+            for med in patient.medications:
+                med_matches = med.raw_text.lower() in drug_identifiers or any(
+                    ing.ingredient_id.lower() in drug_identifiers for ing in med.ingredients
+                )
+                if not med_matches:
+                    continue
+
+                if med.last_dose_time is None:
+                    skipped_checks.append(
+                        SkippedCheck(
+                            rule_id=f"MIN_INTERVAL_{drug.drug_id.upper()}",
+                            rule_type="frequency_limit",
+                            reason=(
+                                f"Patient history records medication '{med.raw_text}' but last dose timestamp "
+                                f"is unknown; cannot verify minimum dosing interval of {min_interval} hours"
+                            ),
+                            missing_fields=["last_dose_time"],
+                            provenance=pop_rule.provenance,
+                        )
+                    )
+                else:
+                    delta_seconds = Decimal(
+                        str((patient.assessed_at - med.last_dose_time).total_seconds())
+                    )
+                    elapsed_hours = delta_seconds / Decimal("3600")
+                    if Decimal("0") <= elapsed_hours < min_interval:
+                        alerts.append(
+                            Alert(
+                                rule_id=f"MIN_INTERVAL_{drug.drug_id.upper()}",
+                                severity=Severity.HIGH,
+                                rule_type="frequency_limit",
+                                drug_ids=[drug.drug_id],
+                                consequence=(
+                                    f"Patient received '{med.raw_text}' {elapsed_hours:.1f} hours ago; "
+                                    f"minimum interval between doses of '{drug.drug_id}' is {min_interval} hours"
+                                ),
+                                action=(
+                                    f"Delay administration of '{drug.drug_id}' until at least "
+                                    f"{min_interval} hours post-prior dose"
+                                ),
+                                provenance=pop_rule.provenance,
+                                unverified=not pop_rule.provenance.verified,
+                                step_number=step.step_number,
+                            )
+                        )
+
+    return alerts, skipped_checks
+
+
+def verify_administration_rate(
+    patient: Patient,
+    steps: list[PlanStepDraft],
+    registry: ClinicalRegistry,
+) -> tuple[list[Alert], list[SkippedCheck]]:
+    """Verify that proposed infusion and administration rates obey formulary ceilings.
+
+    Safety Property (Rule R8, AUB-ENG-02):
+    - Validates step.rate_mg_per_min against pop_rule.max_rate_mg_per_min.
+    - If rate exceeds ceiling, emits HIGH alert.
+    """
+    alerts: list[Alert] = []
+    skipped_checks: list[SkippedCheck] = []
+    pop_cat = str(patient.age.population_category)
+
+    for step in steps:
+        if (
+            step.action_type != ActionType.administer
+            or not step.drug_id
+            or step.rate_mg_per_min is None
+        ):
+            continue
+
+        drug = registry.get_drug(step.drug_id)
+        if drug is None:
+            continue
+
+        pop_rule = drug.population_rules.get(pop_cat)
+        if pop_rule is None or pop_rule.max_rate_mg_per_min is None:
+            continue
+
+        max_rate = pop_rule.max_rate_mg_per_min
+        if step.rate_mg_per_min > max_rate:
+            alerts.append(
+                Alert(
+                    rule_id=f"RATE_LIMIT_{drug.drug_id.upper()}",
+                    severity=Severity.HIGH,
+                    rule_type="rate_limit",
+                    drug_ids=[drug.drug_id],
+                    consequence=(
+                        f"Proposed administration rate of {step.rate_mg_per_min} mg/min for "
+                        f"'{drug.drug_id}' exceeds maximum safe rate of {max_rate} mg/min"
+                    ),
+                    action=(
+                        f"Reduce infusion rate of '{drug.drug_id}' to at most {max_rate} mg/min"
+                    ),
+                    provenance=pop_rule.provenance,
+                    unverified=not pop_rule.provenance.verified,
+                    step_number=step.step_number,
                 )
             )
 

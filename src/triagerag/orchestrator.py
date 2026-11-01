@@ -1120,7 +1120,9 @@ def stage_explain(
     ]
 
     total_rules_count = len(registry.rules)
-    verified_rules_count = sum(1 for r in registry.rules if getattr(r.provenance, "verified", False))
+    verified_rules_count = sum(
+        1 for r in registry.rules if getattr(r.provenance, "verified", False)
+    )
     verified_rules_summary = f"verified {verified_rules_count} of {total_rules_count}"
 
     engine_report = EngineReport(

@@ -40,7 +40,6 @@ from triagerag.contracts.enums import (
 from triagerag.contracts.rules_schema import (
     BaseRule,
     ClinicalRule,
-    CoAdministrationRule,
     ConditionContraindicationRule,
     LabInterlockRule,
     OrganFunctionRule,
@@ -49,7 +48,6 @@ from triagerag.contracts.rules_schema import (
 )
 from triagerag.contracts.schemas import (
     Age,
-    ExplicitDose,
     Measured,
     MedicationEntry,
     Patient,

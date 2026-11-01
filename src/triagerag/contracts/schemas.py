@@ -246,8 +246,12 @@ class Patient(BaseModel):
     ]
     allergies: list[AllergyEntry] = Field(default_factory=list)
     medications: list[MedicationEntry] = Field(default_factory=list)
-    renal_impairment: Literal["yes", "no", "unknown", "none", "mild", "moderate", "severe"] = "unknown"
-    hepatic_impairment: Literal["yes", "no", "unknown", "none", "mild", "moderate", "severe"] = "unknown"
+    renal_impairment: Literal["yes", "no", "unknown", "none", "mild", "moderate", "severe"] = (
+        "unknown"
+    )
+    hepatic_impairment: Literal["yes", "no", "unknown", "none", "mild", "moderate", "severe"] = (
+        "unknown"
+    )
     suspected_syndrome: str | None = None
     chief_complaint_untrusted: str = Field(default="", max_length=500)
     conditions: dict[str, Literal["yes", "no", "unknown"]] = Field(default_factory=dict)
@@ -470,6 +474,7 @@ class CalculatedDoseReport(BaseModel):
     requested_dose: ExplicitDose
     calculated_ceiling: ExplicitDose | None = None
     calculated_recommended: ExplicitDose | None = None
+    calculated_volume_ml: Decimal | None = None
     magnitude_tripwire_triggered: bool = False
     status: Literal[
         "OK", "EXCEEDS_CEILING", "BELOW_MINIMUM", "UNVERIFIED_MISSING_CAP", "MAGNITUDE_WARNING"

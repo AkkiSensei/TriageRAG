@@ -276,4 +276,3 @@ def test_alias_cache_isolation_across_directories(tmp_path) -> None:
     rev_b = load_reverse_node_aliases(dir_b)
     assert rev_a == {"CANON_A": "ALIAS_A"}
     assert rev_b == {"CANON_B": "ALIAS_B"}
-

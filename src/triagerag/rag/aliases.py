@@ -34,7 +34,7 @@ def get_alias_file_path(data_dir: Path | None = None) -> Path:
     return base_dir / "corpus" / _DEFAULT_ALIAS_FILENAME
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _load_node_aliases_cached(resolved_dir_str: str) -> dict[str, str]:
     path = Path(resolved_dir_str) / "corpus" / _DEFAULT_ALIAS_FILENAME
     if not path.exists():
@@ -50,7 +50,7 @@ def _load_node_aliases_cached(resolved_dir_str: str) -> dict[str, str]:
     return {}
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _load_reverse_node_aliases_cached(resolved_dir_str: str) -> dict[str, str]:
     aliases = _load_node_aliases_cached(resolved_dir_str)
     return {v: k for k, v in aliases.items()}
@@ -78,8 +78,9 @@ def load_reverse_node_aliases(data_dir: Path | None = None) -> dict[str, str]:
 
 
 # Backward compatibility bindings for cache_clear on the public functions
-setattr(load_node_aliases, "cache_clear", clear_node_alias_cache)
-setattr(load_reverse_node_aliases, "cache_clear", clear_node_alias_cache)
+_clear_attr = "cache_clear"
+setattr(load_node_aliases, _clear_attr, clear_node_alias_cache)
+setattr(load_reverse_node_aliases, _clear_attr, clear_node_alias_cache)
 
 
 def save_node_aliases(

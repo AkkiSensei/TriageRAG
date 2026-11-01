@@ -29,7 +29,6 @@ from triagerag.contracts.enums import (
 from triagerag.contracts.rules_schema import PairRule
 from triagerag.contracts.schemas import (
     Age,
-    EngineReport,
     Measured,
     MedicationEntry,
     OrchestratorConfig,
@@ -37,7 +36,7 @@ from triagerag.contracts.schemas import (
     Provenance,
     Vitals,
 )
-from triagerag.engine.registry import ClinicalRegistry, load_registry
+from triagerag.engine.registry import load_registry
 from triagerag.llm.fake import FakeLLM, FakeLLMProfile
 from triagerag.orchestrator import run_triage
 from triagerag.rag.index import BM25ClinicalIndex
@@ -85,18 +84,27 @@ def test_engine_report_contains_verified_summary(clinical_index: BM25ClinicalInd
     llm = FakeLLM(FakeLLMProfile.COMPLIANT)
 
     cfg_demo = OrchestratorConfig(trust_mode=TrustMode.DEMO)
-    res_demo = run_triage(patient, registry=registry, llm=llm, index=clinical_index, config=cfg_demo)
+    res_demo = run_triage(
+        patient, registry=registry, llm=llm, index=clinical_index, config=cfg_demo
+    )
 
     assert hasattr(res_demo.engine, "trust_mode")
     assert res_demo.engine.trust_mode == TrustMode.DEMO
     assert hasattr(res_demo.engine, "verified_rules_count")
     assert hasattr(res_demo.engine, "total_rules_count")
     assert res_demo.engine.total_rules_count == len(registry.rules)
-    assert res_demo.engine.verified_rules_count == sum(1 for r in registry.rules if r.provenance.verified)
-    assert f"verified {res_demo.engine.verified_rules_count} of {res_demo.engine.total_rules_count}" in res_demo.engine.verified_rules_summary
+    assert res_demo.engine.verified_rules_count == sum(
+        1 for r in registry.rules if r.provenance.verified
+    )
+    assert (
+        f"verified {res_demo.engine.verified_rules_count} of {res_demo.engine.total_rules_count}"
+        in res_demo.engine.verified_rules_summary
+    )
 
 
-def test_demo_mode_allows_checked_clear_with_unverified_rules(clinical_index: BM25ClinicalIndex) -> None:
+def test_demo_mode_allows_checked_clear_with_unverified_rules(
+    clinical_index: BM25ClinicalIndex,
+) -> None:
     registry = load_registry()
     patient = _build_test_patient()
     llm = FakeLLM(FakeLLMProfile.COMPLIANT)
@@ -109,7 +117,9 @@ def test_demo_mode_allows_checked_clear_with_unverified_rules(clinical_index: BM
     assert res.engine.trust_mode == TrustMode.DEMO
 
 
-def test_strict_mode_fails_closed_to_unverified_when_rules_unverified(clinical_index: BM25ClinicalIndex) -> None:
+def test_strict_mode_fails_closed_to_unverified_when_rules_unverified(
+    clinical_index: BM25ClinicalIndex,
+) -> None:
     registry = load_registry()
     patient = _build_test_patient()
     llm = FakeLLM(FakeLLMProfile.COMPLIANT)
@@ -194,4 +204,3 @@ def test_strict_mode_preserves_block_alert(clinical_index: BM25ClinicalIndex) ->
     assert res.engine.trust_mode == TrustMode.STRICT
     assert res.engine.verdict == Verdict.BLOCKED
     assert any(a.severity == Severity.BLOCK for a in res.engine.baseline_alerts)
-

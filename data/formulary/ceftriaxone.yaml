@@ -31,6 +31,7 @@ population_rules:
     per_dose_min: 50
     per_dose_max: 80
     daily_max: 2000
+    daily_max_unit: "mg"
     unit: "mg/kg"
     status: "ACTIVE"
     provenance:

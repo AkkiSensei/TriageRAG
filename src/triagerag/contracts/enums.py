@@ -51,7 +51,6 @@ class TrustMode(StrEnum):
     DEMO = "demo"
 
 
-
 class Severity(StrEnum):
     """Clinical severity levels for safety alerts."""
 
