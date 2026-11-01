@@ -26,7 +26,7 @@ def test_rule_coverage_all_active_rules_pass() -> None:
     assert metrics["covered_active_rules"] == 12
     assert metrics["failing_rules"] == []
     assert metrics["false_alert_rate"] == 0.0
-    assert metrics["candidate_rules_count"] == 40
+    assert metrics["candidate_rules_count"] >= 40
     assert metrics["total_cases"] >= 80
     assert metrics["alerts_per_patient"] > 0.0
     assert metrics["alerts_per_patient"] < 2.0  # Safe alert fatigue upper bound

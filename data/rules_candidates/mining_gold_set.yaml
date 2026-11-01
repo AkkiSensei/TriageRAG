@@ -1,0 +1,257 @@
+# TRIAGERAG — 30-RULE CANDIDATE MINING GOLD SET (AUB T6.6, §15)
+# Research prototype. Synthetic data only. Not a medical device. Not for clinical use.
+# Reference benchmark for evaluating rule mining precision and recall against regulatory SPL evidence.
+
+gold_rules:
+  # 1-9: Cardiovascular
+  - id: "GOLD_CV_01"
+    target_rule_id: "CV-01"
+    type: "class_interaction"
+    class_a: "PDE5_INHIBITORS"
+    class_b: "ORGANIC_NITRATES"
+    expected_severity: "BLOCK"
+    description: "Concomitant PDE5 inhibitor and organic nitrate causes catastrophic refractory hypotension."
+
+  - id: "GOLD_CV_03"
+    target_rule_id: "CV-03"
+    type: "route_concentration"
+    drug_id: "verapamil"
+    prohibited_routes: ["iv"]
+    expected_severity: "BLOCK"
+    description: "IV verapamil in combination with IV beta-blockers precipitates complete heart block."
+
+  - id: "GOLD_CV_09"
+    target_rule_id: "CV-09"
+    type: "condition_contraindication"
+    class_name: "BETA_BLOCKERS"
+    condition: "av_block_second_or_third_degree"
+    expected_severity: "BLOCK"
+    description: "Beta-blockers contraindicated in 2nd/3rd degree AV block."
+
+  - id: "GOLD_CV_10"
+    target_rule_id: "CV-10"
+    type: "condition_contraindication"
+    drug_id: "metoprolol"
+    condition: "asthma"
+    expected_severity: "HIGH"
+    description: "Beta-blockers in active asthma risk bronchoconstriction."
+
+  - id: "GOLD_CV_14"
+    target_rule_id: "CV-14"
+    type: "condition_contraindication"
+    drug_id: "adenosine"
+    condition: "asthma"
+    expected_severity: "BLOCK"
+    description: "Adenosine contraindicated in reactive airway disease and severe asthma."
+
+  - id: "GOLD_CV_16"
+    target_rule_id: "CV-16"
+    type: "lab_interlock"
+    class_name: "ACE_INHIBITORS"
+    lab_name: "potassium_mmol_l"
+    operator: "gt"
+    threshold_value: 5.5
+    expected_severity: "HIGH"
+    description: "ACE inhibitors withheld in severe baseline hyperkalemia (K > 5.5 mmol/L)."
+
+  - id: "GOLD_CV_17"
+    target_rule_id: "CV-17"
+    type: "pair"
+    drug_a: "amiodarone"
+    drug_b: "digoxin"
+    expected_severity: "HIGH"
+    description: "Amiodarone substantially increases digoxin serum concentrations risking digitalis toxicity."
+
+  - id: "GOLD_CV_18"
+    target_rule_id: "CV-18"
+    type: "lab_interlock"
+    drug_id: "lisinopril"
+    lab_name: "egfr_ml_min"
+    operator: "lt"
+    threshold_value: 30.0
+    expected_severity: "HIGH"
+    description: "Lisinopril contraindicated in severe acute renal impairment (eGFR < 30 mL/min)."
+
+  - id: "GOLD_CV_19"
+    target_rule_id: "CV-19"
+    type: "condition_contraindication"
+    drug_id: "metoprolol"
+    condition: "cardiogenic_shock"
+    expected_severity: "BLOCK"
+    description: "Metoprolol absolute contraindication in cardiogenic shock and overt cardiac failure."
+
+  # 10-15: CNS & Analgesia
+  - id: "GOLD_CNS_01"
+    target_rule_id: "CNS-01"
+    type: "class_interaction"
+    class_a: "BENZODIAZEPINES"
+    class_b: "OPIOIDS"
+    expected_severity: "BLOCK"
+    description: "Concurrent benzodiazepine and opioid administration causes profound sedation and respiratory depression."
+
+  - id: "GOLD_CNS_04"
+    target_rule_id: "CNS-04"
+    type: "class_interaction"
+    class_a: "SEROTONERGIC_AGENTS"
+    class_b: "SEROTONERGIC_AGENTS"
+    expected_severity: "HIGH"
+    description: "Co-administration of multiple serotonergic agents precipitates life-threatening serotonin toxicity."
+
+  - id: "GOLD_CNS_11"
+    target_rule_id: "CNS-11"
+    type: "pair"
+    drug_a: "tramadol"
+    drug_b: "ondansetron"
+    expected_severity: "HIGH"
+    description: "Tramadol combined with ondansetron escalates serotonin syndrome and reduces tramadol analgesia."
+
+  - id: "GOLD_CNS_12"
+    target_rule_id: "CNS-12"
+    type: "pair"
+    drug_a: "morphine"
+    drug_b: "diazepam"
+    expected_severity: "BLOCK"
+    description: "Morphine plus diazepam produces severe respiratory collapse and profound hypotension."
+
+  - id: "GOLD_CNS_14"
+    target_rule_id: "CNS-14"
+    type: "rate_limit"
+    drug_id: "phenytoin"
+    max_rate_mg_per_min: 50.0
+    expected_severity: "BLOCK"
+    description: "IV phenytoin infusion rate exceeding 50 mg/min precipitates cardiovascular collapse and arrhythmias."
+
+  - id: "GOLD_CNS_16"
+    target_rule_id: "CNS-16"
+    type: "condition_contraindication"
+    drug_id: "morphine"
+    condition: "acute_respiratory_depression"
+    expected_severity: "BLOCK"
+    description: "Morphine contraindicated in significant respiratory depression without resuscitative equipment."
+
+  # 16-18: Antimicrobial & Infectious
+  - id: "GOLD_ID_01"
+    target_rule_id: "ID-01"
+    type: "pair"
+    drug_a: "ciprofloxacin"
+    drug_b: "theophylline"
+    expected_severity: "HIGH"
+    description: "Ciprofloxacin potently inhibits theophylline metabolism producing methylxanthine toxicity."
+
+  - id: "GOLD_ID_10"
+    target_rule_id: "ID-10"
+    type: "rate_limit"
+    drug_id: "vancomycin"
+    max_rate_mg_per_min: 10.0
+    expected_severity: "HIGH"
+    description: "Rapid vancomycin infusion (< 60 min or > 10 mg/min) triggers histamine-mediated Red Man syndrome."
+
+  - id: "GOLD_ID_19"
+    target_rule_id: "ID-19"
+    type: "condition_contraindication"
+    drug_id: "primaquine"
+    condition: "g6pd_deficiency"
+    expected_severity: "BLOCK"
+    description: "Primaquine in G6PD deficiency triggers massive acute intravascular hemolysis."
+
+  # 19-22: Anticoagulation & Hemostasis
+  - id: "GOLD_AC_01"
+    target_rule_id: "AC-01"
+    type: "class_interaction"
+    class_a: "ANTICOAGULANTS"
+    class_b: "ANTIPLATELETS"
+    expected_severity: "HIGH"
+    description: "Combining anticoagulants with antiplatelets substantially increases major bleeding risk."
+
+  - id: "GOLD_AC_02"
+    target_rule_id: "AC-02"
+    type: "class_interaction"
+    class_a: "ANTICOAGULANTS"
+    class_b: "NSAIDS"
+    expected_severity: "HIGH"
+    description: "Concurrent anticoagulants and NSAIDs produces compounding gastrointestinal ulceration and hemorrhage."
+
+  - id: "GOLD_AC_06"
+    target_rule_id: "AC-06"
+    type: "condition_contraindication"
+    drug_id: "warfarin"
+    condition: "active_pathological_bleeding"
+    expected_severity: "BLOCK"
+    description: "Warfarin contraindicated in active clinical bleeding or hemorrhagic blood dyscrasias."
+
+  - id: "GOLD_AC_08"
+    target_rule_id: "AC-08"
+    type: "route_concentration"
+    drug_id: "heparin"
+    prohibited_routes: ["im"]
+    expected_severity: "BLOCK"
+    description: "Intramuscular heparin is strictly contraindicated due to catastrophic hematoma risk."
+
+  # 23-28: Endocrine & Metabolic
+  - id: "GOLD_EN_01"
+    target_rule_id: "EN-01"
+    type: "pair"
+    drug_a: "metformin"
+    drug_b: "contrast_media"
+    expected_severity: "HIGH"
+    description: "Iodinated contrast in metformin therapy risks acute renal failure and lactic acidosis."
+
+  - id: "GOLD_EN_03"
+    target_rule_id: "EN-03"
+    type: "class_interaction"
+    class_a: "SULFONYLUREAS"
+    class_b: "FLUOROQUINOLONES"
+    expected_severity: "HIGH"
+    description: "Fluoroquinolones combined with sulfonylureas trigger severe refractory hypoglycemia."
+
+  - id: "GOLD_EN_06"
+    target_rule_id: "EN-06"
+    type: "rate_limit"
+    drug_id: "potassium_chloride"
+    max_rate_mg_per_min: 20.0
+    expected_severity: "BLOCK"
+    description: "IV potassium chloride infusion rate must not exceed 20 mEq/h to prevent fatal hyperkalemic asystole."
+
+  - id: "GOLD_EN_09"
+    target_rule_id: "EN-09"
+    type: "route_concentration"
+    drug_id: "dextrose"
+    max_concentration_mg_per_ml: 500.0
+    expected_severity: "HIGH"
+    description: "Hypertonic dextrose (D50W) requires central or large vein access with strict infusion control."
+
+  - id: "GOLD_EN_11"
+    target_rule_id: "EN-11"
+    type: "route_concentration"
+    drug_id: "promethazine"
+    max_concentration_mg_per_ml: 25.0
+    expected_severity: "BLOCK"
+    description: "IV promethazine concentration must not exceed 25 mg/mL to prevent gangrene and tissue necrosis."
+
+  - id: "GOLD_EN_12"
+    target_rule_id: "EN-12"
+    type: "lab_interlock"
+    drug_id: "metformin"
+    lab_name: "egfr_ml_min"
+    operator: "lt"
+    threshold_value: 30.0
+    expected_severity: "BLOCK"
+    description: "Metformin absolute contraindication in severe renal impairment (eGFR < 30 mL/min)."
+
+  # 29-30: Allergy & Respiratory
+  - id: "GOLD_AN_01"
+    target_rule_id: "AN-01"
+    type: "condition_contraindication"
+    drug_id: "epinephrine"
+    condition: "anaphylaxis"
+    prohibited_status: "no"
+    expected_severity: "BLOCK"
+    description: "Withholding IM epinephrine in true anaphylaxis precipitates fatal cardiovascular collapse."
+
+  - id: "GOLD_AN_08"
+    target_rule_id: "AN-08"
+    type: "duplication"
+    class_name: "ANALGESICS"
+    max_concurrent: 1
+    expected_severity: "HIGH"
+    description: "Concurrent administration of duplicate paracetamol formulations risks acute hepatotoxicity."

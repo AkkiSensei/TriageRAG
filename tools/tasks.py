@@ -100,6 +100,15 @@ def rule_coverage() -> None:
     _run([sys.executable, "tools/rule_coverage.py"])
 
 
+@app.command("mine-rules")
+def mine_rules() -> None:
+    """Run evidence-grounded rule mining pipeline (T6.6)."""
+    typer.secho(
+        "=== Running Evidence-Grounded Candidate Rule Mining ===", fg=typer.colors.BLUE, bold=True
+    )
+    _run([sys.executable, "tools/mine_rules.py"])
+
+
 @app.command("validate-data")
 def validate_data() -> None:
     """Validate all clinical data schemas."""
