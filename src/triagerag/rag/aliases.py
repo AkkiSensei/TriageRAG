@@ -34,13 +34,9 @@ def get_alias_file_path(data_dir: Path | None = None) -> Path:
     return base_dir / "corpus" / _DEFAULT_ALIAS_FILENAME
 
 
-@functools.lru_cache(maxsize=8)
-def load_node_aliases(data_dir: Path | None = None) -> dict[str, str]:
-    """Load legacy positional ID to content-addressed ID alias map.
-
-    Returns dict mapping legacy_id (e.g. 'CHEST_PAIN_01_NODE_1') -> content_id (e.g. 'CHEST_PAIN_01_7e3a9c12').
-    """
-    path = get_alias_file_path(data_dir)
+@functools.lru_cache(maxsize=16)
+def _load_node_aliases_cached(resolved_dir_str: str) -> dict[str, str]:
+    path = Path(resolved_dir_str) / "corpus" / _DEFAULT_ALIAS_FILENAME
     if not path.exists():
         return {}
 
@@ -54,11 +50,36 @@ def load_node_aliases(data_dir: Path | None = None) -> dict[str, str]:
     return {}
 
 
-@functools.lru_cache(maxsize=8)
+@functools.lru_cache(maxsize=16)
+def _load_reverse_node_aliases_cached(resolved_dir_str: str) -> dict[str, str]:
+    aliases = _load_node_aliases_cached(resolved_dir_str)
+    return {v: k for k, v in aliases.items()}
+
+
+def clear_node_alias_cache() -> None:
+    """Clear in-memory LRU caches for node aliases."""
+    _load_node_aliases_cached.cache_clear()
+    _load_reverse_node_aliases_cached.cache_clear()
+
+
+def load_node_aliases(data_dir: Path | None = None) -> dict[str, str]:
+    """Load legacy positional ID to content-addressed ID alias map.
+
+    Returns dict mapping legacy_id (e.g. 'CHEST_PAIN_01_NODE_1') -> content_id (e.g. 'CHEST_PAIN_01_7e3a9c12').
+    """
+    base_dir = (data_dir or get_data_dir()).resolve()
+    return _load_node_aliases_cached(str(base_dir))
+
+
 def load_reverse_node_aliases(data_dir: Path | None = None) -> dict[str, str]:
     """Load content-addressed ID to legacy positional ID reverse alias map."""
-    aliases = load_node_aliases(data_dir)
-    return {v: k for k, v in aliases.items()}
+    base_dir = (data_dir or get_data_dir()).resolve()
+    return _load_reverse_node_aliases_cached(str(base_dir))
+
+
+# Backward compatibility bindings for cache_clear on the public functions
+load_node_aliases.cache_clear = clear_node_alias_cache  # type: ignore[attr-defined]
+load_reverse_node_aliases.cache_clear = clear_node_alias_cache  # type: ignore[attr-defined]
 
 
 def save_node_aliases(
@@ -85,8 +106,7 @@ def save_node_aliases(
 
     yaml_text = yaml.dump(payload, sort_keys=False, default_flow_style=False)
     path.write_text(yaml_text, encoding="utf-8")
-    load_node_aliases.cache_clear()
-    load_reverse_node_aliases.cache_clear()
+    clear_node_alias_cache()
     return path
 
 

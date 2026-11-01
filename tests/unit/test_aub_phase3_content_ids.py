@@ -13,7 +13,12 @@ from __future__ import annotations
 
 from triagerag.config import get_data_dir
 from triagerag.contracts.schemas import SpanCitation
-from triagerag.rag.aliases import load_node_aliases, resolve_chunk_id
+from triagerag.rag.aliases import (
+    clear_node_alias_cache,
+    load_node_aliases,
+    load_reverse_node_aliases,
+    resolve_chunk_id,
+)
 from triagerag.rag.chunking import (
     canonicalize_node_text,
     chunk_protocol_markdown,
@@ -238,3 +243,37 @@ def test_citation_verification_succeeds_with_content_id_or_legacy_alias() -> Non
             quoted_span,
         )
         assert ok_legacy is True
+
+
+def test_alias_cache_isolation_across_directories(tmp_path) -> None:
+    """Cache isolation test: distinct directories return their own alias maps without cache leakage."""
+    dir_a = tmp_path / "data_a"
+    corpus_a = dir_a / "corpus"
+    corpus_a.mkdir(parents=True)
+    (corpus_a / "node_aliases.yaml").write_text(
+        "aliases:\n  ALIAS_A: CANON_A\n",
+        encoding="utf-8",
+    )
+
+    dir_b = tmp_path / "data_b"
+    corpus_b = dir_b / "corpus"
+    corpus_b.mkdir(parents=True)
+    (corpus_b / "node_aliases.yaml").write_text(
+        "aliases:\n  ALIAS_B: CANON_B\n",
+        encoding="utf-8",
+    )
+
+    clear_node_alias_cache()
+    aliases_a = load_node_aliases(dir_a)
+    aliases_b = load_node_aliases(dir_b)
+
+    assert aliases_a == {"ALIAS_A": "CANON_A"}
+    assert aliases_b == {"ALIAS_B": "CANON_B"}
+    assert resolve_chunk_id("ALIAS_A", aliases_a) == "CANON_A"
+    assert resolve_chunk_id("ALIAS_A", aliases_b) == "ALIAS_A"
+
+    rev_a = load_reverse_node_aliases(dir_a)
+    rev_b = load_reverse_node_aliases(dir_b)
+    assert rev_a == {"CANON_A": "ALIAS_A"}
+    assert rev_b == {"CANON_B": "ALIAS_B"}
+
