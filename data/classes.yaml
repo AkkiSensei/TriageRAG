@@ -50,6 +50,223 @@ ingredient_to_classes:
   dextrose:
     - CARBOHYDRATES
 
+  # Wave 1 additions (A §11):
+  aspirin:
+    - ANTIPLATELETS
+    - NSAIDS
+  clopidogrel:
+    - ANTIPLATELETS
+  morphine:
+    - OPIOIDS
+    - CNS_DEPRESSANTS
+  fentanyl:
+    - OPIOIDS
+    - CNS_DEPRESSANTS
+  ondansetron:
+    - SEROTONERGIC_AGENTS
+    - QT_PROLONGING_AGENTS
+  hydrocortisone:
+    - CORTICOSTEROIDS
+  dexamethasone:
+    - CORTICOSTEROIDS
+  naloxone:
+    - OPIOID_ANTAGONISTS
+  paracetamol:
+    - ANALGESICS
+    - ANTIPYRETICS
+  ibuprofen:
+    - NSAIDS
+    - NEPHROTOXIC_AGENTS
+  diazepam:
+    - BENZODIAZEPINES
+    - CNS_DEPRESSANTS
+  midazolam:
+    - BENZODIAZEPINES
+    - CNS_DEPRESSANTS
+  insulin:
+    - ANTIDIABETIC_AGENTS
+  potassium_chloride:
+    - CONCENTRATED_ELECTROLYTES
+  magnesium_sulfate:
+    - CONCENTRATED_ELECTROLYTES
+  calcium_gluconate:
+    - CONCENTRATED_ELECTROLYTES
+  normal_saline:
+    - IV_CRYSTALLOIDS
+  ringers_lactate:
+    - IV_CRYSTALLOIDS
+  oxygen:
+    - MEDICAL_GASES
+  amiodarone:
+    - ANTIARRHYTHMICS
+    - QT_PROLONGING_AGENTS
+  adenosine:
+    - ANTIARRHYTHMICS
+  atropine:
+    - ANTICHOLINERGICS
+  furosemide:
+    - LOOP_DIURETICS
+  aminophylline:
+    - METHYLXANTHINES
+
+  # Wave 2 additions (A §11):
+  heparin:
+    - ANTICOAGULANTS
+    - UFH
+  enoxaparin:
+    - ANTICOAGULANTS
+    - LMWH
+  warfarin:
+    - ANTICOAGULANTS
+    - VKA
+  labetalol:
+    - BETA_BLOCKERS
+  verapamil:
+    - NON_DHP_CCB
+  diltiazem:
+    - NON_DHP_CCB
+  digoxin:
+    - CARDIAC_GLYCOSIDES
+  amlodipine:
+    - DHP_CCB
+  enalapril:
+    - ACE_INHIBITORS
+    - RAAS_INHIBITORS
+  losartan:
+    - ARBS
+    - RAAS_INHIBITORS
+  norepinephrine:
+    - VASOPRESSORS
+    - SYMPATHOMIMETICS
+  dopamine:
+    - VASOPRESSORS
+    - INOTROPES
+  dobutamine:
+    - INOTROPES
+    - SYMPATHOMIMETICS
+  phenytoin:
+    - ANTICONVULSANTS
+  levetiracetam:
+    - ANTICONVULSANTS
+  haloperidol:
+    - ANTIPSYCHOTICS
+    - QT_PROLONGING_AGENTS
+  metoclopramide:
+    - PROKINETICS
+    - DOPAMINE_ANTAGONISTS
+  promethazine:
+    - ANTIHISTAMINES
+    - SEDATIVES
+  tramadol:
+    - OPIOIDS
+    - SEROTONERGIC_AGENTS
+    - CNS_DEPRESSANTS
+  codeine:
+    - OPIOIDS
+    - CNS_DEPRESSANTS
+  ketamine:
+    - ANESTHETICS
+    - DISSOCIATIVES
+
+  # Wave 3 additions (A §11):
+  ciprofloxacin:
+    - FLUOROQUINOLONES
+    - QT_PROLONGING_AGENTS
+  azithromycin:
+    - MACROLIDES
+    - QT_PROLONGING_AGENTS
+  clarithromycin:
+    - MACROLIDES
+    - QT_PROLONGING_AGENTS
+  doxycycline:
+    - TETRACYCLINES
+  co-trimoxazole:
+    - SULFONAMIDE_ANTIBIOTICS
+  metronidazole:
+    - ANTIPROTOZOALS
+    - ANTIBACTERIALS
+  gentamicin:
+    - AMINOGLYCOSIDES
+    - NEPHROTOXIC_AGENTS
+  vancomycin:
+    - GLYCOPEPTIDES
+    - NEPHROTOXIC_AGENTS
+  piperacillin:
+    - PENICILLINS
+    - EXTENDED_SPECTRUM_PENICILLINS
+    - BETA_LACTAMS
+  tazobactam:
+    - BETA_LACTAMASE_INHIBITORS
+  meropenem:
+    - CARBAPENEMS
+    - BETA_LACTAMS
+  cefotaxime:
+    - CEPHALOSPORINS
+    - CEPH_R1_DISSIMILAR
+    - BETA_LACTAMS
+  artesunate:
+    - ANTIMALARIALS
+  chloroquine:
+    - ANTIMALARIALS
+    - QT_PROLONGING_AGENTS
+  primaquine:
+    - ANTIMALARIALS
+  artemether:
+    - ANTIMALARIALS
+  lumefantrine:
+    - ANTIMALARIALS
+    - QT_PROLONGING_AGENTS
+  fluconazole:
+    - ANTIFUNGALS
+    - AZOLES
+    - QT_PROLONGING_AGENTS
+  acyclovir:
+    - ANTIVIRALS
+  metformin:
+    - BIGUANIDES
+  glimepiride:
+    - SULFONYLUREAS
+  theophylline:
+    - METHYLXANTHINES
+  etofylline:
+    - METHYLXANTHINES
+  pantoprazole:
+    - PROTON_PUMP_INHIBITORS
+  levothyroxine:
+    - THYROID_HORMONES
+  telmisartan:
+    - ARBS
+    - RAAS_INHIBITORS
+  prednisolone:
+    - CORTICOSTEROIDS
+  cefixime:
+    - CEPHALOSPORINS
+    - BETA_LACTAMS
+  nimesulide:
+    - NSAIDS
+  aceclofenac:
+    - NSAIDS
+  serratiopeptidase:
+    - PROTEOLYTIC_ENZYMES
+  mefenamic_acid:
+    - NSAIDS
+  dicyclomine:
+    - ANTISPASMODICS
+    - ANTICHOLINERGICS
+  domperidone:
+    - DOPAMINE_ANTAGONISTS
+    - PROKINETICS
+  cetirizine:
+    - ANTIHISTAMINES
+  phenylephrine:
+    - SYMPATHOMIMETICS
+    - DECONGESTANTS
+  chlorpheniramine:
+    - ANTIHISTAMINES
+  caffeine:
+    - CNS_STIMULANTS
+    - METHYLXANTHINES
+
 provenance:
   source_doc: "PHARMACOLOGICAL_CLASS_TAXONOMY_DRAFT"
   section_ref: "TO_BE_RESOLVED"

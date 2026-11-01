@@ -17,6 +17,16 @@ if TYPE_CHECKING:
     from triagerag.contracts.data_schemas import AliasEntry, ClassesMapping, FormularyDrug
 
 
+# Known Look-Alike Sound-Alike (LASA) pairs requiring explicit confirmation
+LASA_PAIRS: set[frozenset[str]] = {
+    frozenset({"dopamine", "dobutamine"}),
+    frozenset({"hydralazine", "hydroxyzine"}),
+    frozenset({"celebrex", "celexa"}),
+    frozenset({"cefdinir", "cefditoren"}),
+    frozenset({"lamictal", "lamisil"}),
+}
+
+
 def clean_text(text: str) -> str:
     """Normalize text by case-folding, stripping punctuation, and collapsing whitespace."""
     lower = text.lower().strip()
@@ -87,8 +97,8 @@ class AliasResolver:
         if cleaned in self._clean_lookup:
             return True, self._clean_lookup[cleaned], None
 
-        # 3. Strip dose / frequency suffixes (e.g. "sildenafil 50mg daily" -> "sildenafil")
-        prefix = re.split(r"\s+\d", cleaned)[0].strip()
+        # 3. Strip dose / frequency / strength suffixes (e.g. "sildenafil 50mg daily", "dolo 650", "dolo650")
+        prefix = re.split(r"(?:\s+\d|\d)", cleaned)[0].strip()
         if prefix and prefix != cleaned and prefix in self._clean_lookup:
             return True, self._clean_lookup[prefix], None
 
