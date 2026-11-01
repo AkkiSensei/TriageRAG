@@ -43,6 +43,7 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
           badge: 'bg-rose-100 dark:bg-rose-900/70 text-rose-800 dark:text-rose-200 border-rose-200 dark:border-rose-800 font-bold',
         }
       case 'HIGH':
+      case 'CHECKED_ALERTS':
         return {
           icon: <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />,
           label: 'DOCTOR REVIEW',

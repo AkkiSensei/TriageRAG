@@ -193,6 +193,7 @@ async function main() {
 
     async function setTheme(isDark) {
       await cdp.eval(`
+        localStorage.setItem('triagerag-theme', '${isDark ? 'dark' : 'light'}');
         localStorage.setItem('theme', '${isDark ? 'dark' : 'light'}');
         if (${isDark}) {
           document.documentElement.classList.add('dark');

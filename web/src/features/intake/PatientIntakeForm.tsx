@@ -166,6 +166,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
   errorMessage,
 }) => {
   const [form, setForm] = useState<FormState>(INITIAL_FORM_STATE)
+  const [localError, setLocalError] = useState<string | null>(null)
 
   // Quick inputs
   const [newMedName, setNewMedName] = useState('')
@@ -488,6 +489,12 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
+    setLocalError(null)
+    const ageNum = parseFloat(form.ageValue)
+    if (isNaN(ageNum) || ageNum < 0) {
+      setLocalError('Age cannot be negative. Please enter a valid age.')
+      return
+    }
     onSubmit(buildApiPayload())
   }
 
@@ -896,7 +903,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
           </div>
 
           {/* Add Medication Bar */}
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col md:flex-row gap-2">
             <input
               type="text"
               list="formulary-suggestions"
@@ -909,7 +916,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
                 }
               }}
               placeholder="Type medicine name (e.g. Paracetamol, Metoprolol, Silagra, Nitroglycerin)..."
-              className="h-10 flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-teal-600 focus:outline-none"
+              className="h-10 min-w-0 flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-teal-600 focus:outline-none"
             />
             <datalist id="formulary-suggestions">
               {COMMON_DRUGS.map((d) => (
@@ -922,7 +929,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               onChange={(e) =>
                 setNewMedLastDose(e.target.value === 'unknown' ? null : Number(e.target.value))
               }
-              className="h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
+              className="h-10 w-full md:w-auto md:max-w-[220px] rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
             >
               <option value="12">Taken within last 12 hours</option>
               <option value="24">Taken ~24 hours ago</option>
@@ -935,7 +942,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             <button
               type="button"
               onClick={() => addMedication(newMedName, newMedLastDose)}
-              className="flex items-center justify-center gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white px-4 h-10 text-xs font-bold transition-colors cursor-pointer"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white px-4 h-10 text-xs font-bold transition-colors cursor-pointer shrink-0"
             >
               <Plus className="h-4 w-4" />
               <span>Add Medicine</span>
@@ -996,7 +1003,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
           </div>
 
           {/* Add Allergy Input Bar */}
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex flex-col md:flex-row gap-2">
             <input
               type="text"
               value={newAllergySubstance}
@@ -1008,15 +1015,15 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
                 }
               }}
               placeholder="Allergen name (e.g. Penicillin, Sulfa, Amoxicillin)..."
-              className="h-10 flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-teal-600 focus:outline-none"
+              className="h-10 min-w-0 flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-teal-600 focus:outline-none"
             />
             <select
               value={newAllergyReaction}
               onChange={(e) => setNewAllergyReaction(e.target.value as ReactionType)}
-              className="h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
+              className="h-10 w-full md:w-auto md:max-w-[250px] rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
             >
-              <option value="anaphylaxis_ige">Severe allergy (airway swelling / severe difficulty breathing)</option>
-              <option value="severe_cutaneous_scar">Severe skin reaction (blisters / rashes)</option>
+              <option value="anaphylaxis_ige">Severe allergy (airway swelling)</option>
+              <option value="severe_cutaneous_scar">Severe skin reaction (blisters)</option>
               <option value="mild_rash">Mild skin rash / itching</option>
               <option value="gi_upset">Stomach upset / vomiting</option>
               <option value="unknown">Reaction Unknown</option>
@@ -1024,7 +1031,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             <button
               type="button"
               onClick={() => addAllergy(newAllergySubstance, newAllergyReaction)}
-              className="flex items-center justify-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-4 h-10 text-xs font-bold transition-colors cursor-pointer"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-4 h-10 text-xs font-bold transition-colors cursor-pointer shrink-0"
             >
               <Plus className="h-4 w-4" />
               <span>Add Allergy</span>
@@ -1035,10 +1042,10 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
       {/* PRIMARY CTA: CHECK SAFETY */}
       <div className="sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-4 sm:p-5 shadow-lg backdrop-blur-md transition-all">
-        {errorMessage && (
+        {(localError || errorMessage) && (
           <div className="flex items-center gap-2 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 p-3 text-xs text-rose-800 dark:text-rose-200">
             <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
-            <span className="font-semibold">{errorMessage}</span>
+            <span className="font-semibold">{localError || errorMessage}</span>
           </div>
         )}
 

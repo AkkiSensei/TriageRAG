@@ -67,27 +67,6 @@ export const RulesPage: React.FC = () => {
     }
   }
 
-  const filteredRules = (rules || []).filter((rule) => {
-    const status = getReviewStatus(rule)
-    let matchesFilter = true
-    if (activeFilter === 'BLOCK') matchesFilter = rule.severity.toUpperCase() === 'BLOCK'
-    else if (activeFilter === 'HIGH') matchesFilter = rule.severity.toUpperCase() === 'HIGH'
-    else if (activeFilter === 'MODERATE') matchesFilter = rule.severity.toUpperCase() === 'MODERATE'
-    else if (activeFilter === 'APPROVED') matchesFilter = status === 'Approved'
-    else if (activeFilter === 'NEEDS_REVIEW') matchesFilter = status === 'Needs review'
-    else if (activeFilter === 'DRAFT') matchesFilter = status === 'Draft'
-
-    const matchesSearch =
-      searchQuery === '' ||
-      rule.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rule.consequence?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rule.action?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rule.rule_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      status.toLowerCase().includes(searchQuery.toLowerCase())
-
-    return matchesFilter && matchesSearch
-  })
-
   // Friendly human readable title for rules
   const getFriendlyRuleTitle = (rule: RuleSummaryDto) => {
     const id = rule.id.toUpperCase()
@@ -130,6 +109,29 @@ export const RulesPage: React.FC = () => {
       .toLowerCase()
       .replace(/\b\w/g, (c) => c.toUpperCase())
   }
+
+  const filteredRules = (rules || []).filter((rule) => {
+    const status = getReviewStatus(rule)
+    let matchesFilter = true
+    if (activeFilter === 'BLOCK') matchesFilter = rule.severity.toUpperCase() === 'BLOCK'
+    else if (activeFilter === 'HIGH') matchesFilter = rule.severity.toUpperCase() === 'HIGH'
+    else if (activeFilter === 'MODERATE') matchesFilter = rule.severity.toUpperCase() === 'MODERATE'
+    else if (activeFilter === 'APPROVED') matchesFilter = status === 'Approved'
+    else if (activeFilter === 'NEEDS_REVIEW') matchesFilter = status === 'Needs review'
+    else if (activeFilter === 'DRAFT') matchesFilter = status === 'Draft'
+
+    const friendlyTitle = getFriendlyRuleTitle(rule)
+    const matchesSearch =
+      searchQuery === '' ||
+      friendlyTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      rule.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      rule.consequence?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      rule.action?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      rule.rule_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      status.toLowerCase().includes(searchQuery.toLowerCase())
+
+    return matchesFilter && matchesSearch
+  })
 
   const getSeverityBadge = (sev: string) => {
     switch (sev.toUpperCase()) {
