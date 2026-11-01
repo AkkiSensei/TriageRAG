@@ -164,6 +164,8 @@ def run(
     banner_table.add_column("Band", style="bold")
     banner_table.add_column("Checks Run", justify="right")
     banner_table.add_column("Checks Skipped", justify="right")
+    banner_table.add_column("Trust Mode", justify="center")
+    banner_table.add_column("Verified Rules", justify="center")
     banner_table.add_column("Ruleset Review State", style="italic")
 
     banner_table.add_row(
@@ -172,6 +174,8 @@ def run(
         score_band,
         str(engine.checks_run),
         str(len(engine.checks_skipped)),
+        str(engine.trust_mode.upper()),
+        engine.verified_rules_summary,
         engine.ruleset_review_state,
     )
     console.print(banner_table)

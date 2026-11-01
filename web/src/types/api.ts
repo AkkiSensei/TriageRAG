@@ -259,6 +259,17 @@ export interface components {
        * @default 0.1.0
        */
       ruleset_version?: string;
+      /**
+       * Trust Mode
+       * @default demo
+       */
+      trust_mode?: "strict" | "demo";
+      /** Verified Rules Count */
+      verified_rules_count?: number;
+      /** Total Rules Count */
+      total_rules_count?: number;
+      /** Verified Rules Summary */
+      verified_rules_summary?: string;
     };
     /** EvalSummaryResponse */
     EvalSummaryResponse: {

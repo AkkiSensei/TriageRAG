@@ -22,6 +22,7 @@ from triagerag.contracts.enums import (
     ScoreBand,
     Severity,
     StepStatus,
+    TrustMode,
     Verdict,
 )
 from triagerag.contracts.schemas import (
@@ -699,6 +700,17 @@ def stage_verify(
         has_approved_steps=has_approved_steps,
     )
 
+    if (
+        config.trust_mode == TrustMode.STRICT
+        and overall_verdict == Verdict.CHECKED_CLEAR
+        and unverified_rules > 0
+    ):
+        overall_verdict = Verdict.UNVERIFIED
+        unverified_reason = (
+            f"UNVERIFIED_RULESET: {unverified_rules} rules evaluated without clinical "
+            "verification in strict trust mode (HD-7)"
+        )
+
     review_state: Literal["UNREVIEWED_DRAFT", "PARTIALLY_REVIEWED", "FULLY_REVIEWED"] = (
         "FULLY_REVIEWED" if unverified_rules == 0 else "UNREVIEWED_DRAFT"
     )
@@ -945,6 +957,10 @@ def _build_completed_checks(
             "retrieved evidence and formulary limits"
         )
 
+    completed_checks.append(
+        f"Trust policy: {engine.trust_mode.upper()} mode ({engine.verified_rules_summary})"
+    )
+
     return completed_checks
 
 
@@ -955,6 +971,11 @@ def _build_unresolved_checks(
 ) -> list[str]:
     """Derive list of unresolved checks and safety gaps (T1.2)."""
     unresolved_checks: list[str] = []
+    if engine.trust_mode == TrustMode.STRICT and engine.unverified_rules_evaluated > 0:
+        unresolved_checks.append(
+            f"Trust policy STRICT: {engine.unverified_rules_evaluated} evaluated rules remain unverified by clinical reviewer (HD-7)"
+        )
+
     for skip in engine.checks_skipped:
         missing_str = f" (Missing: {', '.join(skip.missing_fields)})" if skip.missing_fields else ""
         unresolved_checks.append(f"Rule '{skip.rule_id}': {skip.reason}{missing_str}")
@@ -1098,6 +1119,10 @@ def stage_explain(
         a.raw_substance for a in normalized_patient.allergies if not a.resolved
     ]
 
+    total_rules_count = len(registry.rules)
+    verified_rules_count = sum(1 for r in registry.rules if getattr(r.provenance, "verified", False))
+    verified_rules_summary = f"verified {verified_rules_count} of {total_rules_count}"
+
     engine_report = EngineReport(
         verdict=overall_verdict,
         unverified_reason=unverified_reason,
@@ -1115,6 +1140,10 @@ def stage_explain(
         unverified_rules_evaluated=unverified_rules,
         ruleset_review_state=ruleset_review_state,
         ruleset_version=registry.version,
+        trust_mode=config.trust_mode,
+        verified_rules_count=verified_rules_count,
+        total_rules_count=total_rules_count,
+        verified_rules_summary=verified_rules_summary,
     )
 
     explanation = build_triage_explanation(

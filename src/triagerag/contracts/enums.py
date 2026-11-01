@@ -38,6 +38,20 @@ class Verdict(StrEnum):
     CHECKED_CLEAR = "CHECKED_CLEAR"
 
 
+class TrustMode(StrEnum):
+    """Operational trust policy mode for deterministic clinical rules (T6.0 / AUB-ENG-04 / HD-7).
+
+    STRICT: Only clinically reviewed rules with verified: true can yield authoritative clearance.
+            Under HD-7, unverified draft rules cause clearance checks to fail closed to UNVERIFIED.
+    DEMO: Research prototype demonstration mode allowing unverified draft rules to execute
+          with explicit 'UNSOURCED DRAFT' status and verified rule counts reported.
+    """
+
+    STRICT = "strict"
+    DEMO = "demo"
+
+
+
 class Severity(StrEnum):
     """Clinical severity levels for safety alerts."""
 

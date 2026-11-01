@@ -30,6 +30,7 @@ from triagerag.contracts.enums import (
     Severity,
     SourceStatus,
     StepStatus,
+    TrustMode,
     Verdict,
 )
 
@@ -503,6 +504,10 @@ class EngineReport(BaseModel):
         "UNREVIEWED_DRAFT"
     )
     ruleset_version: str = "0.1.0"
+    trust_mode: TrustMode = TrustMode.DEMO
+    verified_rules_count: int = 0
+    total_rules_count: int = 0
+    verified_rules_summary: str = "verified 0 of 0"
 
 
 class OverrideRecord(BaseModel):
@@ -611,3 +616,4 @@ class OrchestratorConfig(BaseModel):
     top_k_chunks: int = 5
     max_repair_cycles: int = 2
     audit_log_path: Path | None = None
+    trust_mode: TrustMode = TrustMode.DEMO

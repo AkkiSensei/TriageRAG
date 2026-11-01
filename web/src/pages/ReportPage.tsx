@@ -170,6 +170,10 @@ export const ReportPage: React.FC = () => {
             Ruleset {engine.ruleset_version}
           </span>
           <span>&bull;</span>
+          <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-full font-medium">
+            {engine.verified_rules_summary || 'verified 0 of 12'} ({engine.trust_mode?.toUpperCase() || 'DEMO'})
+          </span>
+          <span>&bull;</span>
           <span>{engine.checks_run} deterministic rules checked</span>
         </div>
       </div>
