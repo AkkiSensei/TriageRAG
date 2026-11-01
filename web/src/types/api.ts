@@ -740,6 +740,10 @@ export interface components {
       index_version?: string;
       /** Config Hash */
       config_hash?: string;
+      /** Expansion Mode */
+      expansion_mode?: string;
+      /** Expansion Trace */
+      expansion_trace?: Record<string, any> | null;
     };
     /**
      * RetrievedChunk
@@ -767,6 +771,8 @@ export interface components {
       score?: string;
       /** Content Hash */
       content_hash?: string;
+      /** License */
+      license?: string | null;
     };
     /**
      * Route

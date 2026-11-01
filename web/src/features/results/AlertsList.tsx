@@ -1,5 +1,5 @@
-import React from 'react'
-import { AlertOctagon, AlertTriangle, Info, ShieldAlert, Ban, Sparkles } from 'lucide-react'
+import React, { useState } from 'react'
+import { AlertOctagon, AlertTriangle, Info, ShieldAlert, Ban, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Alert, VerifiedStep } from '@/lib/api'
 
 interface AlertsListProps {
@@ -13,6 +13,7 @@ export const AlertsList: React.FC<AlertsListProps> = ({
   verifiedSteps,
   onOverrideHighAlert,
 }) => {
+  const [expandedWhyId, setExpandedWhyId] = useState<string | null>(null)
   if (!alerts || alerts.length === 0) {
     return (
       <div className="rounded-2xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 text-xs text-slate-500 dark:text-slate-400 shadow-soft">
@@ -130,6 +131,42 @@ export const AlertsList: React.FC<AlertsListProps> = ({
                 <strong className="font-bold text-teal-900 dark:text-teal-200">Required Action: </strong>
                 {alert.action}
               </div>
+
+              {/* Alert "Why?" Drawer Button (T7.4) */}
+              <div className="mb-3 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setExpandedWhyId(expandedWhyId === alert.rule_id ? null : alert.rule_id)}
+                  className="flex items-center gap-1.5 text-[11px] font-mono text-teal-700 dark:text-teal-300 hover:underline"
+                >
+                  <Info className="h-3 w-3" />
+                  <span>{expandedWhyId === alert.rule_id ? 'Hide Clinical "Why?" Rationale' : 'Why did this alert fire?'}</span>
+                  {expandedWhyId === alert.rule_id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </button>
+              </div>
+
+              {expandedWhyId === alert.rule_id && (
+                <div className="mb-3 rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/20 p-3 text-xs space-y-2">
+                  <div className="font-bold text-teal-900 dark:text-teal-100 text-[11px]">
+                    Clinical &amp; Architectural Rationale (Rule {alert.rule_id}):
+                  </div>
+                  <p className="text-[11px] font-sans text-slate-700 dark:text-slate-300 leading-relaxed">
+                    {isBlock
+                      ? 'Rule severity is classified as hard-ceiling BLOCK due to catastrophic patient risk (Rule R11). Administration is completely prohibited without override path.'
+                      : 'Rule severity is classified as HIGH due to significant risk. Requires explicit recorded override justification (≥ 15 chars).'}
+                  </p>
+                  {alert.unverified && (
+                    <div className="rounded-lg bg-amber-100/70 dark:bg-amber-950/40 p-2 text-[10px] font-mono text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800">
+                      <strong>STATUS: UNVERIFIED DRAFT.</strong> This rule carries provisional status and has not undergone dual-clinician sign-off (HD-7).
+                    </div>
+                  )}
+                  {alert.provenance && (
+                    <div className="text-[10px] font-mono text-slate-500">
+                      Source Doc: {alert.provenance.source_doc} &bull; Ref: {alert.provenance.section_ref} &bull; Origin: {alert.provenance.content_origin}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Action Buttons: Absolute Contraindication vs High Override */}
               {isBlock ? (

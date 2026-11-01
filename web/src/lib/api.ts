@@ -101,4 +101,36 @@ export const api = {
 
   // Eval
   getEvalSummary: () => request<EvalSummaryResponse>('/eval/summary'),
+
+  // Ask the Corpus (T7.4)
+  askCorpus: (payload: { question: string; population?: string; syndrome?: string; top_k?: number }) =>
+    request<{
+      question: string
+      answer: string
+      abstained: boolean
+      abstain_reason?: string
+      citations: Array<{ chunk_id: string; doc_id: string; section: string; license: string; exact_quote: string }>
+      generator_badge: string
+    }>('/corpus/ask', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  // Alert Why (T7.4)
+  explainAlert: (payload: { alert: Alert; patient: unknown }) =>
+    request<{
+      rule_id: string
+      rule_type: string
+      severity: string
+      consequence: string
+      action: string
+      matched_facts: string[]
+      unknown_facts: string[]
+      severity_rationale: string
+      unestablished_scope: string[]
+      provenance: Record<string, unknown>
+    }>('/triage/alert-why', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 }

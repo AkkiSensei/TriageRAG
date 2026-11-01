@@ -47,7 +47,16 @@ export const RetrievalView: React.FC<RetrievalViewProps> = ({ triage }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-[10px] font-mono font-bold border ${
+              triage.provider_info?.generation_mode === 'deterministic_mock'
+                ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800'
+                : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+            }`}
+          >
+            GENERATOR: {triage.provider_info?.generation_mode === 'deterministic_mock' ? 'MOCK' : 'REAL'}
+          </span>
           <button
             type="button"
             onClick={() => setShowHowItWorks(!showHowItWorks)}
@@ -137,6 +146,23 @@ export const RetrievalView: React.FC<RetrievalViewProps> = ({ triage }) => {
               <span className="text-slate-400">Abstain Status:</span>{' '}
               <span className="font-bold text-slate-800 dark:text-slate-200">{abstainCode}</span>
             </div>
+            {Boolean(retrieval.expansion_trace) && (
+              <div className="col-span-1 sm:col-span-2 mt-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <span className="text-slate-400">Expansion Mode:</span>{' '}
+                <span className="font-bold text-teal-700 dark:text-teal-300">
+                  {retrieval.expansion_mode || 'predicate_aware_bm25'}
+                </span>
+                {Array.isArray(retrieval.expansion_trace?.expansion_terms) &&
+                  retrieval.expansion_trace.expansion_terms.length > 0 && (
+                    <div className="mt-1">
+                      <span className="text-slate-400">Expanded Terms:</span>{' '}
+                      <span className="font-mono text-slate-700 dark:text-slate-300">
+                        {retrieval.expansion_trace.expansion_terms.join(', ')}
+                      </span>
+                    </div>
+                  )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -182,6 +208,8 @@ export const RetrievalView: React.FC<RetrievalViewProps> = ({ triage }) => {
                 <span>Population: {chunk.population}</span>
                 <span>&bull;</span>
                 <span>Syndrome: {chunk.syndrome}</span>
+                <span>&bull;</span>
+                <span>License: {chunk.license || 'Open Government Licence v3.0 / Synthetic'}</span>
                 {chunk.parent_id && (
                   <>
                     <span>&bull;</span>

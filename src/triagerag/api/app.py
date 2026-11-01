@@ -21,6 +21,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from triagerag.api.routes.audit import router as audit_router
+from triagerag.api.routes.corpus import router as corpus_router
 from triagerag.api.routes.eval import router as eval_router
 from triagerag.api.routes.health import router as health_router
 from triagerag.api.routes.protocols import router as protocols_router
@@ -104,6 +105,7 @@ def create_app() -> FastAPI:
     app.include_router(registry_router, prefix="/api")
     app.include_router(protocols_router, prefix="/api")
     app.include_router(audit_router, prefix="/api")
+    app.include_router(corpus_router, prefix="/api")
     app.include_router(eval_router, prefix="/api")
     app.include_router(health_router, prefix="")
 

@@ -5,6 +5,7 @@ import { AlertsList } from './AlertsList'
 import { SkippedChecksList } from './SkippedChecksList'
 import { VerifiedPlanView } from './VerifiedPlanView'
 import { RetrievalView } from './RetrievalView'
+import { AskCorpusSection } from './AskCorpusSection'
 import type { TriageResponse, Alert } from '@/lib/api'
 import { Hash, Info, Loader2 } from 'lucide-react'
 
@@ -77,7 +78,10 @@ export const ResultsPane: React.FC<ResultsPaneProps> = ({
       {/* 6. Retrieval Context & Chunks */}
       <RetrievalView triage={triage} />
 
-      {/* 7. Cryptographic Audit Hash Bar */}
+      {/* 7. Ask-the-Corpus Extractive Q&A */}
+      <AskCorpusSection />
+
+      {/* 8. Cryptographic Audit Hash Bar */}
       {triage.audit_hash && (
         <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-4 text-xs font-mono text-slate-500 dark:text-slate-400 shadow-soft">
           <div className="flex items-center gap-2">

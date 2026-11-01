@@ -7,13 +7,21 @@ import threading
 from typing import Any
 
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 from triagerag.api.schemas import ExplainApiRequest, TriageApiRequest
 from triagerag.config import get_data_dir, get_retrieval_backend
-from triagerag.contracts.schemas import OrchestratorConfig, ProviderMetadata, TriageResponse
+from triagerag.contracts.schemas import (
+    Alert,
+    OrchestratorConfig,
+    Patient,
+    ProviderMetadata,
+    TriageResponse,
+)
 from triagerag.engine.registry import ClinicalRegistry, load_registry
 from triagerag.llm.fake import FakeLLM
 from triagerag.orchestrator import run_triage
+from triagerag.rag.alert_why import AlertWhyExplanation, explain_alert
 from triagerag.rag.service import RetrievalService
 
 logger = logging.getLogger(__name__)
@@ -99,3 +107,22 @@ def explain_triage_retrieval(request: ExplainApiRequest) -> dict[str, Any]:
     eff_backend = raw_backend.strip().lower()
     retrieval_service = get_retrieval_service(eff_backend)
     return retrieval_service.explain(request.to_patient())
+
+
+class AlertWhyRequest(BaseModel):
+    alert: Alert
+    patient: Patient
+
+
+@router.post("/alert-why", response_model=AlertWhyExplanation)
+def explain_alert_endpoint(request: AlertWhyRequest) -> AlertWhyExplanation:
+    """Return structured provenance, matched facts, and severity rationale for an alert."""
+    registry = get_cached_registry()
+    retrieval_service = get_retrieval_service()
+    chunks = retrieval_service.list_chunks()
+    return explain_alert(
+        alert=request.alert,
+        patient=request.patient,
+        registry=registry,
+        supporting_chunks=chunks,
+    )
