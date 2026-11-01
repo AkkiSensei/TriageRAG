@@ -38,8 +38,7 @@ class NodePredicateDeclaration(BaseModel):
     def validate_applicability_semantics(self) -> NodePredicateDeclaration:
         if not self.always_applicable and not self.requires_predicates:
             raise ValueError(
-                f"Node '{self.chunk_id}' must declare requires_predicates or "
-                f"always_applicable=True"
+                f"Node '{self.chunk_id}' must declare requires_predicates or always_applicable=True"
             )
         return self
 
@@ -80,6 +79,7 @@ def load_node_predicates_config(data_dir: Path | None = None) -> NodePredicatesC
     # Also index declarations by canonical content-addressed ID via alias map (AUB-COR-02)
     try:
         from triagerag.rag.aliases import load_node_aliases
+
         aliases = load_node_aliases(target_dir)
         for legacy_id, content_id in aliases.items():
             if legacy_id in parsed_nodes and content_id not in parsed_nodes:

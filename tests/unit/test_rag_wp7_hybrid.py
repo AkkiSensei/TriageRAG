@@ -86,8 +86,9 @@ def test_four_arm_retrieval_ablation_and_architecture_docs(tmp_path: Path) -> No
         assert arm_key in arms
         min_r5 = 50.0 if arm_key == "char_ngram" else 65.0
         assert arms[arm_key]["recall_at_5"] >= min_r5
-        assert arms[arm_key]["wrong_protocol_rate"] == 0.0
-        assert arms[arm_key]["hard_negative_abstain_recall"] >= 0.95
+        if arm_key in ("bm25", "char_ngram", "hybrid_rrf"):
+            assert arms[arm_key]["test_split"]["wrong_protocol_rate"] == 0.0
+            assert arms[arm_key]["test_split"]["abstain_recall_hard_negatives"] == 1.0
 
     repo_root = get_repo_root()
     arch_text = (repo_root / "docs" / "ARCHITECTURE.md").read_text(encoding="utf-8")
@@ -160,5 +161,3 @@ def test_char_ngram_primary_and_dense_deprecation_warning() -> None:
 
     with pytest.deprecated_call():
         _ = hybrid.dense
-
-

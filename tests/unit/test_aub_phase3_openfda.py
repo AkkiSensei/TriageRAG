@@ -17,21 +17,18 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
+from tools.fetch_openfda_labels import (
+    WAVE_1_2_GENERICS,
+    build_evidence_corpus,
+)
 from triagerag.config import get_data_dir
 from triagerag.contracts.enums import SourceStatus
 from triagerag.rag.evidence import (
     INDIAN_ONLY_GENERICS,
     EvidenceChunk,
     EvidenceManifest,
-    compute_evidence_chunk_hash,
     load_evidence_manifest,
     parse_spl_section_chunks,
-)
-from tools.fetch_openfda_labels import (
-    WAVE_1_2_GENERICS,
-    build_evidence_corpus,
 )
 
 FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures" / "openfda"
@@ -130,7 +127,9 @@ def test_evidence_corpus_idempotence(tmp_path: Path) -> None:
 
     assert manifest_1.total_chunks == manifest_2.total_chunks
     assert [c.chunk_id for c in manifest_1.chunks] == [c.chunk_id for c in manifest_2.chunks]
-    assert [c.content_hash for c in manifest_1.chunks] == [c.content_hash for c in manifest_2.chunks]
+    assert [c.content_hash for c in manifest_1.chunks] == [
+        c.content_hash for c in manifest_2.chunks
+    ]
     assert out_1.read_text(encoding="utf-8") == out_2.read_text(encoding="utf-8")
 
 

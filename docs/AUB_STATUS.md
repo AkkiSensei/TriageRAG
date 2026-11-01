@@ -87,7 +87,17 @@ Starting HEAD for Phase 0: `3e8a45bded1a9bd39e5e644a0957c62bb0fb8315` (branch `a
 | T4.6-FIXT | 2026-10-31 `24b47ac`: metric calculations lacked independent hand-computed verification fixtures and formal reference documentation | FIXED | T4.6 | `55bf562` | `tests/unit/test_aub_phase4_metric_fixtures.py` (7 tests) | Created `docs/evaluation/METRICS.md` with complete mathematical definitions; hand-computed paper verification for all retrieval, calibration, and agreement metrics |
 | T4.7-ARMS | 2026-10-31 `55bf562`: ablation runner had 4 arms without factorial controls; lacked paired difference bootstrap CIs | FIXED | T4.7 | `35d03da` | `tests/unit/test_aub_phase4_ablation.py` (6 tests) | Implemented all 7 controlled arms; computed paired difference bootstrap CIs; codified `decide_backend()`: retained BM25 as default production backend |
 
-## Non-Phase-4 register rows (not touched in this session)
+## Phase 5 register rows
 
-All subsequent AUB register rows (AUB-UX-04, AUB-GRD-01, AUB-GEN-01 (generator), AUB-ENG-01..06, AUB-KB-01, AUB-OPS-04) are `TODO` and will be addressed in their own phases.
+| ID | Repro on HEAD (date, commit) | Status | Task | Commit | Test added | Notes |
+|----|------------------------------|--------|------|--------|-----------|-------|
+| AUB-GRD-01 | 2026-11-01 `451399f`: "Administer epinephrine IM immediately" passed citing repeat-dose clause (NODE_3, overlap 0.18); normotensive anaphylaxis resolved to CHECKED_CLEAR with APPROVED epinephrine step; IF-clause preconditions and qualifiers never checked | FIXED | T5.1–T5.4 | `5f2f73a`..`edab93a` | `tests/unit/test_aub_phase5_*.py` (21 tests across 4 modules) | Evaluated patient applicability against node IF predicates (MET, NOT_MET, UNKNOWN); added StepStatus.NOT_APPLICABLE; enforced qualifier preservation ("repeat", "consider", "after"); fail closed in verdict lattice; added FakeLLM adversarial profiles |
+| T5.1-APP | 2026-11-01 `451399f`: cited node preconditions were never compared against structured patient context | FIXED | T5.1 | `5f2f73a` | `tests/unit/test_aub_phase5_applicability.py` (6 tests) | Built `src/triagerag/verify/applicability.py`; evaluates required and contraindication predicates; added `StepStatus.NOT_APPLICABLE` in backend and web contracts; fail-closed UNKNOWN for unmeasured data |
+| T5.2-QUAL | 2026-11-01 `5f2f73a`: plan steps could drop essential qualifiers while retaining verbatim citations (citation laundering) | FIXED | T5.2 | `8192d9f` | `tests/unit/test_aub_phase5_qualifiers.py` (9 tests) | Built `src/triagerag/verify/qualifiers.py`; detects repeat, consider, after, continue, withhold, until; rejects dropped qualifiers with QUALIFIER_DROPPED failure reason |
+| T5.3-VRD | 2026-11-01 `8192d9f`: normal vitals + anaphylaxis could resolve to CHECKED_CLEAR with approved repeat step | FIXED | T5.3 | `87d5133` | `tests/unit/test_aub_phase5_verdict.py` (3 tests) | Wired applicability and qualifiers into `verify_plan` and `orchestrator.py`; non-applicable steps cannot be APPROVED; verdict resolves strictly to UNVERIFIED (never CHECKED_CLEAR); FastAPI endpoint regression verified |
+| T5.4-MOCK | 2026-11-01 `87d5133`: FakeLLM relied on hardcoded per-syndrome scripts and lacked profiles exercising verifier refusal paths | FIXED | T5.4 | `edab93a` | `tests/unit/test_aub_phase5_fake_llm.py` (3 tests) | Added `RANKED_CHOICE` (dynamic top-chunk drafting), `WRONG_BUT_MATCHING_CLAUSE` (triggers NOT_APPLICABLE), and `QUALIFIER_DROP` (triggers CITATION_UNVERIFIED); each verified with tests |
+
+## Non-Phase-5 register rows (not touched in this session)
+
+All subsequent AUB register rows (AUB-UX-04, AUB-GEN-01 (generator real provider), AUB-ENG-01..06, AUB-KB-01, AUB-OPS-04) are `TODO` and belong to subsequent phases (Phase 6, Phase 7).
 

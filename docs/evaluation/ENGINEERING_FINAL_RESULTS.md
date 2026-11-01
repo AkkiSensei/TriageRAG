@@ -29,10 +29,10 @@ Evaluated across 224 clinical presentations (136 dev cases, 88 test cases) with 
 <!-- AUTOGEN:start:ablation-table -->
 | Retrieval Arm | Backend Implementation | Test R@1 | Test R@5 | Test MRR | Test Latency (p95) | Wrong Protocol | Hard Negative Abstain |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Arm 1: BM25 Lexical** | BM25ClinicalIndex + ClinicalTokenizer (Default) | 39.29% | 69.86% | 0.4715 | 0.049 ms | **0.0%** | **100.0%** |
-| **Arm 2: Char N-Gram Dense** | CharNgramRetriever (trigram TF-IDF) | 37.50% | 69.86% | 0.4281 | 0.077 ms | **0.0%** | **100.0%** |
-| **Arm 3: Hybrid RRF** | HybridRRFRetriever (Reciprocal Rank Fusion) | **41.07%** | **69.86%** | **0.4829** | 0.090 ms | **0.0%** | **100.0%** |
-| **Arm 4: Hybrid RRF + Rerank** | HybridRRFRetriever + LexicalOverlapReranker | **41.07%** | **69.86%** | **0.4829** | 0.198 ms | **0.0%** | **100.0%** |
+| **Arm 1: BM25 Lexical** | BM25ClinicalIndex + ClinicalTokenizer (Default) | 59.59% | 84.93% | 0.7100 | 6.107 ms | **0.0%** | **100.0%** |
+| **Arm 2: Char N-Gram Dense** | CharNgramRetriever (trigram TF-IDF) | 47.95% | 70.55% | 0.5890 | 15.235 ms | **0.0%** | **100.0%** |
+| **Arm 3: Hybrid RRF** | HybridRRFRetriever (Reciprocal Rank Fusion) | **44.52%** | **69.86%** | **0.5594** | 15.383 ms | **0.0%** | **100.0%** |
+| **Arm 4: Hybrid RRF + Rerank** | HybridRRFRetriever + LexicalOverlapReranker | **44.52%** | **69.86%** | **0.5594** | 36.368 ms | **0.0%** | **100.0%** |
 <!-- AUTOGEN:end:ablation-table -->
 
 **Stratified Performance (Syndrome-Provided Subset, N=41 Test):**

@@ -61,6 +61,7 @@ def canonicalize_node_text(text: str) -> str:
     4. Strips leading and trailing whitespace per line and drops empty lines.
     """
     import unicodedata
+
     normalized = unicodedata.normalize("NFKC", text)
     normalized = re.sub(r"^\s*\d+\.\s*", "", normalized)
     normalized = normalized.replace("\r\n", "\n").replace("\r", "\n")

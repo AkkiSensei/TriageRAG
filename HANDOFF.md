@@ -4,66 +4,61 @@
 
 ## Current State
 
-- **Current Status:** AUB Phase 4 (Evaluation Rebuild and Research Validity) completed on branch `aub/phase-4-evaluation-rebuild`. Tasks T4.1 through T4.7 implemented, verified, and documented with ADR-0013 and updated status ledger. Rebuilt benchmark features template-grouped splits (55 groups, 0 leakage), blinded clinical annotation tooling with honest agreement provenance, candidate random and position-prior baselines directly answering Reviewer B's challenge question (+30 pt BM25 R@1 advantage over label frequency), honest metric decomposition (FAR vs WSR, real-confidence ECE, cluster-robust group bootstrap CIs), automated benchmark validity self-tests with strict performance gates, hand-computed verification fixtures, and a 7-arm factorial ablation study with paired difference bootstrap CIs confirming `bm25` (with calibrated predicates) as the default production backend.
-- **Verification:** All gates green:
-  - **100% pass rate** on all 37 Phase 4 unit tests across 7 dedicated test modules.
+- **Current Status:** AUB Phase 5 (Applicability-Aware Grounding and Qualifier Verification) completed on branch `aub/phase-5-applicability-grounding`. Tasks T5.1 through T5.4 implemented, verified, and documented with ADR-0014 and updated status ledger (`docs/AUB_STATUS.md`).
+- **Target Defect Resolved:** **AUB-GRD-01** (Verifier approves clinically inapplicable protocol nodes because citation check only tested text presence, not patient applicability; "Administer immediately" dropping "repeat" qualifier).
+- **Core Results & Verifications:**
+  - **100% pass rate** on all 21 Phase 5 unit tests across 4 dedicated test modules (`test_aub_phase5_*.py`).
+  - **100% pass rate** across entire test suite.
   - **0 lint / format errors** (Python ruff check & format).
   - **0 type errors** (Python mypy strict in `src/` & TypeScript `tsc --noEmit`).
-  - **0 import isolation contract violations** (import-linter: 2 contracts kept, 0 broken).
-  - **Zero tracked report mutations**: Running tests and benchmark evaluations leaves git working tree clean by default (`--write` required for report regeneration).
-  - **0 quarantined documents** during protocol ingestion; 100% round-trip invariant verified.
-  - **0 numeric clinical doses** in any synthetic protocol markdown (Rule R9 verified).
-  - **100% offline execution**: zero network calls during automated testing and benchmark runs.
+  - **0 import isolation contract violations** (import-linter).
+  - **Zero tracked report mutations**: Working tree leaves git status 100% clean.
+  - **100% offline execution**: zero network calls.
 
-## AUB Phase 4 Deliverables Summary
+## AUB Phase 5 Deliverables Summary
 
-1. **T4.1 / AUB-EVL-01 — Template-Grouped Dataset Splits (`aad9f4a`):**
-   - Implemented `derive_template_id()` and `stratified_template_group_split()` in `eval/retrieval/build_dataset.py`.
-   - Partitioned 224 cases by clinical scenario template across 55 groups (42 dev groups with 143 cases; 13 test groups with 81 cases).
-   - Generated `eval/retrieval/dataset.lock` and `eval/retrieval/split_manifest.json` recording SHA-256 hashes of dataset and corpus, seed 42, group counts, zero template group leakage, and zero target node-set leakage between dev and test. Added `tests/unit/test_aub_phase4_splits.py` (4 tests).
+1. **T5.1 / AUB-GRD-01 — Patient Applicability Verification (`5f2f73a`):**
+   - Authored `src/triagerag/verify/applicability.py`.
+   - Evaluates cited protocol node preconditions (`requires_predicates`) and contraindications (`contraindicated_by`) against structured patient data with tri-state outcomes (`MET`, `NOT_MET`, `UNKNOWN`).
+   - Supports both positional IDs and content-addressed IDs via bidirectional alias map.
+   - Added `StepStatus.NOT_APPLICABLE` to backend enums and web client types.
+   - Added `tests/unit/test_aub_phase5_applicability.py` (6 tests).
 
-2. **T4.2 / AUB-EVL-01 — Blinded Annotation Protocol & Agreement Tooling (`e2a750f`):**
-   - Authored `docs/evaluation/ANNOTATION_GUIDE.md` establishing 3-level relevance grading rubric (Grade 2 = Directly Actionable, Grade 1 = Supporting Context, Grade 0 = Irrelevant / Contraindicated).
-   - Created JSON schema `eval/annotations/schema.json` and export/agreement CLI `tools/export_annotations.py`.
-   - Exported 100 blinded candidate cases (`eval/annotations/blinded_cases.json`).
-   - Authored `eval/annotations/agreement_status.json` recording honest status: `BLOCKED_PENDING_INDEPENDENT_HUMAN_ANNOTATION` (no fabricated agreement claims). Added `tests/unit/test_aub_phase4_annotations.py` (6 tests).
+2. **T5.2 / AUB-GRD-01 — THEN-Clause Qualifier Verification (`8192d9f`):**
+   - Authored `src/triagerag/verify/qualifiers.py`.
+   - Detects conditional, temporal, and discretionary qualifiers ("repeat", "consider", "after", "following", "continue", "withhold", "until") in source THEN clauses.
+   - Refuses citations where essential qualifiers are dropped with `QUALIFIER_DROPPED: cited node contains '{qualifier}' qualifier ({description}) not present in drafted instruction`.
+   - Added `tests/unit/test_aub_phase5_qualifiers.py` (9 tests).
 
-3. **T4.3 / AUB-EVL-01 — Random & Position-Prior Baselines (`640ff87`):**
-   - Implemented `PositionPriorRetriever` in `eval/run_retrieval.py` fitted strictly on dev split with deterministic tie-breaking.
-   - Evaluated paired difference bootstrap 95% confidence intervals against position prior.
-   - Answered Reviewer B's challenge question: Production BM25 test Recall@1 (54.00%) significantly outperforms the label frequency prior (24.00%) with a +30.00 pt advantage (95% bootstrap CI `[12.0, 48.0]`). Added `tests/unit/test_aub_phase4_baselines.py` (5 tests).
+3. **T5.3 / AUB-GRD-01 — Verdict Lattice Integration & Fail-Closed Safety (`87d5133`):**
+   - Wired applicability and qualifier checks into `verify_plan` in `src/triagerag/verify/plan_verifier.py`.
+   - Updated `orchestrator.py` so `has_unverified_steps` includes `NOT_APPLICABLE` and `REQUIRES_CLINICIAN_CONFIRMATION`.
+   - Decisively fulfilled Reviewer B's core acceptance criterion: Normotensive vitals + anaphylaxis citing repeat node (`ANAPHYLAXIS_01_NODE_3`) resolves strictly to `Verdict.UNVERIFIED`, never `CHECKED_CLEAR`.
+   - Added unit and FastAPI endpoint tests `tests/unit/test_aub_phase5_verdict.py` (3 tests).
 
-4. **T4.4 / AUB-EVL-01 / AUB-ABS-02 — Honest Metrics, FAR/WSR Split, Real-Confidence ECE (`a8c92d6`):**
-   - Disentangled `wrong_protocol_rate` into `false_accept_rate` (FAR = unindicated / expected abstains) and `wrong_syndrome_rate` (WSR = discordant syndrome / positives).
-   - Replaced static confidence with genuine normalized retrieval scores in `_compute_ece()`.
-   - Added `per_code_abstention` metrics reporting precision, recall, and support per `AbstainCode`.
-   - Extended reporting to Recall@{1, 3, 5, 10}, MRR, and graded nDCG@{5, 10}.
-   - Implemented cluster-robust group (template-level) bootstrap 95% confidence intervals. Added `tests/unit/test_aub_phase4_metrics.py` (4 tests).
+4. **T5.4 / AUB-GEN-01 — Retrieval-Dependent FakeLLM Adversarial Profiles (`edab93a`):**
+   - Extended `FakeLLMProfile` in `src/triagerag/llm/fake.py` with `RANKED_CHOICE`, `WRONG_BUT_MATCHING_CLAUSE`, and `QUALIFIER_DROP`.
+   - `RANKED_CHOICE` dynamically drafts from top retrieved child chunk.
+   - `WRONG_BUT_MATCHING_CLAUSE` cites an inapplicable clause, exercising the `NOT_APPLICABLE` verifier refusal path.
+   - `QUALIFIER_DROP` cites a qualified node but drops the qualifier token, exercising the `QUALIFIER_DROPPED` / `CITATION_UNVERIFIED` verifier refusal path.
+   - Added `tests/unit/test_aub_phase5_fake_llm.py` (3 tests).
 
-5. **T4.5 / AUB-EVL-01 — Benchmark Validity Self-Tests & Performance Gates (`24b47ac`):**
-   - Implemented `validate_benchmark_gate()` enforcing two automated validity self-tests: random candidate baseline Recall@5 must be $< 60.0\%$ and position-prior Recall@1 must be lower than system Recall@1 with paired CI strictly excluding zero.
-   - Automatically fails and labels benchmark collection `BENCHMARK_INVALID` on self-test violation.
-   - Hard performance gates enforce: `false_accept_rate == 0.0`, `wrong_syndrome_rate == 0.0`, `wrong_protocol_rate == 0.0`, `abstain_recall_hard_negatives == 1.0`, syndrome-provided Recall@5 $\ge 95.0\%$, and bit-for-bit determinism. Added `tests/unit/test_aub_phase4_gates.py` (5 tests).
+5. **ADR-0014 & Status Ledger (`docs/adr/0014-applicability-aware-grounding-and-qualifier-verification.md`):**
+   - Recorded architectural decisions, safety properties, and defect resolution in ADR-0014 and updated `docs/AUB_STATUS.md`.
 
-6. **T4.6 / AUB-EVL-01 — Hand-Computed Metric Verification Fixtures & Reference Docs (`55bf562`):**
-   - Authored `docs/evaluation/METRICS.md` documenting exact mathematical formulas, denominators, boundary conditions, and safety rationale for all metrics.
-   - Authored `tests/unit/test_aub_phase4_metric_fixtures.py` verifying Recall@{1,3,5,10}, MRR, nDCG@{5,10}, FAR, WSR, legacy WPR, per-code abstention, Cohen's $\kappa$, and ECE against pencil-and-paper hand calculations (7 tests).
+## Next Steps for Future Phase (Phase 6 Boundary)
 
-7. **T4.7 / AUB-EVL-01 — Controlled 7-Arm Retrieval Ablation & Programmatic Decision (`35d03da`):**
-   - Implemented all seven controlled retrieval configurations in `eval/run_retrieval_ablation.py`: `bm25` (Production BM25), `bm25_pure_lexical`, `char_ngram`, `hybrid_rrf`, `hybrid_rrf_rerank`, `bm25_contextual`, and `contextual_predicate`.
-   - Computed paired difference 95% bootstrap CIs vs baseline BM25 across 1,000 resamples.
-   - Codified `decide_backend()`: strictly enforces hard safety invariants (FAR==0, WSR==0, HN==1, latency < 50ms) and adopts alternative candidates only with non-regressing Recall@5, test MRR gain $\ge +0.05$, and paired difference 95% bootstrap CI strictly excluding zero.
-   - Retained `bm25` (with calibrated predicates) as default production backend. Added `tests/unit/test_aub_phase4_ablation.py` (6 tests).
+- **Phase 6 Scope:** Engine, schema v2 and rule expansion (Tasks T6.0 through T6.6).
+- **Rule of Governance:** One phase per session. Stop cleanly at Phase 5 boundary. Do not begin Phase 6 in this session.
 
-8. **ADR-0013 & Documentation Ledger:**
-   - Authored `docs/adr/0013-evaluation-rebuild-and-validity-gates.md` and updated `docs/AUB_STATUS.md` and `CHANGELOG.md`.
+## Next Session Focus: AUB Phase 6 — Engine, Schema V2 and Rule Expansion
 
-## Next Session Focus: AUB Phase 5 — Citation Condition Verification and Plan Grounding
-
-The next engineer will execute **AUB Phase 5: Citation Condition Verification and Plan Grounding (AUB-GRD-01)**:
-- **T5.1 IF-Condition Verification**: Verify that cited protocol nodes' preconditions match patient clinical state, not merely that text contains matching keywords.
-- **T5.2 Qualifier-Aware Grounding**: Detect qualifiers (repeat-dose, refractory, contraindications) and enforce applicability during citation checking.
-- **T5.3 Grounding Diagnostic Reporting**: Machine-readable grounding explanations stating exact matched vs violated preconditions.
+The next engineer will execute **AUB Phase 6: Engine, Schema V2 and Rule Expansion**:
+- **T6.0 Pre-Implementation Review & Rule Expansion Scoping**: Audit candidate rules and formulary drugs.
+- **T6.1 Schema V2 Migration**: Implement Patient schema v2 with tri-state temporal lookbacks, explicit renal/hepatic status, and strict provenance.
+- **T6.2 Engine Rule Expansion**: Ingest and verify new clinical rules across DDI, allergy, duplicate therapy, and formulary bounds.
+- **T6.3 Candidate Rule Ingestion Pipeline**: Ingestion tooling enforcing `source_status: PLACEHOLDER_UNRETRIEVED, verified: false, content_origin: AGENT_DRAFT_UNSOURCED`.
+- **T6.4 Integration & Regression**: Full test coverage, golden suite expansion, and zero BLOCK override verification.
 
 ## Prior Phase Deliverables Summary (Phase 3)
 

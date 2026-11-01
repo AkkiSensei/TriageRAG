@@ -66,4 +66,3 @@ def test_eval_retrieval_leaves_tracked_reports_unmodified(tmp_path: Path) -> Non
     assert (tmp_path / "retrieval_calibration.md").exists()
     assert ret_json_path.read_bytes() == ret_json_orig
     assert calib_md_path.read_bytes() == calib_md_orig
-

@@ -126,7 +126,7 @@ def test_same_request_evaluates_fairly_across_backends() -> None:
         )
 
         # None of the backends should abstain on this strong positive match
-        assert (
-            not abstained
-        ), f"Backend '{idx.backend}' unexpectedly abstained: code={code}, reason={reason}"
+        assert not abstained, (
+            f"Backend '{idx.backend}' unexpectedly abstained: code={code}, reason={reason}"
+        )
         assert code == AbstainCode.NONE

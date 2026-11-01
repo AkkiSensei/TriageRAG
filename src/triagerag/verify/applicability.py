@@ -184,8 +184,7 @@ def verify_node_applicability(
             contraindicated_by=decl.contraindicated_by,
             predicate_evaluations=evaluations,
             reason=(
-                f"Patient clinical data is missing or unmeasured for "
-                f"predicate(s): {unknown_str}"
+                f"Patient clinical data is missing or unmeasured for predicate(s): {unknown_str}"
             ),
         )
 

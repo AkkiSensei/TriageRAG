@@ -24,9 +24,7 @@ def load_verdict_wording(data_dir: Path | None = None) -> dict[str, Any]:
     if not wording_file.exists():
         wording_file = target_dir.parent / "data" / "wording" / "verdicts.json"
     if not wording_file.exists():
-        raise FileNotFoundError(
-            f"Canonical verdict wording file not found: {wording_file}"
-        )
+        raise FileNotFoundError(f"Canonical verdict wording file not found: {wording_file}")
     with open(wording_file, encoding="utf-8") as f:
         return json.load(f)  # type: ignore[no-any-return]
 
@@ -46,4 +44,3 @@ def get_verdict_entry(verdict: str, data_dir: Path | None = None) -> dict[str, A
         "summary": "Clinical evaluation complete.",
         "actions": ["Review triage report."],
     }
-

@@ -121,8 +121,7 @@ class PredicateDefinition(BaseModel):
         )
         if is_numeric_op and self.threshold is None:
             raise ValueError(
-                f"Numeric predicate '{self.id}' with operator '{self.operator}' "
-                f"requires threshold"
+                f"Numeric predicate '{self.id}' with operator '{self.operator}' requires threshold"
             )
 
         if self.operator == PredicateOperator.IN and not self.allowed_values:
@@ -254,19 +253,11 @@ def evaluate_predicate(
         if predicate.operator == PredicateOperator.EQ:
             expected = str(predicate.expected_value or "").upper()
             is_match = (val_str == expected) or (expected == "ALERT" and val_str == "A")
-            return (
-                PredicateEvalResult.SATISFIED
-                if is_match
-                else PredicateEvalResult.NOT_SATISFIED
-            )
+            return PredicateEvalResult.SATISFIED if is_match else PredicateEvalResult.NOT_SATISFIED
         if predicate.operator == PredicateOperator.NE:
             expected = str(predicate.expected_value or "").upper()
             is_match = (val_str != expected) and not (expected == "ALERT" and val_str == "A")
-            return (
-                PredicateEvalResult.SATISFIED
-                if is_match
-                else PredicateEvalResult.NOT_SATISFIED
-            )
+            return PredicateEvalResult.SATISFIED if is_match else PredicateEvalResult.NOT_SATISFIED
         if predicate.operator == PredicateOperator.IN:
             allowed = [s.upper() for s in predicate.allowed_values]
             return (

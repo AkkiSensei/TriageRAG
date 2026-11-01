@@ -345,4 +345,3 @@ def test_explain_route_honors_requested_retrieval_backend() -> None:
     )
     assert resp_hybrid.status_code == 200
     assert resp_hybrid.json()["backend"] == "hybrid_rrf"
-

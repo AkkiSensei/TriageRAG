@@ -139,13 +139,13 @@ def test_error_codes_and_ece_consistency_in_report(report_text: str) -> None:
 
 
 def test_four_distinct_ablation_arms_without_duplicates(report_text: str) -> None:
-    """N3: Exactly four distinct ablation arms appear in the report table."""
+    """N3 / T4.7: Seven factorial ablation arms appear in the report table."""
     repo_root = get_repo_root()
     ablation_data = json.loads(
         (repo_root / "eval" / "reports" / "retrieval_ablation.json").read_text(encoding="utf-8")
     )
     arms = ablation_data["arms"]
-    assert len(arms) == 4
+    assert len(arms) == 7
     for arm_id in ("bm25", "char_ngram", "hybrid_rrf", "hybrid_rrf_rerank"):
         assert f"| `{arm_id}` |" in report_text
     assert "| `dense` |" not in report_text

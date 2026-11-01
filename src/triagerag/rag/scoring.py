@@ -57,9 +57,7 @@ def calculate_node_predicate_score(
         # NOT_SATISFIED or UNKNOWN contraindication does not alter conflict count
 
     final_score = (
-        float(lexical_score)
-        + (match_weight * match_count)
-        - (conflict_weight * conflict_count)
+        float(lexical_score) + (match_weight * match_count) - (conflict_weight * conflict_count)
     )
     return final_score, match_count, conflict_count
 

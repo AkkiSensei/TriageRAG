@@ -222,4 +222,3 @@ def test_missing_manifest_quarantines_all_documents(tmp_path: Path) -> None:
     manifest_derived = load_corpus_manifest(tmp_path, allow_derive=True)
     assert manifest_derived.controlled_syndromes == ["chest_pain"]
     assert manifest_derived.syndrome_aliases == {}
-

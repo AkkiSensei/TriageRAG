@@ -138,9 +138,7 @@ def evaluate_abstention_with_code(
 
     best_score = float(scored_chunks[0][1])
     eval_score = (
-        base_best_score
-        if (syndrome_provided and base_best_score is not None)
-        else best_score
+        base_best_score if (syndrome_provided and base_best_score is not None) else best_score
     )
     norm_best = normalize_relevance_score(eval_score, backend=backend, top_k=cfg.top_k)
 

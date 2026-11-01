@@ -208,7 +208,7 @@ def verify_plan(
                         f"Node '{cit.chunk_id}' applicability unconfirmed: {app_res.reason}"
                     )
 
-        if citations_ok and status != StepStatus.BLOCKED_STRUCK_THROUGH:
+        if resolved_cited_chunks and status != StepStatus.BLOCKED_STRUCK_THROUGH:
             is_supported, support_msg = verify_step_support(
                 step=step,
                 cited_chunks=resolved_cited_chunks,
@@ -312,11 +312,8 @@ def verify_plan(
             # Withholding a blocked drug is safe and correct (Section 6)
             pass
 
-        # 5. Citation status overrides if not already blocked or not applicable
-        if not citations_ok and status not in (
-            StepStatus.BLOCKED_STRUCK_THROUGH,
-            StepStatus.NOT_APPLICABLE,
-        ):
+        # 5. Citation status overrides if not already blocked
+        if not citations_ok and status != StepStatus.BLOCKED_STRUCK_THROUGH:
             status = StepStatus.CITATION_UNVERIFIED
 
         # 6. Syndrome inferred confirmation gate (FG-03, HD-4, ADR 0007)

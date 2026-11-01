@@ -159,9 +159,7 @@ class ClinicalTokenizer:
                     for sub_tok in syn_target.replace("_", " ").split():
                         sub_clean = sub_tok.strip().lower()
                         if sub_clean and sub_clean not in _NON_DISCRIMINATIVE_TOKENS:
-                            token_weights[sub_clean] = max(
-                                token_weights.get(sub_clean, 0.0), w_syn
-                            )
+                            token_weights[sub_clean] = max(token_weights.get(sub_clean, 0.0), w_syn)
 
             # 4. Acronym expansion
             upper_tok = tok.upper()
@@ -172,9 +170,7 @@ class ClinicalTokenizer:
                     for exp_tok in re.findall(r"\b[A-Za-z0-9_\-\/]+\b", expansion.lower()):
                         exp_clean = exp_tok.strip().lower()
                         if exp_clean and exp_clean not in _NON_DISCRIMINATIVE_TOKENS:
-                            token_weights[exp_clean] = max(
-                                token_weights.get(exp_clean, 0.0), w_raw
-                            )
+                            token_weights[exp_clean] = max(token_weights.get(exp_clean, 0.0), w_raw)
 
         return token_weights
 
@@ -388,9 +384,7 @@ class BM25ClinicalIndex:
         T2.5 (AUB-RET-06): Weighted query terms evaluate each unique token once with class weights.
         """
         weights_map = (
-            query_terms
-            if isinstance(query_terms, dict)
-            else {t: 1.0 for t in query_terms}
+            query_terms if isinstance(query_terms, dict) else {t: 1.0 for t in query_terms}
         )
         tf_map = stats.doc_term_freqs[local_idx]
         dl = float(stats.doc_lengths[local_idx])

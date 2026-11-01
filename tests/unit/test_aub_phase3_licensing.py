@@ -14,11 +14,10 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-import yaml
 from pydantic import ValidationError
 
 from triagerag.config import get_data_dir
-from triagerag.rag.chunking import ProtocolChunk, ProtocolFrontmatter, chunk_protocol_markdown
+from triagerag.rag.chunking import ProtocolFrontmatter, chunk_protocol_markdown
 from triagerag.rag.ingest import load_corpus_manifest
 
 

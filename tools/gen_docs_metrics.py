@@ -167,8 +167,12 @@ def update_file_section(file_path: Path, tag: str, replacement: str, check: bool
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate documentation metrics from eval reports.")
-    parser.add_argument("--check", action="store_true", help="Check for drift without modifying files.")
+    parser = argparse.ArgumentParser(
+        description="Generate documentation metrics from eval reports."
+    )
+    parser.add_argument(
+        "--check", action="store_true", help="Check for drift without modifying files."
+    )
     args = parser.parse_args()
 
     reports = load_reports()
@@ -199,7 +203,10 @@ def main() -> int:
             print("OK: All documentation metrics match canonical evaluation reports.")
             return 0
         else:
-            print("ERROR: Documentation metrics drift detected! Run 'python tools/gen_docs_metrics.py' to update.", file=sys.stderr)
+            print(
+                "ERROR: Documentation metrics drift detected! Run 'python tools/gen_docs_metrics.py' to update.",
+                file=sys.stderr,
+            )
             return 1
 
     return 0

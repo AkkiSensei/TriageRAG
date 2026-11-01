@@ -546,33 +546,23 @@ def _evaluate_split(
 
     total_abstain_cases = abstain_tp + abstain_fn
     abstain_precision = (
-        float(abstain_tp) / float(abstain_tp + abstain_fp)
-        if (abstain_tp + abstain_fp) > 0
-        else 1.0
+        float(abstain_tp) / float(abstain_tp + abstain_fp) if (abstain_tp + abstain_fp) > 0 else 1.0
     )
     abstain_recall = (
-        float(abstain_tp) / float(abstain_tp + abstain_fn)
-        if (abstain_tp + abstain_fn) > 0
-        else 1.0
+        float(abstain_tp) / float(abstain_tp + abstain_fn) if (abstain_tp + abstain_fn) > 0 else 1.0
     )
     abstain_acc = float(abstain_tp + abstain_tn) / float(len(cases)) if cases else 1.0
     hn_recall = float(hard_neg_abstained) / float(hard_neg_total) if hard_neg_total > 0 else 1.0
 
     # T4.4 Honest metrics
     false_accept_rate = (
-        float(false_accept_count) / float(total_abstain_cases)
-        if total_abstain_cases > 0
-        else 0.0
+        float(false_accept_count) / float(total_abstain_cases) if total_abstain_cases > 0 else 0.0
     )
     positive_retrieved = abstain_tn
     wrong_syndrome_rate = (
-        float(wrong_syndrome_count) / float(positive_retrieved)
-        if positive_retrieved > 0
-        else 0.0
+        float(wrong_syndrome_count) / float(positive_retrieved) if positive_retrieved > 0 else 0.0
     )
-    wrong_proto_rate = (
-        float(legacy_wrong_protocol_count) / float(len(cases)) if cases else 0.0
-    )
+    wrong_proto_rate = float(legacy_wrong_protocol_count) / float(len(cases)) if cases else 0.0
 
     # Per-code breakdown
     per_code_stats: dict[str, dict[str, Any]] = {}
@@ -593,9 +583,7 @@ def _evaluate_split(
     sorted_lat = sorted(latencies_ms)
     p50_ms = sorted_lat[len(sorted_lat) // 2] if sorted_lat else 0.0
     p95_ms = (
-        sorted_lat[min(len(sorted_lat) - 1, int(len(sorted_lat) * 0.95))]
-        if sorted_lat
-        else 0.0
+        sorted_lat[min(len(sorted_lat) - 1, int(len(sorted_lat) * 0.95))] if sorted_lat else 0.0
     )
 
     r1_ci = _bootstrap_ci95(recalls_at_1)
@@ -1011,10 +999,13 @@ def run_position_prior_baseline(seed: int = 42) -> dict[str, Any]:
             if not rep.abstained and rep.chunks:
                 top1_canon = resolve_chunk_id(rep.chunks[0].chunk_id, alias_map)
                 b_r1 = 1.0 if top1_canon in targets else 0.0
-                b_r5 = 1.0 if any(
-                    resolve_chunk_id(ch.chunk_id, alias_map) in targets
-                    for ch in rep.chunks[:5]
-                ) else 0.0
+                b_r5 = (
+                    1.0
+                    if any(
+                        resolve_chunk_id(ch.chunk_id, alias_map) in targets for ch in rep.chunks[:5]
+                    )
+                    else 0.0
+                )
                 b_rr = 0.0
                 for rank, ch in enumerate(rep.chunks, start=1):
                     if resolve_chunk_id(ch.chunk_id, alias_map) in targets:

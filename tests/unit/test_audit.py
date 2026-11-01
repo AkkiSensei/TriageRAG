@@ -240,4 +240,3 @@ def test_audit_chain_hmac_key_verification(tmp_path: Path) -> None:
     is_valid_wrong_key, err_wrong_key = verify_audit_chain(audit_file, hmac_key="wrong-key")
     assert is_valid_wrong_key is False
     assert "Tamper detected" in (err_wrong_key or "")
-

@@ -55,15 +55,15 @@ def test_unverified_preset_completed_checks_omit_allergy_ddi_and_weight() -> Non
 
     # Unresolved checks must explicitly record the skipped checks
     unresolved_str = " ".join(response.explanation.unresolved_checks).lower()
-    assert (
-        "allergy" in unresolved_str or "allergies" in unresolved_str
-    ), f"Expected allergy in unresolved_checks: {unresolved_str}"
-    assert (
-        "medication" in unresolved_str or "medications" in unresolved_str
-    ), f"Expected medication in unresolved_checks: {unresolved_str}"
-    assert (
-        "weight" in unresolved_str or "weight_kg" in unresolved_str
-    ), f"Expected weight in unresolved_checks: {unresolved_str}"
+    assert "allergy" in unresolved_str or "allergies" in unresolved_str, (
+        f"Expected allergy in unresolved_checks: {unresolved_str}"
+    )
+    assert "medication" in unresolved_str or "medications" in unresolved_str, (
+        f"Expected medication in unresolved_checks: {unresolved_str}"
+    )
+    assert "weight" in unresolved_str or "weight_kg" in unresolved_str, (
+        f"Expected weight in unresolved_checks: {unresolved_str}"
+    )
 
 
 def test_machine_verified_count_excludes_struck_and_unverified_steps() -> None:
@@ -213,6 +213,5 @@ def test_all_citation_unverified_steps_yield_zero_machine_verified_in_completed(
     # Must NOT have any line claiming steps were machine-verified
     assert not any("Machine-verified" in line for line in explanation.completed_checks)
     assert any(
-        "Proposed step 1 citation unverified" in line
-        for line in explanation.unresolved_checks
+        "Proposed step 1 citation unverified" in line for line in explanation.unresolved_checks
     )

@@ -393,9 +393,7 @@ def stage_intake_checks(
     base_alerts, base_skips, checks_run, unverified_rules = evaluate_baseline(
         normalized_patient, registry
     )
-    all_intake_skips = _collect_intake_skips(
-        normalized_patient, score_result, pop_str, base_skips
-    )
+    all_intake_skips = _collect_intake_skips(normalized_patient, score_result, pop_str, base_skips)
 
     blocked_drug_ids = {
         drug_id
@@ -464,9 +462,7 @@ def stage_draft(
         )
 
     delimited_complaint = (
-        normalized_patient.chief_complaint_untrusted
-        if config.include_complaint_in_llm
-        else None
+        normalized_patient.chief_complaint_untrusted if config.include_complaint_in_llm else None
     )
 
     plan_context = PlanContext(
@@ -599,9 +595,7 @@ def _apply_overrides(
                     draft=v_step.draft,
                     status=new_status,
                     triggered_rule_ids=v_step.triggered_rule_ids,
-                    rejection_reasons=[
-                        f"OVERRIDDEN by {override.clinician_id}: {override.reason}"
-                    ],
+                    rejection_reasons=[f"OVERRIDDEN by {override.clinician_id}: {override.reason}"],
                     citation_verified=v_step.citation_verified,
                     citation_overlap_score=v_step.citation_overlap_score,
                     support_reason=v_step.support_reason,
@@ -681,7 +675,8 @@ def stage_verify(
         a.raw_substance for a in normalized_patient.allergies if not a.resolved
     ]
     has_unverified_steps = any(
-        s.status in (
+        s.status
+        in (
             StepStatus.UNVERIFIED_MISSING_DATA,
             StepStatus.CITATION_UNVERIFIED,
             StepStatus.NOT_APPLICABLE,
@@ -918,18 +913,20 @@ def _build_completed_checks(
         )
 
     patient_weight = getattr(patient, "weight_kg", None)
-    has_weight_skip = any(
-        "weight" in s.rule_type.lower()
-        or "weight" in s.rule_id.lower()
-        or "weight_kg" in s.missing_fields
-        for s in engine.checks_skipped
-    ) or patient_weight is None or getattr(patient_weight, "value", None) is None
+    has_weight_skip = (
+        any(
+            "weight" in s.rule_type.lower()
+            or "weight" in s.rule_id.lower()
+            or "weight_kg" in s.missing_fields
+            for s in engine.checks_skipped
+        )
+        or patient_weight is None
+        or getattr(patient_weight, "value", None) is None
+    )
     if not has_weight_skip:
         completed_checks.append("Weight-based dose ceiling and magnitude tripwire checks")
 
-    has_score_skip = any(
-        s.rule_type == "physiological_scoring" for s in engine.checks_skipped
-    )
+    has_score_skip = any(s.rule_type == "physiological_scoring" for s in engine.checks_skipped)
     if engine.score and engine.score.total_score is not None and not has_score_skip:
         band_val = (
             engine.score.band.value
@@ -993,9 +990,7 @@ def _build_unresolved_checks(
             if hasattr(retrieval.abstain_code, "value")
             else str(retrieval.abstain_code)
         )
-        unresolved_checks.append(
-            f"Protocol retrieval abstained ({ac_val}): {retrieval.reason}"
-        )
+        unresolved_checks.append(f"Protocol retrieval abstained ({ac_val}): {retrieval.reason}")
 
     return unresolved_checks
 

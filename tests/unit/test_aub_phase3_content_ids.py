@@ -11,13 +11,8 @@ Safety Properties (Rules R1, R2, R3, AUB-COR-02):
 
 from __future__ import annotations
 
-from pathlib import Path
-
-import pytest
-
 from triagerag.config import get_data_dir
-from triagerag.contracts.enums import Consciousness
-from triagerag.contracts.schemas import Measured, Patient, SpanCitation, Vitals
+from triagerag.contracts.schemas import SpanCitation
 from triagerag.rag.aliases import load_node_aliases, resolve_chunk_id
 from triagerag.rag.chunking import (
     canonicalize_node_text,
@@ -25,7 +20,6 @@ from triagerag.rag.chunking import (
     compute_node_hash,
 )
 from triagerag.rag.ingest import ingest_protocols
-from triagerag.rag.retrieve import retrieve_protocol_chunks
 from triagerag.rag.service import RetrievalService
 from triagerag.verify.citations import verify_citation
 

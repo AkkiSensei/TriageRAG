@@ -10,19 +10,13 @@ Safety Properties (Rules R3, R9, RAG-04, AUB-COR-01):
 from __future__ import annotations
 
 import re
-import tempfile
-from pathlib import Path
 
-import pytest
-import yaml
-
-from triagerag.config import get_data_dir
 from tools.generate_synthetic_protocols import (
     MANUAL_PROTOCOLS,
     SYNDROME_SPECS,
-    generate_all_protocols,
     generate_protocol_markdown,
 )
+from triagerag.config import get_data_dir
 
 
 def test_generator_deterministic_bit_for_bit() -> None:

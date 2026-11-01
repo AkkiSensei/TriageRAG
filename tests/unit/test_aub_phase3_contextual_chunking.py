@@ -12,10 +12,7 @@ Safety Properties (AUB-COR-03, T3.5, Rules R1, R2, R3, R9):
 
 from __future__ import annotations
 
-from pathlib import Path
-
-import pytest
-
+from eval.run_retrieval_ablation import decide_backend
 from triagerag.config import get_data_dir
 from triagerag.rag.abstain import load_retrieval_config
 from triagerag.rag.chunking import (
@@ -24,10 +21,7 @@ from triagerag.rag.chunking import (
     compute_node_hash,
     extract_if_condition,
 )
-from triagerag.rag.ingest import ingest_protocols_with_report
 from triagerag.rag.service import RetrievalService
-from eval.run_retrieval_ablation import decide_backend
-
 
 SAMPLE_PROTOCOL_MD = """---
 doc_id: PROTO_CHEST_SAMPLE
@@ -83,7 +77,7 @@ def test_contextual_chunking_prepends_governing_condition_to_dependent_nodes() -
     chunks = chunk_protocol_markdown(SAMPLE_PROTOCOL_MD, contextual_chunking=True)
     assert len(chunks) == 4
 
-    parent = chunks[0]
+    _parent = chunks[0]
     node1 = chunks[1]
     node2 = chunks[2]
     node3 = chunks[3]
@@ -93,7 +87,9 @@ def test_contextual_chunking_prepends_governing_condition_to_dependent_nodes() -
     assert "Governing Context:" not in node1.indexed_text
 
     # Node 2 and Node 3 are dependent nodes -> receive governing condition in indexed_text
-    expected_context = "patient presents with acute crushing retrosternal chest pain and hypoperfusion"
+    expected_context = (
+        "patient presents with acute crushing retrosternal chest pain and hypoperfusion"
+    )
     assert node2.contextual_chunking_applied is True
     assert f"Governing Context: {expected_context}" in node2.indexed_text
 
@@ -193,7 +189,8 @@ def test_decide_backend_evaluates_contextual_arm() -> None:
     decision = decide_backend(mock_arms)
     assert decision == "bm25"
 
-    # Now simulate a qualifying +0.06 MRR improvement
+    # Now simulate a qualifying +0.06 MRR improvement with statistical distinguishability (T4.7)
     mock_arms["bm25_contextual"]["test_split"]["mrr"] = 0.82
+    mock_arms["bm25_contextual"]["test_split"]["statistically_distinguishable_from_bm25"] = True
     decision_gain = decide_backend(mock_arms)
     assert decision_gain == "bm25_contextual"

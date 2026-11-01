@@ -27,7 +27,9 @@ def test_readme_forbids_unqualified_dense_retrieval() -> None:
     readme_path = REPO_ROOT / "README.md"
     text = readme_path.read_text(encoding="utf-8")
     # Word boundary match for 'dense'
-    assert not re.search(r"\bdense\b", text, flags=re.IGNORECASE), "Forbidden term 'dense' found in README.md"
+    assert not re.search(r"\bdense\b", text, flags=re.IGNORECASE), (
+        "Forbidden term 'dense' found in README.md"
+    )
 
 
 def test_readme_llm_explains_has_mock_qualifier() -> None:

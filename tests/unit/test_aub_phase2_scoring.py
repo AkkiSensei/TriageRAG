@@ -143,7 +143,10 @@ def test_chest_pain_paired_patients_differ_on_top_node() -> None:
     assert len(res_b.chunks) > 0
 
     assert res_a.chunks[0].chunk_id != res_b.chunks[0].chunk_id
-    assert res_b.chunks[0].legacy_id == "CHEST_PAIN_01_NODE_5" or "CHEST_PAIN_01_NODE_5" in res_b.chunks[0].aliases
+    assert (
+        res_b.chunks[0].legacy_id == "CHEST_PAIN_01_NODE_5"
+        or "CHEST_PAIN_01_NODE_5" in res_b.chunks[0].aliases
+    )
 
 
 def test_anaphylaxis_paired_patients_differ_on_top_node() -> None:
@@ -176,8 +179,16 @@ def test_anaphylaxis_paired_patients_differ_on_top_node() -> None:
     res_b = retrieve_protocol_chunks(pat_bb, index, context=ctx)
     assert not res_b.abstained
 
-    node_4_a = next(i for i, c in enumerate(res_a.chunks) if (c.chunk_id == "ANAPHYLAXIS_01_NODE_4" or c.legacy_id == "ANAPHYLAXIS_01_NODE_4"))
-    node_4_b = next(i for i, c in enumerate(res_b.chunks) if (c.chunk_id == "ANAPHYLAXIS_01_NODE_4" or c.legacy_id == "ANAPHYLAXIS_01_NODE_4"))
+    node_4_a = next(
+        i
+        for i, c in enumerate(res_a.chunks)
+        if (c.chunk_id == "ANAPHYLAXIS_01_NODE_4" or c.legacy_id == "ANAPHYLAXIS_01_NODE_4")
+    )
+    node_4_b = next(
+        i
+        for i, c in enumerate(res_b.chunks)
+        if (c.chunk_id == "ANAPHYLAXIS_01_NODE_4" or c.legacy_id == "ANAPHYLAXIS_01_NODE_4")
+    )
     assert node_4_b < node_4_a
 
 
@@ -208,7 +219,10 @@ def test_altered_mental_status_paired_patients_differ() -> None:
     res_b = retrieve_protocol_chunks(pat_norm, index, context=ctx)
     assert not res_b.abstained
 
-    assert res_a.chunks[0].legacy_id == "ALTERED_MENTAL_STATUS_01_NODE_2" or "ALTERED_MENTAL_STATUS_01_NODE_2" in res_a.chunks[0].aliases
+    assert (
+        res_a.chunks[0].legacy_id == "ALTERED_MENTAL_STATUS_01_NODE_2"
+        or "ALTERED_MENTAL_STATUS_01_NODE_2" in res_a.chunks[0].aliases
+    )
     assert res_b.chunks[0].legacy_id != "ALTERED_MENTAL_STATUS_01_NODE_2"
 
 
@@ -240,8 +254,16 @@ def test_hypoglycemia_paired_patients_differ() -> None:
     res_b = retrieve_protocol_chunks(pat_unresp, index, context=ctx)
     assert not res_b.abstained
 
-    node_2_a = next(i for i, c in enumerate(res_a.chunks) if (c.chunk_id == "HYPOGLYCEMIA_01_NODE_2" or c.legacy_id == "HYPOGLYCEMIA_01_NODE_2"))
-    node_2_b = next(i for i, c in enumerate(res_b.chunks) if (c.chunk_id == "HYPOGLYCEMIA_01_NODE_2" or c.legacy_id == "HYPOGLYCEMIA_01_NODE_2"))
+    node_2_a = next(
+        i
+        for i, c in enumerate(res_a.chunks)
+        if (c.chunk_id == "HYPOGLYCEMIA_01_NODE_2" or c.legacy_id == "HYPOGLYCEMIA_01_NODE_2")
+    )
+    node_2_b = next(
+        i
+        for i, c in enumerate(res_b.chunks)
+        if (c.chunk_id == "HYPOGLYCEMIA_01_NODE_2" or c.legacy_id == "HYPOGLYCEMIA_01_NODE_2")
+    )
     assert node_2_a < node_2_b
 
 
@@ -285,8 +307,16 @@ def test_paediatric_sepsis_paired_patients_differ() -> None:
     res_b = retrieve_protocol_chunks(pat_pen_allg, index, context=ctx)
     assert not res_b.abstained
 
-    node_2_a = next(i for i, c in enumerate(res_a.chunks) if (c.chunk_id == "PAED_SEPSIS_01_NODE_2" or c.legacy_id == "PAED_SEPSIS_01_NODE_2"))
-    node_2_b = next(i for i, c in enumerate(res_b.chunks) if (c.chunk_id == "PAED_SEPSIS_01_NODE_2" or c.legacy_id == "PAED_SEPSIS_01_NODE_2"))
+    node_2_a = next(
+        i
+        for i, c in enumerate(res_a.chunks)
+        if (c.chunk_id == "PAED_SEPSIS_01_NODE_2" or c.legacy_id == "PAED_SEPSIS_01_NODE_2")
+    )
+    node_2_b = next(
+        i
+        for i, c in enumerate(res_b.chunks)
+        if (c.chunk_id == "PAED_SEPSIS_01_NODE_2" or c.legacy_id == "PAED_SEPSIS_01_NODE_2")
+    )
     assert node_2_b < node_2_a
 
 
@@ -327,18 +357,26 @@ def test_severe_asthma_paired_patients_differ() -> None:
     assert not res_b.abstained
 
     node_2_a = next(
-        i for i, c in enumerate(res_a.chunks) if (c.chunk_id == "SEVERE_ASTHMA_01_NODE_2" or c.legacy_id == "SEVERE_ASTHMA_01_NODE_2")
+        i
+        for i, c in enumerate(res_a.chunks)
+        if (c.chunk_id == "SEVERE_ASTHMA_01_NODE_2" or c.legacy_id == "SEVERE_ASTHMA_01_NODE_2")
     )
     node_2_b = next(
-        i for i, c in enumerate(res_b.chunks) if (c.chunk_id == "SEVERE_ASTHMA_01_NODE_2" or c.legacy_id == "SEVERE_ASTHMA_01_NODE_2")
+        i
+        for i, c in enumerate(res_b.chunks)
+        if (c.chunk_id == "SEVERE_ASTHMA_01_NODE_2" or c.legacy_id == "SEVERE_ASTHMA_01_NODE_2")
     )
     assert node_2_a < node_2_b
 
     node_3_a = next(
-        i for i, c in enumerate(res_a.chunks) if (c.chunk_id == "SEVERE_ASTHMA_01_NODE_3" or c.legacy_id == "SEVERE_ASTHMA_01_NODE_3")
+        i
+        for i, c in enumerate(res_a.chunks)
+        if (c.chunk_id == "SEVERE_ASTHMA_01_NODE_3" or c.legacy_id == "SEVERE_ASTHMA_01_NODE_3")
     )
     node_3_b = next(
-        i for i, c in enumerate(res_b.chunks) if (c.chunk_id == "SEVERE_ASTHMA_01_NODE_3" or c.legacy_id == "SEVERE_ASTHMA_01_NODE_3")
+        i
+        for i, c in enumerate(res_b.chunks)
+        if (c.chunk_id == "SEVERE_ASTHMA_01_NODE_3" or c.legacy_id == "SEVERE_ASTHMA_01_NODE_3")
     )
     assert node_3_b < node_3_a
 

@@ -29,7 +29,6 @@ from typing import Any
 from triagerag.config import get_data_dir
 from triagerag.rag.evidence import (
     INDIAN_ONLY_GENERICS,
-    SPL_SECTIONS,
     EvidenceChunk,
     EvidenceManifest,
     UnretrievedEvidenceNotice,
@@ -198,8 +197,8 @@ def fetch_openfda_label_live(
         with urllib.request.urlopen(req, timeout=10.0) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             results = data.get("results", [])
-            if results and isinstance(results, list):
-                return results[0]
+            if results and isinstance(results, list) and isinstance(results[0], dict):
+                return dict(results[0])
     except Exception as exc:
         logger.warning("Failed live fetch for generic '%s': %s", generic, exc)
 
@@ -336,7 +335,9 @@ def main() -> int:
         output_file=args.output_file,
         force_network=args.force_network,
     )
-    print(f"Generated {manifest.total_chunks} evidence chunks across {manifest.generics_count} generics.")
+    print(
+        f"Generated {manifest.total_chunks} evidence chunks across {manifest.generics_count} generics."
+    )
     print(f"Unretrieved formulations: {len(manifest.unretrieved_generics)}")
     return 0
 

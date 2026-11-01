@@ -14,7 +14,6 @@ Safety Properties (Rule R3, Rule R9, Section 13):
 from __future__ import annotations
 
 import re
-from pathlib import Path
 
 from triagerag.config import get_data_dir
 from triagerag.rag.ingest import ingest_protocols_with_report, load_corpus_manifest
@@ -77,7 +76,9 @@ def test_decision_nodes_per_syndrome_and_candidate_pool_exceeds_top_k() -> None:
         "severe_asthma",
     }
     expanded_syndromes = [s for s in manifest.controlled_syndromes if s not in baseline_syndromes]
-    assert len(expanded_syndromes) >= 20, f"Expected >= 20 expanded syndromes, found {len(expanded_syndromes)}"
+    assert len(expanded_syndromes) >= 20, (
+        f"Expected >= 20 expanded syndromes, found {len(expanded_syndromes)}"
+    )
 
     for syndrome in expanded_syndromes:
         node_count = nodes_by_syndrome.get(syndrome, 0)
@@ -94,7 +95,9 @@ def test_decision_nodes_per_syndrome_and_candidate_pool_exceeds_top_k() -> None:
     for chunk in report.chunks:
         chunks_by_pop[chunk.population] = chunks_by_pop.get(chunk.population, 0) + 1
     for pop, count in chunks_by_pop.items():
-        assert count > top_k, f"Population partition '{pop}' has only {count} chunks (required > {top_k})"
+        assert count > top_k, (
+            f"Population partition '{pop}' has only {count} chunks (required > {top_k})"
+        )
 
 
 def test_zero_quarantined_documents() -> None:
@@ -119,9 +122,7 @@ def test_cross_syndrome_distractor_vocabulary() -> None:
     ]
 
     for kw in distractor_keywords:
-        matching_syndromes = {
-            chunk.syndrome for chunk in report.chunks if kw in chunk.text.lower()
-        }
+        matching_syndromes = {chunk.syndrome for chunk in report.chunks if kw in chunk.text.lower()}
         assert len(matching_syndromes) >= 3, (
             f"Distractor keyword '{kw}' only appeared in {len(matching_syndromes)} syndromes "
             f"({matching_syndromes}), expected >= 3 for genuine retrieval discrimination challenge."
@@ -145,4 +146,3 @@ def test_all_synthetic_protocols_have_zero_numeric_doses() -> None:
             violations.append(f"{md_file.name}: {matches}")
 
     assert violations == [], f"Rule R9 violations found: {violations}"
-

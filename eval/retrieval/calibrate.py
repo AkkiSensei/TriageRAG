@@ -25,7 +25,6 @@ from triagerag.rag.abstain import (
     normalize_relevance_score,
 )
 from triagerag.rag.retrieve import (
-    RetrievalContext,
     retrieve_protocol_chunks,
 )
 from triagerag.rag.service import RetrievalService
@@ -108,13 +107,7 @@ def run_dev_calibration_sweep(
                     provenance=base_cfg.provenance,
                     config_hash=base_cfg.config_hash,
                 )
-                trial_ctx = RetrievalContext(
-                    data_dir=base_ctx.data_dir,
-                    config=trial_cfg,
-                    vitals_flags=base_ctx.vitals_flags,
-                    manifest=base_ctx.manifest,
-                    action_cues=base_ctx.action_cues,
-                )
+                trial_ctx = base_ctx.model_copy(update={"config": trial_cfg})
 
                 syn_r5: list[float] = []
                 syn_r1: list[float] = []

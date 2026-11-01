@@ -88,12 +88,12 @@ def test_position_prior_fallback_for_unseen_or_unrouted() -> None:
     assert retriever.overall_prior[0] == "NODE_CP_1"
 
     # Patient without suspected syndrome
-    patient_empty = Patient.model_construct(suspected_syndrome=None)
+    patient_empty = Patient.model_construct(suspected_syndrome=None)  # type: ignore[call-arg]
     top_empty = retriever.retrieve_ids(patient_empty, top_k=1)
     assert top_empty == ["NODE_CP_1"]
 
     # Patient with novel/unseen syndrome
-    patient_novel = Patient.model_construct(suspected_syndrome="rare_tropical_disease")
+    patient_novel = Patient.model_construct(suspected_syndrome="rare_tropical_disease")  # type: ignore[call-arg]
     top_novel = retriever.retrieve_ids(patient_novel, top_k=1)
     assert top_novel == ["NODE_CP_1"]
 

@@ -44,9 +44,7 @@ def test_all_cues_reference_valid_predicates() -> None:
     vocab_ids = {p.id for p in vocab.predicates}
 
     for pred_id in cues_cfg.cues:
-        assert pred_id in vocab_ids, (
-            f"Cue key '{pred_id}' does not exist in predicate vocabulary"
-        )
+        assert pred_id in vocab_ids, f"Cue key '{pred_id}' does not exist in predicate vocabulary"
 
 
 def test_deterministic_cue_expansion_and_deduplication() -> None:

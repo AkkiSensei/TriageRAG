@@ -105,8 +105,9 @@ def verify_citation(
     chunk_map: dict[str, RetrievedChunk] = {}
     for c in retrieved_chunks:
         chunk_map[c.chunk_id] = c
-        if getattr(c, "legacy_id", None):
-            chunk_map[c.legacy_id] = c
+        legacy_id = getattr(c, "legacy_id", None)
+        if legacy_id:
+            chunk_map[legacy_id] = c
         for alias in getattr(c, "aliases", ()):
             chunk_map[alias] = c
 

@@ -40,7 +40,7 @@ from triagerag.verify.citations import verify_citation, verify_step_support
 from triagerag.verify.plan_verifier import verify_plan
 
 
-def _make_patient() -> Patient:
+def _make_patient(systolic_bp: int = 130) -> Patient:
     return Patient(
         assessed_at=datetime(2026, 10, 26, 12, 0, 0, tzinfo=UTC),
         age=Age(value=Decimal("55"), unit=AgeUnit.years),
@@ -49,7 +49,7 @@ def _make_patient() -> Patient:
         weight_kg=Measured[Decimal](value=Decimal("80.0"), source="measured"),
         vitals=Vitals(
             heart_rate_bpm=Measured[int](value=88, source="measured"),
-            systolic_bp_mmhg=Measured[int](value=130, source="measured"),
+            systolic_bp_mmhg=Measured[int](value=systolic_bp, source="measured"),
         ),
         medication_history_status="confirmed_none",
         allergy_history_status="confirmed_none",
@@ -75,7 +75,7 @@ def _mixed_chest_pain_node5() -> RetrievedChunk:
 def test_administer_withheld_drug_in_mixed_node_rejected() -> None:
     """FG-01: 'administer metoprolol' citing chest_pain node 5 must be rejected."""
     registry = ClinicalRegistry.load_from_directory(get_data_dir())
-    patient = _make_patient()
+    patient = _make_patient(systolic_bp=80)
     node5 = _mixed_chest_pain_node5()
 
     draft = PlanDraft(
@@ -120,7 +120,7 @@ def test_administer_withheld_drug_in_mixed_node_rejected() -> None:
 def test_withhold_drug_in_mixed_node_accepted() -> None:
     """FG-01: 'withhold metoprolol' citing chest_pain node 5 must be APPROVED."""
     registry = ClinicalRegistry.load_from_directory(get_data_dir())
-    patient = _make_patient()
+    patient = _make_patient(systolic_bp=80)
     node5 = _mixed_chest_pain_node5()
 
     draft = PlanDraft(

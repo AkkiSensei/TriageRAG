@@ -16,10 +16,9 @@ provenance:
 nodes:
   # --- Anaphylaxis Protocol Nodes ---
   ANAPHYLAXIS_01_NODE_1:
-    requires_predicates:
-      - "low_systolic_bp"
+    requires_predicates: []
     contraindicated_by: []
-    always_applicable: false
+    always_applicable: true
     predicate_review_required: false
 
   ANAPHYLAXIS_01_NODE_2:

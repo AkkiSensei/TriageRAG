@@ -5,7 +5,35 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - AUB Phase 4: Evaluation Rebuild and Research Validity
+## [Unreleased] - AUB Phase 5: Applicability-Aware Grounding and Qualifier Verification
+
+### Added & Hardened
+- **Patient Applicability Verification Engine (T5.1 / AUB-GRD-01):**
+  - Created `src/triagerag/verify/applicability.py` comparing cited protocol node preconditions (`requires_predicates`) and contraindications (`contraindicated_by`) against structured patient data (`evaluate_predicate`).
+  - Added typed `ApplicabilityStatus` (`MET`, `NOT_MET`, `UNKNOWN`) and `NodeApplicabilityResult`.
+  - Added `StepStatus.NOT_APPLICABLE` to backend contracts (`src/triagerag/contracts/enums.py`) and frontend definitions (`web/src/types/api.ts`, `VerifiedPlanView.tsx`).
+  - Implemented bidirectional alias resolution supporting both positional and content-addressed node IDs.
+  - Added unit test suite `tests/unit/test_aub_phase5_applicability.py` (6 tests).
+- **THEN-Clause Qualifier Verification (T5.2 / AUB-GRD-01):**
+  - Created `src/triagerag/verify/qualifiers.py` detecting conditional qualifiers ("repeat", "consider", "after", "following", "continue", "withhold", "until") in source THEN clauses.
+  - Rejects drafted instructions that drop these qualifiers, refusing citations with `QUALIFIER_DROPPED: cited node contains '{qualifier}' qualifier ({description}) not present in drafted instruction`.
+  - Added unit test suite `tests/unit/test_aub_phase5_qualifiers.py` (9 tests).
+- **Verdict Lattice Integration & Fail-Closed Safety (T5.3 / AUB-GRD-01):**
+  - Integrated applicability and qualifier verification into `verify_plan` in `src/triagerag/verify/plan_verifier.py`.
+  - Updated `src/triagerag/orchestrator.py` to include `NOT_APPLICABLE` and `REQUIRES_CLINICIAN_CONFIRMATION` in `has_unverified_steps`.
+  - Enforced lattice rule: `NOT_APPLICABLE` steps cannot be `APPROVED`; absence of approved steps forces `Verdict.UNVERIFIED`.
+  - Verified Reviewer B's acceptance criterion: Normotensive anaphylaxis citing repeat-dose node (`ANAPHYLAXIS_01_NODE_3`) resolves strictly to `UNVERIFIED`, never `CHECKED_CLEAR`.
+  - Added unit and FastAPI endpoint regression tests `tests/unit/test_aub_phase5_verdict.py` (3 tests).
+- **Retrieval-Dependent FakeLLM Adversarial Profiles (T5.4 / AUB-GEN-01):**
+  - Extended `FakeLLMProfile` in `src/triagerag/llm/fake.py` with `RANKED_CHOICE`, `WRONG_BUT_MATCHING_CLAUSE`, and `QUALIFIER_DROP`.
+  - `RANKED_CHOICE` dynamically drafts from top retrieved child chunk in `context.retrieved_chunks`.
+  - `WRONG_BUT_MATCHING_CLAUSE` cites an inapplicable clause, exercising the `NOT_APPLICABLE` verifier refusal path.
+  - `QUALIFIER_DROP` cites a qualified node but drops the qualifier token, exercising the `QUALIFIER_DROPPED` / `CITATION_UNVERIFIED` verifier refusal path.
+  - Added unit test suite `tests/unit/test_aub_phase5_fake_llm.py` (3 tests).
+- **Architecture Decision Record:**
+  - Authored **ADR-0014** in `docs/adr/0014-applicability-aware-grounding-and-qualifier-verification.md`.
+
+## [0.3.4] - AUB Phase 4: Evaluation Rebuild and Research Validity
 
 ### Added & Hardened
 - **Controlled 7-Arm Retrieval Ablation & Programmatic Decision Rule (T4.7 / AUB-EVL-01):**

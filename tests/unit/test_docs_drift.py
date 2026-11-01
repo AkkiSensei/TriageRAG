@@ -17,8 +17,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 def test_docs_metrics_in_sync_with_reports() -> None:
     """T0.6 / AUB-DOC-01 / AUB-DOC-02: Documentation numbers must match eval/reports/*.json exactly."""
     script = REPO_ROOT / "tools" / "gen_docs_metrics.py"
-    res = subprocess.run([sys.executable, str(script), "--check"], cwd=REPO_ROOT, capture_output=True, text=True)
-    assert res.returncode == 0, f"Drift detected in documentation metrics:\n{res.stdout}\n{res.stderr}"
+    res = subprocess.run(
+        [sys.executable, str(script), "--check"], cwd=REPO_ROOT, capture_output=True, text=True
+    )
+    assert res.returncode == 0, (
+        f"Drift detected in documentation metrics:\n{res.stdout}\n{res.stderr}"
+    )
 
 
 def test_docs_drift_detector_catches_tampered_numbers(tmp_path: Path) -> None:

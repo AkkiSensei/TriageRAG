@@ -98,8 +98,8 @@ synthetic: true
     assert expected_indexed_header in child.indexed_text
     # Full header is preserved in display_header
     assert child.chunk_id in child.display_header
-    assert 'Acute Pericarditis Guideline' in child.display_header
-    assert 'chest_pain' in child.display_header
+    assert "Acute Pericarditis Guideline" in child.display_header
+    assert "chest_pain" in child.display_header
 
     # Searching for section/title terms ('pericarditis tamponade') must match the child node
     # via its contextual header even though those words do not appear in child.text!

@@ -67,7 +67,9 @@ class EvidenceChunk(BaseModel):
     effective_date: str
     retrieval_date: str
     source_url: str
-    license_tag: Literal["synthetic", "public_domain", "cc_by_nc_sa", "restricted"] = "public_domain"
+    license_tag: Literal["synthetic", "public_domain", "cc_by_nc_sa", "restricted"] = (
+        "public_domain"
+    )
     content_hash: str
     provenance: Provenance
 
@@ -118,13 +120,15 @@ def parse_spl_section_chunks(
     clean_generic = generic_name.strip().lower()
     label_id = str(label_record.get("id") or label_record.get("set_id") or "UNKNOWN_LABEL")
     effective_date = str(label_record.get("effective_time") or "20240101")
-    openfda_meta = label_record.get("openfda", {})
+    _openfda_meta = label_record.get("openfda", {})
     spl_id = label_record.get("set_id") or label_id
 
     source_url = f"https://api.fda.gov/drug/label.json?search=set_id:{spl_id}"
 
     # Verify openFDA public domain notice
-    license_tag: Literal["public_domain", "synthetic", "cc_by_nc_sa", "restricted"] = "public_domain"
+    license_tag: Literal["public_domain", "synthetic", "cc_by_nc_sa", "restricted"] = (
+        "public_domain"
+    )
 
     chunks: list[EvidenceChunk] = []
 
