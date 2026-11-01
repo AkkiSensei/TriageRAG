@@ -422,6 +422,8 @@ class RetrievalReport(BaseModel):
     corpus_hash: str = ""
     index_version: str = "1.0.0"
     config_hash: str = ""
+    expansion_mode: str = "predicate_aware_bm25"
+    expansion_trace: dict[str, Any] | None = None
 
 
 class PlanContext(BaseModel):

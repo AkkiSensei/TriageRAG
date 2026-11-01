@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from triagerag.config import get_data_dir
 from triagerag.contracts.schemas import (
@@ -60,6 +60,9 @@ class RetrievalService:
         config: RetrievalConfig,
         index: Retriever,
         context: RetrievalContext | None = None,
+        expansion_mode: Literal[
+            "baseline_bm25", "predicate_aware_bm25", "controlled_expansion"
+        ] = "predicate_aware_bm25",
     ) -> None:
         self.data_dir: Path = data_dir
         self.ingest_report: IngestReport = ingest_report
@@ -70,6 +73,9 @@ class RetrievalService:
             context if context is not None else build_retrieval_context(data_dir)
         )
         self.index.retrieval_context = self.context
+        self.expansion_mode: Literal[
+            "baseline_bm25", "predicate_aware_bm25", "controlled_expansion"
+        ] = expansion_mode
         self.corpus_hash: str = ingest_report.corpus_hash
         self.index_version: str = index.index_version
         self.config_hash: str = config.config_hash
@@ -87,6 +93,15 @@ class RetrievalService:
         norm_backend = backend.lower().strip()
         is_ctx = contextual_chunking
         is_pred = enable_predicate_scoring
+
+        exp_mode: Literal["baseline_bm25", "predicate_aware_bm25", "controlled_expansion"] = (
+            "predicate_aware_bm25"
+        )
+        if norm_backend == "controlled_expansion":
+            norm_backend = "bm25"
+            exp_mode = "controlled_expansion"
+        elif norm_backend in ("bm25_pure_lexical", "bm25_baseline"):
+            exp_mode = "baseline_bm25"
 
         if norm_backend in ("bm25_baseline", "bm25_pure_lexical"):
             norm_backend = "bm25"
@@ -178,6 +193,7 @@ class RetrievalService:
             config=context.config,
             index=index,
             context=context,
+            expansion_mode=exp_mode,
         )
 
     @classmethod
@@ -323,6 +339,7 @@ class RetrievalService:
             threshold=threshold,
             top_k=eff_top_k,
             context=self.context,
+            expansion_mode=self.expansion_mode,
         )
 
     def explain(self, patient: Patient, top_k: int | None = None) -> dict[str, Any]:

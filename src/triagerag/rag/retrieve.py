@@ -46,6 +46,7 @@ from triagerag.rag.predicates import (
     evaluate_patient_predicates,
     load_predicate_vocabulary,
 )
+from triagerag.rag.query_expansion import build_expanded_query
 from triagerag.rag.scoring import rescore_chunks_with_patient_predicates
 
 if TYPE_CHECKING:
@@ -354,6 +355,9 @@ def retrieve_protocol_chunks(
     top_k: int | None = None,
     vitals_flags_config: VitalsFlagsConfig | None = None,
     context: RetrievalContext | None = None,
+    expansion_mode: Literal[
+        "baseline_bm25", "predicate_aware_bm25", "controlled_expansion"
+    ] = "predicate_aware_bm25",
 ) -> RetrievalReport:
     """Retrieve verified protocol chunks matching patient population and controlled syndrome."""
     ctx_from_index: RetrievalContext | None = getattr(index, "retrieval_context", None)
@@ -374,6 +378,14 @@ def retrieve_protocol_chunks(
     norm_syndrome = normalize_syndrome(patient.suspected_syndrome, manifest=manifest, context=ctx)
     query_str, _query_flags = build_retrieval_query(patient, config=vf_cfg, context=ctx)
 
+    expansion_trace = build_expanded_query(
+        patient=patient,
+        context=ctx,
+        base_query=query_str,
+        mode=expansion_mode,
+    )
+    search_query = expansion_trace.expanded_query
+
     filters: dict[str, str] = {
         "population": pop,
         "vitals_band": resolved_band or "unmatched",
@@ -391,12 +403,14 @@ def retrieve_protocol_chunks(
             abstained=True,
             abstain_code=AbstainCode.INDEX_UNAVAILABLE,
             reason="No verified protocol chunks available in empty index",
-            query=query_str,
+            query=search_query,
             filters=filters,
             skipped_flags=skipped_flags,
             corpus_hash=corpus_hash,
             index_version=index_version,
             config_hash=cfg.config_hash,
+            expansion_mode=expansion_mode,
+            expansion_trace=expansion_trace.model_dump(),
         )
 
     pop_available = pop in index.index_by_population
@@ -407,12 +421,14 @@ def retrieve_protocol_chunks(
             abstained=True,
             abstain_code=AbstainCode.NO_POPULATION_COVERAGE,
             reason=f"No verified protocol chunks available for population '{pop}'",
-            query=query_str,
+            query=search_query,
             filters=filters,
             skipped_flags=skipped_flags,
             corpus_hash=corpus_hash,
             index_version=index_version,
             config_hash=cfg.config_hash,
+            expansion_mode=expansion_mode,
+            expansion_trace=expansion_trace.model_dump(),
         )
 
     # RAG-01: When suspected_syndrome is provided, validate against controlled vocabulary
@@ -428,12 +444,14 @@ def retrieve_protocol_chunks(
                     f"Suspected syndrome '{patient.suspected_syndrome}' is not in controlled "
                     f"protocol vocabulary (abstained)"
                 ),
-                query=query_str,
+                query=search_query,
                 filters=filters,
                 skipped_flags=skipped_flags,
                 corpus_hash=corpus_hash,
                 index_version=index_version,
                 config_hash=cfg.config_hash,
+                expansion_mode=expansion_mode,
+                expansion_trace=expansion_trace.model_dump(),
             )
 
         known_in_pop = index.known_syndromes(population=pop)
@@ -444,12 +462,14 @@ def retrieve_protocol_chunks(
                 abstained=True,
                 abstain_code=AbstainCode.NO_POPULATION_COVERAGE,
                 reason=(f"No protocol chunks for syndrome '{norm_syndrome}' in population '{pop}'"),
-                query=query_str,
+                query=search_query,
                 filters=filters,
                 skipped_flags=skipped_flags,
                 corpus_hash=corpus_hash,
                 index_version=index_version,
                 config_hash=cfg.config_hash,
+                expansion_mode=expansion_mode,
+                expansion_trace=expansion_trace.model_dump(),
             )
 
     if not query_str:
@@ -459,17 +479,19 @@ def retrieve_protocol_chunks(
             abstained=True,
             abstain_code=AbstainCode.EMPTY_QUERY,
             reason="Empty clinical query: no suspected syndrome or abnormal vitals flags",
-            query=query_str,
+            query=search_query,
             filters=filters,
             skipped_flags=skipped_flags,
             corpus_hash=corpus_hash,
             index_version=index_version,
             config_hash=cfg.config_hash,
+            expansion_mode=expansion_mode,
+            expansion_trace=expansion_trace.model_dump(),
         )
 
     search_k = eff_top_k if norm_syndrome is not None else eff_top_k * (2 + 2)
     raw_scored_chunks = index.search(
-        query=query_str,
+        query=search_query,
         population=pop,
         top_k=search_k,
         syndrome=norm_syndrome,
@@ -504,13 +526,15 @@ def retrieve_protocol_chunks(
             abstained=True,
             abstain_code=abstain_code,
             reason=reason,
-            query=query_str,
+            query=search_query,
             filters=filters,
             skipped_flags=skipped_flags,
             stage_scores=stage_scores,
             corpus_hash=corpus_hash,
             index_version=index_version,
             config_hash=cfg.config_hash,
+            expansion_mode=expansion_mode,
+            expansion_trace=expansion_trace.model_dump(),
         )
 
     # When syndrome was inferred from vitals, restrict returned chunks to the winning syndrome
@@ -553,11 +577,13 @@ def retrieve_protocol_chunks(
         abstained=False,
         abstain_code=abstain_code,
         reason=reason,
-        query=query_str,
+        query=search_query,
         filters=filters,
         skipped_flags=skipped_flags,
         stage_scores=stage_scores,
         corpus_hash=corpus_hash,
         index_version=index_version,
         config_hash=cfg.config_hash,
+        expansion_mode=expansion_mode,
+        expansion_trace=expansion_trace.model_dump(),
     )
