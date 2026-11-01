@@ -83,7 +83,7 @@ def test_ask_the_corpus_abstains_on_empty_or_gibberish_question() -> None:
     # 1. Empty question
     res_empty = ask_the_corpus(question="")
     assert res_empty.abstained
-    assert "too short" in res_empty.abstain_reason.lower()
+    assert res_empty.abstain_reason is not None and "too short" in res_empty.abstain_reason.lower()
 
     # 2. Random gibberish question with zero clinical terms
     res_gibberish = ask_the_corpus(question="xyzabc qqqqqq zzzz")

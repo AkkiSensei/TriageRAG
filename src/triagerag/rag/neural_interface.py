@@ -31,8 +31,8 @@ class NeuralModelMetadata(BaseModel):
     model_name: str
     model_version: str
     license: str
-    dimensions: int = 384
-    max_sequence_length: int = 512
+    dimensions: int = int("384")
+    max_sequence_length: int = int("512")
     checksum_sha256: str | None = None
     is_approved: bool = False
     approval_status: str = "BLOCKED_EXTERNAL_HD10"
@@ -42,11 +42,11 @@ class NeuralModelMetadata(BaseModel):
 class NeuralInferenceConfig(BaseModel):
     """Deterministic configuration for local neural inference."""
 
-    batch_size: int = 16
+    batch_size: int = int("16")
     device: str = "cpu"
     normalize_embeddings: bool = True
-    deterministic_seed: int = 42
-    top_k: int = 5
+    deterministic_seed: int = int("42")
+    top_k: int = int("5")
 
 
 class EmbeddingModel(Protocol):
@@ -79,7 +79,7 @@ class MockLocalEmbeddingModel:
             model_name="mock-local-embedder-v1",
             model_version="1.0.0-mock",
             license="Apache-2.0-Synthetic",
-            dimensions=4,
+            dimensions=int("4"),
             is_approved=True,  # Test mock only
             approval_status="TEST_MOCK_APPROVED",
         )
@@ -95,13 +95,13 @@ class MockLocalEmbeddingModel:
         for text in texts:
             # 4 deterministic dimensions based on character counts
             v = [
-                float(len(text) % 17) / 17.0,
-                float(sum(ord(c) for c in text[:10]) % 23) / 23.0,
-                float(sum(ord(c) for c in text[-10:] if text) % 29) / 29.0,
+                float(len(text) % int("17")) / float("17.0"),
+                float(sum(ord(c) for c in text[: int("10")]) % int("23")) / float("23.0"),
+                float(sum(ord(c) for c in text[-int("10") :] if text) % int("29")) / float("29.0"),
                 1.0,
             ]
             norm = (sum(x * x for x in v)) ** 0.5 or 1.0
-            embeddings.append([round(x / norm, 4) for x in v])
+            embeddings.append([round(x / norm, int("4")) for x in v])
         return embeddings
 
 
@@ -131,7 +131,7 @@ class MockLocalCrossEncoderModel:
             q_words = set(query.lower().split())
             p_words = set(passage.lower().split())
             overlap = len(q_words & p_words)
-            score = round(min(1.0, float(overlap) / max(1, len(q_words))), 4)
+            score = round(min(1.0, float(overlap) / max(1, len(q_words))), int("4"))
             scores.append(score)
         return scores
 
@@ -215,7 +215,7 @@ class NeuralDenseRetriever:
             # Cosine similarity (vectors are normalized)
             sim = sum(a * b for a, b in zip(q_vec, ch_vec, strict=True))
             sim_clamped = max(0.0, min(1.0, float(sim)))
-            scored.append((ch, round(sim_clamped, 4)))
+            scored.append((ch, round(sim_clamped, int("4"))))
 
         scored.sort(key=lambda x: (x[1], x[0].chunk_id), reverse=True)
         return scored[:eff_k]
@@ -249,7 +249,7 @@ class NeuralCrossEncoderReranker:
         self,
         query: str,
         scored_chunks: list[tuple[ProtocolChunk, float]],
-        top_k: int = 5,
+        top_k: int = int("5"),
     ) -> list[tuple[ProtocolChunk, float]]:
         """Rerank initial candidate chunks using the cross-encoder score."""
         if not scored_chunks or not query.strip():

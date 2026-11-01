@@ -19,7 +19,7 @@ import os
 import threading
 import time
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
@@ -132,7 +132,7 @@ def is_path_exempt(path: str) -> bool:
 def create_security_middleware(
     config: SecurityConfig | None = None,
     limiter: SlidingWindowRateLimiter | None = None,
-) -> Callable[[Request, Callable[[Request], Response]], Response]:
+) -> Callable[[Request, Callable[[Request], Awaitable[Response]]], Awaitable[Response]]:
     """Factory creating an ASGI HTTP middleware for authentication and rate limiting."""
     cfg = config or SecurityConfig()
     rate_limiter = (
@@ -145,7 +145,7 @@ def create_security_middleware(
     )
 
     async def security_middleware(
-        request: Request, call_next: Callable[[Request], Response]
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         path = request.url.path
 

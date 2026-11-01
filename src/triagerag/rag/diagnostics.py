@@ -47,7 +47,7 @@ class RetrievalDiagnostics(BaseModel):
 
     inferred_mode: bool = False
     mmr_applied: bool = False
-    lambda_param: float = 0.7
+    lambda_param: float = float("0.7")
     nearest_misses: list[NearestMissDetail] = Field(default_factory=list)
     predicate_evaluations: dict[str, list[PredicateMatchDetail]] = Field(default_factory=dict)
     abstention_code: str | None = None
@@ -68,7 +68,7 @@ def compute_token_jaccard_similarity(text1: str, text2: str) -> float:
 def apply_mmr_rerank(
     candidates: list[tuple[ProtocolChunk, float]],
     top_k: int,
-    lambda_param: float = 0.7,
+    lambda_param: float = float("0.7"),
 ) -> list[tuple[ProtocolChunk, float]]:
     """Maximum Marginal Relevance (MMR) selection for diversity.
 
@@ -117,7 +117,7 @@ def apply_mmr_rerank(
 
             # Deterministic tie-breaking: higher MMR, then higher raw score, then chunk_id ascending
             if mmr_score > best_mmr_score or (
-                abs(mmr_score - best_mmr_score) < 1e-9
+                abs(mmr_score - best_mmr_score) < float("1e-9")
                 and best_candidate is not None
                 and (
                     cand_raw_score > best_candidate[1]
@@ -141,7 +141,7 @@ def calculate_nearest_misses(
     all_scored_candidates: list[tuple[ProtocolChunk, float]],
     selected_chunk_ids: set[str],
     threshold: float,
-    max_misses: int = 5,
+    max_misses: int = int("5"),
 ) -> list[NearestMissDetail]:
     """Identify top non-selected candidate chunks and compute distance metrics."""
     nearest_misses: list[NearestMissDetail] = []
@@ -149,7 +149,7 @@ def calculate_nearest_misses(
 
     for chunk, score in all_scored_candidates:
         if chunk.chunk_id not in selected_chunk_ids:
-            delta = round(float(score) - float(threshold), 3)
+            delta = round(float(score) - float(threshold), int("3"))
             reason = "BELOW_SCORE_THRESHOLD" if delta < 0 else "TOP_K_RANK_CUTOFF"
 
             nearest_misses.append(
@@ -158,7 +158,7 @@ def calculate_nearest_misses(
                     doc_id=chunk.doc_id,
                     section=chunk.section,
                     syndrome=chunk.syndrome,
-                    score=round(float(score), 3),
+                    score=round(float(score), int("3")),
                     rank=rank,
                     delta_to_threshold=delta,
                     rejection_reason=reason,

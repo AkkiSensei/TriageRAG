@@ -48,13 +48,13 @@ def ask_the_corpus(
     question: str,
     population: str = "adult",
     syndrome: str | None = None,
-    top_k: int = 3,
+    top_k: int = int("3"),
     data_dir: Path | None = None,
     service: RetrievalService | None = None,
 ) -> CorpusAskResponse:
     """Answer a user question strictly via verbatim evidence extraction from approved protocols."""
     clean_q = question.strip()
-    if not clean_q or len(clean_q) < 3:
+    if not clean_q or len(clean_q) < int("3"):
         return CorpusAskResponse(
             question=question,
             answer="",
@@ -98,7 +98,7 @@ def ask_the_corpus(
 
     # Filter by minimum relevance score
     best_chunk, best_score = scored_chunks[0]
-    if best_score < 0.15:
+    if best_score < float("0.15"):
         return CorpusAskResponse(
             question=question,
             answer="",

@@ -49,7 +49,7 @@ class QueryExpansionResult(BaseModel):
     unconfirmed_predicates_skipped: list[str] = Field(default_factory=list)
 
 
-@lru_cache(maxsize=16)
+@lru_cache(maxsize=int("16"))
 def _load_expansion_config_cached(config_path_str: str) -> QueryExpansionConfig:
     p = Path(config_path_str)
     if not p.exists():

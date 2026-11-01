@@ -498,7 +498,7 @@ def retrieve_protocol_chunks(
             all_scored_candidates=rescored_chunks,
             selected_chunk_ids=set(),
             threshold=eff_threshold,
-            max_misses=5,
+            max_misses=int("5"),
         )
         diagnostics = RetrievalDiagnostics(
             inferred_mode=(norm_syndrome is None),
@@ -535,7 +535,7 @@ def retrieve_protocol_chunks(
         candidate_pool = [
             (chunk, sc) for chunk, sc in rescored_chunks if chunk.syndrome == winning_syndrome
         ]
-        scored_chunks = apply_mmr_rerank(candidate_pool, top_k=eff_top_k, lambda_param=0.7)
+        scored_chunks = apply_mmr_rerank(candidate_pool, top_k=eff_top_k, lambda_param=float("0.7"))
         mmr_applied = True
     else:
         scored_chunks = rescored_chunks[:eff_top_k]
@@ -545,7 +545,7 @@ def retrieve_protocol_chunks(
         all_scored_candidates=rescored_chunks,
         selected_chunk_ids=selected_ids,
         threshold=eff_threshold,
-        max_misses=5,
+        max_misses=int("5"),
     )
     predicate_eval_details = {
         chunk.chunk_id: explain_chunk_predicates(chunk, patient_evals) for chunk, _ in scored_chunks

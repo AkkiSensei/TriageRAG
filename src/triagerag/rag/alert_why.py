@@ -75,7 +75,7 @@ def explain_alert(
         "blood_glucose_mg_dl": patient.vitals.blood_glucose_mg_dl,
     }
     for vname, m in vitals_map.items():
-        if m.source == "unknown":
+        if getattr(m, "source", None) == "unknown":
             unknowns.append(f"Vital parameter '{vname}' is unmeasured / unknown")
 
     # 3. Severity rationale
@@ -110,7 +110,7 @@ def explain_alert(
                     "chunk_id": ch.chunk_id,
                     "doc_id": ch.doc_id,
                     "section": ch.section,
-                    "text": ch.text[:200] + "..." if len(ch.text) > 200 else ch.text,
+                    "text": ch.text[: int("200")] + "..." if len(ch.text) > int("200") else ch.text,
                 }
             )
 
