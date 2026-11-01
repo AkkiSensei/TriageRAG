@@ -528,3 +528,196 @@ cases:
     must_fire: ["ALLERGY_BETALACTAM_SCAR_CATCHALL"]
     must_skip: []
     must_not_fire: []
+
+  # 66: ALLERGY_BETALACTAM_SCAR_CATCHALL - Boundary (unknown/incomplete allergy history)
+  - id: "GOLDEN_66_SCAR_INCOMPLETE_ALLERGY_HISTORY_BOUNDARY"
+    allergies:
+      - substance: "amoxicillin"
+        reaction_type: "severe_cutaneous_scar"
+    allergy_history_status: "incomplete"
+    medications: ["ceftriaxone"]
+    must_fire: []
+    must_skip: ["ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+    must_not_fire: []
+
+  # 67: ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR - Positive 2 (anaphylaxis to ampicillin + ceftriaxone)
+  - id: "GOLDEN_67_PENICILLIN_CEPH_DISSIMILAR_POSITIVE_AMPICILLIN"
+    allergies:
+      - substance: "ampicillin"
+        reaction_type: "anaphylaxis_ige"
+    medications: ["ceftriaxone"]
+    allergy_history_status: "confirmed_list"
+    must_fire: ["ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR"]
+    must_skip: []
+    must_not_fire: ["ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+
+  # 68: ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR - Positive 3 (anaphylaxis to piperacillin + cefotaxime)
+  - id: "GOLDEN_68_PENICILLIN_CEPH_DISSIMILAR_POSITIVE_PIPERACILLIN"
+    allergies:
+      - substance: "piperacillin"
+        reaction_type: "anaphylaxis_ige"
+    medications: ["cefotaxime"]
+    allergy_history_status: "confirmed_list"
+    must_fire: ["ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR"]
+    must_skip: []
+    must_not_fire: ["ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+
+  # 69: ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR - Negative 3 (penicillin allergy with macrolide, no cephalosporin)
+  - id: "GOLDEN_69_PENICILLIN_ALLERGY_MACROLIDE_NEGATIVE"
+    allergies:
+      - substance: "penicillin"
+        reaction_type: "anaphylaxis_ige"
+    medications: ["azithromycin"]
+    allergy_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR", "ALLERGY_PENICILLIN_CEPH_R1_SIMILAR", "ALLERGY_BETALACTAM_SCAR_CATCHALL"]
+
+  # 70: ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR - Boundary (unknown reaction type fails closed)
+  - id: "GOLDEN_70_PENICILLIN_CEPH_DISSIMILAR_UNKNOWN_REACTION_BOUNDARY"
+    allergies:
+      - substance: "penicillin"
+        reaction_type: "unknown"
+    medications: ["ceftriaxone"]
+    allergy_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: ["ALLERGY_PENICILLIN_CEPH_R1_DISSIMILAR"]
+    must_not_fire: []
+
+  # 71: DUP_BETA_BLOCKERS - Positive 3 (metoprolol + labetalol)
+  - id: "GOLDEN_71_DUP_BETA_BLOCKERS_METOPROLOL_LABETALOL"
+    medications: ["metoprolol", "labetalol"]
+    medication_history_status: "confirmed_list"
+    must_fire: ["DUP_BETA_BLOCKERS"]
+    must_skip: []
+    must_not_fire: []
+
+  # 72: DUP_BETA_BLOCKERS - Boundary (incomplete med history status)
+  - id: "GOLDEN_72_DUP_BETA_BLOCKERS_INCOMPLETE_HISTORY_BOUNDARY"
+    medications: ["metoprolol"]
+    medication_history_status: "incomplete"
+    must_fire: []
+    must_skip: ["DUP_BETA_BLOCKERS"]
+    must_not_fire: []
+
+  # 73: DUP_PDE5_INHIBITORS - Positive 2 (sildenafil + tadalafil)
+  - id: "GOLDEN_73_DUP_PDE5_SILDENAFIL_TADALAFIL"
+    medications: ["sildenafil", "tadalafil"]
+    medication_history_status: "confirmed_list"
+    must_fire: ["DUP_PDE5_INHIBITORS"]
+    must_skip: []
+    must_not_fire: []
+
+  # 74: DUP_PDE5_INHIBITORS - Positive 3 (cialis brand alias + sildenafil)
+  - id: "GOLDEN_74_DUP_PDE5_CIALIS_SILDENAFIL"
+    medications: ["cialis", "sildenafil"]
+    medication_history_status: "confirmed_list"
+    must_fire: ["DUP_PDE5_INHIBITORS"]
+    must_skip: []
+    must_not_fire: []
+
+  # 75: DUP_PDE5_INHIBITORS - Negative 3 (tadalafil alone)
+  - id: "GOLDEN_75_DUP_PDE5_TADALAFIL_ALONE_NEGATIVE"
+    medications: ["tadalafil"]
+    medication_history_status: "confirmed_list"
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["DUP_PDE5_INHIBITORS"]
+
+  # 76: DUP_PDE5_INHIBITORS - Boundary (sildenafil with incomplete history)
+  - id: "GOLDEN_76_DUP_PDE5_INCOMPLETE_HISTORY_BOUNDARY"
+    medications: ["sildenafil"]
+    medication_history_status: "incomplete"
+    must_fire: []
+    must_skip: ["DUP_PDE5_INHIBITORS"]
+    must_not_fire: []
+
+  # 77: POP_CEFTRIAXONE_NEONATE - Boundary (exact 28 days neonate cutoff)
+  - id: "GOLDEN_77_CEFTRIAXONE_NEONATE_28_DAYS_BOUNDARY"
+    medications: ["ceftriaxone"]
+    age_value: 28
+    age_unit: "days"
+    must_fire: ["POP_CEFTRIAXONE_NEONATE"]
+    must_skip: []
+    must_not_fire: []
+
+  # 78: POP_LISINOPRIL_PREGNANCY - Positive 3 (lisinopril confirmed pregnancy female)
+  - id: "GOLDEN_78_LISINOPRIL_PREGNANT_FEMALE_POSITIVE"
+    medications: ["lisinopril"]
+    pregnancy: "yes"
+    sex: "female"
+    must_fire: ["POP_LISINOPRIL_PREGNANCY"]
+    must_skip: []
+    must_not_fire: []
+
+  # 79: VITALS_METOPROLOL_HYPOTENSION - Positive 3 (metoprolol with severe hypotension SBP 75)
+  - id: "GOLDEN_79_METOPROLOL_HYPOTENSION_SBP_75_POSITIVE"
+    medications: ["metoprolol"]
+    systolic_bp: 75
+    heart_rate: 80
+    must_fire: ["VITALS_METOPROLOL_HYPOTENSION"]
+    must_skip: []
+    must_not_fire: []
+
+  # 80: VITALS_METOPROLOL_HYPOTENSION - Negative 2 (metoprolol with normal SBP 125)
+  - id: "GOLDEN_80_METOPROLOL_NORMAL_SBP_125_NEGATIVE"
+    medications: ["metoprolol"]
+    systolic_bp: 125
+    heart_rate: 75
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["VITALS_METOPROLOL_HYPOTENSION"]
+
+  # 81: VITALS_METOPROLOL_HYPOTENSION - Negative 3 (hypotensive patient SBP 80 without metoprolol)
+  - id: "GOLDEN_81_HYPOTENSIVE_NO_METOPROLOL_NEGATIVE"
+    medications: ["salbutamol"]
+    systolic_bp: 80
+    heart_rate: 90
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["VITALS_METOPROLOL_HYPOTENSION", "VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"]
+
+  # 82: VITALS_METOPROLOL_HYPOTENSION - Boundary (metoprolol with unknown SBP)
+  - id: "GOLDEN_82_METOPROLOL_UNKNOWN_SBP_BOUNDARY"
+    medications: ["metoprolol"]
+    systolic_bp: null
+    heart_rate: 70
+    must_fire: []
+    must_skip: ["VITALS_METOPROLOL_HYPOTENSION"]
+    must_not_fire: []
+
+  # 83: VITALS_NITROGLYCERIN_HYPOTENSION - Negative 3 (nitroglycerin with normal SBP 120)
+  - id: "GOLDEN_83_NITROGLYCERIN_NORMAL_SBP_120_NEGATIVE"
+    medications: ["nitroglycerin"]
+    systolic_bp: 120
+    heart_rate: 72
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["VITALS_NITROGLYCERIN_HYPOTENSION"]
+
+  # 84: VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD - Negative (bradycardic patient without metoprolol)
+  - id: "GOLDEN_84_BRADYCARDIA_NO_METOPROLOL_NEGATIVE"
+    medications: ["dextrose"]
+    systolic_bp: 120
+    heart_rate: 45
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"]
+
+  # 85: VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD - Negative 2 (normal patient without metoprolol)
+  - id: "GOLDEN_85_NORMAL_NO_METOPROLOL_NEGATIVE"
+    medications: ["amoxicillin"]
+    systolic_bp: 120
+    heart_rate: 75
+    must_fire: []
+    must_skip: []
+    must_not_fire: ["VITALS_METOPROLOL_BRADYCARDIA_NULL_THRESHOLD"]
+
+  # 86: POP_CEFTRIAXONE_NEONATE - Boundary (ambiguous 0 months age requires days)
+  - id: "GOLDEN_86_CEFTRIAXONE_AMBIGUOUS_AGE_BOUNDARY"
+    medications: ["ceftriaxone"]
+    age_value: 0
+    age_unit: "months"
+    must_fire: []
+    must_skip: ["POP_CEFTRIAXONE_NEONATE"]
+    must_not_fire: []

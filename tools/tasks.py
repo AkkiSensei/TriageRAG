@@ -91,6 +91,15 @@ def lint_imports() -> None:
     typer.secho("[OK] Layer isolation intact", fg=typer.colors.GREEN)
 
 
+@app.command("rule-coverage")
+def rule_coverage() -> None:
+    """Run rule-coverage matrix and alert fatigue gate (T6.5)."""
+    typer.secho(
+        "=== Running Rule Coverage Matrix & Alert Fatigue Gate ===", fg=typer.colors.BLUE, bold=True
+    )
+    _run([sys.executable, "tools/rule_coverage.py"])
+
+
 @app.command("validate-data")
 def validate_data() -> None:
     """Validate all clinical data schemas."""
@@ -293,6 +302,7 @@ def verify_fast() -> None:
     typecheck()
     lint_imports()
     validate_data()
+    rule_coverage()
 
     typer.secho("=== Running Unit Test Suite ===", fg=typer.colors.BLUE, bold=True)
     _run([sys.executable, "-m", "pytest", "tests/unit"])
@@ -317,6 +327,7 @@ def verify_full() -> None:
     typecheck()
     lint_imports()
     validate_data()
+    rule_coverage()
 
     if (REPO_ROOT / "tools/provenance_report.py").exists():
         _run([sys.executable, "tools/provenance_report.py"])

@@ -316,6 +316,15 @@ def _evaluate_single_rule(
                 provenance=rule.provenance,
             )
 
+        if "age" in rule.requires_fields and patient.age.is_ambiguous_boundary:
+            return None, SkippedCheck(
+                rule_id=rule.id,
+                rule_type=rule.type,
+                reason="Patient age unit is ambiguous (e.g. 0 months/0 years requires days)",
+                missing_fields=["age"],
+                provenance=rule.provenance,
+            )
+
     # 2. Check rule clinical applicability to active drugs/classes
     # A rule only applies if its target drug or class is active in patient meds or plan
     if isinstance(rule, VitalsInterlockRule) and rule.drug_id not in active_drugs:
