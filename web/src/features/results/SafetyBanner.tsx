@@ -22,23 +22,23 @@ export const SafetyBanner: React.FC<SafetyBannerProps> = ({ report }) => {
   const isUnverified = verdict === 'UNVERIFIED'
   const isAlerts = verdict === 'CHECKED_ALERTS'
 
-  let bannerStyle = 'border-teal-300 bg-gradient-to-r from-teal-50 via-white to-teal-50/70 text-teal-950 shadow-soft dark:border-teal-700/80 dark:bg-gradient-to-r dark:from-teal-950/40 dark:via-[#132226] dark:to-teal-950/30 dark:text-teal-100'
+  let bannerStyle = 'border-teal-300 bg-gradient-to-r from-teal-50 via-white to-teal-50/70 text-teal-950 shadow-soft dark:border-teal-700/80 dark:bg-gradient-to-r dark:from-teal-950/40 dark:via-slate-800 dark:to-teal-950/30 dark:text-teal-100'
   let Icon = ShieldCheck
   let iconColor = 'text-teal-700 dark:text-teal-400'
   let badgeStyle = 'bg-teal-100/90 text-teal-900 border-teal-200 dark:bg-teal-950/60 dark:text-teal-200 dark:border-teal-700'
 
   if (isBlocked) {
-    bannerStyle = 'border-rose-400 bg-gradient-to-r from-rose-50 via-white to-rose-50/70 text-rose-950 shadow-soft dark:border-rose-700/80 dark:bg-gradient-to-r dark:from-rose-950/40 dark:via-[#132226] dark:to-rose-950/30 dark:text-rose-100'
+    bannerStyle = 'border-rose-400 bg-gradient-to-r from-rose-50 via-white to-rose-50/70 text-rose-950 shadow-soft dark:border-rose-700/80 dark:bg-gradient-to-r dark:from-rose-950/40 dark:via-slate-800 dark:to-rose-950/30 dark:text-rose-100'
     Icon = AlertOctagon
     iconColor = 'text-rose-600 dark:text-rose-400'
     badgeStyle = 'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-700'
   } else if (isUnverified) {
-    bannerStyle = 'border-violet-300 bg-gradient-to-r from-violet-50 via-white to-violet-50/70 text-violet-950 shadow-soft dark:border-violet-700/80 dark:bg-gradient-to-r dark:from-violet-950/40 dark:via-[#132226] dark:to-violet-950/30 dark:text-violet-100'
+    bannerStyle = 'border-violet-300 bg-gradient-to-r from-violet-50 via-white to-violet-50/70 text-violet-950 shadow-soft dark:border-violet-700/80 dark:bg-gradient-to-r dark:from-violet-950/40 dark:via-slate-800 dark:to-violet-950/30 dark:text-violet-100'
     Icon = HelpCircle
     iconColor = 'text-violet-600 dark:text-violet-400'
     badgeStyle = 'bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-950/60 dark:text-violet-200 dark:border-violet-700'
   } else if (isAlerts) {
-    bannerStyle = 'border-amber-300 bg-gradient-to-r from-amber-50 via-white to-amber-50/70 text-amber-950 shadow-soft dark:border-amber-700/80 dark:bg-gradient-to-r dark:from-amber-950/40 dark:via-[#132226] dark:to-amber-950/30 dark:text-amber-100'
+    bannerStyle = 'border-amber-300 bg-gradient-to-r from-amber-50 via-white to-amber-50/70 text-amber-950 shadow-soft dark:border-amber-700/80 dark:bg-gradient-to-r dark:from-amber-950/40 dark:via-slate-800 dark:to-amber-950/30 dark:text-amber-100'
     Icon = AlertTriangle
     iconColor = 'text-amber-600 dark:text-amber-400'
     badgeStyle = 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-700'
@@ -52,7 +52,7 @@ export const SafetyBanner: React.FC<SafetyBannerProps> = ({ report }) => {
     >
       <div className="flex items-start gap-4">
         <div className="shrink-0 mt-0.5">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white dark:bg-[#0c1618] shadow-soft-sm border border-current/10 dark:border-slate-700">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white dark:bg-slate-900 shadow-soft-sm border border-current/10 dark:border-slate-700">
             <Icon className={`h-6 w-6 ${iconColor}`} />
           </div>
         </div>

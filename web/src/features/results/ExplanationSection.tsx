@@ -138,7 +138,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
       <div className={`rounded-2xl border ${vStyles.border} ${vStyles.bg} p-6 shadow-soft transition-all`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-black/5 dark:border-white/10 pb-4 mb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white dark:bg-[#132226] shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white dark:bg-slate-800 shadow-sm">
               {vStyles.icon}
             </div>
             <div>
@@ -197,8 +197,8 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
 
       {/* 2. "WHY DID I GET THIS RESULT?" & NEXT ACTIONS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-[#1e3840] pb-3 mb-3">
+        <div className="lg:col-span-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
+          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3 mb-3">
             <Compass className="h-4 w-4 text-teal-700 dark:text-teal-400" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
               Why Did I Get This Result?
@@ -210,7 +210,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
               explanation.outcome_reasons.map((reason, idx) => (
                 <div
                   key={idx}
-                  className="flex items-start gap-2.5 rounded-xl bg-slate-50 dark:bg-[#0c1618] p-3 text-xs text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-[#1e3840]"
+                  className="flex items-start gap-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 p-3 text-xs text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700"
                 >
                   <ArrowRight className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
                   <span className="leading-relaxed font-sans">{reason}</span>
@@ -225,8 +225,8 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
         </div>
 
         {/* Permitted Clinical Actions Card */}
-        <div className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-[#1e3840] pb-3 mb-3">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
+          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3 mb-3">
             <ListChecks className="h-4 w-4 text-teal-700 dark:text-teal-400" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
               Permitted Next Steps
@@ -251,8 +251,8 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
       {/* 2.5 COMPLETED VS UNRESOLVED CHECKS SCOPE */}
       {(Boolean(explanation?.completed_checks?.length) || Boolean(explanation?.unresolved_checks?.length)) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft">
-            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-[#1e3840] pb-3 mb-3">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
+            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3 mb-3">
               <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
                 Completed Checks ({explanation?.completed_checks?.length || 0})
@@ -268,8 +268,8 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
             </ul>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft">
-            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-[#1e3840] pb-3 mb-3">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
+            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3 mb-3">
               <HelpCircle className="h-4 w-4 text-violet-600 dark:text-violet-400" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
                 Unresolved Checks &amp; Scope ({explanation?.unresolved_checks?.length || 0})
@@ -288,7 +288,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
       )}
 
       {/* 3. EXECUTION PIPELINE TIMELINE (COLLAPSIBLE) */}
-      <div className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-4 shadow-soft">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-soft">
         <button
           type="button"
           onClick={() => setShowTimeline(!showTimeline)}
@@ -302,11 +302,11 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
         </button>
 
         {showTimeline && (
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-3 border-t border-slate-100 dark:border-[#1e3840]">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-700">
             {timelineStages.map((stage, idx) => (
               <div
                 key={idx}
-                className="rounded-xl border border-slate-200/80 dark:border-[#1e3840] bg-slate-50/60 dark:bg-[#0c1618] p-2.5 text-xs font-mono"
+                className="rounded-xl border border-slate-200/80 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900 p-2.5 text-xs font-mono"
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px] truncate">

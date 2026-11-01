@@ -31,8 +31,8 @@ export const RetrievalView: React.FC<RetrievalViewProps> = ({ triage }) => {
   const chunks = retrieval?.chunks || []
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft transition-all">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-[#1e3840] pb-3 mb-4">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft transition-all">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-700 pb-3 mb-4">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">
             <BookOpen className="h-4 w-4" />
@@ -68,7 +68,7 @@ export const RetrievalView: React.FC<RetrievalViewProps> = ({ triage }) => {
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-1.5 text-xs font-mono font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-800 dark:hover:text-teal-200 transition-colors bg-slate-50 dark:bg-[#0c1618] border border-slate-200 dark:border-[#1e3840] px-3 py-1 rounded-xl shadow-soft-sm"
+            className="flex items-center gap-1.5 text-xs font-mono font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-800 dark:hover:text-teal-200 transition-colors bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3 py-1 rounded-xl shadow-soft-sm"
           >
             <span>{chunks.length} Chunks</span>
             {isOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
@@ -116,7 +116,7 @@ export const RetrievalView: React.FC<RetrievalViewProps> = ({ triage }) => {
 
       {/* Expandable "How Retrieval Worked" Drawer */}
       {showHowItWorks && retrieval && (
-        <div className="mb-4 rounded-xl border border-slate-200 dark:border-[#1e3840] bg-slate-50 dark:bg-[#0c1618] p-4 text-xs font-mono text-slate-700 dark:text-slate-300 space-y-2">
+        <div className="mb-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4 text-xs font-mono text-slate-700 dark:text-slate-300 space-y-2">
           <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-800 pb-2">
             <Search className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
             <span>Retrieval Mechanics &amp; Gating Architecture</span>
@@ -173,7 +173,7 @@ export const RetrievalView: React.FC<RetrievalViewProps> = ({ triage }) => {
           {chunks.map((chunk, idx) => (
             <div
               key={chunk.chunk_id || idx}
-              className="rounded-xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-4 text-xs shadow-soft-sm hover:border-teal-300 dark:hover:border-teal-700 transition-all"
+              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-xs shadow-soft-sm hover:border-teal-300 dark:hover:border-teal-700 transition-all"
             >
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2 text-[11px] font-mono border-b border-slate-100 dark:border-slate-800 pb-2">
                 <div className="flex items-center gap-2">
@@ -200,7 +200,7 @@ export const RetrievalView: React.FC<RetrievalViewProps> = ({ triage }) => {
                 </div>
               </div>
 
-              <div className="bg-slate-50 dark:bg-[#0c1618] p-3 rounded-lg border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-200 font-sans leading-relaxed text-xs">
+              <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-200 font-sans leading-relaxed text-xs">
                 &ldquo;{chunk.text}&rdquo;
               </div>
 

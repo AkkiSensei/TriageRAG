@@ -143,7 +143,7 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden mt-2 mx-auto max-w-7xl rounded-2xl bg-white/95 dark:bg-[#132226]/95 backdrop-blur-md border border-[#d9e8e6] dark:border-[#1e3840] p-3 shadow-soft-lg transition-all">
+        <div className="lg:hidden mt-2 mx-auto max-w-7xl rounded-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-slate-200 dark:border-slate-700 p-3 shadow-soft-lg transition-all">
           <div className="flex flex-col gap-1">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon

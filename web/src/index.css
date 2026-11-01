@@ -66,28 +66,28 @@
 }
 
 .dark {
-  /* Canvas & Surfaces (Dark Navy / Blue-Green Charcoal) */
-  --bg-canvas: #0c1618;
-  --bg-surface: #132226;
-  --bg-hover: #192c31;
-  --bg-muted: #16262b;
+  /* Canvas & Surfaces (Neutral dark charcoal / slate tones) */
+  --bg-canvas: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-hover: #334155;
+  --bg-muted: #1e293b;
 
-  /* Primary Bright Teal / Aqua in Dark Mode */
+  /* Primary Bright Teal in Dark Mode */
   --primary: #14b8a6;
   --primary-dark: #0f766e;
-  --primary-soft: #0c2b2a;
+  --primary-soft: #134e4a;
 
   /* Accent Coral */
   --coral-accent: #ff6f59;
   --coral-soft: #381a17;
 
   /* Borders */
-  --border: #1e3840;
+  --border: #334155;
   --border-focus: #14b8a6;
-  --border-strong: #2c515c;
+  --border-strong: #475569;
 
   /* Typography */
-  --text-primary: #f1f5f9;
+  --text-primary: #f8fafc;
   --text-muted: #94a3b8;
   --text-subtle: #64748b;
   --text-inverse: #0f172a;

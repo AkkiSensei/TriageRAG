@@ -14,7 +14,7 @@ import {
 
 export const RulesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
-  const [severityFilter, setSeverityFilter] = useState<string>('ALL')
+  const [activeFilter, setActiveFilter] = useState<string>('ALL')
 
   const { data: summary } = useQuery({
     queryKey: ['registry-summary'],
@@ -26,16 +26,66 @@ export const RulesPage: React.FC = () => {
     queryFn: api.getRules,
   })
 
+  // Review status helper: "Approved", "Needs review", "Draft"
+  // Note: Candidate rules can NEVER appear as approved
+  const getReviewStatus = (rule: RuleSummaryDto): 'Approved' | 'Needs review' | 'Draft' => {
+    const isCandidate =
+      rule.content_origin?.includes('CANDIDATE') ||
+      rule.status?.includes('CANDIDATE') ||
+      rule.id.toLowerCase().includes('candidate')
+
+    if (isCandidate) return 'Draft'
+    if (rule.verified === true) return 'Approved'
+    if (rule.source_status === 'RETRIEVED_UNREVIEWED' || rule.status === 'NEEDS_SOURCE') {
+      return 'Needs review'
+    }
+    return 'Draft'
+  }
+
+  const getReviewStatusBadge = (rule: RuleSummaryDto) => {
+    const status = getReviewStatus(rule)
+    switch (status) {
+      case 'Approved':
+        return (
+          <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+            Approved
+          </span>
+        )
+      case 'Needs review':
+        return (
+          <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+            Needs review
+          </span>
+        )
+      case 'Draft':
+      default:
+        return (
+          <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+            Draft
+          </span>
+        )
+    }
+  }
+
   const filteredRules = (rules || []).filter((rule) => {
-    const matchesSeverity =
-      severityFilter === 'ALL' || rule.severity.toUpperCase() === severityFilter.toUpperCase()
+    const status = getReviewStatus(rule)
+    let matchesFilter = true
+    if (activeFilter === 'BLOCK') matchesFilter = rule.severity.toUpperCase() === 'BLOCK'
+    else if (activeFilter === 'HIGH') matchesFilter = rule.severity.toUpperCase() === 'HIGH'
+    else if (activeFilter === 'MODERATE') matchesFilter = rule.severity.toUpperCase() === 'MODERATE'
+    else if (activeFilter === 'APPROVED') matchesFilter = status === 'Approved'
+    else if (activeFilter === 'NEEDS_REVIEW') matchesFilter = status === 'Needs review'
+    else if (activeFilter === 'DRAFT') matchesFilter = status === 'Draft'
+
     const matchesSearch =
       searchQuery === '' ||
       rule.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       rule.consequence?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       rule.action?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rule.rule_type?.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesSeverity && matchesSearch
+      rule.rule_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      status.toLowerCase().includes(searchQuery.toLowerCase())
+
+    return matchesFilter && matchesSearch
   })
 
   // Friendly human readable title for rules
@@ -203,13 +253,16 @@ export const RulesPage: React.FC = () => {
             { id: 'BLOCK', label: 'Stop Rules' },
             { id: 'HIGH', label: 'Doctor Review' },
             { id: 'MODERATE', label: 'Caution' },
+            { id: 'APPROVED', label: 'Approved' },
+            { id: 'NEEDS_REVIEW', label: 'Needs Review' },
+            { id: 'DRAFT', label: 'Draft' },
           ].map((item) => (
             <button
               key={item.id}
               type="button"
-              onClick={() => setSeverityFilter(item.id)}
+              onClick={() => setActiveFilter(item.id)}
               className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all shrink-0 cursor-pointer ${
-                severityFilter === item.id
+                activeFilter === item.id
                   ? 'bg-teal-600 text-white shadow-sm'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
@@ -243,7 +296,7 @@ export const RulesPage: React.FC = () => {
                 key={rule.id}
                 className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm hover:shadow-md transition-all"
               >
-                {/* Rule Title and Badge */}
+                {/* Rule Title and Badges */}
                 <div className="flex items-start justify-between gap-3 flex-wrap mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
                   <div>
                     <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
@@ -253,7 +306,10 @@ export const RulesPage: React.FC = () => {
                       Rule Code: {rule.id}
                     </span>
                   </div>
-                  <div>{getSeverityBadge(rule.severity)}</div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {getSeverityBadge(rule.severity)}
+                    {getReviewStatusBadge(rule)}
+                  </div>
                 </div>
 
                 {/* 3 User-Friendly Staff Questions */}

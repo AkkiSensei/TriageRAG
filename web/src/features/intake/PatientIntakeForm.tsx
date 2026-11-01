@@ -640,12 +640,12 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
                 value={form.ageValue}
                 onChange={(e) => setForm({ ...form, ageValue: e.target.value })}
                 placeholder="62"
-                className="h-10 w-2/3 rounded-xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                className="h-10 w-2/3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
               />
               <select
                 value={form.ageUnit}
                 onChange={(e) => setForm({ ...form, ageUnit: e.target.value as AgeUnit })}
-                className="h-10 w-1/3 rounded-xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-1.5 text-[11px] font-mono font-medium text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
+                className="h-10 w-1/3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1.5 text-[11px] font-mono font-medium text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
               >
                 <option value="years">yr</option>
                 <option value="months">mo</option>
@@ -660,7 +660,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             <select
               value={form.sex}
               onChange={(e) => handleSexChange(e.target.value as Sex)}
-              className="mt-1 h-10 w-full rounded-xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="mt-1 h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             >
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -679,7 +679,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             </div>
             {form.sex === 'male' ? (
               <div
-                className="mt-1 flex h-10 w-full items-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0c1618] px-3 text-xs text-slate-500 dark:text-slate-400 font-mono cursor-not-allowed select-none"
+                className="mt-1 flex h-10 w-full items-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-3 text-xs text-slate-500 dark:text-slate-400 font-mono cursor-not-allowed select-none"
                 title="Biological invariant: Male patients are locked to No"
               >
                 No (N/A)
@@ -688,7 +688,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               <select
                 value={form.pregnancy}
                 onChange={(e) => setForm({ ...form, pregnancy: e.target.value as Pregnancy })}
-                className="mt-1 h-10 w-full rounded-xl border border-teal-300 dark:border-teal-700 bg-white dark:bg-[#0f1b1e] px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                className="mt-1 h-10 w-full rounded-xl border border-teal-300 dark:border-teal-700 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
               >
                 <option value="no">Not Pregnant (No)</option>
                 <option value="yes">Pregnant (Yes)</option>
@@ -705,13 +705,13 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               value={form.weightValue}
               onChange={(e) => setForm({ ...form, weightValue: e.target.value })}
               placeholder="82.0"
-              className="mt-1 h-10 w-full rounded-xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="mt-1 h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             />
           </div>
         </div>
 
         {/* 7 Physiological Vitals Grid */}
-        <div className="flex flex-col gap-3 pt-4 border-t border-[#d9e8e6] dark:border-[#1e3840]">
+        <div className="flex flex-col gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
           <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
             Physiological Measurements
           </span>

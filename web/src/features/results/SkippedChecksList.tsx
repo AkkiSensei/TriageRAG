@@ -18,7 +18,7 @@ export const SkippedChecksList: React.FC<SkippedChecksListProps> = ({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-violet-200 dark:border-violet-900/60 bg-gradient-to-r from-violet-50/70 dark:from-violet-950/30 via-white dark:via-[#132226] to-violet-50/40 dark:to-[#132226] p-5 shadow-soft">
+    <div className="flex flex-col gap-3 rounded-2xl border border-violet-200 dark:border-violet-900/60 bg-gradient-to-r from-violet-50/70 dark:from-violet-950/30 via-white dark:via-slate-800 to-violet-50/40 dark:to-slate-800 p-5 shadow-soft">
       <div className="flex items-center justify-between border-b border-violet-200 dark:border-violet-900/60 pb-3">
         <div className="flex items-center gap-2.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-violet-100 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300">
@@ -48,7 +48,7 @@ export const SkippedChecksList: React.FC<SkippedChecksListProps> = ({
         {skippedChecks.map((check: SkippedCheck, idx: number) => (
           <div
             key={`${check.rule_id}-${idx}`}
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-violet-200 dark:border-violet-900/40 bg-white dark:bg-[#0c1618] p-3.5 text-xs shadow-soft-sm"
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 rounded-xl border border-violet-200 dark:border-violet-900/40 bg-white dark:bg-slate-900 p-3.5 text-xs shadow-soft-sm"
           >
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">

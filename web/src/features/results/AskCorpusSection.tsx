@@ -37,8 +37,8 @@ export const AskCorpusSection: React.FC = () => {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft transition-all">
-      <div className="flex items-center justify-between border-b border-slate-100 dark:border-[#1e3840] pb-3 mb-4">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft transition-all">
+      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3 mb-4">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">
             <BookOpen className="h-4 w-4" />
@@ -64,14 +64,14 @@ export const AskCorpusSection: React.FC = () => {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Ask a question about emergency protocol management (e.g. anaphylaxis, asthma)..."
-            className="w-full rounded-xl border border-slate-200 dark:border-[#1e3840] bg-slate-50 dark:bg-[#0c1618] px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3.5 py-2 text-xs text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
           />
         </div>
 
         <select
           value={population}
           onChange={(e) => setPopulation(e.target.value)}
-          className="rounded-xl border border-slate-200 dark:border-[#1e3840] bg-slate-50 dark:bg-[#0c1618] px-3 py-2 text-xs font-mono text-slate-700 dark:text-slate-300 focus:outline-none"
+          className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-xs font-mono text-slate-700 dark:text-slate-300 focus:outline-none"
         >
           <option value="adult">Adult</option>
           <option value="paediatric">Paediatric</option>
@@ -95,7 +95,7 @@ export const AskCorpusSection: React.FC = () => {
       )}
 
       {result && (
-        <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0c1618]/70 p-4 space-y-3">
+        <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-mono font-bold text-slate-500">
               Question: &ldquo;{result.question}&rdquo;
@@ -117,7 +117,7 @@ export const AskCorpusSection: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-2">
-              <div className="bg-white dark:bg-[#132226] p-3 rounded-lg border border-slate-200 dark:border-[#1e3840] text-xs font-sans text-slate-800 dark:text-slate-200 leading-relaxed shadow-soft-sm">
+              <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-sans text-slate-800 dark:text-slate-200 leading-relaxed shadow-soft-sm">
                 <div className="flex items-center gap-1.5 text-teal-700 dark:text-teal-300 text-[11px] font-bold mb-1">
                   <CheckCircle className="h-3.5 w-3.5" />
                   <span>Verbatim Protocol Statement:</span>

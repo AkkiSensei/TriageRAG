@@ -16,7 +16,7 @@ export const AlertsList: React.FC<AlertsListProps> = ({
   const [expandedWhyId, setExpandedWhyId] = useState<string | null>(null)
   if (!alerts || alerts.length === 0) {
     return (
-      <div className="rounded-2xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 text-xs text-slate-500 dark:text-slate-400 shadow-soft">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 text-xs text-slate-500 dark:text-slate-400 shadow-soft">
         <div className="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-semibold">
           <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
           <span>No active clinical safety alerts or contraindications triggered.</span>
@@ -54,20 +54,20 @@ export const AlertsList: React.FC<AlertsListProps> = ({
           const isHigh = alert.severity === 'HIGH'
           const isModerate = alert.severity === 'MODERATE'
 
-          let cardBorder = 'border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] shadow-soft'
+          let cardBorder = 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-soft'
           let severityBadge = 'border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 font-bold'
           let SeverityIcon = Info
 
           if (isBlock) {
-            cardBorder = 'border-rose-200/90 dark:border-rose-900/60 bg-gradient-to-r from-rose-50/40 dark:from-rose-950/30 via-white dark:via-[#132226] to-white dark:to-[#132226] shadow-soft'
+            cardBorder = 'border-rose-200/90 dark:border-rose-900/60 bg-gradient-to-r from-rose-50/40 dark:from-rose-950/30 via-white dark:via-slate-800 to-white dark:to-slate-800 shadow-soft'
             severityBadge = 'border-rose-300 dark:border-rose-700 bg-rose-100 dark:bg-rose-950/70 text-rose-900 dark:text-rose-200 font-extrabold'
             SeverityIcon = AlertOctagon
           } else if (isHigh) {
-            cardBorder = 'border-amber-200/90 dark:border-amber-900/60 bg-gradient-to-r from-amber-50/40 dark:from-amber-950/30 via-white dark:via-[#132226] to-white dark:to-[#132226] shadow-soft'
+            cardBorder = 'border-amber-200/90 dark:border-amber-900/60 bg-gradient-to-r from-amber-50/40 dark:from-amber-950/30 via-white dark:via-slate-800 to-white dark:to-slate-800 shadow-soft'
             severityBadge = 'border-amber-300 dark:border-amber-700 bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 font-bold'
             SeverityIcon = AlertTriangle
           } else if (isModerate) {
-            cardBorder = 'border-amber-200 dark:border-amber-800/60 bg-white dark:bg-[#132226] shadow-soft-sm'
+            cardBorder = 'border-amber-200 dark:border-amber-800/60 bg-white dark:bg-slate-800 shadow-soft-sm'
             severityBadge = 'border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-semibold'
             SeverityIcon = AlertTriangle
           }
@@ -177,7 +177,7 @@ export const AlertsList: React.FC<AlertsListProps> = ({
                   </span>
                 </div>
               ) : isHigh ? (
-                <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-[#1e3840]">
+                <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-700">
                   <span className="text-[11px] text-amber-950 dark:text-amber-300 font-medium">
                     High clinical hazard. Requires recorded clinician justification (&ge; 15 chars).
                   </span>

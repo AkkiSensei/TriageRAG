@@ -108,7 +108,7 @@ export function MeasuredInput<T extends string | number>({
             className={`h-10 w-full rounded-xl border px-3 text-xs font-medium text-slate-900 dark:text-white outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-teal-600 focus:ring-2 focus:ring-teal-500/20 dark:focus:border-teal-400 ${
               status === 'estimated'
                 ? 'border-amber-300 dark:border-amber-700/80 bg-amber-50/40 dark:bg-amber-950/30 text-amber-950 dark:text-amber-200'
-                : 'border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e]'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
             }`}
           />
           {unit && (

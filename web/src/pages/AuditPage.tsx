@@ -44,7 +44,7 @@ export const AuditPage: React.FC = () => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-2 rounded-3xl border border-[#d9e8e6] dark:border-[#1e3840] bg-gradient-to-r from-teal-50/40 dark:from-teal-950/30 via-white dark:via-[#132226] to-white dark:to-[#132226] p-5 sm:p-6 shadow-soft">
+      <div className="mb-6 flex flex-col gap-2 rounded-3xl border border-slate-200 dark:border-slate-700 bg-gradient-to-r from-teal-50/40 dark:from-teal-950/30 via-white dark:via-slate-800 to-white dark:to-slate-800 p-5 sm:p-6 shadow-soft">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">
             <Hash className="h-4 w-4" />
@@ -66,7 +66,7 @@ export const AuditPage: React.FC = () => {
       </div>
 
       {/* Verify Chain Control Card */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">
             <ShieldCheck className="h-5 w-5" />
@@ -122,7 +122,7 @@ export const AuditPage: React.FC = () => {
 
       {/* Entries List */}
       <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-[#1e3840]">
+        <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-700">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
             Recent Audit Blocks ({entries?.length || 0})
           </span>
@@ -143,7 +143,7 @@ export const AuditPage: React.FC = () => {
         )}
 
         {!isLoading && (!entries || entries.length === 0) && (
-          <div className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-10 text-center text-xs text-slate-400 dark:text-slate-500 shadow-soft">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-10 text-center text-xs text-slate-400 dark:text-slate-500 shadow-soft">
             No audit records created yet. Run a triage evaluation on the Intake Station to generate the first block.
           </div>
         )}
@@ -152,7 +152,7 @@ export const AuditPage: React.FC = () => {
           entries?.map((entry: AuditEntryDto) => (
             <div
               key={entry.sequence_number}
-              className="rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft hover:border-teal-300 dark:hover:border-teal-700 transition-all text-xs font-mono"
+              className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft hover:border-teal-300 dark:hover:border-teal-700 transition-all text-xs font-mono"
             >
               <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
                 <div className="flex items-center gap-2">
@@ -183,7 +183,7 @@ export const AuditPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-3 flex flex-col gap-1 rounded-xl bg-slate-50 dark:bg-[#0c1618] border border-slate-200 dark:border-[#1e3840] p-3 text-[10px] text-slate-500 dark:text-slate-400">
+              <div className="mt-3 flex flex-col gap-1 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 text-[10px] text-slate-500 dark:text-slate-400">
                 <div className="flex items-center justify-between">
                   <span>Record SHA-256 Hash:</span>
                   <span className="font-bold text-teal-800 dark:text-teal-300 select-all">{entry.record_hash}</span>

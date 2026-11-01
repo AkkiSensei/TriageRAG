@@ -22,7 +22,7 @@ export const ResultsPane: React.FC<ResultsPaneProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-8 text-center shadow-soft">
+      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-8 text-center shadow-soft">
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 mb-4 shadow-soft-sm">
           <Loader2 className="h-7 w-7 animate-spin text-teal-600 dark:text-teal-400" />
         </div>
@@ -36,8 +36,8 @@ export const ResultsPane: React.FC<ResultsPaneProps> = ({
 
   if (!triage) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-8 text-center shadow-soft">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 dark:bg-[#0c1618] text-slate-400 dark:text-slate-500 mb-4">
+      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-8 text-center shadow-soft">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 dark:bg-slate-900 text-slate-400 dark:text-slate-500 mb-4">
           <Info className="h-7 w-7" />
         </div>
         <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Awaiting Clinical Intake</h3>
@@ -83,7 +83,7 @@ export const ResultsPane: React.FC<ResultsPaneProps> = ({
 
       {/* 8. Cryptographic Audit Hash Bar */}
       {triage.audit_hash && (
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-4 text-xs font-mono text-slate-500 dark:text-slate-400 shadow-soft">
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-xs font-mono text-slate-500 dark:text-slate-400 shadow-soft">
           <div className="flex items-center gap-2">
             <Hash className="h-4 w-4 text-teal-700 dark:text-teal-400" />
             <span className="text-slate-900 dark:text-slate-100 font-semibold">Record Audit SHA-256:</span>

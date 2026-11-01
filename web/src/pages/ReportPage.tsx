@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTriage } from '@/context/TriageContext'
-import { ScoreCard } from '@/features/results/ScoreCard'
 import { OverrideModal } from '@/features/results/OverrideModal'
 import type { OverrideRecord } from '@/lib/api'
 import {
@@ -14,12 +13,9 @@ import {
   User,
   Scale,
   Pill,
-  ChevronDown,
-  ChevronUp,
-  ShieldCheck,
   ShieldAlert,
   Loader2,
-  Hash,
+  Clock,
 } from 'lucide-react'
 
 export const ReportPage: React.FC = () => {
@@ -34,10 +30,7 @@ export const ReportPage: React.FC = () => {
     error,
   } = useTriage()
 
-  // Collapsible technical audit details for clinicians
-  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false)
-
-  // Override modal state
+  // Override modal state for HIGH severity alerts
   const [overrideModalOpen, setOverrideModalOpen] = useState(false)
   const [overrideRuleId, setOverrideRuleId] = useState('')
   const [overrideStepNumber, setOverrideStepNumber] = useState(1)
@@ -97,7 +90,7 @@ export const ReportPage: React.FC = () => {
             <button
               type="button"
               onClick={() => evaluatePatient(patientRequest)}
-              className="flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all"
+              className="flex items-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all cursor-pointer"
             >
               <RotateCcw className="h-4 w-4" />
               <span>Retry</span>
@@ -106,7 +99,7 @@ export const ReportPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/intake')}
-            className="flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-all shadow-sm"
+            className="flex items-center gap-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-all shadow-sm cursor-pointer"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Patient Details</span>
@@ -162,7 +155,23 @@ export const ReportPage: React.FC = () => {
       case 'altered_mental_status':
         return 'Confusion or Drowsiness'
       default:
-        return 'General Vitals Check'
+        return 'General Health Check'
+    }
+  }
+
+  // Format timestamp to Indian Standard Time (DD/MM/YYYY)
+  const formatIndianDateTime = (isoString?: string | null) => {
+    if (!isoString) return ''
+    try {
+      const d = new Date(isoString)
+      const day = String(d.getDate()).padStart(2, '0')
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const year = d.getFullYear()
+      const hours = String(d.getHours()).padStart(2, '0')
+      const minutes = String(d.getMinutes()).padStart(2, '0')
+      return `${day}/${month}/${year}, ${hours}:${minutes} IST`
+    } catch {
+      return isoString
     }
   }
 
@@ -175,7 +184,7 @@ export const ReportPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/intake')}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors shadow-sm"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors shadow-sm cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back to Patient Details</span>
@@ -183,7 +192,7 @@ export const ReportPage: React.FC = () => {
             <button
               type="button"
               onClick={handleNewPatient}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors shadow-sm"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors shadow-sm cursor-pointer"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               <span>New Patient</span>
@@ -216,6 +225,15 @@ export const ReportPage: React.FC = () => {
               <span className="text-teal-800 dark:text-teal-300 font-bold bg-teal-50 dark:bg-teal-950/60 px-2.5 py-0.5 rounded-md border border-teal-200 dark:border-teal-800">
                 {getSyndromeLabel(patient.suspected_syndrome)}
               </span>
+              {patient.assessed_at && (
+                <>
+                  <span className="text-slate-300 dark:text-slate-700">&bull;</span>
+                  <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1 font-mono text-[11px]">
+                    <Clock className="h-3 w-3 text-slate-400" />
+                    {formatIndianDateTime(patient.assessed_at)}
+                  </span>
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
@@ -425,6 +443,11 @@ export const ReportPage: React.FC = () => {
                   <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                     Safety rules cannot run because some important details were not entered. Check the patient&apos;s Blood Pressure, Heart Rate, Breathing Rate, and Oxygen Level now.
                   </p>
+                  {engine.checks_skipped && engine.checks_skipped.length > 0 && (
+                    <div className="mt-2.5 p-3 rounded-xl bg-amber-100/60 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 font-medium">
+                      Missing items to check: {engine.checks_skipped.map((c) => c.reason || c.rule_id).slice(0, 3).join(', ')}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -475,6 +498,58 @@ export const ReportPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* If any steps were drafted in unverified state, show them badged as NOT APPROVED */}
+            {triageResult.verified_steps && triageResult.verified_steps.length > 0 && (
+              <div className="mt-2 flex flex-col gap-3">
+                <span className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
+                  Care Guide Steps (Pending Verification — Do NOT Give Without Doctor Approval):
+                </span>
+                {triageResult.verified_steps.map((step, idx) => {
+                  const draft = step.draft
+                  const stepNum = draft.step_number || idx + 4
+                  return (
+                    <div
+                      key={stepNum}
+                      className="rounded-2xl border-2 border-amber-300 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/20 p-5 shadow-sm"
+                    >
+                      <div className="flex items-start gap-3.5">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-white font-extrabold text-sm shadow">
+                          {stepNum}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                            <span className="text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
+                              NEEDS REVIEW (UNVERIFIED)
+                            </span>
+                            {draft.requested_dose && (
+                              <span className="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                                Dose: {draft.requested_dose.amount} {draft.requested_dose.unit}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                            {draft.narrative_instruction}
+                          </h3>
+                          <p className="mt-1 text-xs text-amber-800 dark:text-amber-300 font-medium">
+                            Cannot verify safety because patient vitals or history are missing. Doctor must confirm before giving.
+                          </p>
+                          {step.status === 'FLAGGED_HIGH' && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenOverride(step.triggered_rule_ids?.[0] || 'HIGH_ALERT', stepNum)}
+                              className="mt-3 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-1.5 rounded-lg transition-colors shadow shrink-0 cursor-pointer"
+                            >
+                              Doctor Review &amp; Approve
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -595,56 +670,6 @@ export const ReportPage: React.FC = () => {
                 <p className="text-sm text-slate-600 dark:text-slate-300">
                   No specific medicine orders are needed at this stage. Keep patient comfortable and re-check vitals.
                 </p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* COLLAPSIBLE CLINICAL AUDIT SECTION (FOR DOCTORS) */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
-        <button
-          type="button"
-          onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-          className="flex w-full items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-            <span>Technical Audit &amp; Clinical Details (For Doctors)</span>
-          </div>
-          <div className="flex items-center gap-1 text-slate-400">
-            <span>{showTechnicalDetails ? 'Hide' : 'Show Details'}</span>
-            {showTechnicalDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </div>
-        </button>
-
-        {showTechnicalDetails && (
-          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-5">
-            {/* Score Breakdown if present */}
-            {engine.score && (
-              <div>
-                <h4 className="text-xs font-bold uppercase text-slate-500 mb-2">Physiological Score Breakdown</h4>
-                <ScoreCard score={engine.score} />
-              </div>
-            )}
-
-            {/* Ruleset Summary */}
-            <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs text-slate-600 dark:text-slate-300 font-mono">
-              <span>Deterministic Ruleset: {engine.ruleset_version}</span>
-              <span>{engine.checks_run} safety checks executed</span>
-              <span>Audit Mode: {engine.trust_mode}</span>
-            </div>
-
-            {/* SHA-256 Audit Seal */}
-            {triageResult.audit_hash && (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-xs font-mono text-teal-900 dark:text-teal-200">
-                <div className="flex items-center gap-2">
-                  <Hash className="h-4 w-4 text-teal-700 dark:text-teal-400" />
-                  <span className="font-bold">Cryptographic Audit Seal:</span>
-                </div>
-                <span className="truncate max-w-full sm:max-w-md select-all font-bold">
-                  {triageResult.audit_hash}
-                </span>
               </div>
             )}
           </div>
