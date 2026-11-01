@@ -5,7 +5,55 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - AUB Phase 6: Deterministic Engine, Schema V2, and Rule Expansion
+## [Unreleased] - AUB Phase 7: Research Extensions, Showcase, and Forensic Closure
+
+### Added & Hardened
+- **Phase 0–6 Forensic Reconciliation & Defect Closure:**
+  - Audited and reconciled 7 discrepancies identified during Phase 6 handoff.
+  - Formally accounted for candidate rule inventory: 40 authored candidates (Batches 1–3) + 9 mined candidates (`auto_mined.yaml`) = 49 total candidate rules in `data/rules_candidates/`.
+  - Clarified that the 86 golden test scenarios govern the 12 active shipped rules; candidate rules remain in unreviewed draft status pending clinician sign-off (HD-7).
+  - Clarified 3.0 mL IM volume threshold as an illustrative boundary with status `NEEDS_SOURCE`.
+  - Added dedicated isolation tests for `CoAdministrationRule` and synchronized documentation metrics via `tools/gen_docs_metrics.py`.
+- **Controlled Query Expansion (T7.1):**
+  - Implemented `data/retrieval/expansion_terms.yaml` with synthetic protocol synonym dictionaries and explicit provenance.
+  - Built `src/triagerag/rag/query_expansion.py` providing deterministic `build_expanded_query`.
+  - Enforced fail-closed behavior: unknown or indeterminate predicates are never expanded.
+  - Integrated `expansion_trace` and `expansion_mode` into `RetrievalReport` and retrieval services. Unit tests in `tests/unit/test_aub_phase7_query_expansion.py` (5 tests).
+- **Local Neural Interface & HD-10 Boundary (T7.2):**
+  - Created `src/triagerag/rag/neural_interface.py` defining `EmbeddingModel`, `CrossEncoderModel`, `NeuralDenseRetriever`, and `NeuralCrossEncoderReranker`.
+  - Enforced HD-10 gate: unapproved models raise `NeuralModelApprovalError` and remain marked `BLOCKED_EXTERNAL`.
+  - Unit tests in `tests/unit/test_aub_phase7_neural_interface.py` (4 tests).
+- **Visible RAG Evidence Experience & Why Drawer (T7.3, T7.4):**
+  - Created `src/triagerag/rag/alert_why.py` explaining triggered rules, matched patient facts, unmeasured vitals, and Rule R11 non-overridable BLOCK severity rationale.
+  - Created `src/triagerag/rag/ask_corpus.py` implementing extractive verbatim question answering over approved protocol chunks with `generator_badge="EXTRACTIVE_VERBATIM"`.
+  - Mounted API routes `POST /api/corpus/ask` and `POST /api/triage/alert-why`.
+  - Updated React frontend (`AlertsList.tsx`, `RetrievalView.tsx`, `AskCorpusSection.tsx`, `ResultsPane.tsx`) with:
+    - Prominent generator badge (`DETERMINISTIC MOCK` vs `REAL PROVIDER`).
+    - Query expansion term badges and trace drawer.
+    - Protocol chunk license disclosures (`Open Government Licence v3.0 / Synthetic`).
+    - Inline interactive "Why did this alert fire?" drawer.
+    - "Ask the Corpus" query input with instant extractive answer card and clickable chunk citations.
+  - Unit tests in `tests/unit/test_aub_phase7_why_and_ask_corpus.py` (5 tests).
+- **API Security Gateway & Sliding-Window Rate Limiting (T7.5):**
+  - Built `src/triagerag/api/security.py` with `SlidingWindowRateLimiter` and constant-time token comparison (`hmac.compare_digest`).
+  - Configured authentication boundary via `TRIAGERAG_REQUIRE_AUTH` and `TRIAGERAG_API_KEY`.
+  - Protected endpoints return `401 Unauthorized` with `WWW-Authenticate: Bearer` when credentials are missing or invalid; public health and docs endpoints remain exempt.
+  - Per-client sliding-window rate limiter returns `429 Too Many Requests` with `Retry-After` header.
+  - Added `@app.command("security-audit")` in `tools/tasks.py` supporting `pip-audit` and `npm audit`. Unit tests in `tests/unit/test_aub_phase7_security.py` (4 tests).
+- **Inferred-Mode MMR, Nearest-Miss Diagnostics & HD-12 Refusal (T7.6):**
+  - Implemented `src/triagerag/rag/diagnostics.py` with `apply_mmr_rerank`, `calculate_nearest_misses`, and `explain_chunk_predicates`.
+  - Activated MMR when syndrome is inferred from vitals, balancing relevance and lexical token Jaccard diversity ($\lambda = 0.7$).
+  - Populated `diagnostics` in `RetrievalReport` with nearest misses, deltas to threshold, and rejection reasons.
+  - Preserved HD-12: Added `CalibrationDataRefusalError` in `eval/retrieval/calibrate.py` strictly refusing isotonic/conformal probability calibration when verified clinician annotations are missing. Unit tests in `tests/unit/test_aub_phase7_diagnostics_and_mmr.py` (6 tests).
+- **Local Provider Architecture & Cassette Replay (T7.7):**
+  - Built `src/triagerag/llm/cassette.py` with `CassetteEntry`, `CassetteTape`, and `CassetteReplayProvider`.
+  - Replay matches on cryptographic SHA-256 hashes of canonical context and prompt strings.
+  - Preserved HD-14: Created `ApprovedLocalProvider` raising `LLMProviderApprovalError` for unapproved live models. Unit tests in `tests/unit/test_aub_phase7_provider_cassettes.py` (4 tests).
+- **Cross-Phase Integration & Architecture Decision Record:**
+  - Added end-to-end integration suite `tests/integration/test_aub_phase7_cross_phase_integration.py` (6 tests).
+  - Authored **ADR-0016** in `docs/adr/0016-phase-7-research-extensions-and-showcase.md`.
+
+## [0.3.6] - AUB Phase 6: Deterministic Engine, Schema V2, and Rule Expansion
 
 ### Added & Hardened
 - **Dual Trust Policy & Verification Counters (T6.0):**

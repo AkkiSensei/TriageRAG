@@ -109,7 +109,22 @@ Starting HEAD for Phase 0: `3e8a45bded1a9bd39e5e644a0957c62bb0fb8315` (branch `a
 | T6.5-COVER | 2026-11-01 `0c15b9e`: system lacked automated rule coverage matrix and alert fatigue CI gate | FIXED | T6.5 | `43e0f64` | `tests/unit/test_aub_phase6_rule_coverage.py` (3 tests) | Built `tools/rule_coverage.py`; expanded golden suite to 86 cases; enforced pos >= 3, neg >= 3, bnd >= 1; 0.52 alerts/patient, 0.0% false-alert rate on negatives |
 | T6.6-MINE | 2026-11-01 `43e0f64`: system lacked evidence-grounded rule mining from openFDA drug label evidence corpus | FIXED | T6.6 | `94851e7` | `tests/unit/test_aub_phase6_mine_rules.py` (6 tests) | Built `tools/mine_rules.py`; enforced 5 deterministic validators (quote in chunk, numbers in quote, ids resolve, schema valid, no duplicate key); 100% validator pass rate; published `docs/REVIEW_QUEUE.md` |
 
-## Non-Phase-6 register rows (not touched in this session)
+## Phase 7 register rows
 
-All subsequent AUB register rows (Phase 7: T7.1–T7.7, research showcase, real provider ablation) belong strictly to Phase 7 and were not touched in this session.
+| ID | Repro on HEAD (date, commit) | Status | Task | Commit | Test added | Notes |
+|----|------------------------------|--------|------|--------|-----------|-------|
+| T7.1-EXPAND | 2026-11-01 `4d15b78`: query expansion was ungrounded with potential lexical drift and untracked synonyms | FIXED | T7.1 | `697b5c5` | `tests/unit/test_aub_phase7_query_expansion.py` (5 tests) | Implemented `data/retrieval/expansion_terms.yaml` and `query_expansion.py`; fail-closed on unknown predicates; inspectable `expansion_trace` in `RetrievalReport` |
+| T7.2-NEURAL | 2026-11-01 `697b5c5`: repo lacked neural dense retriever/cross-encoder abstraction and HD-10 model gate | FIXED | T7.2 | `a920235` | `tests/unit/test_aub_phase7_neural_interface.py` (4 tests) | Built `neural_interface.py`; unapproved models raise `NeuralModelApprovalError` under HD-10; offline mock implementations |
+| T7.3-UI | 2026-11-01 `a920235`: web UI lacked explicit generator badges (`MOCK` vs `REAL`), query expansion traces, and chunk license disclosures | FIXED | T7.3 | `2b9e5da` | `tests/unit/test_aub_phase7_why_and_ask_corpus.py`, Vitest suite | Added prominent generator badges, query expansion trace drawer, and chunk license tags across `RetrievalView.tsx` |
+| T7.4-WHY | 2026-11-01 `a920235`: clinician lacked inspectable alert rationale and extractive question answering over protocols | FIXED | T7.4 | `2b9e5da` | `tests/unit/test_aub_phase7_why_and_ask_corpus.py` (5 tests) | Built `alert_why.py` (matched facts, unmeasured vitals, Rule R11 rationale) and `ask_corpus.py` (verbatim extraction, exact citations); mounted API routes and UI drawers |
+| T7.5-SEC | 2026-11-01 `2b9e5da`: API lacked token authentication boundary, DoS sliding-window rate limiting, and dependency security audits | FIXED | T7.5 | `34c9f7b` | `tests/unit/test_aub_phase7_security.py` (4 tests) | Implemented `src/triagerag/api/security.py` (API key/Bearer auth, 429 rate limiting with Retry-After header, exempt paths); added `security-audit` task |
+| T7.6-MMR | 2026-11-01 `34c9f7b`: inferred-syndrome retrieval lacked lexical MMR diversity re-ranking and nearest-miss rejection diagnostics | FIXED | T7.6 | `a98683f` | `tests/unit/test_aub_phase7_diagnostics_and_mmr.py` (6 tests) | Built `diagnostics.py` with MMR ($\lambda=0.7$), nearest misses, and predicate breakdowns; preserved HD-12 calibration refusal in `calibrate.py` |
+| T7.7-CASS | 2026-11-01 `a98683f`: system lacked deterministic cassette record/replay tape infrastructure and HD-14 local model gate | FIXED | T7.7 | `739ef24` | `tests/unit/test_aub_phase7_provider_cassettes.py` (4 tests) | Built `cassette.py` with SHA-256 context/prompt matching; enforced HD-14 boundary raising `LLMProviderApprovalError` for unapproved live neural models |
+| T7.8-INTEG | 2026-11-01 `739ef24`: system lacked comprehensive end-to-end cross-phase integration and regression coverage | FIXED | T7.8 | `26ab78b` | `tests/integration/test_aub_phase7_cross_phase_integration.py` (6 tests) | Verified complete pipeline: patient normalisation, query expansion, MMR diversity, alert why drawer, extractive ask-the-corpus, and API security |
+
+## Whole-Project Forensic Closure Status
+
+All planned phases (Phases 0, 1, 2, 3, 4, 5, 6, and 7) of the AUB redevelopment programme are complete.
+Every acceptance criterion has been verified through reproducible automated test suites, architectural linting, and evaluation gates.
+
 
