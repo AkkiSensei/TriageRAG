@@ -34,3 +34,9 @@ Pure functions in engine; no global mutable state; deterministic ordering; pure 
 - `BACKLOG.md`: seed ≥20 prioritized items: clinician review and sourcing of every rule; real guideline ingestion with license review; golden-set growth to 150+; ESI-based triage category; Hinglish queries; local-LLM mode; FHIR-style input; renal/hepatic dosing; DDI dataset evaluation (check license before bundling); structured flowchart parser; retrieval-threshold calibration; real-model ablation.
 - **Change workflow for every future run:** read AGENTS.md, HANDOFF.md and BACKLOG.md → write or extend a failing test first → implement → `verify` → update CHANGELOG/BACKLOG/docs → commit. Add an ADR for any architectural or clinical-semantics change.
 - `docs/LIMITATIONS.md` must state: unsourced draft ruleset; circular golden recall; score band ≠ triage decision; synthetic-only corpus; not a medical device; coverage gaps.
+
+## 18. GIT RULES
+- **Never create pull requests (PRs) for this project.**
+- **Simply push directly to the remote repository (`git push`).**
+- Never suggest or generate PR links. All code and branches are committed and pushed directly.
+
