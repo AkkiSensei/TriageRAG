@@ -97,7 +97,19 @@ Starting HEAD for Phase 0: `3e8a45bded1a9bd39e5e644a0957c62bb0fb8315` (branch `a
 | T5.3-VRD | 2026-11-01 `8192d9f`: normal vitals + anaphylaxis could resolve to CHECKED_CLEAR with approved repeat step | FIXED | T5.3 | `87d5133` | `tests/unit/test_aub_phase5_verdict.py` (3 tests) | Wired applicability and qualifiers into `verify_plan` and `orchestrator.py`; non-applicable steps cannot be APPROVED; verdict resolves strictly to UNVERIFIED (never CHECKED_CLEAR); FastAPI endpoint regression verified |
 | T5.4-MOCK | 2026-11-01 `87d5133`: FakeLLM relied on hardcoded per-syndrome scripts and lacked profiles exercising verifier refusal paths | FIXED | T5.4 | `edab93a` | `tests/unit/test_aub_phase5_fake_llm.py` (3 tests) | Added `RANKED_CHOICE` (dynamic top-chunk drafting), `WRONG_BUT_MATCHING_CLAUSE` (triggers NOT_APPLICABLE), and `QUALIFIER_DROP` (triggers CITATION_UNVERIFIED); each verified with tests |
 
-## Non-Phase-5 register rows (not touched in this session)
+## Phase 6 register rows
 
-All subsequent AUB register rows (AUB-UX-04, AUB-GEN-01 (generator real provider), AUB-ENG-01..06, AUB-KB-01, AUB-OPS-04) are `TODO` and belong to subsequent phases (Phase 6, Phase 7).
+| ID | Repro on HEAD (date, commit) | Status | Task | Commit | Test added | Notes |
+|----|------------------------------|--------|------|--------|-----------|-------|
+| T6.0-TRUST | 2026-11-01 `a2a18a9`: unverified candidate rules mixed with active rules without explicit trust gating or wristband disclosures | FIXED | T6.0 | `6f1e8ba` | `tests/unit/test_aub_phase6_trust_policy.py` (6 tests) | Added `TrustMode` (`STRICT`, `DEMO`); strictly ignores unverified rules in STRICT; badges candidates as UNSOURCED DRAFT in DEMO; published `TRUST_POLICY.md` |
+| T6.1-SCHEMA | 2026-11-01 `6f1e8ba`: rule schema lacked condition contraindications, lab interlocks, route/concentration limits, organ staging, and rate checks | FIXED | T6.1 | `e2d9d28` | `tests/unit/test_aub_phase6_schema_v2.py` (5 tests) | Added 6 Schema V2 rule models; extended Patient with conditions, labs, and organ impairment; extended PlanStepDraft; 100% backward compatibility for shipped rules |
+| T6.2-DOSE | 2026-11-01 `e2d9d28`: dose engine lacked administration volume calculation, IM route volume tripwire, dosing interval tracking, and rate checks | FIXED | T6.2 | `299004e` | `tests/unit/test_aub_phase6_dose_engine.py` (7 tests) | Built `calculate_administration_volume` (IM > 3 mL warning); `verify_dosing_intervals` with step frequency and history lookback; `verify_administration_rate`; daily_max mass semantics |
+| T6.3-FDC | 2026-11-01 `299004e`: class taxonomy lacked Waves 1–3 generics; Indian brand names unmapped; FDCs unexpanded; LASA pairs unprotected | FIXED | T6.3 | `740aced` | `tests/unit/test_aub_phase6_classes_and_fdc.py` (6 tests) | Expanded `data/classes.yaml` (~60 generics); added 34 Indian brand aliases in `data/aliases.yaml`; FDC multi-ingredient expansion; strength token stripping; LASA auto-resolve tripwire |
+| T6.4-BATCH | 2026-11-01 `740aced`: system lacked candidate rule catalogue batches from AUB Part II - A | FIXED | T6.4 | `0c15b9e` | `tests/unit/test_aub_phase6_candidate_rules.py` (5 tests) | Authored `batch_1.yaml` (15 rules), `batch_2.yaml` (15 rules), `batch_3.yaml` (10 rules); verified via `tools/validate_data.py`; strict unverified provenance on every rule |
+| T6.5-COVER | 2026-11-01 `0c15b9e`: system lacked automated rule coverage matrix and alert fatigue CI gate | FIXED | T6.5 | `43e0f64` | `tests/unit/test_aub_phase6_rule_coverage.py` (3 tests) | Built `tools/rule_coverage.py`; expanded golden suite to 86 cases; enforced pos >= 3, neg >= 3, bnd >= 1; 0.52 alerts/patient, 0.0% false-alert rate on negatives |
+| T6.6-MINE | 2026-11-01 `43e0f64`: system lacked evidence-grounded rule mining from openFDA drug label evidence corpus | FIXED | T6.6 | `94851e7` | `tests/unit/test_aub_phase6_mine_rules.py` (6 tests) | Built `tools/mine_rules.py`; enforced 5 deterministic validators (quote in chunk, numbers in quote, ids resolve, schema valid, no duplicate key); 100% validator pass rate; published `docs/REVIEW_QUEUE.md` |
+
+## Non-Phase-6 register rows (not touched in this session)
+
+All subsequent AUB register rows (Phase 7: T7.1–T7.7, research showcase, real provider ablation) belong strictly to Phase 7 and were not touched in this session.
 

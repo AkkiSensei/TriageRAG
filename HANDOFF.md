@@ -4,7 +4,89 @@
 
 ## Current State
 
-- **Current Status:** AUB Phase 5 (Applicability-Aware Grounding and Qualifier Verification) completed on branch `aub/phase-5-applicability-grounding`. Tasks T5.1 through T5.4 implemented, verified, and documented with ADR-0014 and updated status ledger (`docs/AUB_STATUS.md`).
+- **Current Status:** AUB Phase 6 (Deterministic Engine, Schema V2, and Rule Expansion) completed on branch `aub/phase-6-engine-rules`. Tasks T6.0 through T6.6 implemented, verified, tested, and documented with ADR-0015 and updated status ledger (`docs/AUB_STATUS.md`).
+- **Target Milestones Completed:**
+  - **T6.0:** Trust policy (`TrustMode.STRICT`, `TrustMode.DEMO`), candidate rule unverified counters, UI/CLI badges (`TRUST_POLICY.md`).
+  - **T6.1:** Schema V2 backward-compatible models (`ConditionContraindicationRule`, `LabInterlockRule`, `RouteConcentrationRule`, `OrganFunctionRule`, `CoAdministrationRule`, `RateLimitRule`, Patient conditions/labs/impairment, Step V2).
+  - **T6.2:** Dose engine expansion: `calculate_administration_volume`, IM route volume limit (> 3.0 mL warning), `verify_dosing_intervals` step frequency and lookback, `verify_administration_rate`, `daily_max` mass semantics.
+  - **T6.3:** Class taxonomy (~60 generics across Waves 1–3 from AUB §11), 34 Indian brand aliases (`data/aliases.yaml`), FDC multi-ingredient expansion, strength token stripping, LASA auto-resolve tripwire.
+  - **T6.4:** Candidate rules batches 1, 2, 3 (40 candidate rules authored in `data/rules_candidates/` per AUB Part II - A).
+  - **T6.5:** Rule coverage matrix and alert fatigue gate (`tools/rule_coverage.py`), golden suite expanded to 86 cases (100% green on all 12 shipped rules), 0.52 alerts/patient, 0.0% false-alert rate on negatives.
+  - **T6.6:** Evidence-grounded candidate rule mining pipeline (`tools/mine_rules.py`), 5 deterministic integrity validators, 100% validator pass rate, 30-rule gold set benchmarking, clinician review queue published (`docs/REVIEW_QUEUE.md`).
+- **Core Results & Verifications:**
+  - **100% pass rate** on all 38 Phase 6 unit tests across 7 dedicated test modules (`test_aub_phase6_*.py`).
+  - **100% pass rate** across entire test suite (468 passed, 1 xfailed under HD-6).
+  - **0 lint / format errors** (Python ruff check & format across all 179 files).
+  - **0 type errors** (Python mypy strict in `src/`, `tools/`, `eval/`, `tests/` & TypeScript `tsc --noEmit`).
+  - **0 import isolation contract violations** (import-linter).
+  - **Zero tracked report mutations**: Working tree leaves git status 100% clean.
+  - **100% offline execution**: zero network calls.
+
+## AUB Phase 6 Deliverables Summary
+
+1. **T6.0 — Trust Policy & Verification Counters (`6f1e8ba`):**
+   - Authored `docs/safety/TRUST_POLICY.md`.
+   - Added `TrustMode` (`STRICT`, `DEMO`) in `src/triagerag/contracts/enums.py`.
+   - `STRICT` mode excludes unverified candidate rules and surfaces unverified rule counts.
+   - `DEMO` mode evaluates candidate rules with explicit `UNSOURCED DRAFT` disclosures in CLI and UI wristbands.
+   - Added `tests/unit/test_aub_phase6_trust_policy.py` (6 tests).
+
+2. **T6.1 — Schema V2 Rule Models & Patient Extensions (`e2d9d28`):**
+   - Added 6 Schema V2 rule models in `src/triagerag/contracts/rules_schema.py`.
+   - Extended `Patient` with `conditions`, `labs`, `renal_impairment`, `hepatic_impairment`.
+   - Extended `PlanStepDraft` with concentration, diluent, rate, frequency, relative timing.
+   - Preserved 100% backward compatibility for all 12 shipped rules.
+   - Added `tests/unit/test_aub_phase6_schema_v2.py` (5 tests).
+
+3. **T6.2 — Dose Engine Expansion (`299004e`):**
+   - Added `calculate_administration_volume` computing volumes in mL with route tripwires (IM > 3.0 mL warning).
+   - Added `verify_dosing_intervals` tracking repeat intervals across steps and absolute lookbacks against patient medication history.
+   - Added `verify_administration_rate` and harmonized `daily_max` mass semantics.
+   - Added `tests/unit/test_aub_phase6_dose_engine.py` (7 tests).
+
+4. **T6.3 — Class Taxonomy, Indian Aliases & FDC Resolution (`740aced`):**
+   - Expanded `data/classes.yaml` with ~60 emergency generics across Waves 1–3 from AUB §11.
+   - Added 34 Indian single- and multi-ingredient brand aliases to `data/aliases.yaml` (Augmentin, Dolo 650, Combiflam, Deriphyllin, etc.).
+   - Added multi-ingredient FDC expansion, strength token stripping, and LASA auto-resolve protection (`LASA_PAIRS`).
+   - Added `tests/unit/test_aub_phase6_classes_and_fdc.py` (6 tests).
+
+5. **T6.4 — Source-Traceable Candidate Batches (`0c15b9e`):**
+   - Authored 40 candidate rules across 3 batches adhering to AUB Part II - A:
+     - `batch_1.yaml` (15 rules: CV-05, CV-12, CV-17, CNS-01, CNS-04, CNS-11, CNS-12, AC-01, AC-02, EN-01, EN-03, ID-01, DUP-03, DUP-04, AN-08)
+     - `batch_2.yaml` (15 rules: CV-09, CV-10, CV-16, CV-18, AN-01, AN-02, AN-03, AC-06, EN-12, ID-19, VL-05, CV-14, CV-19, CNS-16, AN-09)
+     - `batch_3.yaml` (10 rules: NE-01, NE-03, ID-10, EN-06, AC-08, AN-10, EN-11, EN-09, NE-02, CNS-14)
+   - Every candidate rule carries `source_status: PLACEHOLDER_UNRETRIEVED`, `verified: false`, `reviewer: null`, `content_origin: AGENT_DRAFT_UNSOURCED`.
+   - Added `tests/unit/test_aub_phase6_candidate_rules.py` (5 tests).
+
+6. **T6.5 — Rule Coverage Matrix and Alert Fatigue Gate (`43e0f64`):**
+   - Built `tools/rule_coverage.py` asserting every active rule has >= 3 positive, >= 3 negative, and >= 1 boundary cases passing in isolation (`only_rules`).
+   - Expanded `data/golden/shipped_ruleset_cases.yaml` from 65 to 86 cases (100% green on all shipped rules).
+   - Monitored alert fatigue: 0.52 alerts/patient, 0.0% false-alert rate on negatives.
+   - Added `tests/unit/test_aub_phase6_rule_coverage.py` (3 tests).
+
+7. **T6.6 — Evidence-Grounded Candidate Rule Mining (`94851e7`):**
+   - Built `tools/mine_rules.py` ingesting Tier-2 regulatory SPL evidence chunks (`data/corpus/evidence_chunks.json`).
+   - Enforced 5 deterministic validators: quote in chunk, numbers in quote, ids resolve, schema valid, no duplicate key.
+   - 100% of auto-sourced rules passed all 5 validators.
+   - Published clinician review queue `docs/REVIEW_QUEUE.md` under HD-7 dual-control governance.
+   - Created 30-rule reference gold set `data/rules_candidates/mining_gold_set.yaml`.
+   - Added `tests/unit/test_aub_phase6_mine_rules.py` (6 tests).
+
+8. **ADR-0015 & Status Ledger (`docs/adr/0015-schema-v2-and-deterministic-rule-engine-expansion.md`):**
+   - Authored ADR-0015 and updated `docs/AUB_STATUS.md`.
+
+## Next Steps for Future Phase (Phase 7 Boundary)
+
+- **Phase 7 Scope:** Research extensions and showcase (Tasks T7.1 through T7.7).
+  - T7.1 Controlled query expansion from predicates to protocol vocabulary.
+  - T7.2 Local neural embedder + cross-encoder behind existing protocols.
+  - T7.3 Visible RAG UI: restore Evidence view tab in report.
+  - T7.4 Surfaces R-2/R-3: alert "Why?" drawer from label chunks; extractive Q&A.
+  - T7.5 Security/ops: API auth stub + rate limit.
+  - T7.6 Calibration, MMR, diagnostics: conformal calibration, MMR.
+  - T7.7 Optional real provider (HD-14): local model ablation across models with CIs.
+- **Rule of Governance:** One phase per session. Stop cleanly at Phase 6 boundary. Do not begin Phase 7 in this session.
+- **No PRs:** Direct `git push origin aub/phase-6-engine-rules` only. Never create pull requests.
 - **Target Defect Resolved:** **AUB-GRD-01** (Verifier approves clinically inapplicable protocol nodes because citation check only tested text presence, not patient applicability; "Administer immediately" dropping "repeat" qualifier).
 - **Core Results & Verifications:**
   - **100% pass rate** on all 23 Phase 5 unit tests across 4 dedicated test modules (`test_aub_phase5_*.py`).

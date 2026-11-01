@@ -5,7 +5,44 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - AUB Phase 5: Applicability-Aware Grounding and Qualifier Verification
+## [Unreleased] - AUB Phase 6: Deterministic Engine, Schema V2, and Rule Expansion
+
+### Added & Hardened
+- **Dual Trust Policy & Verification Counters (T6.0):**
+  - Added `TrustMode` (`STRICT`, `DEMO`) in `src/triagerag/contracts/enums.py`.
+  - In `STRICT` mode, unverified candidate rules are ignored, surfacing unverified counts.
+  - In `DEMO` mode, candidate rules evaluate with visible `UNSOURCED DRAFT` disclosures in CLI and UI wristbands.
+  - Codified policy in `docs/safety/TRUST_POLICY.md`. Unit tests in `tests/unit/test_aub_phase6_trust_policy.py` (6 tests).
+- **Backward-Compatible Schema V2 (T6.1):**
+  - Added 6 Schema V2 rule models in `src/triagerag/contracts/rules_schema.py`: `ConditionContraindicationRule`, `LabInterlockRule`, `RouteConcentrationRule`, `OrganFunctionRule`, `CoAdministrationRule`, `RateLimitRule`.
+  - Extended `Patient` schema with structured `conditions`, `labs`, `renal_impairment`, `hepatic_impairment`.
+  - Extended `PlanStepDraft` with `concentration_mg_per_ml`, `diluent`, `rate_mg_per_min`, `frequency_hours`, `relative_time_minutes`.
+  - Preserved 100% backward compatibility for all 12 shipped rules. Unit tests in `tests/unit/test_aub_phase6_schema_v2.py` (5 tests).
+- **Dose Engine Expansion & Interval Tracking (T6.2):**
+  - Implemented `calculate_administration_volume` computing volumes in mL with route tripwires (IM > 3.0 mL warning).
+  - Implemented `verify_dosing_intervals` tracking repeat intervals across planned steps and absolute lookbacks against patient medication history.
+  - Implemented `verify_administration_rate` and harmonized `daily_max` mass semantics. Unit tests in `tests/unit/test_aub_phase6_dose_engine.py` (7 tests).
+- **Class Taxonomy, Indian Aliases & FDC Expansion (T6.3):**
+  - Expanded `data/classes.yaml` with ~60 emergency generics across Waves 1–3 from AUB §11.
+  - Added 34 Indian single- and multi-ingredient brand aliases to `data/aliases.yaml` (Augmentin, Dolo 650, Combiflam, Deriphyllin, etc.).
+  - Added multi-ingredient FDC expansion, strength token stripping, and LASA auto-resolve protection. Unit tests in `tests/unit/test_aub_phase6_classes_and_fdc.py` (6 tests).
+- **Source-Traceable Candidate Batches (T6.4):**
+  - Authored 40 candidate rules across 3 batches adhering to AUB Part II - A: `data/rules_candidates/batch_1.yaml` (15 rules), `batch_2.yaml` (15 rules), `batch_3.yaml` (10 rules).
+  - Every rule carries strict provenance (`verified: false`, `source_status: PLACEHOLDER_UNRETRIEVED`, `reviewer: null`, `content_origin: AGENT_DRAFT_UNSOURCED`).
+  - Unit tests in `tests/unit/test_aub_phase6_candidate_rules.py` (5 tests).
+- **Rule Coverage Matrix and Alert Fatigue Gate (T6.5):**
+  - Built `tools/rule_coverage.py` asserting every active rule has >= 3 positive, >= 3 negative, and >= 1 boundary cases passing in isolation (`only_rules`).
+  - Expanded `data/golden/shipped_ruleset_cases.yaml` to 86 cases (100% green).
+  - Monitored alert fatigue: 0.52 alerts/patient, 0.0% false-alert rate on negatives. Unit tests in `tests/unit/test_aub_phase6_rule_coverage.py` (3 tests).
+- **Evidence-Grounded Rule Mining Pipeline (T6.6):**
+  - Built `tools/mine_rules.py` ingesting Tier-2 regulatory SPL evidence chunks (`data/corpus/evidence_chunks.json`).
+  - Enforced 5 deterministic validators (quote in chunk, numbers in quote, ids resolve, schema valid, no duplicate key).
+  - 100% of auto-sourced rules passed all 5 validators.
+  - Published clinician review queue `docs/REVIEW_QUEUE.md` under HD-7 dual-control governance. Unit tests in `tests/unit/test_aub_phase6_mine_rules.py` (6 tests).
+- **Architecture Decision Record:**
+  - Authored **ADR-0015** in `docs/adr/0015-schema-v2-and-deterministic-rule-engine-expansion.md`.
+
+## [0.3.5] - AUB Phase 5: Applicability-Aware Grounding and Qualifier Verification
 
 ### Added & Hardened
 - **Patient Applicability Verification Engine (T5.1 / AUB-GRD-01):**

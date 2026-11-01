@@ -56,12 +56,14 @@ def registry() -> ClinicalRegistry:
     return ClinicalRegistry.load_from_directory(get_repo_root() / "data")
 
 
-def load_candidate_rules(data_dir: Path | None = None) -> list[ClinicalRule]:
+def load_candidate_rules(
+    data_dir: Path | None = None, pattern: str = "*.yaml"
+) -> list[ClinicalRule]:
     base_dir = data_dir or get_data_dir()
     cand_dir = base_dir / "rules_candidates"
     adapter = TypeAdapter(ClinicalRule)
     rules: list[ClinicalRule] = []
-    for f in sorted(cand_dir.glob("*.yaml")):
+    for f in sorted(cand_dir.glob(pattern)):
         data = load_yaml_decimal(f)
         for r in data.get("rules", []):
             rules.append(adapter.validate_python(r))
@@ -109,18 +111,23 @@ def _make_test_patient(
 
 def test_candidate_rules_count_and_provenance_invariants() -> None:
     """All candidate rules must load and strictly uphold HD-7 and Rule R3 safety invariants."""
-    candidates = load_candidate_rules()
-    assert len(candidates) == 40, (
-        f"Expected 40 candidate rules across 3 batches, found {len(candidates)}"
+    batch_candidates = load_candidate_rules(pattern="batch_*.yaml")
+    assert len(batch_candidates) == 40, (
+        f"Expected 40 candidate rules across 3 batches, found {len(batch_candidates)}"
     )
 
-    for rule in candidates:
+    all_candidates = load_candidate_rules()
+    assert len(all_candidates) >= 40
+
+    for rule in all_candidates:
         assert rule.provenance.verified is False, (
             f"Rule {rule.id} violates HD-7: verified must be false"
         )
-        assert rule.provenance.source_status == SourceStatus.PLACEHOLDER_UNRETRIEVED
+        assert rule.provenance.source_status in (
+            SourceStatus.PLACEHOLDER_UNRETRIEVED,
+            SourceStatus.RETRIEVED_UNREVIEWED,
+        )
         assert rule.provenance.reviewer is None, f"Rule {rule.id} has unreviewed reviewer set"
-        assert rule.provenance.section_ref == "TO_BE_RESOLVED"
 
 
 def test_batch_1_isolation_goldens(registry: ClinicalRegistry) -> None:
