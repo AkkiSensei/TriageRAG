@@ -314,7 +314,7 @@ export interface components {
      * @description Profiles for deterministic FakeLLM behavior.
      * @enum {string}
      */
-    FakeLLMProfile: "COMPLIANT" | "INVENT_DRUG" | "PROSE_LEAK" | "INVALID_CITATION" | "IGNORE_BLOCK" | "OBEY_COMPLAINT" | "NAIVE_FREE_TEXT";
+    FakeLLMProfile: "COMPLIANT" | "INVENT_DRUG" | "PROSE_LEAK" | "INVALID_CITATION" | "IGNORE_BLOCK" | "OBEY_COMPLAINT" | "NAIVE_FREE_TEXT" | "RANKED_CHOICE" | "WRONG_BUT_MATCHING_CLAUSE" | "QUALIFIER_DROP";
     /** HTTPValidationError */
     HTTPValidationError: {
       /** Detail */
