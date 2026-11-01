@@ -681,7 +681,12 @@ def stage_verify(
         a.raw_substance for a in normalized_patient.allergies if not a.resolved
     ]
     has_unverified_steps = any(
-        s.status in (StepStatus.UNVERIFIED_MISSING_DATA, StepStatus.CITATION_UNVERIFIED)
+        s.status in (
+            StepStatus.UNVERIFIED_MISSING_DATA,
+            StepStatus.CITATION_UNVERIFIED,
+            StepStatus.NOT_APPLICABLE,
+            StepStatus.REQUIRES_CLINICIAN_CONFIRMATION,
+        )
         for s in verified_steps
     )
     has_skip_or_unresolved = (
