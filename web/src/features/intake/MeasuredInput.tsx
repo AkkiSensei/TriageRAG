@@ -40,30 +40,30 @@ export function MeasuredInput<T extends string | number>({
         </label>
 
         {/* Tri-state selector: Measured / Estimated / Unknown */}
-        <div className="flex rounded-lg bg-slate-100 dark:bg-[#0c1618] p-0.5 border border-slate-200 dark:border-[#1e3840] text-[10px] font-mono">
+        <div className="flex rounded-lg bg-slate-100 dark:bg-slate-700/80 p-0.5 border border-slate-200 dark:border-slate-600 text-[10px]">
           <button
             type="button"
             onClick={() => onStatusChange('measured')}
             title="Objectively measured clinical value"
-            className={`px-2 py-0.5 rounded-md transition-all ${
+            className={`px-2 py-0.5 rounded-md font-medium transition-all ${
               status === 'measured'
-                ? 'bg-white dark:bg-[#1a2f35] text-teal-800 dark:text-teal-300 font-bold shadow-soft-sm border border-teal-200 dark:border-teal-700'
+                ? 'bg-white dark:bg-slate-600 text-teal-800 dark:text-teal-300 font-bold shadow-soft-sm border border-teal-200 dark:border-teal-700'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Meas
+            Measured
           </button>
           <button
             type="button"
             onClick={() => onStatusChange('estimated')}
             title="Clinically estimated value"
-            className={`px-2 py-0.5 rounded-md transition-all ${
+            className={`px-2 py-0.5 rounded-md font-medium transition-all ${
               status === 'estimated'
                 ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-300 font-bold shadow-soft-sm border border-amber-300 dark:border-amber-700'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Est
+            Estimated
           </button>
           <button
             type="button"
@@ -71,21 +71,21 @@ export function MeasuredInput<T extends string | number>({
               onStatusChange('unknown')
               onValueChange(null)
             }}
-            title="Unknown or unobtainable value (fails closed)"
-            className={`px-2 py-0.5 rounded-md transition-all ${
+            title="Unknown or not recorded"
+            className={`px-2 py-0.5 rounded-md font-medium transition-all ${
               status === 'unknown'
                 ? 'bg-violet-100 dark:bg-violet-950/70 text-violet-900 dark:text-violet-300 font-bold shadow-soft-sm border border-violet-300 dark:border-violet-700'
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
-            Unk
+            Unknown
           </button>
         </div>
       </div>
 
       {status === 'unknown' ? (
-        <div className="flex h-10 items-center rounded-xl border border-violet-200 dark:border-violet-800/60 bg-violet-50/70 dark:bg-violet-950/30 px-3 text-xs italic text-violet-900 dark:text-violet-300 font-mono">
-          Unknown / Unmeasured (Fail Closed)
+        <div className="flex h-10 items-center rounded-xl border border-violet-200 dark:border-violet-800/60 bg-violet-50/70 dark:bg-violet-950/30 px-3 text-xs italic text-violet-900 dark:text-violet-300">
+          Not recorded / Unknown
         </div>
       ) : (
         <div className="relative flex items-center">

@@ -68,16 +68,16 @@ def _create_base_patient(now: datetime) -> Patient:
 
 
 def test_brand_generic_equivalence(registry: ClinicalRegistry, index: BM25ClinicalIndex) -> bool:
-    """Transformation: Replace brand 'Viagra' with generic 'sildenafil'."""
+    """Transformation: Replace brand 'Silagra' with generic 'sildenafil'."""
     now = datetime(2026, 10, 26, 12, 0, 0, tzinfo=UTC)
     llm = FakeLLM(profile=FakeLLMProfile.COMPLIANT)
 
-    # 1. Brand: Viagra
+    # 1. Brand: Silagra
     p_brand = _create_base_patient(now)
     p_brand.medication_history_status = "confirmed_list"
     p_brand.medications = [
         MedicationEntry(
-            raw_text="Viagra",
+            raw_text="Silagra",
             dose_taken=ExplicitDose(amount=Decimal("50"), unit=DoseUnit.mg),
             route=Route.oral,
             last_dose_time=now - timedelta(hours=6),

@@ -10,6 +10,7 @@ import { IntakePage } from '@/pages/IntakePage'
 import { ReportPage } from '@/pages/ReportPage'
 import { RulesPage } from '@/pages/RulesPage'
 import { ProtocolsPage } from '@/pages/ProtocolsPage'
+import { EvidencePage } from '@/pages/EvidencePage'
 
 export const App: FC = () => {
   return (
@@ -25,6 +26,8 @@ export const App: FC = () => {
                   <Route path="report" element={<ReportPage />} />
                   <Route path="rules" element={<RulesPage />} />
                   <Route path="protocols" element={<ProtocolsPage />} />
+                  <Route path="sample-data" element={<EvidencePage />} />
+                  <Route path="evidence" element={<Navigate to="/sample-data" replace />} />
                   <Route path="*" element={<Navigate to="/intake" replace />} />
                 </Route>
               </Routes>

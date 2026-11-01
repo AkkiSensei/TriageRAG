@@ -45,22 +45,22 @@ export const IntakePage: React.FC = () => {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
       {/* Station Header */}
-      <div className="flex flex-col gap-2 rounded-3xl border border-[#d9e8e6] bg-gradient-to-r from-white via-teal-50/30 to-white p-5 sm:p-6 shadow-soft">
+      <div className="flex flex-col gap-2 rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 sm:p-6 shadow-soft">
         <div className="flex items-center gap-2">
           <span className="flex h-2.5 w-2.5 rounded-full bg-teal-600 animate-pulse" />
-          <span className="text-xs font-mono uppercase tracking-widest text-teal-800 font-bold">
-            Emergency Triage Station
+          <span className="text-xs uppercase tracking-wider text-teal-800 dark:text-teal-300 font-bold">
+            Hospital Emergency Support
           </span>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-teal-100 text-teal-900 font-semibold">
-            Pass 1 Intake
+          <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300 font-semibold border border-teal-200 dark:border-teal-800">
+            Ward &amp; Clinic
           </span>
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-          Patient Intake &amp; Physiological Profile
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+          Enter Patient Details
         </h1>
-        <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
-          Record measured or estimated vital signs, medication history, and acute complaints.
-          Deterministic rules will check contraindications and early warning scores before guideline retrieval.
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+          Fill in the patient&apos;s age, vital signs, and current medicines. The system will check all safety rules,
+          verify drug interactions, and display clear step-by-step instructions.
         </p>
       </div>
 
@@ -87,17 +87,17 @@ export const IntakePage: React.FC = () => {
       )}
 
       {/* Patient Intake Form */}
-      <div className="rounded-3xl border border-[#d9e8e6] bg-white p-5 sm:p-7 shadow-soft">
-        <div className="flex items-center justify-between border-b border-[#d9e8e6] pb-3.5 mb-5">
-          <div className="flex items-center gap-2.5 text-slate-900 text-xs font-bold uppercase tracking-wider">
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+      <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 sm:p-7 shadow-soft">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3.5 mb-5">
+          <div className="flex items-center gap-2.5 text-slate-900 dark:text-white text-xs font-bold uppercase tracking-wider">
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300">
               <Stethoscope className="h-4 w-4" />
             </div>
-            <span>Clinical Data Capture</span>
+            <span>Patient Intake Form</span>
           </div>
-          <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-500">
-            <ShieldAlert className="h-3.5 w-3.5 text-teal-600" />
-            <span>Strict Decimal Math &bull; Fail-Closed</span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+            <ShieldAlert className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+            <span>Automatic Safety Check</span>
           </div>
         </div>
 

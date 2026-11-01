@@ -4,7 +4,7 @@ import { MANDATORY_DISCLAIMER } from '@/lib/wording'
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="w-full border-t border-[#d9e8e6] dark:border-[#1e3840] bg-white/80 dark:bg-[#132226]/80 backdrop-blur-sm py-6 text-xs text-slate-500 dark:text-slate-400">
+    <footer className="w-full border-t border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm py-6 text-xs text-slate-500 dark:text-slate-400">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
         {/* Persistent Mandatory Disclaimer Banner */}
         <div className="flex items-start sm:items-center gap-3.5 rounded-2xl border border-amber-200 dark:border-amber-800/60 bg-amber-50/80 dark:bg-amber-950/30 p-4 text-amber-900 dark:text-amber-200 shadow-soft-sm">
@@ -13,7 +13,7 @@ export const Footer: React.FC = () => {
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
             <span className="font-bold uppercase tracking-wider text-[11px] text-amber-800 dark:text-amber-400">
-              Mandatory Notice:
+              Notice:
             </span>
             <span className="text-xs text-amber-950/90 dark:text-amber-200/90 leading-relaxed font-medium">
               {MANDATORY_DISCLAIMER}

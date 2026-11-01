@@ -24,10 +24,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/intake', label: 'Intake Station', icon: Stethoscope },
-  { to: '/report', label: 'Clinical Report', icon: FileSpreadsheet },
-  { to: '/rules', label: 'Ruleset', icon: BookOpen },
-  { to: '/protocols', label: 'Protocols', icon: FileCode2 },
+  { to: '/intake', label: 'Patient Details', icon: Stethoscope },
+  { to: '/report', label: 'Care Steps', icon: FileSpreadsheet },
+  { to: '/rules', label: 'Safety Rules', icon: BookOpen },
+  { to: '/protocols', label: 'Care Guides', icon: FileCode2 },
+  { to: '/sample-data', label: 'Sample Data', icon: Sparkles },
 ]
 
 export const Navbar: React.FC = () => {
@@ -35,7 +36,8 @@ export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { isDark, toggleTheme } = useTheme()
 
-  const { data: healthData, isSuccess } = useQuery({
+  // Background healthcheck keeps query cache warm without exposing raw technical badges
+  useQuery({
     queryKey: ['health'],
     queryFn: api.getHealth,
     refetchInterval: 30000,
@@ -43,7 +45,7 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full px-3 sm:px-6 lg:px-8 py-2.5">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 rounded-2xl bg-white/90 dark:bg-[#132226]/90 backdrop-blur-md border border-[#d9e8e6] dark:border-[#1e3840] shadow-soft text-slate-800 dark:text-slate-100 transition-all">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 rounded-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-soft text-slate-800 dark:text-slate-100 transition-all">
         {/* Brand */}
         <div className="flex items-center gap-4 lg:gap-6">
           <Link
@@ -51,7 +53,7 @@ export const Navbar: React.FC = () => {
             className="group flex items-center gap-3 transition-transform hover:scale-[1.01]"
             title="TriageRAG Emergency Decision Support"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0f766e] to-[#115e59] dark:from-teal-500 dark:to-teal-700 text-white shadow-[0_4px_12px_rgba(15,118,110,0.25)] ring-2 ring-[#99f6e4]/40 dark:ring-teal-400/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-700 to-teal-800 dark:from-teal-500 dark:to-teal-700 text-white shadow-[0_4px_12px_rgba(15,118,110,0.25)] ring-2 ring-teal-200/40 dark:ring-teal-400/30">
               <Activity className="h-5 w-5 text-white" />
             </div>
             <div className="flex flex-col">
@@ -60,17 +62,17 @@ export const Navbar: React.FC = () => {
                   Triage<span className="text-teal-700 dark:text-teal-400">RAG</span>
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-teal-50 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 px-2 py-0.5 rounded-full">
-                  Console
+                  Hospital Care
                 </span>
               </div>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
-                Deterministic Decision Support
+                Emergency Decision Support
               </span>
             </div>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 pl-4 border-l border-slate-200 dark:border-slate-700/60 text-xs font-medium">
+          <nav className="hidden lg:flex items-center gap-1 pl-4 border-l border-slate-200 dark:border-slate-700 text-xs font-medium">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon
               const isActive = location.pathname.startsWith(item.to)
@@ -81,44 +83,42 @@ export const Navbar: React.FC = () => {
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl transition-all ${
                     isActive
                       ? 'bg-teal-700 dark:bg-teal-600 text-white font-semibold shadow-sm'
-                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/60'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-700/60'
                   }`}
                 >
                   <Icon
                     className={`h-3.5 w-3.5 ${
-                      isActive ? 'text-teal-200' : 'text-slate-400 dark:text-slate-500'
+                      isActive ? 'text-teal-200' : 'text-slate-400 dark:text-slate-400'
                     }`}
                   />
                   <span>{item.label}</span>
-                  {item.badge && (
-                    <span
-                      className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
-                        isActive
-                          ? 'bg-teal-800 dark:bg-teal-700 text-teal-100'
-                          : 'bg-coral-50 dark:bg-coral-950/60 text-coral-600 dark:text-coral-400 border border-coral-200 dark:border-coral-800/60'
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
                 </Link>
               )
             })}
           </nav>
         </div>
 
-        {/* Right: Disclaimer Badge, Theme Toggle, API Status, and Mobile Toggle */}
+        {/* Right: Demo Mode Pill, Research Notice, Theme Toggle, and Mobile Toggle */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Demo Mode Badge */}
+          <div
+            className="flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 px-3 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 shadow-soft-sm cursor-help"
+            title="This is a research demo using sample data."
+          >
+            <span className="h-2 w-2 rounded-full bg-teal-500" />
+            <span className="font-semibold">Demo Mode</span>
+          </div>
+
           <div className="hidden md:flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 px-3 py-1 text-[11px] font-medium text-amber-800 dark:text-amber-300 shadow-soft-sm">
             <Sparkles className="h-3 w-3 text-amber-600 dark:text-amber-400 shrink-0" />
-            <span>Research Prototype • Synthetic Data</span>
+            <span>Sample Data Only</span>
           </div>
 
           {/* Theme Toggle Button */}
           <button
             type="button"
             onClick={toggleTheme}
-            className="flex items-center justify-center h-9 w-9 rounded-xl border border-slate-200 dark:border-[#223d45] bg-slate-50 dark:bg-[#182b30] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#203940] transition-colors shadow-soft-sm"
+            className="flex items-center justify-center h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors shadow-soft-sm"
             aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
             title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
           >
@@ -129,39 +129,11 @@ export const Navbar: React.FC = () => {
             )}
           </button>
 
-          {/* Generation Mode and Retrieval Observability Pill */}
-          {healthData && (
-            <div className="hidden xl:flex items-center gap-1.5 rounded-full bg-slate-50 dark:bg-[#182b30] border border-slate-200 dark:border-[#223d45] px-2.5 py-1 text-[11px] font-mono text-slate-600 dark:text-slate-300 shadow-soft-sm">
-              <span className="font-semibold text-teal-700 dark:text-teal-400">
-                Deterministic Mock
-              </span>
-              <span className="text-slate-300 dark:text-slate-600">&bull;</span>
-              <span className="uppercase font-medium text-slate-500 dark:text-slate-400">
-                {healthData.retrieval_backend === 'hybrid_rrf' ? 'Hybrid RRF' : 'BM25'}
-              </span>
-            </div>
-          )}
-
-          {/* API Health Pill */}
-          <div
-            className="flex items-center gap-1.5 rounded-full bg-slate-50 dark:bg-[#182b30] border border-slate-200 dark:border-[#223d45] px-2.5 sm:px-3 py-1 text-[11px] font-mono text-slate-700 dark:text-slate-200 shadow-soft-sm"
-            title={isSuccess ? 'Deterministic API connected' : 'Connecting to API...'}
-          >
-            <span
-              className={`h-2 w-2 rounded-full ${
-                isSuccess
-                  ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.7)] animate-pulse'
-                  : 'bg-amber-400'
-              }`}
-            />
-            <span className="font-semibold hidden sm:inline">{isSuccess ? 'ONLINE' : 'CONNECTING'}</span>
-          </div>
-
           {/* Mobile menu toggle */}
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex lg:hidden items-center justify-center h-9 w-9 rounded-xl border border-slate-200 dark:border-[#223d45] bg-slate-50 dark:bg-[#182b30] text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#203940]"
+            className="flex lg:hidden items-center justify-center h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-600"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

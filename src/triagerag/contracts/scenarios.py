@@ -63,7 +63,7 @@ def get_preloaded_scenario(name: str) -> tuple[Patient, list[OverrideRecord]]:
             medication_history_status="confirmed_list",
             medications=[
                 MedicationEntry(
-                    raw_text="Viagra",
+                    raw_text="Silagra",
                     ingredients=[
                         IngredientStrength(
                             ingredient_id="sildenafil",

@@ -1,6 +1,6 @@
 aliases:
-  Viagra:
-    brand_name: "Viagra"
+  Silagra:
+    brand_name: "Silagra"
     ingredient_ids: ["sildenafil"]
     strengths:
       - ingredient_id: "sildenafil"

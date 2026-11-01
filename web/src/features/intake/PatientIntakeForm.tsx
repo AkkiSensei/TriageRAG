@@ -15,7 +15,6 @@ import {
   Clock,
   Loader2,
   AlertCircle,
-  Sparkles,
 } from 'lucide-react'
 
 type AgeUnit = components['schemas']['AgeUnit']
@@ -94,31 +93,7 @@ export interface FormState {
   suspectedSyndrome: string
   renalImpairment: Impairment
   hepaticImpairment: Impairment
-
-  // Triage narrative
-  chiefComplaint: string
-  includeComplaintInLlm: boolean
   llmProfile: LLMProfile
-}
-
-export const inferSyndromeFromText = (text: string): string | null => {
-  const lower = text.toLowerCase()
-  if (/chest|angina|retrosternal|substernal|coronary|heart attack/.test(lower)) {
-    return 'chest_pain'
-  }
-  if (/anaphyl|allergi|urticaria|hives|stridor|angioedema|peanut|bee sting|wasp/.test(lower)) {
-    return 'anaphylaxis'
-  }
-  if (/asthma|wheez|bronchospasm|dyspnea|shortness of breath|breathless/.test(lower)) {
-    return 'severe_asthma'
-  }
-  if (/sepsis|septic|fever|rigor|bacteremia|infection|letharg/.test(lower)) {
-    return 'paediatric_sepsis'
-  }
-  if (/hypoglyc|blood sugar|glucose|sweat|diaphor|tremor/.test(lower)) {
-    return 'hypoglycemia'
-  }
-  return null
 }
 
 export const INITIAL_FORM_STATE: FormState = {
@@ -157,15 +132,12 @@ export const INITIAL_FORM_STATE: FormState = {
   suspectedSyndrome: '',
   renalImpairment: 'no',
   hepaticImpairment: 'no',
-
-  chiefComplaint: '',
-  includeComplaintInLlm: false,
   llmProfile: 'COMPLIANT',
 }
 
 const COMMON_DRUGS = [
   'Sildenafil',
-  'Viagra',
+  'Silagra',
   'Cialis (Tadalafil)',
   'Nitroglycerin',
   'Metoprolol',
@@ -294,9 +266,6 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       suspectedSyndrome: p.suspected_syndrome || 'chest_pain',
       renalImpairment: (p.renal_impairment as Impairment) || 'no',
       hepaticImpairment: (p.hepatic_impairment as Impairment) || 'no',
-
-      chiefComplaint: p.chief_complaint_untrusted || '',
-      includeComplaintInLlm: true,
       llmProfile: 'COMPLIANT',
     })
   }
@@ -376,9 +345,6 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       suspectedSyndrome: p.suspected_syndrome || 'chest_pain',
       renalImpairment: (p.renal_impairment as Impairment) || 'no',
       hepaticImpairment: (p.hepatic_impairment as Impairment) || 'no',
-
-      chiefComplaint: p.chief_complaint_untrusted || '',
-      includeComplaintInLlm: true,
       llmProfile: (req.llm_profile as LLMProfile) || 'COMPLIANT',
     })
   }
@@ -512,10 +478,10 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
         suspected_syndrome: form.suspectedSyndrome?.trim() || null,
         renal_impairment: form.renalImpairment || 'no',
         hepatic_impairment: form.hepaticImpairment || 'no',
-        chief_complaint_untrusted: form.chiefComplaint?.trim() || '',
+        chief_complaint_untrusted: '',
       },
       llm_profile: form.llmProfile || 'COMPLIANT',
-      include_complaint_in_llm: Boolean(form.includeComplaintInLlm),
+      include_complaint_in_llm: false,
       overrides: [],
     }
   }
@@ -593,139 +559,73 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
         </div>
       )}
 
-      {/* CARD 1: PRESENTING CLINICAL SYNDROME */}
-      <div className="rounded-2xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 sm:p-6 shadow-soft transition-all">
-        <div className="flex items-center justify-between border-b border-[#d9e8e6] dark:border-[#1e3840] pb-3 mb-4">
+      {/* CARD 1: MAIN EMERGENCY CONDITION */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm transition-all">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300">
-              <Activity className="h-4 w-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300">
+              <Activity className="h-5 w-5" />
             </div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-              1. Presenting Clinical Syndrome
-            </h3>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                1. Main Emergency Condition
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Choose what symptom or emergency the patient came in with
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={() => setForm(INITIAL_FORM_STATE)}
-            className="flex items-center gap-1 text-[11px] font-mono text-slate-500 dark:text-slate-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors"
+            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-teal-700 dark:text-slate-400 dark:hover:text-teal-300 transition-colors px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
             title="Reset to default baseline"
           >
-            <RotateCcw className="h-3 w-3" />
+            <RotateCcw className="h-3.5 w-3.5" />
             <span>Reset Form</span>
           </button>
         </div>
 
         <div className="flex flex-col gap-3.5">
-          {/* Syndrome Dropdown */}
           <div>
-            <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center justify-between">
-              <span>Suspected Clinical Syndrome</span>
-              <span className="text-[10px] text-teal-700 dark:text-teal-400 font-mono font-medium">
-                Partitions Emergency Protocols
-              </span>
+            <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 block mb-1">
+              Select Patient&apos;s Condition
             </label>
             <select
               value={form.suspectedSyndrome}
               onChange={(e) => setForm({ ...form, suspectedSyndrome: e.target.value })}
-              className="mt-1 h-10 w-full rounded-xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="h-11 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 text-xs sm:text-sm font-medium text-slate-900 dark:text-white focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             >
-              <option value="">None / Unspecified (General Vitals Screening)</option>
-              <option value="chest_pain">Acute Chest Pain &amp; Suspected Coronary Syndrome</option>
-              <option value="anaphylaxis">Acute Anaphylaxis / Severe Systemic Allergic Reaction</option>
-              <option value="severe_asthma">Severe Acute Asthma &amp; Bronchospasm</option>
-              <option value="hypoglycemia">Acute Symptomatic Hypoglycemia</option>
-              <option value="paediatric_sepsis">Pediatric Sepsis &amp; Febrile Shock</option>
-              <option value="altered_mental_status">Altered Mental Status / Acute Confusion</option>
+              <option value="">General Health Check / Vitals Check (No Emergency Selected)</option>
+              <option value="chest_pain">Severe Chest Pain (Possible Heart Attack)</option>
+              <option value="anaphylaxis">Severe Allergic Reaction (Swelling / Trouble Breathing)</option>
+              <option value="severe_asthma">Severe Asthma Attack (Wheezing / Breathlessness)</option>
+              <option value="hypoglycemia">Low Blood Sugar (Shaking / Sweating / Weakness)</option>
+              <option value="paediatric_sepsis">Severe Infection / Sepsis (High Fever / Child Very Sick)</option>
+              <option value="altered_mental_status">Confusion or Drowsiness (Not fully awake)</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* CARD: CHIEF COMPLAINT & CLINICAL PRESENTATION */}
-      <div className="rounded-2xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 shadow-soft transition-all">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-[#d9e8e6] dark:border-[#1e3840]">
+      {/* CARD 2: PATIENT VITALS & BASIC DETAILS */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm transition-all">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300">
-              <FileText className="h-4 w-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300">
+              <Stethoscope className="h-5 w-5" />
             </div>
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                Chief Complaint &amp; Bedside Presentation
-              </span>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Untrusted patient narrative (Rule R7: excluded from scoring, dose math, and retrieval indexes)
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                2. Patient Vitals &amp; Basic Details
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Enter age, gender, and current vital measurements
               </p>
             </div>
           </div>
-        </div>
-
-        <textarea
-          rows={3}
-          value={form.chiefComplaint}
-          onChange={(e) => {
-            const val = e.target.value
-            setForm((prev) => ({
-              ...prev,
-              chiefComplaint: val,
-            }))
-          }}
-          placeholder="Enter patient-reported narrative or bedside notes (e.g. 'Sudden onset chest tightness radiating to left arm', 'Severe wheezing after exercise', 'Facial swelling and hives after wasp sting')..."
-          className="w-full rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/50 dark:bg-[#0f1b1e] p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-teal-600 focus:bg-white dark:focus:bg-[#132226] focus:outline-none focus:ring-2 focus:ring-teal-500/20 resize-none font-sans leading-relaxed transition-all"
-        />
-
-        {/* Finding A: Optional Suggestion with explicit confirmation button */}
-        {(() => {
-          const suggested = inferSyndromeFromText(form.chiefComplaint)
-          if (!suggested || form.suspectedSyndrome === suggested) return null
-          return (
-            <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-xs">
-              <div className="flex items-center gap-2 text-teal-900 dark:text-teal-200 font-sans">
-                <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
-                <span>
-                  Clinical keyword detected: Potential match for <strong>{suggested.replace('_', ' ').toUpperCase()}</strong>
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setForm((prev) => ({ ...prev, suspectedSyndrome: suggested }))}
-                className="text-[11px] font-bold bg-teal-700 hover:bg-teal-800 text-white px-3 py-1 rounded-lg transition-colors shadow-sm shrink-0"
-              >
-                Apply as Selected Syndrome
-              </button>
-            </div>
-          )
-        })()}
-
-        {/* Finding B: Explicit opt-in for includeComplaintInLlm */}
-        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-[#1e3840] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.includeComplaintInLlm}
-              onChange={(e) => setForm((prev) => ({ ...prev, includeComplaintInLlm: e.target.checked }))}
-              className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-teal-600 focus:ring-teal-500"
-            />
-            <span>Pass narrative to mock generation in delimited context block only (Rule R7: off by default)</span>
-          </label>
-          <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
-            {form.chiefComplaint.length}/500 chars
-          </span>
-        </div>
-      </div>
-
-      {/* CARD 2: DEMOGRAPHICS & PHYSIOLOGICAL VITALS */}
-      <div className="rounded-2xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 sm:p-6 shadow-soft transition-all">
-        <div className="flex items-center justify-between border-b border-[#d9e8e6] dark:border-[#1e3840] pb-3 mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300">
-              <Stethoscope className="h-4 w-4" />
-            </div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-              2. Demographics &amp; Physiological Vitals
-            </h3>
-          </div>
-          <span className="text-[11px] font-mono text-teal-700 dark:text-teal-300 font-semibold bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-800">
-            NEWS2 / PEWS Input
+          <span className="text-xs text-teal-700 dark:text-teal-300 font-semibold bg-teal-50 dark:bg-teal-950/60 px-3 py-1 rounded-full border border-teal-200 dark:border-teal-800">
+            Vital Signs
           </span>
         </div>
 
@@ -886,16 +786,16 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               onValueChange={(val) => setForm({ ...form, glucoseValue: val || '' })}
             />
             <div>
-              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Supplemental O2</label>
+              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Giving Oxygen to Patient?</label>
               <select
                 value={form.o2Value}
                 onChange={(e) =>
                   setForm({ ...form, o2Value: e.target.value as 'yes' | 'no' | 'unknown' })
                 }
-                className="mt-1.5 h-10 w-full rounded-xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 focus:outline-none"
+                className="mt-1.5 h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 focus:outline-none"
               >
-                <option value="no">Room Air (No)</option>
-                <option value="yes">On Supplemental O2 (+2 pts)</option>
+                <option value="no">No (Breathing normal room air)</option>
+                <option value="yes">Yes (Giving oxygen mask / nasal tube)</option>
                 <option value="unknown">Unknown</option>
               </select>
             </div>
@@ -904,86 +804,91 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
           {/* Consciousness */}
           <div className="pt-2">
             <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-              Consciousness Level (AVPU+C)
+              How Awake / Alert is the Patient?
             </label>
             <select
               value={form.consciousnessValue}
               onChange={(e) =>
                 setForm({ ...form, consciousnessValue: e.target.value as Consciousness })
               }
-              className="mt-1.5 h-10 w-full rounded-xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 focus:outline-none"
+              className="mt-1.5 h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 focus:outline-none"
             >
-              <option value="A">Alert (A) - Fully oriented, normal (0 points)</option>
-              <option value="C">New Confusion (C) - Acute altered mental state (3 points - Critical)</option>
-              <option value="V">Voice Responsive (V) - Responds to verbal stimulus (3 points - Critical)</option>
-              <option value="P">Pain Responsive (P) - Responds only to painful stimulus (3 points - Critical)</option>
-              <option value="U">Unresponsive (U) - Glasgow Coma Scale depressed (3 points - Critical)</option>
+              <option value="A">Alert - Fully awake and talking normally (0 points)</option>
+              <option value="C">New Confusion - Awake but confused or drowsy (Urgent)</option>
+              <option value="V">Voice Responsive - Responds only when spoken to loudly (Urgent)</option>
+              <option value="P">Pain Responsive - Responds only if pinched or shaken (Critical)</option>
+              <option value="U">Unconscious - Not waking up at all (Critical)</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* CARD 3: HOME MEDICATIONS & ALLERGIES */}
-      <div className="rounded-2xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#132226] p-5 sm:p-6 shadow-soft transition-all">
-        <div className="flex items-center justify-between border-b border-[#d9e8e6] dark:border-[#1e3840] pb-3 mb-4">
+      {/* CARD 3: CURRENT MEDICINES & DRUG ALLERGIES */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm transition-all">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300">
-              <Pill className="h-4 w-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300">
+              <Pill className="h-5 w-5" />
             </div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-              3. Home Medications &amp; Documented Allergies
-            </h3>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                3. Current Medicines &amp; Drug Allergies
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Record what medicines the patient takes or is allergic to
+              </p>
+            </div>
           </div>
-          <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-            {form.medications.length} meds &bull; {form.allergies.length} allergies
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">
+            {form.medications.length} medicines &bull; {form.allergies.length} allergies
           </span>
         </div>
 
         {/* Medication History */}
         <div className="flex flex-col gap-3 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Current Medications</span>
+            <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">Current Regular Medicines</span>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-slate-500 dark:text-slate-400">History Status:</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Status:</span>
               <select
                 value={form.medicationStatus}
                 onChange={(e) =>
                   setForm({ ...form, medicationStatus: e.target.value as HistoryStatus })
                 }
-                className="h-8 rounded-lg border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-2.5 text-[11px] font-mono text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
+                className="h-8 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-xs text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
               >
-                <option value="confirmed_list">Confirmed List</option>
-                <option value="confirmed_none">Confirmed None (No Meds)</option>
-                <option value="incomplete">Incomplete History</option>
-                <option value="unknown_unobtainable">Unknown / Unobtainable</option>
+                <option value="confirmed_list">Patient has list of medicines</option>
+                <option value="confirmed_none">Patient takes NO regular medicines</option>
+                <option value="incomplete">Medicine list is incomplete / partial</option>
+                <option value="unknown_unobtainable">Unknown / Cannot ask patient</option>
               </select>
             </div>
           </div>
 
           {/* Active Meds List */}
-          <div className="flex flex-wrap gap-2 min-h-[44px] items-center p-3 rounded-xl bg-slate-50 dark:bg-[#0c1618] border border-slate-200 dark:border-[#1e3840]">
+          <div className="flex flex-wrap gap-2 min-h-[44px] items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
             {form.medications.length === 0 ? (
               <span className="text-xs text-slate-400 dark:text-slate-500 italic">
-                No active home medications recorded.
+                No active medicines recorded yet. Add below if known.
               </span>
             ) : (
               form.medications.map((m, idx) => (
                 <span
                   key={idx}
-                  className="flex items-center gap-2 rounded-xl bg-white dark:bg-[#182b30] border border-teal-200 dark:border-teal-700/60 px-3 py-1.5 text-xs text-slate-900 dark:text-white font-mono shadow-soft-sm"
+                  className="flex items-center gap-2 rounded-xl bg-white dark:bg-slate-800 border border-teal-200 dark:border-teal-700/60 px-3 py-1.5 text-xs text-slate-900 dark:text-white shadow-sm"
                 >
                   <span className="font-bold text-teal-800 dark:text-teal-300">{m.raw_string}</span>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-0.5">
-                    <Clock className="h-2.5 w-2.5 text-slate-400" />
-                    {m.last_dose_hours_ago !== null ? `${m.last_dose_hours_ago}h ago` : 'Time unk'}
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-0.5">
+                    <Clock className="h-3 w-3 text-slate-400" />
+                    {m.last_dose_hours_ago !== null ? `${m.last_dose_hours_ago}h ago` : 'Time unknown'}
                   </span>
                   <button
                     type="button"
                     onClick={() => removeMedication(idx)}
-                    className="text-slate-400 hover:text-rose-600 transition-colors ml-1"
-                    title="Remove medication"
+                    className="text-slate-400 hover:text-rose-600 transition-colors ml-1 p-0.5"
+                    title="Remove medicine"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </span>
               ))
@@ -1003,8 +908,8 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
                   addMedication(newMedName, newMedLastDose)
                 }
               }}
-              placeholder="Type drug name (e.g. Sildenafil, Metoprolol, Lisinopril, Nitroglycerin)..."
-              className="h-10 flex-1 rounded-xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-teal-600 focus:outline-none"
+              placeholder="Type medicine name (e.g. Paracetamol, Metoprolol, Silagra, Nitroglycerin)..."
+              className="h-10 flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-teal-600 focus:outline-none"
             />
             <datalist id="formulary-suggestions">
               {COMMON_DRUGS.map((d) => (
@@ -1017,73 +922,73 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               onChange={(e) =>
                 setNewMedLastDose(e.target.value === 'unknown' ? null : Number(e.target.value))
               }
-              className="h-10 rounded-xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-3 text-xs text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none font-mono"
+              className="h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
             >
-              <option value="12">Taken within 12h</option>
-              <option value="24">Taken ~24h ago</option>
-              <option value="36">Taken ~36h ago</option>
-              <option value="48">Taken ~48h ago</option>
-              <option value="72">Taken &gt;72h ago</option>
+              <option value="12">Taken within last 12 hours</option>
+              <option value="24">Taken ~24 hours ago</option>
+              <option value="36">Taken ~36 hours ago</option>
+              <option value="48">Taken ~48 hours ago</option>
+              <option value="72">Taken &gt;72 hours ago</option>
               <option value="unknown">Time Unknown</option>
             </select>
 
             <button
               type="button"
               onClick={() => addMedication(newMedName, newMedLastDose)}
-              className="flex items-center justify-center gap-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/80 hover:bg-teal-100 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800 px-4 h-10 text-xs font-bold text-teal-800 dark:text-teal-300 transition-colors"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white px-4 h-10 text-xs font-bold transition-colors cursor-pointer"
             >
-              <Plus className="h-3.5 w-3.5" />
-              <span>Add Med</span>
+              <Plus className="h-4 w-4" />
+              <span>Add Medicine</span>
             </button>
           </div>
         </div>
 
         {/* Allergies History */}
-        <div className="flex flex-col gap-3 pt-4 border-t border-[#d9e8e6] dark:border-[#1e3840]">
+        <div className="flex flex-col gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-              Documented Substance Allergies
+              <ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+              Known Medicine Allergies
             </span>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] text-slate-500 dark:text-slate-400">Allergy Status:</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">Status:</span>
               <select
                 value={form.allergyStatus}
                 onChange={(e) =>
                   setForm({ ...form, allergyStatus: e.target.value as HistoryStatus })
                 }
-                className="h-8 rounded-lg border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-2.5 text-[11px] font-mono text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
+                className="h-8 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-xs text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
               >
-                <option value="confirmed_nkda">No Known Drug Allergies (NKDA)</option>
-                <option value="confirmed_list">Confirmed Allergy List</option>
-                <option value="unknown_unobtainable">Unknown / Unobtainable</option>
+                <option value="confirmed_nkda">No Known Drug Allergies (No Allergies)</option>
+                <option value="confirmed_list">Patient has known allergies</option>
+                <option value="unknown_unobtainable">Unknown / Cannot ask patient</option>
               </select>
             </div>
           </div>
 
           {/* Active Allergies List */}
-          <div className="flex flex-wrap gap-2 min-h-[44px] items-center p-3 rounded-xl bg-slate-50 dark:bg-[#0c1618] border border-slate-200 dark:border-[#1e3840]">
+          <div className="flex flex-wrap gap-2 min-h-[44px] items-center p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
             {form.allergies.length === 0 ? (
               <span className="text-xs text-slate-400 dark:text-slate-500 italic">
                 {form.allergyStatus === 'confirmed_nkda'
-                  ? 'No Known Drug Allergies (NKDA Confirmed).'
-                  : 'No allergies recorded.'}
+                  ? 'No known medicine allergies recorded.'
+                  : 'No allergies listed.'}
               </span>
             ) : (
               form.allergies.map((a, idx) => (
                 <span
                   key={idx}
-                  className="flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800/80 px-3 py-1.5 text-xs text-amber-950 dark:text-amber-200 font-mono shadow-soft-sm"
+                  className="flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800/80 px-3 py-1.5 text-xs text-amber-950 dark:text-amber-200 shadow-sm"
                 >
                   <span className="font-bold text-amber-900 dark:text-amber-300">{a.raw_substance}</span>
-                  <span className="text-[10px] text-amber-700 dark:text-amber-400">({a.reaction_type})</span>
+                  <span className="text-[11px] text-amber-700 dark:text-amber-400">({a.reaction_type})</span>
                   <button
                     type="button"
                     onClick={() => removeAllergy(idx)}
-                    className="text-amber-500 hover:text-rose-600 transition-colors ml-1"
+                    className="text-amber-500 hover:text-rose-600 transition-colors ml-1 p-0.5"
                     title="Remove allergy"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </span>
               ))
@@ -1102,34 +1007,34 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
                   addAllergy(newAllergySubstance, newAllergyReaction)
                 }
               }}
-              placeholder="Allergen name (e.g. Penicillin, Ceftriaxone, Amoxicillin)..."
-              className="h-10 flex-1 rounded-xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-teal-600 focus:outline-none"
+              placeholder="Allergen name (e.g. Penicillin, Sulfa, Amoxicillin)..."
+              className="h-10 flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-teal-600 focus:outline-none"
             />
             <select
               value={newAllergyReaction}
               onChange={(e) => setNewAllergyReaction(e.target.value as ReactionType)}
-              className="h-10 rounded-xl border border-[#d9e8e6] dark:border-[#1e3840] bg-white dark:bg-[#0f1b1e] px-3 text-xs text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
+              className="h-10 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs text-slate-800 dark:text-slate-200 focus:border-teal-600 focus:outline-none"
             >
-              <option value="anaphylaxis_ige">IgE Anaphylaxis / Airway Compromise</option>
-              <option value="severe_cutaneous_scar">Severe Cutaneous (SCAR / DRESS / SJS)</option>
-              <option value="mild_rash">Mild Rash / Urticaria</option>
-              <option value="gi_upset">GI Upset / Intolerance</option>
+              <option value="anaphylaxis_ige">Severe allergy (airway swelling / severe difficulty breathing)</option>
+              <option value="severe_cutaneous_scar">Severe skin reaction (blisters / rashes)</option>
+              <option value="mild_rash">Mild skin rash / itching</option>
+              <option value="gi_upset">Stomach upset / vomiting</option>
               <option value="unknown">Reaction Unknown</option>
             </select>
             <button
               type="button"
               onClick={() => addAllergy(newAllergySubstance, newAllergyReaction)}
-              className="flex items-center justify-center gap-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/80 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800 px-4 h-10 text-xs font-bold text-amber-900 dark:text-amber-300 transition-colors"
+              className="flex items-center justify-center gap-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white px-4 h-10 text-xs font-bold transition-colors cursor-pointer"
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
               <span>Add Allergy</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* PRIMARY CTA: EVALUATE PATIENT */}
-      <div className="sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-teal-200 dark:border-[#1e3840] bg-white/95 dark:bg-[#132226]/95 p-4 sm:p-5 shadow-soft-xl backdrop-blur-md transition-all">
+      {/* PRIMARY CTA: CHECK SAFETY */}
+      <div className="sticky bottom-4 z-20 flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-4 sm:p-5 shadow-lg backdrop-blur-md transition-all">
         {errorMessage && (
           <div className="flex items-center gap-2 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/60 p-3 text-xs text-rose-800 dark:text-rose-200">
             <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
@@ -1140,23 +1045,23 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <FileText className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-            <span>Ready for Pass 1 Deterministic Safety Evaluation</span>
+            <span>Checks drug safety rules, vital signs, and step-by-step care guide</span>
           </div>
 
           <button
             type="submit"
             onClick={handleSubmit}
             disabled={isLoading}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-teal-800 dark:from-teal-600 dark:to-teal-700 hover:from-teal-800 hover:to-teal-900 px-7 py-3 text-sm font-bold text-white shadow-soft hover:shadow-soft-lg transition-all disabled:opacity-50 cursor-pointer"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 active:bg-teal-800 px-8 py-3 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer"
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin text-teal-200" />
-                <span>Running Deterministic Engine...</span>
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+                <span>Checking safety rules...</span>
               </>
             ) : (
               <>
-                <span>Evaluate Patient &amp; View Report</span>
+                <span>Check Safety &amp; View Care Steps</span>
                 <ArrowRight className="h-4 w-4" />
               </>
             )}

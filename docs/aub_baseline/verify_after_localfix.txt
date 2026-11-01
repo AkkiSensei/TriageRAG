@@ -42,7 +42,7 @@ Validating clinical datasets in: C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRA
 | Formulary | nitroglyceà | PLACEHOLDEà | AGENT_DRAFà | NO (DRAFT) | None     |
 | Formulary | salbutamolà | PLACEHOLDEà | AGENT_DRAFà | NO (DRAFT) | None     |
 | Formulary | sildenafilà | PLACEHOLDEà | AGENT_DRAFà | NO (DRAFT) | None     |
-| Alias     | Viagra      | PLACEHOLDEà | AGENT_DRAFà | NO (DRAFT) | None     |
+| Alias     | Silagra     | PLACEHOLDEà | AGENT_DRAFà | NO (DRAFT) | None     |
 | Alias     | Revatio     | PLACEHOLDEà | AGENT_DRAFà | NO (DRAFT) | None     |
 | Alias     | Cialis      | PLACEHOLDEà | AGENT_DRAFà | NO (DRAFT) | None     |
 | Alias     | Nitrostat   | PLACEHOLDEà | AGENT_DRAFà | NO (DRAFT) | None     |

@@ -75,9 +75,9 @@ cases:
     must_skip: []
     must_not_fire: ["DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT", "DDI_PDE5_NITRATE"]
 
-  - id: "GOLDEN_11_BRAND_VIAGRA_NITROSTAT"
-    medications: ["Viagra", "Nitrostat"]
-    last_dose_hours_ago: {"Viagra": 8.0}
+  - id: "GOLDEN_11_BRAND_SILAGRA_NITROSTAT"
+    medications: ["Silagra", "Nitrostat"]
+    last_dose_hours_ago: {"Silagra": 8.0}
     medication_history_status: "confirmed_list"
     must_fire: ["DDI_PDE5_NITRATE", "DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT"]
     must_skip: []
