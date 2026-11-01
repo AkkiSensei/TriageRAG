@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from triagerag.rag.aliases import load_node_aliases
+from triagerag.rag.aliases import load_node_aliases, load_reverse_node_aliases
 from triagerag.rag.node_predicates import load_node_predicates_config
 from triagerag.rag.predicates import (
     PredicateEvalResult,
@@ -85,7 +85,7 @@ def verify_node_applicability(
                 decl = node_predicates_cfg.nodes[canonical_id]
             else:
                 # Try content -> legacy
-                rev_aliases = {v: k for k, v in aliases.items()}
+                rev_aliases = load_reverse_node_aliases(data_dir)
                 legacy_id = rev_aliases.get(node_id)
                 if legacy_id and legacy_id in node_predicates_cfg.nodes:
                     decl = node_predicates_cfg.nodes[legacy_id]

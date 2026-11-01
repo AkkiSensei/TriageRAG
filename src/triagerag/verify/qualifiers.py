@@ -90,6 +90,17 @@ _QUALIFIER_SPECS: list[QualifierSpec] = [
         ],
         description="boundary termination or conditional limit",
     ),
+    QualifierSpec(
+        name="if",
+        then_pattern=re.compile(r"\b(if|when|provided that|in the event)\b", re.IGNORECASE),
+        instruction_patterns=[
+            re.compile(
+                r"\b(if|when|provided that|in the event|in case|conditional on|only if)\b",
+                re.IGNORECASE,
+            ),
+        ],
+        description="conditional prerequisite in action clause",
+    ),
 ]
 
 

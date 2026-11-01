@@ -52,3 +52,4 @@ Prior to AUB Phase 5, TriageRAG's citation verification suffered from a critical
 
 ## Status
 Accepted and verified in Phase 5. All 21 Phase 5 unit and API integration tests pass with 0 warnings, strict static type checking (mypy), and zero lint errors (ruff).
+

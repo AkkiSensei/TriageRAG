@@ -35,6 +35,11 @@ PLAIN_CHUNK = (
     "   THEN administer intramuscular epinephrine into the anterolateral mid-thigh immediately."
 )
 
+IF_CONDITIONAL_CHUNK = (
+    "1. IF persistent ischemic chest discomfort without contraindications:\n"
+    "   THEN consider administering oral metoprolol if hemodynamically stable."
+)
+
 PARENT_CHUNK = (
     "# ANAPHYLAXIS CLINICAL EMERGENCY PROTOCOL (SYNTHETIC)\n"
     "Initial assessment and stabilization guidelines for adult patients."
@@ -102,6 +107,24 @@ class TestQualifierVerification:
         """Accept instruction that retains 'after' verification qualifier."""
         instruction = "Administer oral beta-blocker after verifying absence of conduction blocks"
         is_ok, reason = verify_step_qualifiers(instruction, AFTER_CHUNK)
+
+        assert is_ok
+        assert reason is None
+
+    def test_if_qualifier_dropped_is_rejected(self) -> None:
+        """Reject instruction that drops 'if' conditional prerequisite in THEN clause."""
+        instruction = "Consider administering oral metoprolol immediately"
+        is_ok, reason = verify_step_qualifiers(instruction, IF_CONDITIONAL_CHUNK)
+
+        assert not is_ok
+        assert reason is not None
+        assert "QUALIFIER_DROPPED" in reason
+        assert "'if'" in reason
+
+    def test_if_qualifier_preserved_is_accepted(self) -> None:
+        """Accept instruction that preserves 'if' conditional prerequisite."""
+        instruction = "Consider administering oral metoprolol if hemodynamically stable"
+        is_ok, reason = verify_step_qualifiers(instruction, IF_CONDITIONAL_CHUNK)
 
         assert is_ok
         assert reason is None

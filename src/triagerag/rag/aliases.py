@@ -11,6 +11,7 @@ Safety Properties (Rules R1, R2, R3, AUB-COR-02):
 
 from __future__ import annotations
 
+import functools
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -33,6 +34,7 @@ def get_alias_file_path(data_dir: Path | None = None) -> Path:
     return base_dir / "corpus" / _DEFAULT_ALIAS_FILENAME
 
 
+@functools.lru_cache(maxsize=8)
 def load_node_aliases(data_dir: Path | None = None) -> dict[str, str]:
     """Load legacy positional ID to content-addressed ID alias map.
 
@@ -50,6 +52,13 @@ def load_node_aliases(data_dir: Path | None = None) -> dict[str, str]:
     except Exception as exc:
         logger.warning("Failed to load node aliases from %s: %s", path, exc)
     return {}
+
+
+@functools.lru_cache(maxsize=8)
+def load_reverse_node_aliases(data_dir: Path | None = None) -> dict[str, str]:
+    """Load content-addressed ID to legacy positional ID reverse alias map."""
+    aliases = load_node_aliases(data_dir)
+    return {v: k for k, v in aliases.items()}
 
 
 def save_node_aliases(
@@ -76,6 +85,8 @@ def save_node_aliases(
 
     yaml_text = yaml.dump(payload, sort_keys=False, default_flow_style=False)
     path.write_text(yaml_text, encoding="utf-8")
+    load_node_aliases.cache_clear()
+    load_reverse_node_aliases.cache_clear()
     return path
 
 

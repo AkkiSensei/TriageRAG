@@ -430,6 +430,14 @@ class FakeLLM(LLMProvider):
                 "Consider",
                 "after",
                 "After",
+                "continue",
+                "Continue",
+                "withhold",
+                "Withhold",
+                "until",
+                "Until",
+                "if",
+                "If",
             ):
                 dropped_narrative = re.sub(rf"\b{q_word}\b", "", dropped_narrative)
             dropped_narrative = " ".join(dropped_narrative.split()).strip()
