@@ -33,27 +33,28 @@ Domain models from `triagerag.contracts.schemas` are preserved without mutation:
 - `audit_hash`: Cryptographic SHA-256 tamper-evident hash-chain digest.
 - `execution_trace`: Non-sensitive node-by-node runtime audit trail (zero PII).
 
-### 2. Processing Nodes (11 Nodes)
+### 2. Processing Nodes (11 Nodes, 13 Total Keys)
+The workflow defines 11 domain processing nodes plus 2 LangGraph lifecycle pseudo-nodes (`__start__`, `__end__`):
 1. `normalise`: Validates patient age, sex, weight, vitals, and computes early warning scores.
 2. `intake_safety_checks`: Executes Pass 1 deterministic checks (DDI, allergy, age contraindications).
-3. `retrieve`: Performs candidate protocol chunk retrieval and calibrated abstention checking.
+3. `retrieve`: Performs candidate protocol chunk retrieval via BM25 with population filtering (ECE remains observational under HD-12).
 4. `draft_plan`: Extractive plan drafting via the configured `LLMProvider` mock boundary.
 5. `abstain_fallback`: Fail-closed abstention path; sets `llm_fallback_mode=True` and skips generator.
 6. `verify`: Pass 2 machine verification, dose limit math, and verdict lattice evaluation.
 7. `block_seal`: Dedicated non-overridable BLOCK path seal enforcing Rule R11.
 8. `unverified_seal`: Dedicated fail-closed UNVERIFIED path seal enforcing Rule R2.
 9. `verified_seal`: Dedicated verified disposition seal for authorized clinical steps.
-10. `audit`: Cryptographic tamper-evident SHA-256 hash-chain calculation.
+10. `audit`: In-memory SHA-256 state hashing and sequential hash chaining for run integrity.
 11. `explain`: Final `EngineReport` compilation and `TriageResponse` synthesis.
 
 ### 3. Conditional Routing Edges
-- **Edge 1 (`route_after_retrieve`):** Evaluates `retrieval_report.abstained`.
+- **Edge 1 (`route_after_retrieve`):** Evaluates `retrieval_report.abstained` or empty chunk lists.
   - If `True` $\rightarrow$ routes to `abstain_fallback` (Rule R2 fail-closed).
   - If `False` $\rightarrow$ routes to `draft_plan`.
 - **Edge 2 (`route_after_verify`):** Evaluates `overall_verdict`.
   - `Verdict.BLOCKED` $\rightarrow$ `block_seal` (Rule R11: inviolable BLOCK interlock).
-  - `Verdict.UNVERIFIED` $\rightarrow$ `unverified_seal` (Rule R2: fail-closed boundary).
   - `Verdict.CHECKED_CLEAR` / `Verdict.CHECKED_ALERTS` $\rightarrow$ `verified_seal`.
+  - Any unresolved, missing, or UNVERIFIED state $\rightarrow$ `unverified_seal` (Rule R2 fail-closed boundary).
 - All seal paths re-converge deterministically at `audit` and `explain` before terminating at `END`.
 
 ---
@@ -119,7 +120,7 @@ Dedicated LangGraph test suite in `tests/unit/test_langgraph_orchestration.py`:
 .\.venv\Scripts\python.exe -m pytest tests/unit/test_langgraph_orchestration.py -v
 ```
 
-**Results:**
+**Results (23 Passed, 0 Failed):**
 - `test_10_1_langgraph_dependency_and_compilation`: PASSED
 - `test_10_1_graph_topology_and_nodes`: PASSED
 - `test_10_2_normalise_node`: PASSED
@@ -130,6 +131,8 @@ Dedicated LangGraph test suite in `tests/unit/test_langgraph_orchestration.py`:
 - `test_10_2_verified_seal_node`: PASSED
 - `test_10_3_route_after_retrieve`: PASSED
 - `test_10_3_route_after_verify`: PASSED
+- `test_10_3_seal_node_state_invariants`: PASSED
+- `test_10_3_early_block_pipeline_continuity`: PASSED
 - `test_10_4_e2e_clean_workflow_execution`: PASSED
 - `test_10_4_e2e_block_workflow_execution`: PASSED
 - `test_10_4_e2e_unverified_workflow_execution`: PASSED
@@ -142,7 +145,7 @@ Dedicated LangGraph test suite in `tests/unit/test_langgraph_orchestration.py`:
 - `test_10_7_concurrency_and_state_isolation`: PASSED
 - `test_10_8_determinism`: PASSED
 
-**Total: 21 passed in 2.39 seconds (Exit Code: 0).**
+**Total: 23 passed in 2.87 seconds (Exit Code: 0).**
 
 ---
 
@@ -181,10 +184,11 @@ Outputs compared and confirmed identical:
 
 ## H. Performance Comparison
 
-Execution latency measured across 100 consecutive invocations on standard workstation hardware:
-- Reference linear pipeline (`run_triage_linear`): ~4.2 ms per case.
-- LangGraph compiled pipeline (`run_triage_graph`): ~4.7 ms per case.
-- Measured LangGraph orchestration overhead: **< 0.5 ms**.
+Empirical benchmark across 200 consecutive invocations (50 per scenario, 20 warm-up runs):
+- Reference linear pipeline (`run_triage_linear`): mean = 2.18 ms | median = 2.32 ms | p95 = 3.61 ms.
+- LangGraph StateGraph pipeline (`run_triage_graph`): mean = 5.35 ms | median = 5.19 ms | p95 = 8.60 ms.
+- Measured LangGraph orchestration coordination overhead: **delta_mean = 3.17 ms | delta_p95 = 4.99 ms**.
+- Total execution latency (~5.35 ms) remains well within real-time emergency clinical limits (< 50–100 ms).
 
 ---
 

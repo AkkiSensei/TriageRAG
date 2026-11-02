@@ -234,9 +234,9 @@ def retrieve_node(state: TriageGraphState) -> dict[str, Any]:
 
 
 def route_after_retrieve(state: TriageGraphState) -> str:
-    """Conditional Edge 1: Route to plan drafting or fail-closed abstention."""
+    """Conditional Edge 1: Route to plan drafting or fail-closed abstention (Rule R2)."""
     retrieval_report = state.get("retrieval_report")
-    if retrieval_report and retrieval_report.abstained:
+    if retrieval_report is None or retrieval_report.abstained or not retrieval_report.chunks:
         return "abstain_fallback"
     return "draft_plan"
 
@@ -352,13 +352,14 @@ def verify_node(state: TriageGraphState) -> dict[str, Any]:
 
 
 def route_after_verify(state: TriageGraphState) -> str:
-    """Conditional Edge 2: Deterministic routing based on verdict lattice resolution."""
+    """Conditional Edge 2: Deterministic routing based on verdict lattice resolution (Rule R2 fail-closed)."""
     verdict = state.get("overall_verdict")
     if verdict == Verdict.BLOCKED:
         return "block_seal"
-    if verdict == Verdict.UNVERIFIED:
-        return "unverified_seal"
-    return "verified_seal"
+    if verdict in (Verdict.CHECKED_CLEAR, Verdict.CHECKED_ALERTS):
+        return "verified_seal"
+    # Rule R2 Fail-Closed: any unknown, None, or unverified disposition routes to unverified_seal
+    return "unverified_seal"
 
 
 def block_seal_node(state: TriageGraphState) -> dict[str, Any]:
@@ -379,13 +380,18 @@ def block_seal_node(state: TriageGraphState) -> dict[str, Any]:
     existing_trace = list(state.get("execution_trace", []))
     existing_trace.append(trace_entry)
 
-    return {"execution_trace": existing_trace}
+    return {
+        "overall_verdict": Verdict.BLOCKED,
+        "execution_trace": existing_trace,
+    }
 
 
 def unverified_seal_node(state: TriageGraphState) -> dict[str, Any]:
     """Graph Node 6b: Dedicated fail-closed UNVERIFIED path seal (Rule R2)."""
     start_time = time.perf_counter()
     duration_ms = round((time.perf_counter() - start_time) * 1000, 3)
+
+    reason = state.get("unverified_reason") or "Fail-closed safety boundary"
 
     trace_entry = {
         "node": "unverified_seal",
@@ -394,13 +400,17 @@ def unverified_seal_node(state: TriageGraphState) -> dict[str, Any]:
         "details": {
             "rule": "Rule R2: Fail-Closed Boundary",
             "verdict": "UNVERIFIED",
-            "reason": state.get("unverified_reason"),
+            "reason": reason,
         },
     }
     existing_trace = list(state.get("execution_trace", []))
     existing_trace.append(trace_entry)
 
-    return {"execution_trace": existing_trace}
+    return {
+        "overall_verdict": Verdict.UNVERIFIED,
+        "unverified_reason": reason,
+        "execution_trace": existing_trace,
+    }
 
 
 def verified_seal_node(state: TriageGraphState) -> dict[str, Any]:
@@ -408,12 +418,22 @@ def verified_seal_node(state: TriageGraphState) -> dict[str, Any]:
     start_time = time.perf_counter()
     duration_ms = round((time.perf_counter() - start_time) * 1000, 3)
 
+    current_verdict = state.get("overall_verdict")
+    # Rule R2 Fail-Closed: only valid authorized dispositions are permitted to remain verified
+    unverified_reason: str | None
+    if current_verdict not in (Verdict.CHECKED_CLEAR, Verdict.CHECKED_ALERTS):
+        effective_verdict = Verdict.UNVERIFIED
+        unverified_reason = "Unauthorized entry into verified seal path (fail-closed)"
+    else:
+        effective_verdict = current_verdict
+        unverified_reason = state.get("unverified_reason")
+
     trace_entry = {
         "node": "verified_seal",
         "status": "completed",
         "duration_ms": duration_ms,
         "details": {
-            "verdict": str(state.get("overall_verdict")),
+            "verdict": str(effective_verdict),
             "approved_steps_count": sum(
                 1 for s in state.get("verified_steps", []) if str(s.status) == "APPROVED"
             ),
@@ -422,7 +442,11 @@ def verified_seal_node(state: TriageGraphState) -> dict[str, Any]:
     existing_trace = list(state.get("execution_trace", []))
     existing_trace.append(trace_entry)
 
-    return {"execution_trace": existing_trace}
+    return {
+        "overall_verdict": effective_verdict,
+        "unverified_reason": unverified_reason,
+        "execution_trace": existing_trace,
+    }
 
 
 def audit_node(state: TriageGraphState) -> dict[str, Any]:

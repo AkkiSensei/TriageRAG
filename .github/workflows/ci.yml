@@ -64,6 +64,10 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{"population":"adult","suspected_syndrome":"chest_pain","vitals":{}}'
 
+      - name: Workflow graph endpoint smoke test
+        run: |
+          curl --fail http://localhost:8000/api/triage/workflow
+
       - name: Tear down container stack
         if: always()
         run: |

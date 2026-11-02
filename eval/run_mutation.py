@@ -1285,7 +1285,7 @@ def build_code_mutants() -> list[CodeMutant]:
         chunk = RetrievedChunk(
             doc_id="EMERG_SHOCK",
             section="Shock Management",
-            chunk_id="SHOCK_01_NODE_1",
+            chunk_id="SHOCK_01_ROOT",
             parent_id="SHOCK_01",
             text=node_text,
             population="adult",
@@ -1303,7 +1303,7 @@ def build_code_mutants() -> list[CodeMutant]:
                         SpanCitation(
                             doc_id="EMERG_SHOCK",
                             section="Shock Management",
-                            chunk_id="SHOCK_01_NODE_1",
+                            chunk_id="SHOCK_01_ROOT",
                             quoted_span="THEN initiate intravenous fluid volume resuscitation.",
                         )
                     ],

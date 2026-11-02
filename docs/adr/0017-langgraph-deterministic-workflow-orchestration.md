@@ -23,27 +23,28 @@ To satisfy research and production requirements, TriageRAG required:
 1. **State Isolation & Typed Graph State:**
    - Implemented `TriageGraphState(TypedDict)` in `src/triagerag/orchestration/langgraph_workflow.py`.
    - Domain models (`Patient`, `ClinicalRegistry`, `RetrievalReport`, `EngineReport`, `TriageResponse`, `ScoreResult`) are reused directly without loss of type safety.
-   - Each graph invocation executes on an isolated state instance, guaranteeing zero cross-talk across concurrent requests.
+   - Each graph invocation executes on an isolated state instance with read-only clinical registry access. Multi-thread concurrency tests across 12 alternating worker threads confirm zero cross-request data contamination.
 
-2. **11 Dedicated Processing Nodes:**
-   - `normalise`: Patient physiological validation, unit standardization, and EWS scoring.
-   - `intake_safety_checks`: Pass 1 deterministic intake, allergy, DDI, and formulary filters.
-   - `retrieve`: Protocol candidate chunk retrieval and calibrated confidence scoring.
-   - `draft_plan`: Extractive plan drafting using the configured `FakeLLM` mock provider.
-   - `abstain_fallback`: Fail-closed abstention path that sets `llm_fallback_mode=True` without calling the generator.
-   - `verify`: Pass 2 machine verification, dose limit checks, and verdict lattice evaluation.
-   - `block_seal`: Dedicated non-overridable BLOCK path seal enforcing Rule R11.
-   - `unverified_seal`: Dedicated fail-closed UNVERIFIED path seal enforcing Rule R2.
-   - `verified_seal`: Dedicated verified disposition seal for `CHECKED_CLEAR` and `CHECKED_ALERTS`.
-   - `audit`: Cryptographic tamper-evident SHA-256 hash-chain calculation.
-   - `explain`: Final `EngineReport` compilation and `TriageResponse` synthesis.
+2. **11 Application Processing Nodes (13 Total Keys):**
+   - The workflow contains 11 processing nodes plus 2 boundary pseudo-nodes (`__start__`, `__end__`):
+     1. `normalise`: Patient physiological validation, unit standardization, and EWS scoring.
+     2. `intake_safety_checks`: Pass 1 deterministic intake, allergy, DDI, and formulary filters.
+     3. `retrieve`: Protocol candidate chunk retrieval via BM25 with population filtering (ECE remains observational under HD-12).
+     4. `draft_plan`: Extractive plan drafting using the configured `FakeLLM` mock provider.
+     5. `abstain_fallback`: Fail-closed abstention path that sets `llm_fallback_mode=True` without calling the generator.
+     6. `verify`: Pass 2 machine verification, dose limit checks, and verdict lattice evaluation.
+     7. `block_seal`: Dedicated non-overridable BLOCK path seal enforcing Rule R11.
+     8. `unverified_seal`: Dedicated fail-closed UNVERIFIED path seal enforcing Rule R2.
+     9. `verified_seal`: Dedicated verified disposition seal for `CHECKED_CLEAR` and `CHECKED_ALERTS`.
+     10. `audit`: In-memory SHA-256 state hashing and sequential hash chaining for run integrity.
+     11. `explain`: Final `EngineReport` compilation and `TriageResponse` synthesis.
 
 3. **Explicit Conditional Routing:**
-   - **Conditional Edge 1 (`route_after_retrieve`):** Evaluates `retrieval_report.abstained`. If `True`, routes to `abstain_fallback`; if `False`, proceeds to `draft_plan`.
+   - **Conditional Edge 1 (`route_after_retrieve`):** Evaluates `retrieval_report.abstained` or empty chunks. If true, routes to `abstain_fallback`; if candidate chunks exist, proceeds to `draft_plan`.
    - **Conditional Edge 2 (`route_after_verify`):** Inspects `overall_verdict`.
      - `BLOCKED` $\rightarrow$ `block_seal` (inviolable BLOCK interlock; overrides strictly rejected).
-     - `UNVERIFIED` $\rightarrow$ `unverified_seal` (fail-closed boundary for incomplete data).
      - `CHECKED_CLEAR` / `CHECKED_ALERTS` $\rightarrow$ `verified_seal`.
+     - Any missing or unverified state $\rightarrow$ `unverified_seal` (Rule R2 fail-closed boundary).
    - All seal paths re-converge deterministically at `audit` and `explain` before reaching `END`.
 
 4. **Production Routing in FastAPI and Orchestrator:**
@@ -60,5 +61,5 @@ To satisfy research and production requirements, TriageRAG required:
 
 - **Full Execution Observability:** Every graph run records non-sensitive execution metrics (node sequence, completion status, duration in milliseconds, routing branches chosen) with zero patient PII.
 - **Strict Equivalence:** 100% mathematical and clinical verdict identity is maintained across all synthetic test scenarios (`CLEAN`, `BLOCK`, `UNVERIFIED`, `HIGH`).
-- **Zero Performance Penalty:** The compiled LangGraph graph introduces sub-millisecond overhead (~0.5 ms per execution), running well within real-time triage thresholds.
+- **Empirical Execution Overhead:** Measured across 200 benchmark iterations: linear baseline mean = 2.18 ms (p95 = 3.61 ms); LangGraph compiled pipeline mean = 5.35 ms (p95 = 8.60 ms); framework state-dict coordination overhead = ~3.17 ms mean (comfortably within clinical emergency limits).
 - **Deterministic Offline Guarantees:** No external network requests, API keys, or cloud dependencies are introduced.

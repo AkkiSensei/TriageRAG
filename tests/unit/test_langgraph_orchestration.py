@@ -243,7 +243,8 @@ def test_10_2_unverified_seal_node() -> None:
 
 
 def test_10_2_verified_seal_node() -> None:
-    """Test verified_seal_node records verified disposition."""
+    """Test verified_seal_node records verified disposition and enforces fail-closed clamp."""
+    # 1. Authorized disposition remains verified
     state: TriageGraphState = {
         "overall_verdict": Verdict.CHECKED_CLEAR,
         "verified_steps": [],
@@ -254,6 +255,16 @@ def test_10_2_verified_seal_node() -> None:
     assert len(trace) == 1
     assert trace[0]["node"] == "verified_seal"
     assert trace[0]["details"]["verdict"] == "CHECKED_CLEAR"
+    assert update["overall_verdict"] == Verdict.CHECKED_CLEAR
+
+    # 2. Rule R2 Fail-Closed: Unauthorized entry clamps to UNVERIFIED
+    tampered_state: TriageGraphState = {
+        "overall_verdict": None,  # type: ignore[typeddict-item]
+        "execution_trace": [],
+    }
+    tampered_update = verified_seal_node(tampered_state)
+    assert tampered_update["overall_verdict"] == Verdict.UNVERIFIED
+    assert "fail-closed" in str(tampered_update["unverified_reason"]).lower()
 
 
 # =============================================================================
@@ -263,11 +274,27 @@ def test_10_2_verified_seal_node() -> None:
 
 def test_10_3_route_after_retrieve() -> None:
     """Test conditional route 1: routes to draft_plan vs abstain_fallback."""
-    # When retrieval succeeds (abstained=False)
-    normal_report = RetrievalReport(chunks=[], abstained=False, backend="bm25")
+    from triagerag.contracts.schemas import RetrievedChunk
+
+    sample_chunk = RetrievedChunk(
+        doc_id="EMERG_ANA",
+        section="Anaphylaxis",
+        chunk_id="ANA_01",
+        parent_id="ANA",
+        text="Sample protocol text",
+        population="adult",
+        syndrome="anaphylaxis",
+    )
+
+    # 1. When retrieval succeeds with candidate chunks
+    normal_report = RetrievalReport(chunks=[sample_chunk], abstained=False, backend="bm25")
     assert route_after_retrieve({"retrieval_report": normal_report}) == "draft_plan"
 
-    # When retrieval abstains (abstained=True)
+    # 2. When retrieval returns empty chunks (Rule R2 fail-closed)
+    empty_report = RetrievalReport(chunks=[], abstained=False, backend="bm25")
+    assert route_after_retrieve({"retrieval_report": empty_report}) == "abstain_fallback"
+
+    # 3. When retrieval explicitly abstains (abstained=True)
     abstained_report = RetrievalReport(
         chunks=[],
         abstained=True,
@@ -277,6 +304,9 @@ def test_10_3_route_after_retrieve() -> None:
     )
     assert route_after_retrieve({"retrieval_report": abstained_report}) == "abstain_fallback"
 
+    # 4. When retrieval report is missing entirely (None)
+    assert route_after_retrieve({"retrieval_report": None}) == "abstain_fallback"  # type: ignore[typeddict-item]
+
 
 def test_10_3_route_after_verify() -> None:
     """Test conditional route 2: routes to block_seal, unverified_seal, or verified_seal."""
@@ -284,6 +314,64 @@ def test_10_3_route_after_verify() -> None:
     assert route_after_verify({"overall_verdict": Verdict.UNVERIFIED}) == "unverified_seal"
     assert route_after_verify({"overall_verdict": Verdict.CHECKED_CLEAR}) == "verified_seal"
     assert route_after_verify({"overall_verdict": Verdict.CHECKED_ALERTS}) == "verified_seal"
+
+    # Rule R2 Fail-Closed: None or unverified state must route to unverified_seal, never verified
+    assert route_after_verify({"overall_verdict": None}) == "unverified_seal"  # type: ignore[typeddict-item]
+    assert route_after_verify({}) == "unverified_seal"
+
+
+def test_10_3_seal_node_state_invariants() -> None:
+    """Verify seal nodes enforce their respective state invariants and cannot be overwritten."""
+    # 1. Block seal guarantees Verdict.BLOCKED
+    block_update = block_seal_node({"overall_verdict": Verdict.BLOCKED, "execution_trace": []})
+    assert block_update["overall_verdict"] == Verdict.BLOCKED
+
+    # 2. Unverified seal guarantees Verdict.UNVERIFIED
+    unverified_update = unverified_seal_node(
+        {
+            "overall_verdict": Verdict.UNVERIFIED,
+            "unverified_reason": "Missing data",
+            "execution_trace": [],
+        }
+    )
+    assert unverified_update["overall_verdict"] == Verdict.UNVERIFIED
+    assert unverified_update["unverified_reason"] == "Missing data"
+
+
+def test_10_3_early_block_pipeline_continuity(
+    block_scenario: tuple[Patient, list[Any]],
+    registry: ClinicalRegistry,
+    retriever: Retriever,
+    fake_llm: FakeLLM,
+) -> None:
+    """Verify first-pass BLOCK continues to retrieval/draft to generate BLOCKED_STRUCK_THROUGH steps.
+
+    Clinical Architecture Rationale:
+    When an intake BLOCK fires (e.g. Sildenafil taken within 12h), the pipeline intentionally
+    proceeds through retrieval and plan drafting so the bedside clinician receives the full
+    protocol guidance with the contraindicated medication visibly struck through
+    (StepStatus.BLOCKED_STRUCK_THROUGH) and permitted alternative steps intact, terminating
+    at block_seal with Verdict.BLOCKED.
+    """
+    patient, overrides = block_scenario
+    fixed_clock = FixedClock(patient.assessed_at)
+
+    resp, trace = run_triage_graph(
+        patient=patient,
+        registry=registry,
+        llm=fake_llm,
+        index=retriever,
+        overrides=overrides,
+        clock=fixed_clock,
+    )
+
+    assert resp.engine.verdict == Verdict.BLOCKED
+    node_names = [t["node"] for t in trace]
+    assert "intake_safety_checks" in node_names
+    assert "retrieve" in node_names
+    assert "draft_plan" in node_names
+    assert "verify" in node_names
+    assert "block_seal" in node_names
 
 
 # =============================================================================
