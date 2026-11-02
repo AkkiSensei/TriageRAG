@@ -4,7 +4,13 @@
 
 ## Current State
 
-- **Current Status:** **LangGraph Deterministic Workflow Orchestration (ADR 0017)** implemented and verified on `main`. LangGraph (`langgraph>=0.2.0`) is the production workflow orchestration framework powering the primary request path (`/api/triage`, `orchestrator.py`), maintaining 100% equivalence with the established clinical ruleset, zero external neural calls, and sub-millisecond overhead.
+- **Current Status:** **Comprehensive Backend Engineering Audit & Hardening Complete**. LangGraph (`langgraph>=0.2.0`) is the production workflow orchestration framework powering the primary request path (`/api/triage`, `orchestrator.py`), maintaining 100% equivalence with the established clinical ruleset, zero external neural calls, sub-millisecond overhead, and full fail-closed out-of-domain abstention gating.
+- **Target Milestones Completed:**
+  - **Backend Engineering Audit & Hardening:**
+    - Conducted comprehensive forensic audit of all 9 backend layers (`contracts`, `normalize`, `engine`, `rag`, `llm`, `verify`, `orchestration`, `audit`, `api`).
+    - Remediated Ask-the-Corpus stop-word & out-of-domain vulnerability (`BE-AUDIT-01`), guaranteeing fail-closed abstention when questions have zero clinical content overlap.
+    - Preserved patient vitals and weight in `TriageResponse` schema, fixing frontend Care Steps display data loss (`PROP-01`).
+    - Authored comprehensive architectural documentation: `docs/architecture/BACKEND_DIRECTORY_MAP.md`, `docs/architecture/BACKEND_ENGINEERING_GUIDE.md`, and `docs/final_audit/BACKEND_ENGINEERING_AUDIT.md`.
 - **Target Milestones Completed:**
   - **LangGraph Integration (ADR 0017):** Built `src/triagerag/orchestration/langgraph_workflow.py` with strongly-typed `TriageGraphState` (TypedDict) and 11 distinct processing nodes.
   - **Explicit Conditional Routing:** Built `route_after_retrieve` (fail-closed protocol abstention under Rule R2) and `route_after_verify` (Rule R11 non-overridable BLOCK seal, Rule R2 UNVERIFIED seal, and verified authorization seal).

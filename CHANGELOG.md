@@ -5,6 +5,22 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - Backend Engineering Audit, Hardening & Out-of-Domain Gating
+
+### Added & Hardened
+- **Fail-Closed Out-of-Domain Gating (BE-AUDIT-01 / Rule R2):**
+  - Hardened `src/triagerag/rag/ask_corpus.py` with `_STOP_WORDS` filtering to prevent high-frequency English words (`how`, `do`, `i`, `a`) from triggering false-positive BM25 matches.
+  - Replaced fallback to arbitrary protocol sentences with strict fail-closed abstention when queries have zero clinical content overlap.
+  - Added unit regression test for out-of-domain and stop-word queries in `tests/unit/test_aub_phase7_why_and_ask_corpus.py`.
+- **Complete Backend Architectural & Educational Documentation:**
+  - Authored `docs/architecture/BACKEND_DIRECTORY_MAP.md`: exhaustive directory map detailing responsibilities, contracts, and test locations for every backend module.
+  - Authored `docs/architecture/BACKEND_ENGINEERING_GUIDE.md`: comprehensive technical guide explaining the 5 foundations, request lifecycle, LangGraph StateGraph design, and presentation talking points.
+  - Authored `docs/final_audit/BACKEND_ENGINEERING_AUDIT.md`: forensic audit report documenting layer purity, test evidence matrix, and research prototype limitations.
+- **Patient Data Propagation & Care Steps UI Hardening:**
+  - Preserved patient vitals and weight in `TriageResponse` schema (`patient: Patient | None`).
+  - Corrected intake form sanitizers in `PatientIntakeForm.tsx` ensuring measured vitals propagate accurately through LangGraph into the Care Steps display.
+  - Added full regression suite `tests/unit/test_patient_data_propagation.py` (6 tests) and frontend test suite `web/src/features/intake/PatientIntakeForm.test.tsx` (3 tests).
+
 ## [Unreleased] - LangGraph Deterministic Workflow Orchestration (ADR 0017)
 
 ### Added & Orchestrated

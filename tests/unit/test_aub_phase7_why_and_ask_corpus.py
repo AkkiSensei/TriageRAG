@@ -89,6 +89,20 @@ def test_ask_the_corpus_abstains_on_empty_or_gibberish_question() -> None:
     res_gibberish = ask_the_corpus(question="xyzabc qqqqqq zzzz")
     assert res_gibberish.abstained
 
+    # 3. Stop-words only question
+    res_stopwords = ask_the_corpus(question="what is it and who can?")
+    assert res_stopwords.abstained
+    assert (
+        res_stopwords.abstain_reason is not None
+        and "no searchable clinical terms" in res_stopwords.abstain_reason.lower()
+    )
+
+    # 4. Out-of-domain non-clinical question
+    res_ood = ask_the_corpus(question="How do I fix a broken car engine?")
+    assert res_ood.abstained
+    assert res_ood.answer == ""
+    assert res_ood.abstain_reason is not None and "relevance" in res_ood.abstain_reason.lower()
+
 
 def test_ask_the_corpus_endpoint() -> None:
     """T7.4: POST /api/corpus/ask returns structured response over HTTP."""
