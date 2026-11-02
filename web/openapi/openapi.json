@@ -1442,6 +1442,18 @@
             "type": "string",
             "title": "Completeness Pct"
           },
+          "measured_vitals_count": {
+            "type": "integer",
+            "title": "Measured Vitals Count",
+            "description": "Count of distinct physiological vital signs clinically measured (HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight).",
+            "default": 0
+          },
+          "provided_intake_count": {
+            "type": "integer",
+            "title": "Provided Intake Count",
+            "description": "Count of documented administrative/demographic intake parameters (Age, Sex, Allergies, Meds).",
+            "default": 0
+          },
           "audit_scope": {
             "type": "string",
             "title": "Audit Scope",

@@ -590,6 +590,14 @@ class DataQualityReport(BaseModel):
     assumed_count: int
     missing_count: int
     completeness_pct: Decimal
+    measured_vitals_count: int = Field(
+        default=0,
+        description="Count of distinct physiological vital signs clinically measured (HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight).",
+    )
+    provided_intake_count: int = Field(
+        default=0,
+        description="Count of documented administrative/demographic intake parameters (Age, Sex, Allergies, Meds).",
+    )
     audit_scope: str = Field(
         default="12 standard triage parameters: HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight, Allergies, Meds, Age, Sex",
         description="Explicit scope of clinical parameters counted in the data quality audit.",

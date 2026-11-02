@@ -492,4 +492,89 @@ describe('ExplanationSection Component Tests', () => {
     expect(screen.getByText(/PARTIAL INTAKE/i)).toBeInTheDocument()
     expect(screen.getAllByText(/FAIL-CLOSED/i).length).toBeGreaterThanOrEqual(2)
   })
+
+  it('labels stage 1 as INTAKE WITH ASSUMED DEFAULTS when demo defaults exist, avoiding false FULLY VALIDATED claims', () => {
+    const mock = createMockTriage({
+      engine: {
+        verdict: 'CHECKED_CLEAR',
+        checks_run: 15,
+        checks_skipped: [],
+        unresolved_entities: [],
+        ruleset_coverage: [],
+        coverage_gaps: [],
+        baseline_alerts: [],
+        plan_alerts: [],
+      },
+      action_plan: {
+        confidence: {
+          level: 'MEDIUM',
+          score: '0.65',
+          headline: 'Defaults Used',
+          rule_evidence: 'CLEAR_WITH_ASSUMED_DEFAULTS',
+          case_completeness: 'ASSUMED (3 demo defaults)',
+          reasons: [],
+          data_quality: {
+            measured_count: 9,
+            assumed_count: 3,
+            missing_count: 0,
+            completeness_pct: '75.0',
+            measured_vitals_count: 5,
+            provided_intake_count: 4,
+            measured_fields: ['Age: 45 yr', 'Sex: female'],
+            assumed_fields: ['Heart rate: 75 bpm (assumed demo default)'],
+            missing_fields: [],
+          },
+        },
+      } as unknown as NonNullable<TriageResponse['action_plan']>,
+    })
+    render(<ExplanationSection triage={mock} />)
+    fireEvent.click(screen.getByRole('button', { name: /Execution Pipeline Timeline/i }))
+
+    expect(screen.getByText(/INTAKE WITH ASSUMED DEFAULTS/i)).toBeInTheDocument()
+    expect(screen.queryByText(/FULLY VALIDATED/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/3 demo default\(s\) assumed; bedside verification required/i)).toBeInTheDocument()
+    expect(screen.getByText(/Vitals: 5\/8 Measured • Intake: 4\/4 Documented • 3 Assumed • 0 Missing/i)).toBeInTheDocument()
+  })
+
+  it('labels stage 1 as FULLY VALIDATED (ALL MEASURED) when complete without assumed defaults', () => {
+    const mock = createMockTriage({
+      engine: {
+        verdict: 'CHECKED_CLEAR',
+        checks_run: 15,
+        checks_skipped: [],
+        unresolved_entities: [],
+        ruleset_coverage: [],
+        coverage_gaps: [],
+        baseline_alerts: [],
+        plan_alerts: [],
+      },
+      action_plan: {
+        confidence: {
+          level: 'HIGH',
+          score: '0.95',
+          headline: 'High Confidence',
+          rule_evidence: 'CLEAR_ON_COMPLETE_DATA',
+          case_completeness: 'COMPLETE (12/12 measured)',
+          reasons: [],
+          data_quality: {
+            measured_count: 12,
+            assumed_count: 0,
+            missing_count: 0,
+            completeness_pct: '100.0',
+            measured_vitals_count: 8,
+            provided_intake_count: 4,
+            measured_fields: [],
+            assumed_fields: [],
+            missing_fields: [],
+          },
+        },
+      } as unknown as NonNullable<TriageResponse['action_plan']>,
+    })
+    render(<ExplanationSection triage={mock} />)
+    fireEvent.click(screen.getByRole('button', { name: /Execution Pipeline Timeline/i }))
+
+    expect(screen.getByText(/FULLY VALIDATED \(ALL MEASURED\)/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Vitals: 8\/8 measured/i).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText(/0 Assumed • 0 Missing/i).length).toBeGreaterThanOrEqual(1)
+  })
 })

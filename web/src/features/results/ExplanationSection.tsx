@@ -87,12 +87,22 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
   const timelineStages = [
     {
       name: '1. Patient Input Validation',
-      status: dataQuality
-        ? (dataQuality.missing_count > 0 ? 'PARTIAL INTAKE' : 'VALIDATED')
-        : 'SCHEMA CHECKED',
-      note: dataQuality
-        ? `${dataQuality.measured_count}/12 measured (${dataQuality.missing_count} unmeasured)`
-        : 'Pydantic type-contract validation',
+      status: (() => {
+        if (!dataQuality) return 'SCHEMA CHECKED'
+        if (dataQuality.missing_count > 0) return 'PARTIAL INTAKE'
+        if (dataQuality.assumed_count > 0) return 'INTAKE WITH ASSUMED DEFAULTS'
+        if ((dataQuality.measured_vitals_count ?? 8) < 8) return 'DOCUMENTED (PARTIAL VITALS)'
+        return 'FULLY VALIDATED (ALL MEASURED)'
+      })(),
+      note: (() => {
+        if (!dataQuality) return 'Pydantic type-contract validation'
+        if (dataQuality.assumed_count > 0) {
+          return `${dataQuality.assumed_count} demo default(s) assumed; bedside verification required`
+        }
+        const vitals = dataQuality.measured_vitals_count ?? dataQuality.measured_count
+        const intake = dataQuality.provided_intake_count ?? 4
+        return `Vitals: ${vitals}/8 measured • Intake: ${intake}/4 documented`
+      })(),
     },
     {
       name: '2. Clinical Data Normalization',
@@ -221,7 +231,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
                 )}
                 {dataQuality && (
                   <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-white/80 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                    Intake Completeness: {dataQuality.measured_count}/12 Measured &bull; {dataQuality.assumed_count} Assumed &bull; {dataQuality.missing_count} Missing ({Number(dataQuality.completeness_pct).toFixed(0)}%)
+                    Vitals: {dataQuality.measured_vitals_count ?? dataQuality.measured_count}/8 Measured &bull; Intake: {dataQuality.provided_intake_count ?? 4}/4 Documented &bull; {dataQuality.assumed_count} Assumed &bull; {dataQuality.missing_count} Missing
                   </span>
                 )}
               </div>
@@ -369,7 +379,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
                 <div className="flex items-center gap-2">
                   <ListChecks className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                   <span className="text-xs font-bold uppercase tracking-wider font-mono text-slate-900 dark:text-white">
-                    Data Quality Audit &bull; {dataQuality.measured_count}/12 Measured &bull; {dataQuality.assumed_count} Assumed &bull; {dataQuality.missing_count} Missing ({Number(dataQuality.completeness_pct).toFixed(0)}% Complete)
+                    Data Quality Audit &bull; {dataQuality.measured_vitals_count ?? dataQuality.measured_count}/8 Vitals &bull; {dataQuality.provided_intake_count ?? 4}/4 Intake &bull; {dataQuality.assumed_count} Assumed &bull; {dataQuality.missing_count} Missing ({Number(dataQuality.completeness_pct).toFixed(0)}% Complete)
                   </span>
                 </div>
                 <button
@@ -384,7 +394,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
               {showDataQualityAudit && (
                 <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 text-xs">
                   <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mb-2">
-                    Scope: 12 standard triage parameters (HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight, Allergies, Meds, Age, Sex). Assumed demo defaults do not count toward measured completeness.
+                    Scope: 12 standard triage parameters (8 vitals: HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight; 4 intake items: Allergies, Meds, Age, Sex). Assumed demo defaults do not count toward measured completeness.
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div className="rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 p-2.5">

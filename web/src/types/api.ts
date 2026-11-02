@@ -510,6 +510,18 @@ export interface components {
       /** Completeness Pct */
       completeness_pct: string;
       /**
+       * Measured Vitals Count
+       * @description Count of distinct physiological vital signs clinically measured (HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight).
+       * @default 0
+       */
+      measured_vitals_count?: number;
+      /**
+       * Provided Intake Count
+       * @description Count of documented administrative/demographic intake parameters (Age, Sex, Allergies, Meds).
+       * @default 0
+       */
+      provided_intake_count?: number;
+      /**
        * Audit Scope
        * @description Explicit scope of clinical parameters counted in the data quality audit.
        * @default 12 standard triage parameters: HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight, Allergies, Meds, Age, Sex

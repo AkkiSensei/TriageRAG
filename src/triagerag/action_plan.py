@@ -65,11 +65,12 @@ def evaluate_data_quality(
             missing_fields=["Patient record missing"],
         )
 
-    measured: list[str] = []
+    measured_vitals: list[str] = []
+    provided_intake: list[str] = []
     assumed: list[str] = []
     missing: list[str] = []
 
-    # 1. Vitals audit
+    # 1. Physiological vitals audit (6 standard vital signs)
     vital_items = [
         ("heart_rate_bpm", "Heart rate"),
         ("systolic_bp_mmhg", "Systolic BP"),
@@ -84,29 +85,29 @@ def evaluate_data_quality(
         if v is None:
             missing.append(label)
         elif getattr(v, "source", "") == "measured" and v.value is not None:
-            measured.append(f"{label}: {v.value}")
+            measured_vitals.append(f"{label}: {v.value}")
         elif getattr(v, "source", "") == "estimated" and v.value is not None:
             assumed.append(f"{label}: {v.value} (assumed demo default)")
         else:
             missing.append(label)
 
-    # 2. Consciousness / neurological status
+    # 2. Consciousness / neurological status (vital 7)
     c = getattr(vitals, "consciousness", None)
     gcs = getattr(vitals, "gcs_total", None)
     if c is not None and getattr(c, "source", "") == "measured" and c.value is not None:
         val = getattr(c.value, "value", str(c.value))
-        measured.append(f"Consciousness: {val}")
+        measured_vitals.append(f"Consciousness: {val}")
     elif gcs is not None and getattr(gcs, "source", "") == "measured" and gcs.value is not None:
-        measured.append(f"GCS: {gcs.value}")
+        measured_vitals.append(f"GCS: {gcs.value}")
     else:
         missing.append("Consciousness/GCS")
 
-    # 3. Patient weight
+    # 3. Patient weight (vital 8)
     if (
         getattr(patient.weight_kg, "source", "") == "measured"
         and patient.weight_kg.value is not None
     ):
-        measured.append(f"Weight: {patient.weight_kg.value} kg")
+        measured_vitals.append(f"Weight: {patient.weight_kg.value} kg")
     elif (
         getattr(patient.weight_kg, "source", "") == "estimated"
         and patient.weight_kg.value is not None
@@ -115,32 +116,32 @@ def evaluate_data_quality(
     else:
         missing.append("Weight")
 
-    # 4. Allergy history
+    # 4. Allergy history (intake 1)
     if patient.allergy_history_status in ("confirmed_none", "confirmed_nkda", "confirmed_list"):
         st_label = (
             "NKDA"
             if patient.allergy_history_status == "confirmed_nkda"
             else f"{len(patient.allergies)} documented"
         )
-        measured.append(f"Allergy history ({st_label})")
+        provided_intake.append(f"Allergy history ({st_label})")
     else:
         missing.append(f"Allergy history ({patient.allergy_history_status})")
 
-    # 5. Medication history
+    # 5. Medication history (intake 2)
     if patient.medication_history_status in ("confirmed_none", "confirmed_nkda", "confirmed_list"):
         st_label = (
             "None"
             if patient.medication_history_status == "confirmed_none"
             else f"{len(patient.medications)} active"
         )
-        measured.append(f"Medication history ({st_label})")
+        provided_intake.append(f"Medication history ({st_label})")
     else:
         missing.append(f"Medication history ({patient.medication_history_status})")
 
-    # 6. Demographics
+    # 6. Demographics (intake 3 & 4)
     age_unit = getattr(patient.age.unit, "value", str(patient.age.unit))
-    measured.append(f"Age: {patient.age.value} {age_unit}")
-    measured.append(f"Sex: {patient.sex}")
+    provided_intake.append(f"Age: {patient.age.value} {age_unit}")
+    provided_intake.append(f"Sex: {patient.sex}")
 
     # 7. Explicit assumption tags (demo defaults applied)
     if assumption_tags:
@@ -153,11 +154,14 @@ def evaluate_data_quality(
                     if prefix in m.lower():
                         missing.remove(m)
 
+    measured = measured_vitals + provided_intake
     total = len(measured) + len(assumed) + len(missing)
     pct = Decimal(str(round((len(measured) / total) * 100, 1))) if total > 0 else Decimal("0.0")
     desc = (
-        f"{len(measured)} of {total} standard triage parameters measured ({pct}%). "
-        f"{len(assumed)} assumed demo default(s) do not count toward measured completeness."
+        f"Vitals measured: {len(measured_vitals)}/8. "
+        f"Intake documented: {len(provided_intake)}/4. "
+        f"Assumed demo defaults: {len(assumed)}. "
+        f"Missing: {len(missing)} ({pct}% measured completeness)."
     )
 
     return DataQualityReport(
@@ -166,6 +170,8 @@ def evaluate_data_quality(
         assumed_count=len(assumed),
         missing_count=len(missing),
         completeness_pct=pct,
+        measured_vitals_count=len(measured_vitals),
+        provided_intake_count=len(provided_intake),
         completeness_description=desc,
         measured_fields=measured,
         assumed_fields=assumed,
@@ -313,11 +319,23 @@ def _build_immediate_actions(
     report: EngineReport,
     verdict: Verdict,
     response: TriageResponse | None = None,
+    quality: DataQualityReport | None = None,
 ) -> list[ActionStep]:
     actions: list[ActionStep] = []
 
     # First, capture any machine-verified withhold instructions from verified protocol steps
     if response and response.verified_steps:
+        patient = response.input_patient or response.patient
+        sbp_val: int | None = None
+        if (
+            patient
+            and patient.vitals
+            and patient.vitals.systolic_bp_mmhg
+            and patient.vitals.systolic_bp_mmhg.source == "measured"
+            and patient.vitals.systolic_bp_mmhg.value is not None
+        ):
+            sbp_val = int(patient.vitals.systolic_bp_mmhg.value)
+
         for vs in response.verified_steps:
             if (
                 vs.status == StepStatus.APPROVED
@@ -325,17 +343,63 @@ def _build_immediate_actions(
                 and vs.citation_verified
             ):
                 drug_label = vs.draft.drug_id or "Medication"
-                reason_desc = (
-                    vs.support_reason
-                    or f"Machine-verified protocol directive to withhold {drug_label}."
-                )
+                narrative = vs.draft.narrative_instruction or ""
+
+                # Detect condition clauses in narrative (e.g., "if ...", "when ...", "unless ...")
+                condition_match = None
+                narrative_lower = narrative.lower()
+                for cue in ("if ", "when ", "unless ", "where ", "in case of "):
+                    cue_idx = narrative_lower.find(cue)
+                    if cue_idx != -1:
+                        condition_match = narrative[cue_idx:].strip()
+                        break
+
+                if condition_match:
+                    is_met = False
+                    is_unmet = False
+                    # Test common systolic BP threshold (e.g. SBP < 90)
+                    if (
+                        ("systolic" in condition_match.lower() or "sbp" in condition_match.lower())
+                        and "90" in condition_match
+                        and sbp_val is not None
+                    ):
+                        if sbp_val < 90:
+                            is_met = True
+                        else:
+                            is_unmet = True
+
+                    if is_met:
+                        title = f"WITHHOLD (CONDITION MET) -- {drug_label} ({condition_match})"
+                        description = f"Active withhold condition met: SBP {sbp_val} mmHg < 90 mmHg. Directive: {narrative}."
+                        reason = f"Verified protocol withholding instruction actively triggered by patient physiological state ({condition_match})."
+                        urgency = "immediate"
+                    elif is_unmet:
+                        title = (
+                            f"CONDITIONAL WITHHOLD -- {drug_label} (Precaution: {condition_match})"
+                        )
+                        description = f"Conditional protocol directive: {narrative}. Current measured SBP ({sbp_val} mmHg) does not meet withhold threshold; withhold ONLY IF condition is met."
+                        reason = f"Conditional safety threshold ({condition_match}) monitored; threshold currently NOT met."
+                        urgency = "routine"
+                    else:
+                        title = f"CONDITIONAL WITHHOLD -- {drug_label} ({condition_match})"
+                        description = f"Conditional protocol directive: {narrative}. Bedside vital signs assessment required to verify whether condition is met before administration."
+                        reason = f"Conditional protocol safety precaution ({condition_match}); threshold parameter unconfirmed."
+                        urgency = "urgent"
+                else:
+                    title = f"WITHHOLD -- {drug_label}"
+                    description = (
+                        f"Verified protocol instruction: WITHHOLD {drug_label}. {narrative}".strip()
+                    )
+                    reason = "Unconditional evidence-verified protocol withholding directive (non-administration action)."
+                    urgency = "immediate"
+
                 actions.append(
                     ActionStep(
-                        title=f"WITHHOLD -- {drug_label}",
-                        description=f"Verified protocol instruction: WITHHOLD {drug_label}. {reason_desc}",
-                        reason="Evidence-verified protocol withholding directive (non-administration action).",
+                        title=title,
+                        description=description,
+                        reason=reason,
                         rule_id=None,
-                        urgency="immediate",
+                        urgency=urgency,
                     )
                 )
 
@@ -385,12 +449,38 @@ def _build_immediate_actions(
                         urgency="urgent",
                     )
                 )
+        elif quality and quality.missing_count > 0:
+            actions.append(
+                ActionStep(
+                    title="Caution -- Intake Incomplete: Clinical Clearance Unconfirmed",
+                    description=(
+                        f"Active safety rules evaluated clear on available inputs, but {quality.missing_count} triage parameter(s) "
+                        "are missing or unmeasured. Treatment cannot safely proceed until essential vital signs are obtained."
+                    ),
+                    reason="Fail-closed clinical policy (Rule R2): clearance cannot be assumed on unmeasured clinical presentations.",
+                    rule_id=None,
+                    urgency="urgent",
+                )
+            )
+        elif quality and quality.assumed_count > 0:
+            actions.append(
+                ActionStep(
+                    title="Proceed with caution -- Demo Defaults Assumed",
+                    description=(
+                        f"Safety rules evaluated clear, but {quality.assumed_count} parameter(s) relied on assumed demo defaults. "
+                        "Measure patient vital signs clinically before administering therapy."
+                    ),
+                    reason="Demo defaults require bedside vital signs verification before proceeding.",
+                    rule_id=None,
+                    urgency="urgent",
+                )
+            )
         else:
             actions.append(
                 ActionStep(
                     title="Proceed with protocol",
-                    description="No blocking safety alerts detected. Follow the matched protocol steps below.",
-                    reason="All intake safety checks passed clear.",
+                    description="All intake safety checks passed clear on complete measured clinical data. Follow the matched protocol steps below.",
+                    reason="All intake safety checks passed clear across 100% measured clinical parameters.",
                     urgency="routine",
                 )
             )
@@ -425,34 +515,50 @@ def _build_medications(response: TriageResponse) -> list[MedicationInstruction]:
         if draft.action_type not in (ActionType.administer, "administer"):
             continue
 
-        dose_str = "Not specified"
-        route_str = "Not specified"
-        dose_source = "Standard protocol dosage"
-        if draft.requested_dose:
-            dose_str = f"{draft.requested_dose.amount} {draft.requested_dose.unit.value}"
-            if (
-                response.patient
-                and getattr(response.patient.weight_kg, "source", "") == "measured"
-                and response.patient.weight_kg.value is not None
-            ):
-                dose_source = (
-                    f"Protocol dose ({dose_str}) verified against measured weight "
-                    f"({response.patient.weight_kg.value} kg)"
-                )
-            elif (
-                response.patient
-                and getattr(response.patient.weight_kg, "source", "") == "estimated"
-                and response.patient.weight_kg.value is not None
-            ):
-                dose_source = (
-                    f"Protocol dose ({dose_str}) checked against estimated weight "
-                    f"({response.patient.weight_kg.value} kg, demo default)"
-                )
-            else:
-                dose_source = f"Standard fixed protocol dose ({dose_str}); weight not documented"
+        # CRITICAL SAFETY GATE: Complete medication order required (drug_id, requested_dose, route)
+        if not draft.is_complete_medication_order:
+            continue
 
-        if draft.route:
-            route_str = draft.route.value
+        # CRITICAL SAFETY GATE: Dose limits and tripwire verification
+        if response.engine and response.engine.dose_reports:
+            step_dose_reports = [
+                dr
+                for dr in response.engine.dose_reports
+                if dr.drug_id.lower() == (draft.drug_id or "").lower()
+                and (dr.step_number is None or dr.step_number == draft.step_number)
+            ]
+            if any(
+                dr.status in ("EXCEEDS_CEILING", "BELOW_MINIMUM", "MAGNITUDE_WARNING")
+                or dr.magnitude_tripwire_triggered
+                for dr in step_dose_reports
+            ):
+                continue
+
+        assert draft.requested_dose is not None
+        assert draft.route is not None
+        dose_str = f"{draft.requested_dose.amount} {draft.requested_dose.unit.value}"
+        route_str = draft.route.value
+        dose_source = "Standard protocol dosage"
+        if (
+            response.patient
+            and getattr(response.patient.weight_kg, "source", "") == "measured"
+            and response.patient.weight_kg.value is not None
+        ):
+            dose_source = (
+                f"Protocol dose ({dose_str}) verified against measured weight "
+                f"({response.patient.weight_kg.value} kg)"
+            )
+        elif (
+            response.patient
+            and getattr(response.patient.weight_kg, "source", "") == "estimated"
+            and response.patient.weight_kg.value is not None
+        ):
+            dose_source = (
+                f"Protocol dose ({dose_str}) checked against estimated weight "
+                f"({response.patient.weight_kg.value} kg, demo default)"
+            )
+        else:
+            dose_source = f"Standard fixed protocol dose ({dose_str}); weight not documented"
 
         timing_str = "Immediate"
         if draft.relative_time_minutes is not None and draft.relative_time_minutes > 0:
@@ -580,6 +686,42 @@ def _build_unapproved_draft_steps(response: TriageResponse) -> list[str]:
         elif not vs.citation_verified:
             unapproved.append(
                 f"{step_desc} [CITATION_UNVERIFIED]: Evidence citation unverified against protocol corpus -- Administration prohibited."
+            )
+        elif (
+            draft.action_type in (ActionType.administer, "administer")
+            and not draft.is_complete_medication_order
+        ):
+            missing_parts = []
+            if not draft.requested_dose:
+                missing_parts.append("dose")
+            if not draft.route:
+                missing_parts.append("route")
+            missing_desc = (
+                f"Missing {', '.join(missing_parts)}" if missing_parts else "Incomplete order"
+            )
+            unapproved.append(
+                f"{step_desc} [INCOMPLETE_ORDER]: {missing_desc} -- Incomplete medication order; administration prohibited."
+            )
+        elif any(
+            dr.status in ("EXCEEDS_CEILING", "BELOW_MINIMUM", "MAGNITUDE_WARNING")
+            or dr.magnitude_tripwire_triggered
+            for dr in (response.engine.dose_reports or [])
+            if dr.drug_id.lower() == (draft.drug_id or "").lower()
+            and (dr.step_number is None or dr.step_number == draft.step_number)
+        ):
+            failed_reports = [
+                dr
+                for dr in (response.engine.dose_reports or [])
+                if dr.drug_id.lower() == (draft.drug_id or "").lower()
+                and (dr.step_number is None or dr.step_number == draft.step_number)
+                and (
+                    dr.status in ("EXCEEDS_CEILING", "BELOW_MINIMUM", "MAGNITUDE_WARNING")
+                    or dr.magnitude_tripwire_triggered
+                )
+            ]
+            reasons = "; ".join(f"{dr.status}: {dr.notes}" for dr in failed_reports)
+            unapproved.append(
+                f"{step_desc} [DOSE_LIMIT_FAILED]: {reasons} -- Administration strictly prohibited."
             )
         elif vs.status != StepStatus.APPROVED:
             reasons = (
@@ -711,11 +853,30 @@ def _build_decision_summary(
             f"EWS band: {band}. Confidence: {confidence.level}.{assumed_note} "
             "Proceed only after documented clinician override of highlighted warnings."
         )
+    elif verdict == Verdict.CHECKED_CLEAR:
+        if quality.missing_count > 0:
+            return (
+                f"Active safety rules evaluated clear on available inputs, but clinical clearance is UNCONFIRMED "
+                f"due to {quality.missing_count} missing triage parameter(s).{assumed_note} EWS band: {band}. Confidence: {confidence.level}. "
+                "Do not proceed with protocol medications until missing vital signs are measured and verified."
+            )
+        elif quality.assumed_count > 0:
+            return (
+                f"Active safety rules evaluated clear, but reliance on {quality.assumed_count} assumed demo default(s) "
+                f"requires vital signs verification.{assumed_note} EWS band: {band}. Confidence: {confidence.level}. "
+                "Confirm vital signs clinically before administering therapy."
+            )
+        else:
+            return (
+                f"All intake safety checks verified clear across {report.checks_run} evaluated rules on complete measured data. "
+                f"EWS band: {band}. Confidence: {confidence.level}. "
+                "Follow protocol instructions below. Monitor and escalate per schedule."
+            )
     else:
         return (
-            f"All intake safety checks verified clear across {report.checks_run} evaluated rules. "
-            f"EWS band: {band}. Confidence: {confidence.level}.{assumed_note} "
-            "Follow protocol instructions below. Monitor and escalate per schedule."
+            f"Plan evaluation complete across {report.checks_run} evaluated rules. "
+            f"EWS band: {band}. Confidence: {confidence.level}. "
+            "Review protocol guidance with attending clinical staff."
         )
 
 
@@ -753,10 +914,25 @@ def _build_why_decision(verdict: Verdict, report: EngineReport, response: Triage
         )
 
     else:
-        return (
-            "All deterministic safety interlocks (drug-drug interactions, allergy cross-reactivities, "
-            "and physiological threshold limits) evaluated completely clear without triggering alerts."
-        )
+        # CHECKED_CLEAR
+        patient = response.input_patient or response.patient
+        quality = evaluate_data_quality(patient)
+        if quality.missing_count > 0:
+            return (
+                f"No configured safety rules fired on available data, but {quality.missing_count} required parameter(s) "
+                "are missing or unmeasured. Under fail-closed Rule R2, absent data cannot be presumed safe, "
+                "so definitive clinical clearance is withheld pending complete vital signs measurement."
+            )
+        elif quality.assumed_count > 0:
+            return (
+                f"All active safety rules passed clear, but {quality.assumed_count} parameter(s) relied on assumed demo defaults. "
+                "Clinician must measure vital signs before confirming clearance."
+            )
+        else:
+            return (
+                "All deterministic safety interlocks (drug-drug interactions, allergy cross-reactivities, "
+                "and physiological threshold limits) evaluated completely clear on 100% measured clinical data."
+            )
 
 
 def _build_rejected_alternatives(
@@ -838,7 +1014,7 @@ def generate_action_plan(
     unapproved = _build_unapproved_draft_steps(response)
 
     return ActionPlan(
-        immediate_actions=_build_immediate_actions(report, verdict, response),
+        immediate_actions=_build_immediate_actions(report, verdict, response, quality),
         medications=_build_medications(response),
         unapproved_draft_steps=unapproved,
         monitoring_steps=_build_monitoring(report),
