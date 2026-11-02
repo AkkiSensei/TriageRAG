@@ -52,11 +52,12 @@ audit_log.jsonl*
 data/protocols_real/*
 !data/protocols_real/.gitkeep
 
-# Eval outputs (keep reports tracked via .gitkeep, *.md, and *.json)
+# Eval outputs (keep reports tracked via .gitkeep, *.md, *.json, and *.log)
 eval/reports/*
 !eval/reports/.gitkeep
 !eval/reports/*.md
 !eval/reports/*.json
+!eval/reports/*.log
 
 # Frontend
 web/node_modules/

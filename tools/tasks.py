@@ -11,7 +11,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -28,11 +28,31 @@ app = typer.Typer(help="TriageRAG tasks runner and verification gateway")
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
+_LOG_FILE: Path | None = None
+_original_secho = typer.secho
+
+
+def _log_write(text: str) -> None:
+    if _LOG_FILE:
+        with open(_LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
+
+
+def _echo(message: Any = None, *args: Any, **kwargs: Any) -> None:
+    """Print with typer.secho and tee to _LOG_FILE if active."""
+    _original_secho(message, *args, **kwargs)
+    if message is not None:
+        _log_write(str(message))
+
+
+typer.secho = _echo
+
+
 def _run(cmd: list[str], cwd: Path | None = None, check: bool = True) -> int:
-    """Run a subprocess command with clear logging."""
+    """Run a subprocess command with clear logging and optional transcript recording."""
     cwd = cwd or REPO_ROOT
     cmd_str = " ".join(cmd)
-    typer.secho(f"--> Running: {cmd_str}", fg=typer.colors.CYAN)
+    _echo(f"--> Running: {cmd_str}", fg=typer.colors.CYAN)
     env = os.environ.copy()
     pythonpath = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = f"{REPO_ROOT}{os.pathsep}{pythonpath}" if pythonpath else str(REPO_ROOT)
@@ -43,15 +63,34 @@ def _run(cmd: list[str], cwd: Path | None = None, check: bool = True) -> int:
         found = shutil.which(resolved_cmd[0])
         if found:
             resolved_cmd[0] = found
-    result = subprocess.run(resolved_cmd, cwd=cwd, env=env)
-    if check and result.returncode != 0:
-        typer.secho(
-            f"FAILED (code {result.returncode}): {cmd_str}",
-            fg=typer.colors.RED,
-            err=True,
+
+    if _LOG_FILE:
+        process = subprocess.Popen(
+            resolved_cmd,
+            cwd=cwd,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
-        raise typer.Exit(code=result.returncode)
-    return result.returncode
+        assert process.stdout is not None
+        for line in iter(process.stdout.readline, ""):
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            _log_write(line.rstrip())
+        process.stdout.close()
+        returncode = process.wait()
+    else:
+        result = subprocess.run(resolved_cmd, cwd=cwd, env=env)
+        returncode = result.returncode
+
+    if check and returncode != 0:
+        err_msg = f"FAILED (code {returncode}): {cmd_str}"
+        _echo(err_msg, fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=returncode)
+    return returncode
 
 
 @app.command()
@@ -301,28 +340,67 @@ def web_verify() -> None:
 
 
 @app.command(name="verify-fast")
-def verify_fast() -> None:
+def verify_fast(
+    record: Annotated[
+        bool,
+        typer.Option(
+            "--record/--no-record",
+            help="Record execution transcript to eval/reports/verify_fast.log",
+        ),
+    ] = True,
+) -> None:
     """Fast developer gate: static analysis, type checking, architecture, and unit tests."""
-    typer.secho("=" * 60, fg=typer.colors.BLUE, bold=True)
-    typer.secho("   TRIAGERAG FAST VERIFICATION PROFILE", fg=typer.colors.BLUE, bold=True)
-    typer.secho("=" * 60, fg=typer.colors.BLUE, bold=True)
+    global _LOG_FILE
+    log_path: Path | None = None
+    if record:
+        log_path = REPO_ROOT / "eval" / "reports" / "verify_fast.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        import datetime
 
-    lint()
-    typecheck()
-    lint_imports()
-    validate_data()
-    rule_coverage()
+        now_utc = datetime.datetime.now(datetime.UTC).isoformat()
+        try:
+            head_sha = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True
+            ).strip()
+        except Exception:
+            head_sha = "unknown"
+        log_path.write_text(
+            f"=== TRIAGERAG FAST VERIFICATION RUN RECORD ===\n"
+            f"TIMESTAMP: {now_utc}\n"
+            f"GIT_COMMIT: {head_sha}\n"
+            f"PYTHON: {sys.version}\n"
+            f"PLATFORM: {sys.platform}\n\n",
+            encoding="utf-8",
+        )
+        _LOG_FILE = log_path
 
-    typer.secho("=== Running Unit Test Suite ===", fg=typer.colors.BLUE, bold=True)
-    _run([sys.executable, "-m", "pytest", "tests/unit"])
+    try:
+        _echo("=" * 60, fg=typer.colors.BLUE, bold=True)
+        _echo("   TRIAGERAG FAST VERIFICATION PROFILE", fg=typer.colors.BLUE, bold=True)
+        _echo("=" * 60, fg=typer.colors.BLUE, bold=True)
 
-    typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
-    typer.secho(
-        "[OK] FAST VERIFICATION GATES GREEN (Static, Types, Architecture, Data, Unit)",
-        fg=typer.colors.GREEN,
-        bold=True,
-    )
-    typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
+        lint()
+        typecheck()
+        lint_imports()
+        validate_data()
+        rule_coverage()
+
+        _echo("=== Running Unit Test Suite ===", fg=typer.colors.BLUE, bold=True)
+        _run([sys.executable, "-m", "pytest", "tests/unit"])
+
+        _echo("=" * 60, fg=typer.colors.GREEN, bold=True)
+        _echo(
+            "[OK] FAST VERIFICATION GATES GREEN (Static, Types, Architecture, Data, Unit)",
+            fg=typer.colors.GREEN,
+            bold=True,
+        )
+        _echo("=" * 60, fg=typer.colors.GREEN, bold=True)
+        _echo("EXIT_CODE: 0", fg=typer.colors.GREEN, bold=True)
+    except Exception:
+        _echo("EXIT_CODE: 1", fg=typer.colors.RED, bold=True)
+        raise
+    finally:
+        _LOG_FILE = None
 
 
 @app.command(name="verify-full")

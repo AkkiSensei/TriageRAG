@@ -367,3 +367,57 @@ def test_mixed_failure_node_exception_and_telemetry_closure_failure(
 
     with pytest.raises(ValueError, match="Original application error"), trace_node("normalise"):
         raise ValueError("Original application error")
+
+
+def test_all_span_creation_call_sites_disable_exception_recording() -> None:
+    """Statically verify every start_as_current_span call site passes record_exception=False and set_status_on_exception=False."""
+    import ast
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parent.parent.parent
+    target_files = [
+        repo_root / "src/triagerag/api/app.py",
+        repo_root / "src/triagerag/orchestration/langgraph_workflow.py",
+        repo_root / "src/triagerag/orchestration/telemetry.py",
+    ]
+
+    call_sites: list[tuple[str, int]] = []
+    for target in target_files:
+        assert target.exists(), f"Target file missing: {target}"
+        tree = ast.parse(target.read_text(encoding="utf-8"), filename=str(target))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                func_name = ""
+                if isinstance(node.func, ast.Attribute):
+                    func_name = node.func.attr
+                elif isinstance(node.func, ast.Name):
+                    func_name = node.func.id
+
+                if func_name == "start_as_current_span":
+                    kw_dict = {kw.arg: kw.value for kw in node.keywords}
+                    assert "record_exception" in kw_dict, (
+                        f"Missing record_exception keyword argument at {target.name}:{node.lineno}"
+                    )
+                    assert (
+                        isinstance(kw_dict["record_exception"], ast.Constant)
+                        and kw_dict["record_exception"].value is False
+                    ), f"record_exception must be explicitly False at {target.name}:{node.lineno}"
+
+                    assert "set_status_on_exception" in kw_dict, (
+                        f"Missing set_status_on_exception keyword argument at {target.name}:{node.lineno}"
+                    )
+                    assert (
+                        isinstance(kw_dict["set_status_on_exception"], ast.Constant)
+                        and kw_dict["set_status_on_exception"].value is False
+                    ), (
+                        f"set_status_on_exception must be explicitly False at {target.name}:{node.lineno}"
+                    )
+
+                    call_sites.append((target.name, node.lineno))
+
+    # Assert all three architectural tiers are verified
+    assert len(call_sites) == 3, (
+        f"Expected 3 start_as_current_span call sites, found {len(call_sites)}: {call_sites}"
+    )
+    file_names = {cs[0] for cs in call_sites}
+    assert file_names == {"app.py", "langgraph_workflow.py", "telemetry.py"}

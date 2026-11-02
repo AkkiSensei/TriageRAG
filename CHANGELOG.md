@@ -27,7 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Empirical results: Disabled baseline 11.057 ms mean / 18.307 ms p95; In-Memory tracing 14.901 ms mean (+3.844 ms) / 29.277 ms p95 (+10.970 ms overhead; 1.50 ms optimization target not met; p99/max 54.998 ms); Console exporter 24.284 ms mean / 75.219 ms p95 / 174.732 ms p99/max; OTLP exporter unmeasured due to local Docker unavailability. Output report written to `eval/reports/telemetry_benchmark.json`.
   - Documented residual timing and exceptional termination side-channel limitations in `docs/guides/TELEMETRY_GUIDE.md` and `docs/architecture/NEXT_ENGINEERING_ENHANCEMENT_PLAN.md`.
   - Authored comprehensive developer guide `docs/guides/TELEMETRY_GUIDE.md` detailing architecture, privacy invariants, non-interference guarantees, environment configuration, local Docker Jaeger instructions, and acceptance gates.
-  - Authored 28 automated tests across 3 suites: `tests/unit/test_telemetry.py` (13 tests), `tests/unit/test_workflow_telemetry.py` (7 tests), and `tests/integration/test_telemetry_api.py` (8 tests), verifying all 12 Acceptance Gates.
+  - Implemented durable gate execution recording in `tools/tasks.py` persisting full verification output and exit codes to `eval/reports/verify_fast.log`.
+  - Authored forensic investigation in `docs/final_audit/API_FAILURE_INVESTIGATION.md` reproducing PowerShell shell tokenization truncation (`b"{\\"`) on native `curl.exe` invocations.
+  - Authored 33 automated tests across 4 test suites verifying all 12 Acceptance Gates, complete exported trace tree exception privacy, and API stability under malformed input.
 
 ## [Unreleased] - Backend Engineering Audit, Hardening & Out-of-Domain Gating
 

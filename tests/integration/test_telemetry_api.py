@@ -280,3 +280,111 @@ def test_http_exception_privacy_sensitive_marker_never_leaked(
         for r_k, r_v in http_span.resource.attributes.items():
             assert sensitive_marker not in str(r_k)
             assert sensitive_marker not in str(r_v)
+
+
+def test_sensitive_exception_never_leaks_in_complete_exported_trace_tree(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Gate 1 & Gate 7: End-to-end regression proving zero sensitive exception/traceback leakage across full tree."""
+    monkeypatch.setenv("TRIAGERAG_TELEMETRY_ENABLED", "true")
+    monkeypatch.setenv("TRIAGERAG_TELEMETRY_EXPORTER", "in_memory")
+    TelemetryManager.reset_for_testing()
+    manager = TelemetryManager.get_instance()
+    manager.initialize()
+    manager.clear_in_memory_spans()
+
+    # Dynamic spy asserting start_as_current_span arguments across all tiers
+    real_tracer = manager.get_tracer()
+    real_start_as_current_span = real_tracer.start_as_current_span
+    captured_call_kwargs: list[dict[str, Any]] = []
+
+    def spy_start_as_current_span(*args: Any, **kwargs: Any) -> Any:
+        captured_call_kwargs.append(dict(kwargs))
+        return real_start_as_current_span(*args, **kwargs)
+
+    monkeypatch.setattr(real_tracer, "start_as_current_span", spy_start_as_current_span)
+
+    secret_marker = "SENSITIVE_PATIENT_SSN_999-88-7777_CONFIDENTIAL_CLINICAL_NOTE"
+    secret_traceback_file = "c:/hospital/patient_secrets.py"
+    secret_traceback_func = "extract_phi_for_triage"
+
+    from triagerag.orchestration import langgraph_workflow as wf_module
+
+    def crashing_stage_normalise(*args: Any, **kwargs: Any) -> Any:
+        raise RuntimeError(
+            f"Clinical intake failed: {secret_marker}\n"
+            f"Traceback (most recent call last):\n"
+            f"  File '{secret_traceback_file}', line 99, in {secret_traceback_func}\n"
+            f"    patient_ssn = '{secret_marker}'"
+        )
+
+    monkeypatch.setattr(wf_module, "stage_normalise", crashing_stage_normalise)
+
+    payload = get_clean_triage_payload()
+    with pytest.raises(RuntimeError, match=secret_marker):
+        client.post("/api/triage", json=payload)
+
+    spans = manager.get_in_memory_spans()
+    http_spans = [s for s in spans if s.name == "http.request"]
+    wf_spans = [s for s in spans if s.name == "langgraph.workflow.execution"]
+    node_spans = [s for s in spans if s.name == "langgraph.node.normalise"]
+
+    assert len(http_spans) == 1, f"Expected 1 http.request span, found {len(http_spans)}"
+    assert len(wf_spans) == 1, f"Expected 1 workflow span, found {len(wf_spans)}"
+    assert len(node_spans) == 1, f"Expected 1 node span, found {len(node_spans)}"
+    assert len(spans) == 3, f"Expected exactly 3 spans in failed tree, found {len(spans)}"
+
+    # 1. Assert all start_as_current_span invocations explicitly passed record_exception=False, set_status_on_exception=False
+    assert len(captured_call_kwargs) >= 3
+    for kw in captured_call_kwargs:
+        assert kw.get("record_exception") is False, (
+            f"record_exception was not False in kwargs: {kw}"
+        )
+        assert kw.get("set_status_on_exception") is False, (
+            f"set_status_on_exception was not False in kwargs: {kw}"
+        )
+
+    # 2. Inspect EVERY span in the complete exported trace tree
+    prohibited_strings = [
+        secret_marker,
+        "999-88-7777",
+        secret_traceback_file,
+        secret_traceback_func,
+        "Traceback",
+        "extract_phi",
+    ]
+
+    for s in spans:
+        # Check span name
+        for forbidden in prohibited_strings:
+            assert forbidden not in str(s.name)
+
+        # Check attributes
+        assert s.attributes is not None
+        for k, v in s.attributes.items():
+            for forbidden in prohibited_strings:
+                assert forbidden not in str(k)
+                assert forbidden not in str(v)
+
+        # Check events & event attributes
+        assert len(s.events) == 0, f"Expected 0 events on failed span {s.name}, found: {s.events}"
+        for ev in s.events:
+            for forbidden in prohibited_strings:
+                assert forbidden not in str(ev.name)
+            if ev.attributes:
+                for ek, ev_val in ev.attributes.items():
+                    for forbidden in prohibited_strings:
+                        assert forbidden not in str(ek)
+                        assert forbidden not in str(ev_val)
+
+        # Check status description
+        if s.status and s.status.description:
+            for forbidden in prohibited_strings:
+                assert forbidden not in str(s.status.description)
+
+        # Check resource attributes
+        if s.resource and s.resource.attributes:
+            for rk, rv in s.resource.attributes.items():
+                for forbidden in prohibited_strings:
+                    assert forbidden not in str(rk)
+                    assert forbidden not in str(rv)
