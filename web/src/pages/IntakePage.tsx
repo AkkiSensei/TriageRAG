@@ -1,9 +1,8 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PatientIntakeForm } from '@/features/intake/PatientIntakeForm'
-import { ScenarioSelector } from '@/features/intake/ScenarioSelector'
 import { useTriage } from '@/context/TriageContext'
-import type { TriageApiRequest, ScenarioDetail } from '@/lib/api'
+import type { TriageApiRequest } from '@/lib/api'
 import { Stethoscope, AlertCircle, ShieldAlert } from 'lucide-react'
 
 export const IntakePage: React.FC = () => {
@@ -13,8 +12,6 @@ export const IntakePage: React.FC = () => {
     evaluatePatient,
     isLoading,
     error,
-    selectedScenario,
-    setSelectedScenario,
   } = useTriage()
 
   const handleFormSubmit = async (req: TriageApiRequest) => {
@@ -23,22 +20,6 @@ export const IntakePage: React.FC = () => {
       navigate('/report')
     } catch (err) {
       console.error('Triage submission error:', err)
-    }
-  }
-
-  const handleSelectScenario = async (scenario: ScenarioDetail, autoRun: boolean = true) => {
-    setSelectedScenario(scenario)
-    if (autoRun) {
-      try {
-        await evaluatePatient({
-          patient: scenario.patient,
-          include_complaint_in_llm: false,
-          llm_profile: 'COMPLIANT',
-        })
-        navigate('/report')
-      } catch (err) {
-        console.error('Scenario run error:', err)
-      }
     }
   }
 
@@ -63,13 +44,6 @@ export const IntakePage: React.FC = () => {
           verify drug interactions, and display clear step-by-step instructions.
         </p>
       </div>
-
-      {/* Reference Preset Scenarios */}
-      <ScenarioSelector
-        onSelectScenario={handleSelectScenario}
-        activeScenarioId={selectedScenario?.id ?? null}
-        loadingScenarioId={isLoading ? selectedScenario?.id ?? null : null}
-      />
 
       {/* Pipeline Error Banner */}
       {error && (
@@ -104,7 +78,6 @@ export const IntakePage: React.FC = () => {
         <PatientIntakeForm
           onSubmit={handleFormSubmit}
           isLoading={isLoading}
-          initialScenario={selectedScenario}
           existingRequest={patientRequest}
           errorMessage={error}
         />

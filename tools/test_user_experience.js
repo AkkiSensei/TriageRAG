@@ -51,6 +51,38 @@ function httpPut(url) {
   });
 }
 
+function httpPost(url, body) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const req = http.request(
+      {
+        hostname: u.hostname,
+        port: u.port,
+        path: u.pathname + u.search,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body),
+        },
+      },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk) => (data += chunk));
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(data));
+          } catch {
+            resolve(data);
+          }
+        });
+      }
+    );
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
 class CDPClient {
   constructor(wsUrl) {
     this.wsUrl = wsUrl;
@@ -197,8 +229,8 @@ async function runTests() {
     const navLinks = await cdp.eval(`
       Array.from(document.querySelectorAll('nav a')).map(a => a.getAttribute('href'))
     `);
-    const requiredLinks = ['/intake', '/report', '/rules', '/protocols', '/sample-data'];
-    const hasAllNav = requiredLinks.every(r => navLinks.includes(r));
+    const requiredLinks = ['/intake', '/report', '/rules', '/protocols'];
+    const hasAllNav = requiredLinks.every(r => navLinks.includes(r)) && !navLinks.includes('/sample-data');
     record(
       'UAT-13',
       'Navigation',
@@ -219,26 +251,39 @@ async function runTests() {
       `Badge text: "${demoBadgeText}" (Accurately denotes mock local environment)`
     );
 
+    // Helper for scenario testing via engine API and session storage
+    async function loadScenarioIntoSession(scenarioKey) {
+      const detail = await httpGet(`http://127.0.0.1:8000/api/scenarios/${scenarioKey}`);
+      const triageReq = {
+        patient: detail.patient,
+        include_complaint_in_llm: false,
+        llm_profile: 'COMPLIANT',
+      };
+      const triageRes = await httpPost('http://127.0.0.1:8000/api/triage', JSON.stringify(triageReq));
+      await cdp.eval(`
+        sessionStorage.setItem('triagerag_patient_request', ${JSON.stringify(JSON.stringify(triageReq))});
+        sessionStorage.setItem('triagerag_triage_result', ${JSON.stringify(JSON.stringify(triageRes))});
+      `);
+      await nav('http://localhost:5173/report');
+    }
+
     // ====================================================
-    // UAT-11: Reference Cases - All 4 one-click presets
+    // UAT-11: 1-Click demo removed from intake
     // ====================================================
-    const scenarioCards = await cdp.eval(`
-      Array.from(document.querySelectorAll('button')).filter(b => b.innerText.includes('STOP') || b.innerText.includes('INCOMPLETE') || b.innerText.includes('DOCTOR REVIEW') || b.innerText.includes('ALL CLEAR')).map(b => b.innerText.split('\\n')[0])
+    const has1ClickDemo = await cdp.eval(`
+      document.body.innerText.toLowerCase().includes('try a sample patient') || document.body.innerText.toLowerCase().includes('1-click')
     `);
     record(
       'UAT-11',
-      'Reference cases loading and availability',
-      scenarioCards.length === 4,
-      `Available scenarios: ${scenarioCards.join(' | ')}`
+      '1-Click demo removed from intake',
+      !has1ClickDemo,
+      `1-click demo present on /intake: ${has1ClickDemo}`
     );
 
     // ====================================================
     // UAT-05: BLOCK response
     // ====================================================
-    await cdp.eval(`
-      const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('DANGER / STOP') || b.innerText.includes('Drug-Drug Interaction'));
-      if (btn) btn.click();
-    `);
+    await loadScenarioIntoSession('BLOCK');
     await waitForSelector('h2');
     await wait(800);
     const uat05Url = await cdp.eval('window.location.pathname');
@@ -256,12 +301,7 @@ async function runTests() {
     // ====================================================
     // UAT-06 & UAT-07: UNVERIFIED response & Missing Information
     // ====================================================
-    await nav('http://localhost:5173/intake');
-    await waitForSelector('h1');
-    await cdp.eval(`
-      const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('INCOMPLETE') || b.innerText.includes('Missing Vitals'));
-      if (btn) btn.click();
-    `);
+    await loadScenarioIntoSession('UNVERIFIED');
     await waitForSelector('h2');
     await wait(800);
     const uat06Incomplete = await cdp.eval(`document.body.innerText.includes('CANNOT CONFIRM SAFETY') || document.body.innerText.includes('INCOMPLETE DETAILS')`);
@@ -283,12 +323,7 @@ async function runTests() {
     // ====================================================
     // UAT-04: Verified Care Process (CLEAN Anaphylaxis)
     // ====================================================
-    await nav('http://localhost:5173/intake');
-    await waitForSelector('h1');
-    await cdp.eval(`
-      const btn = Array.from(document.querySelectorAll('button')).find(b => b.innerText.includes('ALL CLEAR') && b.innerText.includes('Acute Anaphylaxis'));
-      if (btn) btn.click();
-    `);
+    await loadScenarioIntoSession('CLEAN');
     await waitForSelector('h2');
     await wait(1000);
     const uat04AllClear = await cdp.eval(`document.body.innerText.includes('ALL SAFETY CHECKS PASSED')`);

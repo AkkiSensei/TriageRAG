@@ -57,13 +57,10 @@ To evaluate whether the application fulfills the primary design mandate (*"A fir
    - The one-sentence subtext (*"Fill in the patient's age, vital signs, and current medicines. The system will check all safety rules, verify drug interactions, and display clear step-by-step instructions."*) establishes clear purpose without technical jargon.
    - The prominent **Demo Mode** badge prevents users from assuming the local demonstration is connected to a live hospital database or clinical record.
 
-2. **One-Click Emergency Presets (Scenario Selector):**
-   - Ramesh does not need to type numbers or drug names to test how the system behaves. The 4 colored preset cards at the top provide instant, single-click scenarios:
-     - **Card 1 (Red / Rose):** `"DANGER / STOP"` — Heart Patient Taking Silagra (Shows dangerous interaction).
-     - **Card 2 (Sky / Blue):** `"INCOMPLETE"` — Missing Vitals (Demonstrates fail-closed safety).
-     - **Card 3 (Amber):** `"DOCTOR REVIEW"` — Penicillin Allergy (Shows senior doctor review requirement).
-     - **Card 4 (Emerald / Green):** `"ALL CLEAR"` — Severe Allergic Reaction (Demonstrates fully verified step-by-step care).
-   - In our audit, a bug in `ScenarioSelector.tsx` where Scenario 3 showed an erroneous `ALL CLEAR` badge was caught and fixed. It now correctly renders an Amber `DOCTOR REVIEW` badge.
+2. **Streamlined Intake Flow (1-Click Demo & Sample Data Removed):**
+   - Per direct operational instruction, all 1-click synthetic demo cards have been removed from the patient intake screen, preventing accidental preloading of mock clinical data during genuine intake.
+   - The navigation bar has been simplified from 5 links down to the 4 essential clinical routes: **Patient Details**, **Care Steps**, **Safety Rules**, and **Care Guides**.
+   - The physiological measurement cards have been redesigned into a structured stacked card layout (`label` on row 1, `grid grid-cols-3` status selector on row 2, and `input` on row 3), eliminating any possibility of text collision or label wrapping.
 
 3. **Form Simplification & Clean Vitals Cards:**
    - Chief Complaint and Bedside Presentation narrative free-text boxes have been completely removed from the intake page. Ward staff are no longer confused by ambiguous text prompts or tempted to paste unstructured notes.
@@ -99,9 +96,9 @@ An automated black-box acceptance harness (`tools/test_user_experience.js`) was 
 | **UAT-08** | Safety Rules 3-Question Format | Rules library renders each safety rule structured into 3 user questions. | Displays `1. What is this rule?`, `2. What should I check?`, and `3. When should I stop & ask for help?` Badges: Draft, Needs review. | **PASS** |
 | **UAT-09** | Care Guides Plain-Language Format | Protocol library presents guidelines without exposing internal DocIDs. | Displays *"When is this useful?"*, *"What it checks"*, and hides internal doc hashes or file names. | **PASS** |
 | **UAT-10** | Dynamic Search on Safety Rules | User searches for Indian brand name *"Silagra"*. | Instant client-side filtering returns `ALLERGY_PENICILLIN_...` and `DDI_SILDENAFIL_NITROGLYCERIN_EXPLICIT` with title *"Do Not Mix Silagra / Sildenafil with Nitroglycerin"*. | **PASS** |
-| **UAT-11** | One-Click Reference Scenarios | Reference cases load valid data across all 4 clinical risk profiles. | All 4 scenario presets loaded (`DANGER / STOP`, `INCOMPLETE`, `DOCTOR REVIEW`, `ALL CLEAR`). | **PASS** |
+| **UAT-11** | 1-Click Demo Removal Verification | User requests removal of 1-click preset cards from intake screen. | Evaluated `false`. Zero 1-click scenario preset cards rendered on `/intake`. | **PASS** |
 | **UAT-12** | Demo Mode Visual Representation | Prominent indication that local environment is a synthetic demonstration. | Header displays `"Demo Mode"` badge in amber styling. | **PASS** |
-| **UAT-13** | Navigation Bar Completeness | Header contains links to all core functional sections of the application. | Links present: `/intake` (Patient Details), `/report` (Care Steps), `/rules` (Safety Rules), `/protocols` (Care Guides), `/sample-data` (Sample Patients). | **PASS** |
+| **UAT-13** | Navigation Bar Essential Links | Header contains links only to active clinical operational routes. | Clean 4-item navigation: `/intake` (Patient Details), `/report` (Care Steps), `/rules` (Safety Rules), `/protocols` (Care Guides). `/sample-data` removed. | **PASS** |
 | **UAT-14** | Browser History Stability | User clicks back and forward buttons in the browser. | Browser history navigates seamlessly between routes without blank screens or broken state. | **PASS** |
 | **UAT-15** | Page Refresh Route & State Integrity | User refreshes page (`F5`) on `/protocols` or `/rules`. | Route is preserved, TanStack Query refetches data, page renders properly without crashing. | **PASS** |
 | **UAT-16** | Slate Dark Mode Activation & Persistence | User toggles theme to Dark mode and refreshes the page. | Dark class applied to `<html>`, `triagerag-theme` saved to `localStorage`, persists across full page reload. | **PASS** |

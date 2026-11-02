@@ -28,7 +28,6 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/report', label: 'Care Steps', icon: FileSpreadsheet },
   { to: '/rules', label: 'Safety Rules', icon: BookOpen },
   { to: '/protocols', label: 'Care Guides', icon: FileCode2 },
-  { to: '/sample-data', label: 'Sample Data', icon: Sparkles },
 ]
 
 export const Navbar: React.FC = () => {

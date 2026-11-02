@@ -792,17 +792,27 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               onStatusChange={(status) => setForm({ ...form, glucoseStatus: status })}
               onValueChange={(val) => setForm({ ...form, glucoseValue: val || '' })}
             />
-            <div>
-              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200">Giving Oxygen to Patient?</label>
+            <div className="flex flex-col gap-2 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 bg-slate-50/60 dark:bg-slate-800/40 p-3 transition-all hover:border-slate-300 dark:hover:border-slate-600">
+              <div className="flex items-baseline justify-between gap-1">
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate" title="Supplemental Oxygen">
+                  Supplemental Oxygen
+                </label>
+                <span className="text-[11px] font-mono font-semibold text-teal-700 dark:text-teal-400 shrink-0">
+                  Room/O2
+                </span>
+              </div>
+              <div className="flex items-center justify-center rounded-lg bg-slate-200/70 dark:bg-slate-700/70 p-0.5 border border-slate-200 dark:border-slate-600 text-[10px] font-semibold text-slate-600 dark:text-slate-300 h-[26px]">
+                Giving Oxygen?
+              </div>
               <select
                 value={form.o2Value}
                 onChange={(e) =>
                   setForm({ ...form, o2Value: e.target.value as 'yes' | 'no' | 'unknown' })
                 }
-                className="mt-1.5 h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 focus:outline-none"
+                className="h-10 w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 focus:outline-none"
               >
-                <option value="no">No (Breathing normal room air)</option>
-                <option value="yes">Yes (Giving oxygen mask / nasal tube)</option>
+                <option value="no">No (Normal room air)</option>
+                <option value="yes">Yes (Supplemental O2)</option>
                 <option value="unknown">Unknown</option>
               </select>
             </div>
