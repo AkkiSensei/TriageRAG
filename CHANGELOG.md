@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rendered complete 8-node LangGraph execution trace in both UI and CLI with live runtime stage durations in milliseconds and non-sensitive diagnostic details.
 - **CLI Rich Output (`src/triagerag/cli.py`):**
   - Enhanced `triage run` command with formatted Rich tables and panels for the Canonical Decision Ledger, 8-Stage Execution Trace Table, Input Normalization Ledger, and Retriever Evidence Ledger.
+- **Narrow Canonical Scenarios Set (`src/triagerag/contracts/scenarios.py`, `src/triagerag/api/routes/scenarios.py`):**
+  - Added preloaded scenario `ABSTAIN` (neonatal population lacking protocol coverage triggering typed `NO_POPULATION_COVERAGE` abstention and safe extractive fallback) to complete the 5 canonical demo reference cases: `CLEAN`, `BLOCK`, `UNVERIFIED`, `HIGH`, and `ABSTAIN`.
 
 ## [Unreleased] - OpenTelemetry AI Workflow Observability & Distributed Tracing (v0.4.0)
 

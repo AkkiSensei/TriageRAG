@@ -157,6 +157,32 @@ def get_preloaded_scenario(name: str) -> tuple[Patient, list[OverrideRecord]]:
         )
         return p, [override]
 
+    if name.upper() == "ABSTAIN":
+        p = Patient(
+            assessed_at=now,
+            age=Age(value=Decimal("15"), unit=AgeUnit.days),
+            sex="male",
+            pregnancy="not_applicable",
+            weight_kg=Measured[Decimal](value=Decimal("3.5"), source="measured"),
+            vitals=Vitals(
+                heart_rate_bpm=Measured[int](value=140, source="measured"),
+                respiratory_rate_bpm=Measured[int](value=42, source="measured"),
+                spo2_percent=Measured[int](value=96, source="measured"),
+                supplemental_o2=Measured[str](value="no", source="measured"),
+                temperature_c=Measured[Decimal](value=Decimal("37.0"), source="measured"),
+                consciousness=Measured[Consciousness](value=Consciousness.A, source="measured"),
+            ),
+            medication_history_status="confirmed_none",
+            medications=[],
+            allergy_history_status="confirmed_nkda",
+            allergies=[],
+            renal_impairment="no",
+            hepatic_impairment="no",
+            suspected_syndrome="anaphylaxis",
+            chief_complaint_untrusted="Neonatal feeding intolerance and rash",
+        )
+        return p, []
+
     # CLEAN scenario
     p = Patient(
         assessed_at=now,

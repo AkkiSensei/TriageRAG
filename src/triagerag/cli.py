@@ -65,7 +65,10 @@ def run(
     ] = False,
     scenario: Annotated[
         str | None,
-        typer.Option("--scenario", help="Preloaded scenario: BLOCK | UNVERIFIED | HIGH | CLEAN"),
+        typer.Option(
+            "--scenario",
+            help="Preloaded scenario: BLOCK | UNVERIFIED | HIGH | CLEAN | ABSTAIN",
+        ),
     ] = None,
     audit_log: Annotated[
         Path | None,
@@ -111,7 +114,7 @@ def run(
     else:
         console.print(
             "[yellow]No patient file provided. Use --demo or "
-            "--scenario [BLOCK|UNVERIFIED|HIGH|CLEAN], "
+            "--scenario [BLOCK|UNVERIFIED|HIGH|CLEAN|ABSTAIN], "
             "or pass a path to a patient JSON file.[/yellow]"
         )
         raise typer.Exit(code=1)
