@@ -580,6 +580,33 @@ class TriageExplanation(BaseModel):
     permitted_ui_actions: list[str] = Field(default_factory=list)
 
 
+class DataQualityReport(BaseModel):
+    """Deterministic assessment of clinical input data completeness and provenance."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    total_parameters: int
+    measured_count: int
+    assumed_count: int
+    missing_count: int
+    completeness_pct: Decimal
+    measured_fields: list[str] = Field(default_factory=list)
+    assumed_fields: list[str] = Field(default_factory=list)
+    missing_fields: list[str] = Field(default_factory=list)
+
+
+class ConfidenceReport(BaseModel):
+    """Deterministic, explainable confidence evaluation of the triage decision."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    level: Literal["HIGH", "MEDIUM", "LOW"]
+    score: Decimal
+    headline: str
+    reasons: list[str] = Field(default_factory=list)
+    data_quality: DataQualityReport
+
+
 class ActionStep(BaseModel):
     """A single deterministic immediate-action step in the triage action plan."""
 
@@ -605,6 +632,9 @@ class MedicationInstruction(BaseModel):
     contraindications: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
     source_protocol: str | None = None
+    why_chosen: str | None = None
+    why_not_alternatives: list[str] = Field(default_factory=list)
+    dose_computation_source: str | None = None
 
 
 class MonitoringStep(BaseModel):
@@ -641,6 +671,10 @@ class ActionPlan(BaseModel):
     rule_hits: list[str] = Field(default_factory=list)
     missing_data: list[str] = Field(default_factory=list)
     decision_summary: str = ""
+    confidence: ConfidenceReport | None = Field(default=None)
+    protocol_match_summary: str | None = None
+    why_decision: str = ""
+    rejected_alternatives: list[str] = Field(default_factory=list)
 
 
 class TriageResponse(BaseModel):
@@ -661,6 +695,8 @@ class TriageResponse(BaseModel):
     input_patient: Patient | None = Field(default=None)
     execution_trace: list[dict[str, Any]] = Field(default_factory=list)
     action_plan: ActionPlan | None = Field(default=None)
+    confidence: ConfidenceReport | None = Field(default=None)
+    data_quality: DataQualityReport | None = Field(default=None)
 
 
 class Clock(Protocol):

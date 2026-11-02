@@ -1356,7 +1356,14 @@ def run_triage_linear(
     from triagerag.defaults import apply_demo_defaults
 
     _, tags = apply_demo_defaults(patient)
-    return linear_resp.model_copy(update={"action_plan": generate_action_plan(linear_resp, tags)})
+    plan = generate_action_plan(linear_resp, tags)
+    return linear_resp.model_copy(
+        update={
+            "action_plan": plan,
+            "confidence": plan.confidence,
+            "data_quality": plan.confidence.data_quality if plan.confidence else None,
+        }
+    )
 
 
 run_triage_legacy = run_triage_linear
@@ -1402,5 +1409,7 @@ def run_triage(
             "execution_trace": _trace,
             "input_patient": patient,
             "action_plan": action_plan,
+            "confidence": action_plan.confidence,
+            "data_quality": action_plan.confidence.data_quality if action_plan.confidence else None,
         }
     )

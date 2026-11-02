@@ -5,34 +5,49 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - Deterministic Clinical Action Planning & Demo Vital Policy (v0.5.0)
+## [0.5.0] - Decision Credibility Ledger, Deterministic Confidence Scoring & Data Quality Audit
 
 ### Added & Hardened
+- **Decision Credibility & Trust Layer (`src/triagerag/contracts/schemas.py`, `src/triagerag/action_plan.py`):**
+  - Added strongly-typed Pydantic schemas:
+    - `DataQualityReport`: audits measured vs assumed demo defaults vs missing parameters with exact parameter counts and completeness percentages.
+    - `ConfidenceReport`: deterministic `HIGH`, `MEDIUM`, or `LOW` confidence rating with numerical scores (e.g. 0.95 for BLOCK / confirmed clear; 0.70 for plans with assumed defaults; 0.30 for UNVERIFIED fail-closed) and bulleted trust drivers explaining *why* the engine is confident or unverified.
+    - Enriched `MedicationInstruction` with `why_chosen`, `why_not_alternatives`, and `dose_computation_source` to provide complete clinical evidence and dose derivation provenance.
+    - Enriched `ActionPlan` with `why_decision` (human-readable clinical rationale), `confidence` report, `protocol_match_summary`, and `rejected_alternatives`.
+  - Added `confidence` and `data_quality` directly to `TriageResponse`.
 - **Deterministic Action Planning Layer (`src/triagerag/contracts/schemas.py`, `src/triagerag/action_plan.py`):**
   - Added strongly-typed Pydantic schemas: `ActionPlan`, `ActionStep`, `MedicationInstruction`, `MonitoringStep`, and `EscalationStep` (`extra="forbid"` enforced).
   - Implemented pure deterministic `generate_action_plan()`:
     - Derives immediate steps (STOP on BLOCK, Escalate on UNVERIFIED, Caution on HIGH alerts, Proceed on CLEAR).
     - Inhibits all medications when the plan is in a BLOCKED or UNVERIFIED state (Rule R11, R2).
-    - Converts verified approved plan steps to structured medication instructions with dose, route, timing, warnings, and contraindication cross-references.
+    - Converts verified approved plan steps to structured medication instructions with dose, route, timing, warnings, contraindication cross-references, rationale, and dose calculation origins.
     - Generates score-band-driven monitoring protocols and critical escalation routes without LLM hallucinations (Rule R1).
-    - Computes plain-language 2-line `decision_summary`.
-  - Added `action_plan: ActionPlan | None = Field(default=None)` to `TriageResponse`.
+    - Computes plain-language `decision_summary` and `why_decision`.
 - **Conservative Demo Vital Policy (`src/triagerag/defaults.py`):**
   - Added `apply_demo_defaults()` providing conservative placeholder defaults by age group (`adult`, `paediatric`, `neonate`) for demo mode.
   - Strictly preserves clinical fail-closed boundary (Rule R2): defaults carry `source="estimated"`, never override measured values, and never auto-fill neurological/GCS consciousness.
   - Automatically tags all assumed defaults with `[ASSUMED DEMO DEFAULT] {vital}: {val} (not measured)` in `action_plan.assumptions`.
 - **Workflow & Orchestrator Integration (`src/triagerag/orchestration/langgraph_workflow.py`, `src/triagerag/orchestrator.py`):**
-  - Embedded `action_plan` generation and demo assumption extraction in `explain_node`, `run_triage_graph()`, and `run_triage_linear()`.
-  - Maintained architectural decomposition constraint (no function > 120 lines).
+  - Embedded `action_plan`, `confidence`, and `data_quality` evaluation in `explain_node`, `run_triage_graph()`, and `run_triage_linear()`.
+  - Maintained architectural decomposition constraint (no function > 120 lines in `orchestrator.py`, verified by AST unit test).
 - **CLI & Web User Experience (`src/triagerag/cli.py`, `web/src/features/results/ExplanationSection.tsx`):**
-  - Added Rich formatted output panels for the Action Plan summary, Immediate Clinical Actions, Medication Administration Instructions, Monitoring & Escalation Protocol, and Assumed Demo Defaults.
-  - Added dedicated "Deterministic Attendant Workflow / Step-by-Step Clinical Action Plan" card in frontend `ExplanationSection.tsx`.
-  - Exported updated OpenAPI specification and regenerated TypeScript types (`npm run codegen`).
+  - Added Rich formatted output panels for:
+    - `INPUT DATA QUALITY AUDIT` (measured parameters, assumed defaults, missing fields, completeness %).
+    - `DECISION CONFIDENCE` badge and trust driver bullet points.
+    - `IMMEDIATE CLINICAL ACTIONS`, `MEDICATION ADMINISTRATION INSTRUCTIONS` (including clinical rationale, dose origin, and excluded alternatives), and `MONITORING & ESCALATION PROTOCOL`.
+  - Added dedicated UI cards in `ExplanationSection.tsx`:
+    - Top-level Confidence Badge (`HIGH`, `MEDIUM`, `LOW`) and Data Quality summary pill.
+    - Expandable Input Data Quality & Provenance Audit drawer.
+    - Clinical Safety Rationale and Protocol Match Summary callouts.
+    - Action Plan with Confidence Trust Drivers, immediate urgency badges, and expanded medication table with `Why Chosen / Derivation` and `Excluded Alternatives` columns.
+    - Propagated `rejected_alternatives` into the "Why Alternative Paths Were Rejected" card.
+  - Exported updated OpenAPI specification (`web/openapi/openapi.json`) and regenerated TypeScript bindings (`web/src/types/api.ts`).
 - **Test Suite & CI Hardening:**
   - Added unit test suite `tests/unit/test_defaults.py` verifying demo defaults, non-override of measured values, and GCS protection.
-  - Added unit test suite `tests/unit/test_action_plan.py` verifying immediate actions, blocked medication inhibition, and monitoring schedules across all lattice states.
-  - Fixed integration test `tests/integration/test_api_contract.py` scenario count assertion for the 5-case reference set (`{"BLOCK", "UNVERIFIED", "HIGH", "CLEAN", "ABSTAIN"}`).
-  - Added frontend test in `ExplanationSection.test.tsx` verifying Action Plan rendering.
+  - Added unit test suite `tests/unit/test_action_plan.py` verifying data quality audits, confidence calculations, immediate actions, blocked medication inhibition, and monitoring schedules across all lattice states.
+  - Updated integration test `tests/integration/test_api_contract.py` scenario count assertion for the 5-case reference set (`{"BLOCK", "UNVERIFIED", "HIGH", "CLEAN", "ABSTAIN"}`).
+  - Added frontend test in `ExplanationSection.test.tsx` verifying Action Plan and trust layer rendering.
+  - Full test suites clean: 530 unit tests passed (1 xfailed), 64 integration tests passed, 44 frontend tests passed. All linters and typechecks exit 0.
 
 ## [0.4.1] - Evidence-First Decision Ledger & Stage Trace Presentation
 

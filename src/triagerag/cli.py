@@ -161,8 +161,19 @@ def run(
     score_val = engine.score.total_score if engine.score else "N/A"
     score_band = engine.score.band.value if engine.score else "UNSCORED"
 
+    conf_level = response.confidence.level if response.confidence else "N/A"
+    conf_color = (
+        "green" if conf_level == "HIGH" else ("yellow" if conf_level == "MEDIUM" else "red")
+    )
+    dq_str = "N/A"
+    if response.data_quality:
+        dq = response.data_quality
+        dq_str = f"{dq.measured_count} meas / {dq.assumed_count} assump / {dq.missing_count} miss"
+
     banner_table = Table(title="TRIAGE ENGINE REPORT BANNER", expand=True)
     banner_table.add_column("Verdict", style=f"bold {verdict_color}")
+    banner_table.add_column("Confidence", style=f"bold {conf_color}", justify="center")
+    banner_table.add_column("Data Quality", style="cyan", justify="center")
     banner_table.add_column("EWS Score", style="bold")
     banner_table.add_column("Band", style="bold")
     banner_table.add_column("Checks Run", justify="right")
@@ -173,6 +184,8 @@ def run(
 
     banner_table.add_row(
         verdict_display,
+        f"[{conf_color}]{conf_level}[/{conf_color}]",
+        dq_str,
         str(score_val),
         score_band,
         str(engine.checks_run),
@@ -412,6 +425,15 @@ def run(
     if response.action_plan:
         plan = response.action_plan
         summary_text = f"[bold]{plan.decision_summary}[/bold]"
+        if plan.why_decision:
+            summary_text += f"\n\n[bold cyan]Clinical Rationale:[/bold cyan]\n{plan.why_decision}"
+        if plan.protocol_match_summary:
+            summary_text += (
+                f"\n\n[bold green]Protocol Match:[/bold green]\n{plan.protocol_match_summary}"
+            )
+        if plan.confidence:
+            conf_lines = "\n".join(f" - {cr}" for cr in plan.confidence.reasons)
+            summary_text += f"\n\n[bold yellow]Confidence Assessment ({plan.confidence.level}):[/bold yellow]\n{conf_lines}"
         if plan.assumptions:
             assump_lines = "\n".join(f" - [yellow]{a}[/yellow]" for a in plan.assumptions)
             summary_text += f"\n\n[bold]Demo Assumptions / Defaults:[/bold]\n{assump_lines}"
@@ -422,6 +444,33 @@ def run(
                 border_style="magenta",
             )
         )
+
+        # 6a. Input Data Quality Breakdown
+        if plan.confidence and plan.confidence.data_quality:
+            dq = plan.confidence.data_quality
+            dq_table = Table(
+                title=f"INPUT DATA QUALITY AUDIT ({dq.measured_count} Measured / {dq.assumed_count} Assumed / {dq.missing_count} Missing -- Completeness: {dq.completeness_pct}%)",
+                expand=True,
+            )
+            dq_table.add_column("Provenance Category", style="bold")
+            dq_table.add_column("Parameter Details")
+            dq_table.add_column("Safety Impact", style="dim")
+
+            for mf in dq.measured_fields:
+                dq_table.add_row("[green]MEASURED[/green]", mf, "Verified clinical measurement")
+            for af in dq.assumed_fields:
+                dq_table.add_row(
+                    "[yellow]ASSUMED DEFAULT[/yellow]",
+                    af,
+                    "Placeholder default; requires clinical verification",
+                )
+            for xf in dq.missing_fields:
+                dq_table.add_row(
+                    "[bold red]MISSING / UNKNOWN[/bold red]",
+                    xf,
+                    "Missing parameter; enforces fail-closed boundary",
+                )
+            console.print(dq_table)
 
         if plan.immediate_actions:
             act_table = Table(title="IMMEDIATE CLINICAL ACTIONS", expand=True)
@@ -446,17 +495,23 @@ def run(
         if plan.medications:
             med_table = Table(title="MEDICATION ADMINISTRATION INSTRUCTIONS", expand=True)
             med_table.add_column("Medication", style="bold green")
-            med_table.add_column("Dose", style="bold")
-            med_table.add_column("Route")
+            med_table.add_column("Dose & Route", style="bold")
             med_table.add_column("Timing")
+            med_table.add_column("Why Chosen (Protocol Evidence)", style="dim")
             med_table.add_column("Warnings / Contraindications", style="yellow")
             for med in plan.medications:
                 warn_str = ", ".join(med.warnings + med.contraindications) or "None"
+                dose_and_route = f"{med.dose} via {med.route.upper()}"
+                why_text = med.why_chosen or "Formulary protocol intervention"
+                if med.dose_computation_source:
+                    why_text += (
+                        f"\n[dim italic]Dose Source: {med.dose_computation_source}[/dim italic]"
+                    )
                 med_table.add_row(
                     med.medication_name,
-                    med.dose,
-                    med.route,
+                    dose_and_route,
                     med.timing,
+                    why_text,
                     warn_str,
                 )
             console.print(med_table)

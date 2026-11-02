@@ -14,7 +14,7 @@ import {
   Layers,
   Search,
 } from 'lucide-react'
-import type { TriageResponse } from '@/lib/api'
+import type { TriageResponse, ConfidenceReport, DataQualityReport } from '@/lib/api'
 
 interface ExplanationSectionProps {
   triage: TriageResponse
@@ -24,6 +24,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
   const [showTimeline, setShowTimeline] = useState(false)
   const [showNormalizationLedger, setShowNormalizationLedger] = useState(false)
   const [showRetrieverLedger, setShowRetrieverLedger] = useState(false)
+  const [showDataQualityAudit, setShowDataQualityAudit] = useState(false)
 
   const engine = triage.engine
   const explanation = triage.explanation
@@ -31,6 +32,8 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
   const patient = triage.patient
   const inputPatient = (triage as { input_patient?: typeof patient }).input_patient || patient
   const executionTrace = (triage as { execution_trace?: Array<{ node: string; status: string; duration_ms: number; details?: Record<string, unknown> }> }).execution_trace || []
+  const confidence: ConfidenceReport | undefined = (triage.confidence || triage.action_plan?.confidence) ?? undefined
+  const dataQuality: DataQualityReport | undefined = (triage.data_quality || confidence?.data_quality) ?? undefined
 
   const getVerdictStyles = () => {
     switch (verdict) {
@@ -151,9 +154,29 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
               {vStyles.icon}
             </div>
             <div>
-              <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold tracking-wider ${vStyles.badgeBg} shadow-sm mb-1`}>
-                {vStyles.badgeText}
-              </span>
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold tracking-wider ${vStyles.badgeBg} shadow-sm`}>
+                  {vStyles.badgeText}
+                </span>
+                {confidence && (
+                  <span
+                    className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold tracking-wider shadow-sm ${
+                      confidence.level === 'HIGH'
+                        ? 'bg-emerald-600 text-white'
+                        : confidence.level === 'MEDIUM'
+                          ? 'bg-amber-600 text-white'
+                          : 'bg-rose-600 text-white'
+                    }`}
+                  >
+                    {confidence.level} CONFIDENCE
+                  </span>
+                )}
+                {dataQuality && (
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-white/80 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                    Data Quality: {dataQuality.measured_count} Measured &bull; {dataQuality.assumed_count} Assumed &bull; {dataQuality.missing_count} Missing ({Number(dataQuality.completeness_pct).toFixed(0)}%)
+                  </span>
+                )}
+              </div>
               <h2 className={`text-base sm:text-lg font-bold ${vStyles.titleColor}`}>
                 {explanation?.headline || `Result: ${verdict}`}
               </h2>
@@ -236,6 +259,102 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
             </div>
           )}
 
+          {/* Clinical Rationale & Why Decision */}
+          {Boolean(triage.action_plan.why_decision) && (
+            <div className="mb-4 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/30 p-4 border border-indigo-200/70 dark:border-indigo-800/50 text-xs sm:text-sm text-indigo-950 dark:text-indigo-200 leading-relaxed font-sans shadow-xs">
+              <span className="font-bold text-indigo-900 dark:text-indigo-300 block mb-1 uppercase text-[11px] tracking-wider font-mono">
+                Clinical Safety Rationale
+              </span>
+              {triage.action_plan.why_decision}
+            </div>
+          )}
+
+          {/* Confidence Trust Drivers */}
+          {Boolean(confidence?.reasons?.length) && (
+            <div className="mb-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 p-3.5 border border-slate-200 dark:border-slate-700">
+              <span className="text-[11px] font-bold font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 block mb-1.5">
+                Confidence Trust Drivers ({confidence?.level} &bull; Score: {confidence?.score})
+              </span>
+              <ul className="space-y-1 text-xs text-slate-700 dark:text-slate-300 font-sans">
+                {confidence?.reasons?.map((r, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-indigo-600 dark:text-indigo-400 font-bold font-mono">&bull;</span>
+                    <span>{r}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Protocol Match Summary */}
+          {Boolean(triage.action_plan.protocol_match_summary) && (
+            <div className="mb-4 flex items-center gap-2 p-3 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-xs text-teal-900 dark:text-teal-200 font-sans">
+              <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
+              <span>{triage.action_plan.protocol_match_summary}</span>
+            </div>
+          )}
+
+          {/* Input Data Quality Audit */}
+          {dataQuality && (
+            <div className="mb-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/90 p-4 shadow-xs">
+              <div
+                className="flex items-center justify-between cursor-pointer"
+                onClick={() => setShowDataQualityAudit(!showDataQualityAudit)}
+              >
+                <div className="flex items-center gap-2">
+                  <ListChecks className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  <span className="text-xs font-bold uppercase tracking-wider font-mono text-slate-900 dark:text-white">
+                    Data Quality &bull; {dataQuality.measured_count} Measured &bull; {dataQuality.assumed_count} Assumed &bull; {dataQuality.missing_count} Missing ({Number(dataQuality.completeness_pct).toFixed(0)}% Complete)
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="text-xs text-indigo-600 dark:text-indigo-400 font-mono flex items-center gap-1 hover:underline"
+                >
+                  {showDataQualityAudit ? 'Hide Audit' : 'Show Breakdown'}
+                  {showDataQualityAudit ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+
+              {showDataQualityAudit && (
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-slate-100 dark:border-slate-700 text-xs">
+                  <div className="rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 p-2.5">
+                    <span className="font-bold text-emerald-800 dark:text-emerald-300 font-mono text-[11px] block mb-1">
+                      MEASURED CLINICALLY ({dataQuality.measured_count})
+                    </span>
+                    <ul className="space-y-1 font-mono text-[11px] text-emerald-900 dark:text-emerald-200">
+                      {dataQuality.measured_fields?.map((f, i) => <li key={i}>&bull; {f}</li>)}
+                    </ul>
+                  </div>
+                  <div className="rounded-lg bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-2.5">
+                    <span className="font-bold text-amber-800 dark:text-amber-300 font-mono text-[11px] block mb-1">
+                      ASSUMED DEMO DEFAULTS ({dataQuality.assumed_count})
+                    </span>
+                    <ul className="space-y-1 font-mono text-[11px] text-amber-900 dark:text-amber-200">
+                      {dataQuality.assumed_fields && dataQuality.assumed_fields.length > 0 ? (
+                        dataQuality.assumed_fields.map((f, i) => <li key={i}>&bull; {f}</li>)
+                      ) : (
+                        <li className="italic text-slate-400">None</li>
+                      )}
+                    </ul>
+                  </div>
+                  <div className="rounded-lg bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/50 p-2.5">
+                    <span className="font-bold text-rose-800 dark:text-rose-300 font-mono text-[11px] block mb-1">
+                      MISSING / UNKNOWN ({dataQuality.missing_count})
+                    </span>
+                    <ul className="space-y-1 font-mono text-[11px] text-rose-900 dark:text-rose-200">
+                      {dataQuality.missing_fields && dataQuality.missing_fields.length > 0 ? (
+                        dataQuality.missing_fields.map((f, i) => <li key={i}>&bull; {f}</li>)
+                      ) : (
+                        <li className="italic text-slate-400">None</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Assumptions Pills */}
           {Boolean(triage.action_plan.assumptions?.length) && (
             <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -305,6 +424,8 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
                       <th className="px-3.5 py-2.5">Route</th>
                       <th className="px-3.5 py-2.5">Timing</th>
                       <th className="px-3.5 py-2.5">Indication</th>
+                      <th className="px-3.5 py-2.5">Why Chosen / Derivation</th>
+                      <th className="px-3.5 py-2.5">Excluded Alternatives</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60 font-mono">
@@ -318,6 +439,25 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
                         <td className="px-3.5 py-2.5">{m.timing}</td>
                         <td className="px-3.5 py-2.5 font-sans text-slate-600 dark:text-slate-300 text-[11px]">
                           {m.indication}
+                        </td>
+                        <td className="px-3.5 py-2.5 font-sans text-slate-600 dark:text-slate-300 text-[11px]">
+                          <div>{m.why_chosen || 'Standard protocol first-line agent'}</div>
+                          {m.dose_computation_source && (
+                            <div className="text-[10px] text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
+                              Source: {m.dose_computation_source}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-3.5 py-2.5 font-sans text-slate-500 dark:text-slate-400 text-[11px]">
+                          {m.why_not_alternatives && m.why_not_alternatives.length > 0 ? (
+                            <ul className="list-disc pl-3 space-y-0.5">
+                              {m.why_not_alternatives.map((alt, aidx) => (
+                                <li key={aidx}>{alt}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <span className="italic text-slate-400">None</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -413,7 +553,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
           </div>
 
           {/* Why Other Paths Were Rejected Card */}
-          {Boolean((explanation as { rejected_paths?: string[] })?.rejected_paths?.length) && (
+          {Boolean(((explanation as { rejected_paths?: string[] })?.rejected_paths?.length || triage.action_plan?.rejected_alternatives?.length)) && (
             <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
               <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3 mb-3">
                 <XCircle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
@@ -423,7 +563,10 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
               </div>
 
               <div className="flex flex-col gap-2">
-                {((explanation as { rejected_paths?: string[] }).rejected_paths || []).map((rej, idx) => (
+                {[
+                  ...((explanation as { rejected_paths?: string[] }).rejected_paths || []),
+                  ...(triage.action_plan?.rejected_alternatives || []),
+                ].map((rej, idx) => (
                   <div
                     key={idx}
                     className="flex items-start gap-2 rounded-xl bg-rose-50/50 dark:bg-rose-950/20 p-2.5 text-xs text-slate-700 dark:text-slate-300 border border-rose-100 dark:border-rose-900/40"

@@ -1,6 +1,6 @@
 === TRIAGERAG FAST VERIFICATION RUN RECORD ===
-TIMESTAMP: 2026-11-02T19:20:30.432375+00:00
-GIT_COMMIT: 4835f12a47b8dbac8123df1ee60b8cc6595435a8
+TIMESTAMP: 2026-11-02T19:58:10.063701+00:00
+GIT_COMMIT: d6e50e50f9303f11f69e5c170261cadaa9a3bd40
 PYTHON: 3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]
 PLATFORM: win32
 
@@ -179,7 +179,7 @@ tests/unit/test_rag_wp7_hybrid.py::test_dense_and_hybrid_retrievers_conform_to_p
     r_dense = build_retriever_backend("dense", chunks)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-=========== 530 passed, 1 xfailed, 3 warnings in 150.46s (0:02:30) ============
+=========== 530 passed, 1 xfailed, 3 warnings in 136.30s (0:02:16) ============
 ============================================================
 [OK] FAST VERIFICATION GATES GREEN (Static, Types, Architecture, Data, Unit)
 ============================================================

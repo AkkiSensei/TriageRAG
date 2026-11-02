@@ -23,6 +23,8 @@ export type ActionStep = components['schemas']['ActionStep']
 export type MedicationInstruction = components['schemas']['MedicationInstruction']
 export type MonitoringStep = components['schemas']['MonitoringStep']
 export type EscalationStep = components['schemas']['EscalationStep']
+export type ConfidenceReport = components['schemas']['ConfidenceReport']
+export type DataQualityReport = components['schemas']['DataQualityReport']
 export type { components }
 
 export const queryClient = new QueryClient({

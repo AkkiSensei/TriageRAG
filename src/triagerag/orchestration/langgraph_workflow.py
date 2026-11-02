@@ -573,7 +573,15 @@ def explain_node(state: TriageGraphState) -> dict[str, Any]:
         if orig_patient is not None:
             _, assumption_tags = apply_demo_defaults(orig_patient)
         action_plan = generate_action_plan(final_response, assumption_tags=assumption_tags)
-        final_response = final_response.model_copy(update={"action_plan": action_plan})
+        final_response = final_response.model_copy(
+            update={
+                "action_plan": action_plan,
+                "confidence": action_plan.confidence,
+                "data_quality": action_plan.confidence.data_quality
+                if action_plan.confidence
+                else None,
+            }
+        )
         duration_ms = round((time.perf_counter() - start_time) * 1000, 3)
 
         trace_entry = {

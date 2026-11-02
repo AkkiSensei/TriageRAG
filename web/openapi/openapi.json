@@ -603,6 +603,39 @@
             "type": "string",
             "title": "Decision Summary",
             "default": ""
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfidenceReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "protocol_match_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Protocol Match Summary"
+          },
+          "why_decision": {
+            "type": "string",
+            "title": "Why Decision",
+            "default": ""
+          },
+          "rejected_alternatives": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rejected Alternatives"
           }
         },
         "additionalProperties": false,
@@ -1212,6 +1245,47 @@
         "title": "CalculatedDoseReport",
         "description": "Dose mathematics and formulary limit verification report."
       },
+      "ConfidenceReport": {
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "HIGH",
+              "MEDIUM",
+              "LOW"
+            ],
+            "title": "Level"
+          },
+          "score": {
+            "type": "string",
+            "title": "Score"
+          },
+          "headline": {
+            "type": "string",
+            "title": "Headline"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "data_quality": {
+            "$ref": "#/components/schemas/DataQualityReport"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "level",
+          "score",
+          "headline",
+          "data_quality"
+        ],
+        "title": "ConfidenceReport",
+        "description": "Deterministic, explainable confidence evaluation of the triage decision."
+      },
       "Consciousness": {
         "type": "string",
         "enum": [
@@ -1324,6 +1398,62 @@
           "source_status"
         ],
         "title": "CorpusCitation"
+      },
+      "DataQualityReport": {
+        "properties": {
+          "total_parameters": {
+            "type": "integer",
+            "title": "Total Parameters"
+          },
+          "measured_count": {
+            "type": "integer",
+            "title": "Measured Count"
+          },
+          "assumed_count": {
+            "type": "integer",
+            "title": "Assumed Count"
+          },
+          "missing_count": {
+            "type": "integer",
+            "title": "Missing Count"
+          },
+          "completeness_pct": {
+            "type": "string",
+            "title": "Completeness Pct"
+          },
+          "measured_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Measured Fields"
+          },
+          "assumed_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumed Fields"
+          },
+          "missing_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Fields"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "total_parameters",
+          "measured_count",
+          "assumed_count",
+          "missing_count",
+          "completeness_pct"
+        ],
+        "title": "DataQualityReport",
+        "description": "Deterministic assessment of clinical input data completeness and provenance."
       },
       "DoseUnit": {
         "type": "string",
@@ -2156,6 +2286,35 @@
               }
             ],
             "title": "Source Protocol"
+          },
+          "why_chosen": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Why Chosen"
+          },
+          "why_not_alternatives": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Why Not Alternatives"
+          },
+          "dose_computation_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Computation Source"
           }
         },
         "additionalProperties": false,
@@ -3728,6 +3887,26 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/ActionPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConfidenceReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "data_quality": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DataQualityReport"
               },
               {
                 "type": "null"

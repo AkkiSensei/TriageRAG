@@ -121,6 +121,16 @@ export interface components {
        * @default
        */
       decision_summary?: string;
+      confidence?: components["schemas"]["ConfidenceReport"] | null;
+      /** Protocol Match Summary */
+      protocol_match_summary?: string | null;
+      /**
+       * Why Decision
+       * @default
+       */
+      why_decision?: string;
+      /** Rejected Alternatives */
+      rejected_alternatives?: string[];
     };
     /**
      * ActionStep
@@ -385,6 +395,24 @@ export interface components {
       step_number?: number | null;
     };
     /**
+     * ConfidenceReport
+     * @description Deterministic, explainable confidence evaluation of the triage decision.
+     */
+    ConfidenceReport: {
+      /**
+       * Level
+       * @enum {string}
+       */
+      level: "HIGH" | "MEDIUM" | "LOW";
+      /** Score */
+      score: string;
+      /** Headline */
+      headline: string;
+      /** Reasons */
+      reasons?: string[];
+      data_quality: components["schemas"]["DataQualityReport"];
+    };
+    /**
      * Consciousness
      * @description AVPU+C scale: A (Alert), C (New Confusion), V (Voice), P (Pain), U (Unresponsive).
      *
@@ -441,6 +469,28 @@ export interface components {
       exact_quote: string;
       /** Source Status */
       source_status: string;
+    };
+    /**
+     * DataQualityReport
+     * @description Deterministic assessment of clinical input data completeness and provenance.
+     */
+    DataQualityReport: {
+      /** Total Parameters */
+      total_parameters: number;
+      /** Measured Count */
+      measured_count: number;
+      /** Assumed Count */
+      assumed_count: number;
+      /** Missing Count */
+      missing_count: number;
+      /** Completeness Pct */
+      completeness_pct: string;
+      /** Measured Fields */
+      measured_fields?: string[];
+      /** Assumed Fields */
+      assumed_fields?: string[];
+      /** Missing Fields */
+      missing_fields?: string[];
     };
     /**
      * DoseUnit
@@ -798,6 +848,12 @@ export interface components {
       warnings?: string[];
       /** Source Protocol */
       source_protocol?: string | null;
+      /** Why Chosen */
+      why_chosen?: string | null;
+      /** Why Not Alternatives */
+      why_not_alternatives?: string[];
+      /** Dose Computation Source */
+      dose_computation_source?: string | null;
     };
     /**
      * MonitoringStep
@@ -1452,6 +1508,8 @@ export interface components {
           [key: string]: unknown;
         }[];
       action_plan?: components["schemas"]["ActionPlan"] | null;
+      confidence?: components["schemas"]["ConfidenceReport"] | null;
+      data_quality?: components["schemas"]["DataQualityReport"] | null;
     };
     /**
      * TrustMode
