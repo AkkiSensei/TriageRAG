@@ -4,8 +4,12 @@
 
 ## Current State
 
-- **Current Status:** AUB Phase 7 (**Research Extensions, Showcase, and Forensic Closure**) completed on `main`. All tasks T7.1 through T7.7 implemented, verified, tested, and documented with ADR-0016 and updated status ledger (`docs/AUB_STATUS.md`).
+- **Current Status:** **LangGraph Deterministic Workflow Orchestration (ADR 0017)** implemented and verified on `main`. LangGraph (`langgraph>=0.2.0`) is the production workflow orchestration framework powering the primary request path (`/api/triage`, `orchestrator.py`), maintaining 100% equivalence with the established clinical ruleset, zero external neural calls, and sub-millisecond overhead.
 - **Target Milestones Completed:**
+  - **LangGraph Integration (ADR 0017):** Built `src/triagerag/orchestration/langgraph_workflow.py` with strongly-typed `TriageGraphState` (TypedDict) and 11 distinct processing nodes.
+  - **Explicit Conditional Routing:** Built `route_after_retrieve` (fail-closed protocol abstention under Rule R2) and `route_after_verify` (Rule R11 non-overridable BLOCK seal, Rule R2 UNVERIFIED seal, and verified authorization seal).
+  - **FastAPI Integration:** Primary endpoint `POST /api/triage` routes directly through `run_triage_graph(...)`. Added runtime introspection endpoint `GET /api/triage/workflow`.
+  - **Testing & Equivalence:** 21 dedicated unit, routing, concurrency, determinism, and equivalence tests in `tests/unit/test_langgraph_orchestration.py`. Full test suite clean: 534 passed, 1 xfailed (HD-6).
   - **Phase 0–6 Forensic Reconciliation:** Reconciled candidate rule counts (40 authored + 9 mined = 49 total candidate rules in `data/rules_candidates/`), verified that 86 golden test scenarios govern the 12 active shipped rules, clarified 3.0 mL IM volume threshold with status `NEEDS_SOURCE`, added dedicated isolation tests for `CoAdministrationRule`, synchronized documentation metrics via `tools/gen_docs_metrics.py`.
   - **T7.1 — Controlled Query Expansion:** Implemented `data/retrieval/expansion_terms.yaml` and `src/triagerag/rag/query_expansion.py` (`QueryExpansionResult`, `build_expanded_query`, fail-closed refusal to expand unknown predicates, inspectable `expansion_trace` and `expansion_mode` in `RetrievalReport`).
   - **T7.2 — Local Neural Embedding & Cross-Encoder Interface:** Implemented `src/triagerag/rag/neural_interface.py` defining `EmbeddingModel`, `CrossEncoderModel`, `NeuralDenseRetriever`, and `NeuralCrossEncoderReranker`. Enforced Human Decision Gate **HD-10** (unapproved models raise `NeuralModelApprovalError` and remain `BLOCKED_EXTERNAL`).

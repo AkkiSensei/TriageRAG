@@ -255,6 +255,48 @@ The system processes each assessment deterministically through sixteen formal st
 15. **SHA-256 Audit Seal:** All inputs, rules evaluated, overrides, and verdicts are committed to the cryptographic hash chain.
 16. **Bedside Report Presentation:** The clinical report displays the qualified safety verdict, physiological score, alert hierarchy, verified steps, and audit seal.
 
+### 🕸️ Workflow Orchestration with LangGraph (ADR 0017)
+
+TriageRAG formally orchestrates this multi-stage pipeline using **LangGraph** (`CompiledStateGraph`). Each stage executes on an isolated `TriageGraphState` dictionary, and deterministic conditional routing edges enforce clinical safety policies at runtime:
+
+```mermaid
+graph TD;
+	__start__([__start__]):::first
+	normalise(normalise)
+	intake_safety_checks(intake_safety_checks)
+	retrieve(retrieve)
+	draft_plan(draft_plan)
+	abstain_fallback(abstain_fallback)
+	verify(verify)
+	block_seal(block_seal)
+	unverified_seal(unverified_seal)
+	verified_seal(verified_seal)
+	audit(audit)
+	explain(explain)
+	__end__([__end__]):::last
+
+	__start__ --> normalise;
+	normalise --> intake_safety_checks;
+	intake_safety_checks --> retrieve;
+	retrieve -.-> draft_plan;
+	retrieve -.-> abstain_fallback;
+	draft_plan --> verify;
+	abstain_fallback --> verify;
+	verify -.-> block_seal;
+	verify -.-> unverified_seal;
+	verify -.-> verified_seal;
+	block_seal --> audit;
+	unverified_seal --> audit;
+	verified_seal --> audit;
+	audit --> explain;
+	explain --> __end__;
+```
+
+- **Fail-Closed Retrieval Abstention (`route_after_retrieve`):** If candidate chunk confidence or clinical predicates fail, execution branches directly to `abstain_fallback` (`llm_fallback_mode=True`), safely bypassing plan generation.
+- **Inviolable BLOCK Interlock (`route_after_verify`):** When contraindications fire (e.g. Sildenafil + Nitrate DDI), execution branches to `block_seal`. Overrides are structurally forbidden under Rule R11.
+- **Fail-Closed UNVERIFIED Boundary:** Incomplete vitals or unconfirmed history branch to `unverified_seal` (Rule R2).
+- **Runtime Observability:** Live workflow graph metadata, node inventory, and Mermaid definitions are exposed via `GET /api/triage/workflow`.
+
 ---
 
 <a id="user-experience"></a>
@@ -298,6 +340,7 @@ Searchable reference catalog of all active clinical rules, drug-drug interaction
 | Layer | Technology | Version | Purpose in TriageRAG |
 | :--- | :--- | :--- | :--- |
 | **Backend Runtime** | Python | `>=3.11` | Core engine, pure functional evaluation, exact decimal math |
+| **Workflow Orchestration** | LangGraph | `>=0.2.0` | Deterministic StateGraph orchestration, fail-closed conditional routing, auditable trace (ADR 0017) |
 | **API Gateway** | FastAPI | `>=0.110.0` | High-performance asynchronous REST endpoints, OpenAPI auto-spec |
 | **Schema Validation** | Pydantic | `>=2.7.0` | Rigid runtime contract enforcement and tri-state data modeling |
 | **Data Serialization**| PyYAML | `>=6.0` | Structured loading of rules, formulary limits, and scoring tables |

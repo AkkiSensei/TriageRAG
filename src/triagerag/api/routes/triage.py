@@ -96,6 +96,21 @@ def execute_triage(request: TriageApiRequest) -> TriageResponse:
     return response
 
 
+@router.get("/workflow")
+def get_workflow_graph_metadata() -> dict[str, Any]:
+    """Return LangGraph workflow structure, node inventory, and Mermaid definition."""
+    from triagerag.orchestration.langgraph_workflow import get_compiled_triage_graph
+
+    graph = get_compiled_triage_graph()
+    mermaid_code = graph.get_graph().draw_mermaid()
+    return {
+        "framework": "LangGraph",
+        "compiled": True,
+        "nodes": list(graph.get_graph().nodes.keys()),
+        "mermaid": mermaid_code,
+    }
+
+
 @router.post("/explain")
 def explain_triage_retrieval(request: ExplainApiRequest) -> dict[str, Any]:
     """Return full Retrieval Inspector diagnostic trace for a patient presentation."""

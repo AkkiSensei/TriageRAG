@@ -82,6 +82,8 @@ __all__ = [
     "build_triage_explanation",
     "compute_patient_hash",
     "run_triage",
+    "run_triage_legacy",
+    "run_triage_linear",
     "stage_audit",
     "stage_draft",
     "stage_explain",
@@ -1190,7 +1192,7 @@ def _resolve_run_context(
     return cfg, active_clock, prov_meta
 
 
-def run_triage(
+def run_triage_linear(
     patient: Patient,
     *,
     registry: ClinicalRegistry,
@@ -1201,7 +1203,9 @@ def run_triage(
     clock: Clock | None = None,
     provider_info: ProviderMetadata | None = None,
 ) -> TriageResponse:
-    """Execute complete emergency triage decision support pipeline across 7 typed stages.
+    """Execute reference linear emergency triage decision support pipeline across 7 typed stages.
+
+    Used as the reference implementation for equivalence verification with the LangGraph orchestrator.
 
     Stages:
     1. stage_normalise: Patient validation, normalization, and EWS scoring.
@@ -1303,3 +1307,37 @@ def run_triage(
         provider_info=prov_meta,
         explanation=stg7.explanation,
     )
+
+
+run_triage_legacy = run_triage_linear
+
+
+def run_triage(
+    patient: Patient,
+    *,
+    registry: ClinicalRegistry,
+    llm: LLMProvider | None = None,
+    index: Retriever | None = None,
+    overrides: list[OverrideRecord] | None = None,
+    config: OrchestratorConfig | dict[str, Any] | None = None,
+    clock: Clock | None = None,
+    provider_info: ProviderMetadata | None = None,
+) -> TriageResponse:
+    """Execute complete emergency triage decision support pipeline via the LangGraph StateGraph (ADR 0017).
+
+    Integrates LangGraph as the core orchestration framework while preserving 100% mathematical
+    and clinical decision equivalence with the reference pipeline.
+    """
+    from triagerag.orchestration.langgraph_workflow import run_triage_graph
+
+    response, _trace = run_triage_graph(
+        patient=patient,
+        registry=registry,
+        llm=llm,
+        index=index,
+        overrides=overrides,
+        config=config,
+        clock=clock,
+        provider_info=provider_info,
+    )
+    return response

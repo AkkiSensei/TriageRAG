@@ -19,6 +19,7 @@ dependencies = [
     "typer>=0.12.0",
     "rich>=13.7.0",
     "streamlit>=1.35.0",
+    "langgraph>=0.2.0",
 ]
 
 [project.optional-dependencies]
@@ -29,6 +30,7 @@ core = [
     "rapidfuzz>=3.8.0",
     "typer>=0.12.0",
     "rich>=13.7.0",
+    "langgraph>=0.2.0",
 ]
 rag = []
 ui = [
@@ -45,6 +47,7 @@ dev = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.29.0",
     "httpx>=0.27.0",
+    "langgraph>=0.2.0",
 ]
 api = [
     "fastapi>=0.110.0",
@@ -119,6 +122,7 @@ forbidden_modules = [
     "triagerag.verify",
     "triagerag.audit",
     "triagerag.orchestrator",
+    "triagerag.orchestration",
     "triagerag.ui",
     "triagerag.cli",
     "triagerag.api",
@@ -128,6 +132,7 @@ forbidden_modules = [
     "anthropic",
     "google",
     "langchain",
+    "langgraph",
     "llama_index",
     "chromadb",
     "sentence_transformers",
@@ -140,7 +145,7 @@ name = "Layered architecture"
 type = "layers"
 layers = [
     "triagerag.ui | triagerag.cli | triagerag.api",
-    "triagerag.orchestrator",
+    "triagerag.orchestrator | triagerag.orchestration",
     "triagerag.verify | triagerag.audit",
     "triagerag.llm | triagerag.rag",
     "triagerag.engine",

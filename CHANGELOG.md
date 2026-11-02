@@ -5,6 +5,26 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - LangGraph Deterministic Workflow Orchestration (ADR 0017)
+
+### Added & Orchestrated
+- **LangGraph StateGraph Integration:**
+  - Integrated `langgraph>=0.2.0` (`langgraph==1.2.19`) into `pyproject.toml` and verified strict layer isolation via `import-linter`.
+  - Built `src/triagerag/orchestration/langgraph_workflow.py` with strongly-typed `TriageGraphState` (TypedDict) preserving domain contracts.
+  - Decomposed workflow into 11 distinct processing nodes: `normalise`, `intake_safety_checks`, `retrieve`, `draft_plan`, `abstain_fallback`, `verify`, `block_seal`, `unverified_seal`, `verified_seal`, `audit`, and `explain`.
+- **Explicit Conditional Routing:**
+  - Implemented `route_after_retrieve` for fail-closed protocol abstention under Rule R2 (`draft_plan` vs `abstain_fallback`).
+  - Implemented `route_after_verify` for verdict lattice disposition: `block_seal` (Rule R11 non-overridable BLOCK), `unverified_seal` (Rule R2 fail-closed UNVERIFIED), and `verified_seal` (`CHECKED_CLEAR` / `CHECKED_ALERTS`).
+- **FastAPI Real Application Integration:**
+  - Updated `run_triage(...)` in `src/triagerag/orchestrator.py` to route all primary triage execution through `run_triage_graph(...)`.
+  - Preserved `run_triage_linear` and `run_triage_legacy` as reference baselines.
+  - Added introspection endpoint `GET /api/triage/workflow` returning node inventories and live Mermaid diagram syntax.
+- **Verification, Testing & Documentation:**
+  - Added dedicated test suite `tests/unit/test_langgraph_orchestration.py` (21 tests covering graph compilation, individual nodes, conditional routing, end-to-end paths, 100% equivalence, FastAPI integration, thread concurrency, and determinism).
+  - Exported live Mermaid diagram `docs/architecture/triagerag_langgraph_workflow.mmd`.
+  - Authored ADR 0017 (`docs/adr/0017-langgraph-deterministic-workflow-orchestration.md`).
+  - Created full engineering audit report `docs/final_audit/LANGGRAPH_INTEGRATION_REPORT.md`.
+
 ## [Unreleased] - AUB Phase 7: Research Extensions, Showcase, and Forensic Closure
 
 ### Added & Hardened
