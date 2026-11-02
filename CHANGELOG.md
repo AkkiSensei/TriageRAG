@@ -5,7 +5,36 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - Evidence-First Decision Ledger & Stage Trace Presentation
+## [Unreleased] - Deterministic Clinical Action Planning & Demo Vital Policy (v0.5.0)
+
+### Added & Hardened
+- **Deterministic Action Planning Layer (`src/triagerag/contracts/schemas.py`, `src/triagerag/action_plan.py`):**
+  - Added strongly-typed Pydantic schemas: `ActionPlan`, `ActionStep`, `MedicationInstruction`, `MonitoringStep`, and `EscalationStep` (`extra="forbid"` enforced).
+  - Implemented pure deterministic `generate_action_plan()`:
+    - Derives immediate steps (STOP on BLOCK, Escalate on UNVERIFIED, Caution on HIGH alerts, Proceed on CLEAR).
+    - Inhibits all medications when the plan is in a BLOCKED or UNVERIFIED state (Rule R11, R2).
+    - Converts verified approved plan steps to structured medication instructions with dose, route, timing, warnings, and contraindication cross-references.
+    - Generates score-band-driven monitoring protocols and critical escalation routes without LLM hallucinations (Rule R1).
+    - Computes plain-language 2-line `decision_summary`.
+  - Added `action_plan: ActionPlan | None = Field(default=None)` to `TriageResponse`.
+- **Conservative Demo Vital Policy (`src/triagerag/defaults.py`):**
+  - Added `apply_demo_defaults()` providing conservative placeholder defaults by age group (`adult`, `paediatric`, `neonate`) for demo mode.
+  - Strictly preserves clinical fail-closed boundary (Rule R2): defaults carry `source="estimated"`, never override measured values, and never auto-fill neurological/GCS consciousness.
+  - Automatically tags all assumed defaults with `[ASSUMED DEMO DEFAULT] {vital}: {val} (not measured)` in `action_plan.assumptions`.
+- **Workflow & Orchestrator Integration (`src/triagerag/orchestration/langgraph_workflow.py`, `src/triagerag/orchestrator.py`):**
+  - Embedded `action_plan` generation and demo assumption extraction in `explain_node`, `run_triage_graph()`, and `run_triage_linear()`.
+  - Maintained architectural decomposition constraint (no function > 120 lines).
+- **CLI & Web User Experience (`src/triagerag/cli.py`, `web/src/features/results/ExplanationSection.tsx`):**
+  - Added Rich formatted output panels for the Action Plan summary, Immediate Clinical Actions, Medication Administration Instructions, Monitoring & Escalation Protocol, and Assumed Demo Defaults.
+  - Added dedicated "Deterministic Attendant Workflow / Step-by-Step Clinical Action Plan" card in frontend `ExplanationSection.tsx`.
+  - Exported updated OpenAPI specification and regenerated TypeScript types (`npm run codegen`).
+- **Test Suite & CI Hardening:**
+  - Added unit test suite `tests/unit/test_defaults.py` verifying demo defaults, non-override of measured values, and GCS protection.
+  - Added unit test suite `tests/unit/test_action_plan.py` verifying immediate actions, blocked medication inhibition, and monitoring schedules across all lattice states.
+  - Fixed integration test `tests/integration/test_api_contract.py` scenario count assertion for the 5-case reference set (`{"BLOCK", "UNVERIFIED", "HIGH", "CLEAN", "ABSTAIN"}`).
+  - Added frontend test in `ExplanationSection.test.tsx` verifying Action Plan rendering.
+
+## [0.4.1] - Evidence-First Decision Ledger & Stage Trace Presentation
 
 ### Added & Hardened
 - **Canonical Decision Ledger & Primary Explainability (`src/triagerag/orchestrator.py`, `web/src/features/results/ExplanationSection.tsx`, `web/src/features/results/ResultsPane.tsx`):**

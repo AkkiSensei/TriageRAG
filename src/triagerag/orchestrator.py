@@ -1257,19 +1257,7 @@ def run_triage_linear(
     clock: Clock | None = None,
     provider_info: ProviderMetadata | None = None,
 ) -> TriageResponse:
-    """Execute reference linear emergency triage decision support pipeline across 7 typed stages.
-
-    Used as the reference implementation for equivalence verification with the LangGraph orchestrator.
-
-    Stages:
-    1. stage_normalise: Patient validation, normalization, and EWS scoring.
-    2. stage_intake_checks: Pass 1 deterministic intake, allergy, DDI, and formulary filters.
-    3. stage_retrieve: Protocol candidate chunk retrieval and calibrated abstention.
-    4. stage_draft: Fault-isolated LLM plan drafting and fallback coordination.
-    5. stage_verify: Pass 2 verification, plan repair loop, overrides, and verdict lattice.
-    6. stage_audit: Cryptographic tamper-evident audit chain logging.
-    7. stage_explain: Engine report compilation and user-facing explanation.
-    """
+    """Execute reference linear emergency triage decision support pipeline across 7 typed stages."""
     cfg, active_clock, prov_meta = _resolve_run_context(config, clock, llm, provider_info)
     overrides_list = overrides or []
 
@@ -1351,7 +1339,7 @@ def run_triage_linear(
         config=cfg,
     )
 
-    return TriageResponse(
+    linear_resp = TriageResponse(
         engine=stg7.engine_report,
         verified_steps=stg5.verified_steps,
         retrieval=stg3.retrieval_report,
@@ -1364,6 +1352,11 @@ def run_triage_linear(
         input_patient=patient,
         execution_trace=[],
     )
+    from triagerag.action_plan import generate_action_plan
+    from triagerag.defaults import apply_demo_defaults
+
+    _, tags = apply_demo_defaults(patient)
+    return linear_resp.model_copy(update={"action_plan": generate_action_plan(linear_resp, tags)})
 
 
 run_triage_legacy = run_triage_linear
@@ -1397,4 +1390,17 @@ def run_triage(
         clock=clock,
         provider_info=provider_info,
     )
-    return response.model_copy(update={"execution_trace": _trace, "input_patient": patient})
+    from triagerag.action_plan import generate_action_plan
+    from triagerag.defaults import apply_demo_defaults
+
+    _, assumption_tags = apply_demo_defaults(patient)
+    action_plan = response.action_plan or generate_action_plan(
+        response, assumption_tags=assumption_tags
+    )
+    return response.model_copy(
+        update={
+            "execution_trace": _trace,
+            "input_patient": patient,
+            "action_plan": action_plan,
+        }
+    )

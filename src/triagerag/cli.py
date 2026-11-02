@@ -408,6 +408,81 @@ def run(
             )
         )
 
+    # 6. Deterministic Action Plan (attendant clinical workflow)
+    if response.action_plan:
+        plan = response.action_plan
+        summary_text = f"[bold]{plan.decision_summary}[/bold]"
+        if plan.assumptions:
+            assump_lines = "\n".join(f" - [yellow]{a}[/yellow]" for a in plan.assumptions)
+            summary_text += f"\n\n[bold]Demo Assumptions / Defaults:[/bold]\n{assump_lines}"
+        console.print(
+            Panel(
+                summary_text,
+                title="DETERMINISTIC CLINICAL ACTION PLAN SUMMARY",
+                border_style="magenta",
+            )
+        )
+
+        if plan.immediate_actions:
+            act_table = Table(title="IMMEDIATE CLINICAL ACTIONS", expand=True)
+            act_table.add_column("Urgency", style="bold")
+            act_table.add_column("Action Title", style="bold")
+            act_table.add_column("Description")
+            act_table.add_column("Clinical Rationale", style="dim")
+            for action_item in plan.immediate_actions:
+                u_color = (
+                    "red"
+                    if action_item.urgency == "immediate"
+                    else ("yellow" if action_item.urgency == "urgent" else "green")
+                )
+                act_table.add_row(
+                    f"[{u_color}]{action_item.urgency.upper()}[/{u_color}]",
+                    action_item.title,
+                    action_item.description,
+                    action_item.reason,
+                )
+            console.print(act_table)
+
+        if plan.medications:
+            med_table = Table(title="MEDICATION ADMINISTRATION INSTRUCTIONS", expand=True)
+            med_table.add_column("Medication", style="bold green")
+            med_table.add_column("Dose", style="bold")
+            med_table.add_column("Route")
+            med_table.add_column("Timing")
+            med_table.add_column("Warnings / Contraindications", style="yellow")
+            for med in plan.medications:
+                warn_str = ", ".join(med.warnings + med.contraindications) or "None"
+                med_table.add_row(
+                    med.medication_name,
+                    med.dose,
+                    med.route,
+                    med.timing,
+                    warn_str,
+                )
+            console.print(med_table)
+
+        if plan.monitoring_steps or plan.escalation_steps:
+            obs_table = Table(title="MONITORING & ESCALATION PROTOCOL", expand=True)
+            obs_table.add_column("Type", style="bold")
+            obs_table.add_column("Parameter / Trigger", style="bold")
+            obs_table.add_column("Frequency / Target")
+            obs_table.add_column("Clinical Rationale", style="dim")
+            for mon_step in plan.monitoring_steps:
+                obs_table.add_row(
+                    "MONITOR",
+                    mon_step.monitor,
+                    f"Freq: {mon_step.frequency} ({mon_step.trigger})",
+                    mon_step.reason,
+                )
+            for esc_step in plan.escalation_steps:
+                obs_table.add_row(
+                    "[bold red]ESCALATE[/bold red]",
+                    esc_step.when,
+                    f"To: {esc_step.escalate_to}",
+                    esc_step.reason,
+                )
+            console.print(obs_table)
+
     console.print(f"[dim]Audit Record Hash: {response.audit_hash}[/dim]")
 
 

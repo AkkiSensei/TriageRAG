@@ -325,3 +325,37 @@ def test_triage_response_carries_input_patient_and_execution_trace() -> None:
     assert response.input_patient is not None
     assert response.patient is not None
     assert response.input_patient.age.value == patient.age.value
+
+    # 3. Action plan is populated
+    assert response.action_plan is not None
+    assert len(response.action_plan.immediate_actions) > 0
+
+
+def test_action_plan_populated_for_all_canonical_scenarios() -> None:
+    """All 5 canonical scenarios produce populated, deterministic ActionPlan objects."""
+    from triagerag.config import get_data_dir
+    from triagerag.contracts.scenarios import get_preloaded_scenario
+    from triagerag.engine.registry import ClinicalRegistry
+    from triagerag.llm.fake import FakeLLM, FakeLLMProfile
+    from triagerag.orchestrator import run_triage
+    from triagerag.rag.service import RetrievalService
+
+    data_dir = get_data_dir()
+    registry = ClinicalRegistry.load_from_directory(data_dir)
+    service = RetrievalService.create_default(data_dir)
+
+    for scenario_id in ["BLOCK", "UNVERIFIED", "HIGH", "CLEAN", "ABSTAIN"]:
+        patient, overrides = get_preloaded_scenario(scenario_id)
+        response = run_triage(
+            patient=patient,
+            registry=registry,
+            llm=FakeLLM(FakeLLMProfile.COMPLIANT),
+            index=service.index,
+            overrides=overrides,
+        )
+        assert response.action_plan is not None
+        assert isinstance(response.action_plan.decision_summary, str)
+        assert len(response.action_plan.decision_summary) > 0
+        assert len(response.action_plan.monitoring_steps) > 0
+        assert isinstance(response.action_plan.immediate_actions, list)
+        assert len(response.action_plan.immediate_actions) > 0

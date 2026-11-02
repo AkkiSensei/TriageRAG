@@ -98,6 +98,51 @@ export interface components {
      */
     AbstainCode: "NONE" | "NO_POPULATION_COVERAGE" | "NO_RESULTS" | "UNKNOWN_SYNDROME" | "LOW_CONFIDENCE" | "AMBIGUOUS_MARGIN" | "EMPTY_QUERY" | "INDEX_UNAVAILABLE" | "SYNDROME_INFERRED";
     /**
+     * ActionPlan
+     * @description Deterministic, human-readable action plan generated from the engine report.
+     */
+    ActionPlan: {
+      /** Immediate Actions */
+      immediate_actions?: components["schemas"]["ActionStep"][];
+      /** Medications */
+      medications?: components["schemas"]["MedicationInstruction"][];
+      /** Monitoring Steps */
+      monitoring_steps?: components["schemas"]["MonitoringStep"][];
+      /** Escalation Steps */
+      escalation_steps?: components["schemas"]["EscalationStep"][];
+      /** Assumptions */
+      assumptions?: string[];
+      /** Rule Hits */
+      rule_hits?: string[];
+      /** Missing Data */
+      missing_data?: string[];
+      /**
+       * Decision Summary
+       * @default
+       */
+      decision_summary?: string;
+    };
+    /**
+     * ActionStep
+     * @description A single deterministic immediate-action step in the triage action plan.
+     */
+    ActionStep: {
+      /** Title */
+      title: string;
+      /** Description */
+      description: string;
+      /** Reason */
+      reason: string;
+      /** Rule Id */
+      rule_id?: string | null;
+      /**
+       * Urgency
+       * @default urgent
+       * @enum {string}
+       */
+      urgency?: "immediate" | "urgent" | "routine";
+    };
+    /**
      * ActionType
      * @description Action category of a clinical plan step.
      * @enum {string}
@@ -480,6 +525,18 @@ export interface components {
        */
       verified_rules_summary?: string;
     };
+    /**
+     * EscalationStep
+     * @description An escalation instruction triggered by verdict or critical alerts.
+     */
+    EscalationStep: {
+      /** When */
+      when: string;
+      /** Escalate To */
+      escalate_to: string;
+      /** Reason */
+      reason: string;
+    };
     /** EvalSummaryResponse */
     EvalSummaryResponse: {
       /** Golden */
@@ -719,6 +776,42 @@ export interface components {
        * @default false
        */
       resolved?: boolean;
+    };
+    /**
+     * MedicationInstruction
+     * @description A deterministic medication instruction derived from verified plan steps.
+     */
+    MedicationInstruction: {
+      /** Medication Name */
+      medication_name: string;
+      /** Dose */
+      dose: string;
+      /** Route */
+      route: string;
+      /** Timing */
+      timing: string;
+      /** Indication */
+      indication: string;
+      /** Contraindications */
+      contraindications?: string[];
+      /** Warnings */
+      warnings?: string[];
+      /** Source Protocol */
+      source_protocol?: string | null;
+    };
+    /**
+     * MonitoringStep
+     * @description A monitoring instruction linked to score band or alert severity.
+     */
+    MonitoringStep: {
+      /** Monitor */
+      monitor: string;
+      /** Frequency */
+      frequency: string;
+      /** Trigger */
+      trigger: string;
+      /** Reason */
+      reason: string;
     };
     /**
      * OverrideRecord
@@ -1358,6 +1451,7 @@ export interface components {
       execution_trace?: {
           [key: string]: unknown;
         }[];
+      action_plan?: components["schemas"]["ActionPlan"] | null;
     };
     /**
      * TrustMode

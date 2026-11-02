@@ -204,6 +204,183 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
         )}
       </div>
 
+      {/* 1.5. CLINICAL ACTION PLAN & ATTENDANT WORKFLOW */}
+      {triage.action_plan && (
+        <div className="rounded-2xl border border-indigo-200 dark:border-indigo-800/60 bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/50 dark:from-slate-900 dark:via-slate-850 dark:to-indigo-950/30 p-6 shadow-soft">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-100 dark:border-indigo-900/50 pb-4 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm">
+                <ListChecks className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-indigo-100 text-indigo-800 dark:bg-indigo-900/80 dark:text-indigo-200 mb-1">
+                  Deterministic Attendant Workflow
+                </span>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  Step-by-Step Clinical Action Plan
+                </h3>
+              </div>
+            </div>
+            <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+              Derived from Rule Engine &bull; Zero LLM Hallucination
+            </span>
+          </div>
+
+          {/* Decision Summary */}
+          {Boolean(triage.action_plan.decision_summary) && (
+            <div className="mb-4 rounded-xl bg-white/90 dark:bg-slate-800/90 p-4 border border-indigo-100 dark:border-indigo-900/40 text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-sans shadow-xs">
+              <span className="font-bold text-indigo-900 dark:text-indigo-300 block mb-1 uppercase text-[11px] tracking-wider font-mono">
+                Clinical Decision Summary
+              </span>
+              {triage.action_plan.decision_summary}
+            </div>
+          )}
+
+          {/* Assumptions Pills */}
+          {Boolean(triage.action_plan.assumptions?.length) && (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-mono font-bold text-amber-800 dark:text-amber-300">
+                Assumed Demo Defaults:
+              </span>
+              {triage.action_plan.assumptions?.map((assump, idx) => (
+                <span
+                  key={idx}
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-mono bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/70 text-amber-900 dark:text-amber-200"
+                >
+                  {assump}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Immediate Actions */}
+          {Boolean(triage.action_plan.immediate_actions?.length) && (
+            <div className="mb-4">
+              <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                Immediate Actions
+              </h4>
+              <div className="flex flex-col gap-2">
+                {triage.action_plan.immediate_actions?.map((act, idx) => {
+                  const uColor = act.urgency === 'immediate'
+                    ? 'border-rose-300 bg-rose-50/80 text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200'
+                    : (act.urgency === 'urgent'
+                      ? 'border-amber-300 bg-amber-50/80 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200'
+                      : 'border-emerald-300 bg-emerald-50/80 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200')
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl border text-xs ${uColor}`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase shrink-0 mt-0.5 bg-black/10 dark:bg-white/10">
+                          {act.urgency}
+                        </span>
+                        <div>
+                          <span className="font-bold block text-xs sm:text-sm">{act.title}</span>
+                          <span className="opacity-90">{act.description}</span>
+                        </div>
+                      </div>
+                      <span className="text-[11px] font-mono opacity-80 shrink-0 italic sm:text-right">
+                        {act.reason}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Medications Instructions */}
+          {Boolean(triage.action_plan.medications?.length) && (
+            <div className="mb-4">
+              <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                Medication Administration Instructions
+              </h4>
+              <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                <table className="w-full text-left text-xs font-sans">
+                  <thead className="bg-slate-50 dark:bg-slate-900/60 font-mono text-[11px] text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                    <tr>
+                      <th className="px-3.5 py-2.5">Medication</th>
+                      <th className="px-3.5 py-2.5">Dose</th>
+                      <th className="px-3.5 py-2.5">Route</th>
+                      <th className="px-3.5 py-2.5">Timing</th>
+                      <th className="px-3.5 py-2.5">Indication</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60 font-mono">
+                    {triage.action_plan.medications?.map((m, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20">
+                        <td className="px-3.5 py-2.5 font-bold text-teal-700 dark:text-teal-400">
+                          {m.medication_name}
+                        </td>
+                        <td className="px-3.5 py-2.5 font-bold">{m.dose}</td>
+                        <td className="px-3.5 py-2.5 uppercase">{m.route}</td>
+                        <td className="px-3.5 py-2.5">{m.timing}</td>
+                        <td className="px-3.5 py-2.5 font-sans text-slate-600 dark:text-slate-300 text-[11px]">
+                          {m.indication}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Monitoring & Escalation Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Monitoring */}
+            {Boolean(triage.action_plan.monitoring_steps?.length) && (
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-3.5">
+                <h4 className="text-[11px] font-bold font-mono uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
+                  Scheduled Monitoring
+                </h4>
+                <div className="flex flex-col gap-2">
+                  {triage.action_plan.monitoring_steps?.map((mon, idx) => (
+                    <div key={idx} className="text-xs">
+                      <span className="font-bold text-slate-900 dark:text-white block font-sans">
+                        {mon.monitor}
+                      </span>
+                      <div className="flex items-center gap-2 text-[11px] font-mono text-slate-600 dark:text-slate-400 mt-0.5">
+                        <span className="font-bold text-indigo-700 dark:text-indigo-400">{mon.frequency}</span>
+                        <span>&bull;</span>
+                        <span>Trigger: {mon.trigger}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Escalation */}
+            {Boolean(triage.action_plan.escalation_steps?.length) && (
+              <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/40 dark:bg-rose-950/20 p-3.5">
+                <h4 className="text-[11px] font-bold font-mono uppercase tracking-wider text-rose-800 dark:text-rose-400 mb-2">
+                  Escalation Triggers
+                </h4>
+                <div className="flex flex-col gap-2">
+                  {triage.action_plan.escalation_steps?.map((esc, idx) => (
+                    <div key={idx} className="text-xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-bold text-rose-950 dark:text-rose-200 font-sans">
+                          {esc.when}
+                        </span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-200 dark:bg-rose-900/60 text-rose-900 dark:text-rose-200">
+                          {esc.escalate_to}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-rose-800/80 dark:text-rose-300/80 font-sans block mt-0.5">
+                        {esc.reason}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 2. "WHY DID I GET THIS RESULT?" & REJECTED ALTERNATIVES */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 flex flex-col gap-4">

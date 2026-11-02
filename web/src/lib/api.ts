@@ -18,6 +18,11 @@ export type PlanStepDraft = components['schemas']['PlanStepDraft']
 export type VerifiedStep = components['schemas']['VerifiedStep']
 export type OverrideRecord = components['schemas']['OverrideRecord']
 export type TriageExplanation = components['schemas']['TriageExplanation']
+export type ActionPlan = components['schemas']['ActionPlan']
+export type ActionStep = components['schemas']['ActionStep']
+export type MedicationInstruction = components['schemas']['MedicationInstruction']
+export type MonitoringStep = components['schemas']['MonitoringStep']
+export type EscalationStep = components['schemas']['EscalationStep']
 export type { components }
 
 export const queryClient = new QueryClient({

@@ -580,6 +580,69 @@ class TriageExplanation(BaseModel):
     permitted_ui_actions: list[str] = Field(default_factory=list)
 
 
+class ActionStep(BaseModel):
+    """A single deterministic immediate-action step in the triage action plan."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    description: str
+    reason: str
+    rule_id: str | None = None
+    urgency: Literal["immediate", "urgent", "routine"] = "urgent"
+
+
+class MedicationInstruction(BaseModel):
+    """A deterministic medication instruction derived from verified plan steps."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    medication_name: str
+    dose: str
+    route: str
+    timing: str
+    indication: str
+    contraindications: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    source_protocol: str | None = None
+
+
+class MonitoringStep(BaseModel):
+    """A monitoring instruction linked to score band or alert severity."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    monitor: str
+    frequency: str
+    trigger: str
+    reason: str
+
+
+class EscalationStep(BaseModel):
+    """An escalation instruction triggered by verdict or critical alerts."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    when: str
+    escalate_to: str
+    reason: str
+
+
+class ActionPlan(BaseModel):
+    """Deterministic, human-readable action plan generated from the engine report."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    immediate_actions: list[ActionStep] = Field(default_factory=list)
+    medications: list[MedicationInstruction] = Field(default_factory=list)
+    monitoring_steps: list[MonitoringStep] = Field(default_factory=list)
+    escalation_steps: list[EscalationStep] = Field(default_factory=list)
+    assumptions: list[str] = Field(default_factory=list)
+    rule_hits: list[str] = Field(default_factory=list)
+    missing_data: list[str] = Field(default_factory=list)
+    decision_summary: str = ""
+
+
 class TriageResponse(BaseModel):
     """Full triage response returned to UI and CLI."""
 
@@ -597,6 +660,7 @@ class TriageResponse(BaseModel):
     patient: Patient | None = None
     input_patient: Patient | None = Field(default=None)
     execution_trace: list[dict[str, Any]] = Field(default_factory=list)
+    action_plan: ActionPlan | None = Field(default=None)
 
 
 class Clock(Protocol):

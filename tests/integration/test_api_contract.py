@@ -56,9 +56,9 @@ def test_scenarios_list_and_detail() -> None:
     list_resp = client.get("/api/scenarios")
     assert list_resp.status_code == 200
     scenarios = list_resp.json()
-    assert len(scenarios) == 4
+    assert len(scenarios) == 5
     scenario_ids = {s["id"] for s in scenarios}
-    assert scenario_ids == {"BLOCK", "UNVERIFIED", "HIGH", "CLEAN"}
+    assert scenario_ids == {"BLOCK", "UNVERIFIED", "HIGH", "CLEAN", "ABSTAIN"}
 
     # Test detail
     for sid in scenario_ids:

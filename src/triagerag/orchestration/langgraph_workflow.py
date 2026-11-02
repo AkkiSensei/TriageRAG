@@ -564,6 +564,16 @@ def explain_node(state: TriageGraphState) -> dict[str, Any]:
             patient=state.get("normalized_patient") or state.get("patient"),
             input_patient=state.get("patient"),
         )
+
+        from triagerag.action_plan import generate_action_plan
+        from triagerag.defaults import apply_demo_defaults
+
+        orig_patient = state.get("patient") or state.get("normalized_patient")
+        assumption_tags: list[str] = []
+        if orig_patient is not None:
+            _, assumption_tags = apply_demo_defaults(orig_patient)
+        action_plan = generate_action_plan(final_response, assumption_tags=assumption_tags)
+        final_response = final_response.model_copy(update={"action_plan": action_plan})
         duration_ms = round((time.perf_counter() - start_time) * 1000, 3)
 
         trace_entry = {

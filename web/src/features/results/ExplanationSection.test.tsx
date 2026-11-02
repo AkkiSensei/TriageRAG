@@ -348,4 +348,55 @@ describe('ExplanationSection Component Tests', () => {
     expect(screen.getByText(/1\. normalise/i)).toBeInTheDocument()
     expect(screen.getByText(/1\.25 ms/i)).toBeInTheDocument()
   })
+
+  it('renders clinical action plan with immediate actions and medications when present', () => {
+    const mock = createMockTriage({
+      action_plan: {
+        decision_summary: 'All intake safety checks verified clear. EWS band: RED.',
+        assumptions: ['[ASSUMED DEMO DEFAULT] Systolic BP: 120 mmHg (not measured)'],
+        immediate_actions: [
+          {
+            urgency: 'routine',
+            title: 'Proceed with protocol',
+            description: 'No blocking safety alerts detected.',
+            reason: 'All intake safety checks passed clear.',
+          },
+        ],
+        medications: [
+          {
+            medication_name: 'epinephrine',
+            dose: '0.5 mg',
+            route: 'im',
+            timing: 'Immediate',
+            indication: 'Administer intramuscular epinephrine',
+            contraindications: [],
+            warnings: [],
+          },
+        ],
+        monitoring_steps: [
+          {
+            monitor: 'Vital signs (HR, BP, RR, SpO2)',
+            frequency: 'Every 5 minutes',
+            trigger: 'Continuous monitoring',
+            reason: 'Early warning score band is RED',
+          },
+        ],
+        escalation_steps: [
+          {
+            when: 'Early warning score band is RED',
+            escalate_to: 'Medical Emergency Team',
+            reason: 'DENOTES CRITICAL INSTABILITY',
+          },
+        ],
+      },
+    } as unknown as Partial<TriageResponse>)
+    render(<ExplanationSection triage={mock} />)
+
+    expect(screen.getByText(/Step-by-Step Clinical Action Plan/i)).toBeInTheDocument()
+    expect(screen.getByText(/All intake safety checks verified clear/i)).toBeInTheDocument()
+    expect(screen.getByText(/Proceed with protocol/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/epinephrine/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/0\.5 mg/i)).toBeInTheDocument()
+    expect(screen.getByText(/Assumed Demo Defaults:/i)).toBeInTheDocument()
+  })
 })

@@ -548,6 +548,114 @@
         "title": "AbstainCode",
         "description": "Typed outcome codes for retrieval abstention and syndrome inference (RAG-01, RAG-15)."
       },
+      "ActionPlan": {
+        "properties": {
+          "immediate_actions": {
+            "items": {
+              "$ref": "#/components/schemas/ActionStep"
+            },
+            "type": "array",
+            "title": "Immediate Actions"
+          },
+          "medications": {
+            "items": {
+              "$ref": "#/components/schemas/MedicationInstruction"
+            },
+            "type": "array",
+            "title": "Medications"
+          },
+          "monitoring_steps": {
+            "items": {
+              "$ref": "#/components/schemas/MonitoringStep"
+            },
+            "type": "array",
+            "title": "Monitoring Steps"
+          },
+          "escalation_steps": {
+            "items": {
+              "$ref": "#/components/schemas/EscalationStep"
+            },
+            "type": "array",
+            "title": "Escalation Steps"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          },
+          "rule_hits": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rule Hits"
+          },
+          "missing_data": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Data"
+          },
+          "decision_summary": {
+            "type": "string",
+            "title": "Decision Summary",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ActionPlan",
+        "description": "Deterministic, human-readable action plan generated from the engine report."
+      },
+      "ActionStep": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "rule_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Id"
+          },
+          "urgency": {
+            "type": "string",
+            "enum": [
+              "immediate",
+              "urgent",
+              "routine"
+            ],
+            "title": "Urgency",
+            "default": "urgent"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "description",
+          "reason"
+        ],
+        "title": "ActionStep",
+        "description": "A single deterministic immediate-action step in the triage action plan."
+      },
       "ActionType": {
         "type": "string",
         "enum": [
@@ -1391,6 +1499,31 @@
         "title": "EngineReport",
         "description": "Deterministic, pure output from the clinical decision engine."
       },
+      "EscalationStep": {
+        "properties": {
+          "when": {
+            "type": "string",
+            "title": "When"
+          },
+          "escalate_to": {
+            "type": "string",
+            "title": "Escalate To"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "when",
+          "escalate_to",
+          "reason"
+        ],
+        "title": "EscalationStep",
+        "description": "An escalation instruction triggered by verdict or critical alerts."
+      },
       "EvalSummaryResponse": {
         "properties": {
           "golden": {
@@ -1976,6 +2109,96 @@
         ],
         "title": "MedicationEntry",
         "description": "Medication in patient active or home regimen."
+      },
+      "MedicationInstruction": {
+        "properties": {
+          "medication_name": {
+            "type": "string",
+            "title": "Medication Name"
+          },
+          "dose": {
+            "type": "string",
+            "title": "Dose"
+          },
+          "route": {
+            "type": "string",
+            "title": "Route"
+          },
+          "timing": {
+            "type": "string",
+            "title": "Timing"
+          },
+          "indication": {
+            "type": "string",
+            "title": "Indication"
+          },
+          "contraindications": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Contraindications"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "source_protocol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Protocol"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "medication_name",
+          "dose",
+          "route",
+          "timing",
+          "indication"
+        ],
+        "title": "MedicationInstruction",
+        "description": "A deterministic medication instruction derived from verified plan steps."
+      },
+      "MonitoringStep": {
+        "properties": {
+          "monitor": {
+            "type": "string",
+            "title": "Monitor"
+          },
+          "frequency": {
+            "type": "string",
+            "title": "Frequency"
+          },
+          "trigger": {
+            "type": "string",
+            "title": "Trigger"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "monitor",
+          "frequency",
+          "trigger",
+          "reason"
+        ],
+        "title": "MonitoringStep",
+        "description": "A monitoring instruction linked to score band or alert severity."
       },
       "OverrideRecord": {
         "properties": {
@@ -3500,6 +3723,16 @@
             },
             "type": "array",
             "title": "Execution Trace"
+          },
+          "action_plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActionPlan"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
