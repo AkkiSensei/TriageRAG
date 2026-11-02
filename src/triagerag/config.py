@@ -58,3 +58,23 @@ def get_retrieval_backend() -> str:
 def get_generation_mode() -> str:
     """Return deterministic mock generation mode identifier."""
     return "deterministic_mock"
+
+
+def is_telemetry_enabled() -> bool:
+    """Return whether OpenTelemetry distributed tracing is enabled (default False)."""
+    return os.environ.get("TRIAGERAG_TELEMETRY_ENABLED", "false").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def get_telemetry_exporter() -> str:
+    """Return telemetry exporter: 'none', 'in_memory', 'console', or 'otlp_http' (default 'none')."""
+    return os.environ.get("TRIAGERAG_TELEMETRY_EXPORTER", "none").strip().lower()
+
+
+def get_otlp_endpoint() -> str:
+    """Return local OTLP collector endpoint (default 'http://localhost:4318/v1/traces')."""
+    return os.environ.get("TRIAGERAG_OTLP_ENDPOINT", "http://localhost:4318/v1/traces").strip()

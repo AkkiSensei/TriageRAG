@@ -9,8 +9,10 @@ Safety Properties (Rules R1-R12):
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
+from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
 
@@ -33,10 +35,27 @@ from triagerag.api.security import (
     SlidingWindowRateLimiter,
     create_security_middleware,
 )
+from triagerag.orchestration.telemetry import (
+    TelemetryManager,
+    extract_trace_context,
+    get_active_trace_id_hex,
+    inject_trace_context,
+    sanitize_span_attributes,
+)
 
 logger = logging.getLogger("triagerag.api")
 
 DISCLAIMER = "Research prototype. Synthetic data only. Not a medical device. Not for clinical use."
+
+
+@contextlib.asynccontextmanager
+async def app_lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Manage application lifecycle for OpenTelemetry and other resources."""
+    TelemetryManager.get_instance().initialize()
+    try:
+        yield
+    finally:
+        TelemetryManager.get_instance().shutdown()
 
 
 def create_app(
@@ -51,6 +70,7 @@ def create_app(
         version="0.1.0",
         docs_url="/docs",
         redoc_url="/redoc",
+        lifespan=app_lifespan,
     )
 
     # CORS configuration: Vite dev origin
@@ -81,6 +101,88 @@ def create_app(
                 content={"detail": "Request body too large (maximum 2MB allowed)"},
             )
         return await call_next(request)
+
+    # OpenTelemetry ASGI Distributed Tracing Middleware (registered last so it is the outermost wrapper)
+    @app.middleware("http")
+    async def tracing_middleware(request: Request, call_next: Any) -> Any:
+        manager = TelemetryManager.get_instance()
+        tracer = manager.get_tracer()
+
+        # 1. Extract incoming W3C trace context if supplied
+        carrier: dict[str, str] = {k.lower(): v for k, v in request.headers.items()}
+        extracted_ctx = extract_trace_context(carrier)
+
+        # 2. Extract safe operational attributes (no query strings, no payloads, no PII)
+        route_path = request.url.path.rstrip("/") or "/"
+        safe_attrs = sanitize_span_attributes(
+            {
+                "http.method": request.method,
+                "http.route": route_path,
+            }
+        )
+
+        span_cm = None
+        active_span = None
+        try:
+            span_cm = tracer.start_as_current_span(
+                "http.request",
+                context=extracted_ctx,
+                attributes=safe_attrs,
+                record_exception=False,
+                set_status_on_exception=False,
+            )
+            active_span = span_cm.__enter__()
+        except Exception:
+            logger.debug("Failed to create HTTP root span; continuing without tracing.")
+            span_cm = None
+            active_span = None
+
+        try:
+            response = await call_next(request)
+
+            # Record safe HTTP status code
+            if (
+                active_span is not None
+                and hasattr(active_span, "is_recording")
+                and active_span.is_recording()
+            ):
+                with contextlib.suppress(Exception):
+                    status_attrs = sanitize_span_attributes(
+                        {"http.status_code": response.status_code}
+                    )
+                    for k, v in status_attrs.items():
+                        active_span.set_attribute(k, v)
+
+            # Inject standard W3C propagation headers into response
+            with contextlib.suppress(Exception):
+                resp_carrier: dict[str, str] = {}
+                inject_trace_context(resp_carrier)
+                for k, v in resp_carrier.items():
+                    response.headers[k] = v
+
+                trace_id_hex = get_active_trace_id_hex()
+                if trace_id_hex:
+                    response.headers["X-Trace-Id"] = trace_id_hex
+
+            return response
+        except Exception as exc:
+            if (
+                active_span is not None
+                and hasattr(active_span, "is_recording")
+                and active_span.is_recording()
+            ):
+                with contextlib.suppress(Exception):
+                    active_span.set_attribute("http.status_code", 500)
+                    active_span.set_attribute("error.type", "application_error")
+            if span_cm is not None:
+                with contextlib.suppress(Exception):
+                    span_cm.__exit__(type(exc), exc, exc.__traceback__)
+                    span_cm = None
+            raise
+        finally:
+            if span_cm is not None:
+                with contextlib.suppress(Exception):
+                    span_cm.__exit__(None, None, None)
 
     # Custom 422 validation error handler (clear field paths, no raw patient data logged)
     @app.exception_handler(RequestValidationError)

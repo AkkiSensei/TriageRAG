@@ -5,6 +5,30 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - OpenTelemetry AI Workflow Observability & Distributed Tracing (v0.4.0)
+
+### Added & Hardened
+- **Vendor-Neutral OpenTelemetry Subsystem (`src/triagerag/orchestration/telemetry.py`):**
+  - Integrated optional OpenTelemetry distributed tracing (`opentelemetry-api==1.45.1`, `opentelemetry-sdk==1.45.1`, `opentelemetry-exporter-otlp-proto-http==1.45.1`) under `[project.optional-dependencies] telemetry`.
+  - Built internal pure-Python standard library `_NoOpSpan` and `_NoOpTracer` fallback, ensuring core TriageRAG runs cleanly with zero OpenTelemetry packages installed.
+  - Implemented strict attribute allowlist `sanitize_span_attributes` dropping all PHI, patient demographics, vitals, weights, clinical scores, alert counts, medication details, and clinical verdicts.
+  - Implemented local loopback endpoint validation (`validate_loopback_endpoint`) actively rejecting non-loopback cloud collectors under Rule R12.
+  - Implemented fail-safe `TraceNodeContextManager` with `record_exception=False` and unconditional `__exit__ -> False`, guaranteeing telemetry errors never interrupt triage execution while application exceptions propagate.
+- **LangGraph Workflow Tracing (`src/triagerag/orchestration/langgraph_workflow.py`):**
+  - Instrumented `run_triage_graph` with fail-safe `langgraph.workflow.execution` root workflow span.
+  - Instrumented all 11 registered nodes (`normalise`, `intake_safety_checks`, `retrieve`, `draft_plan`, `abstain_fallback`, `verify`, `block_seal`, `unverified_seal`, `verified_seal`, `audit`, `explain`) mapped to 8 generalized operational stages (`normalise`, `intake_safety_checks`, `retrieve`, `form_plan`, `verify`, `seal_decision`, `audit`, `explain`) to prevent clinical outcome inference from span names.
+  - Instrumented conditional edges (`route_after_retrieve`, `route_after_verify`) emitting safe `routing.evaluated` span events with edge names only (no clinical targets or branch dispositions).
+- **FastAPI Request Lifecycle & Middleware Integration (`src/triagerag/api/app.py`):**
+  - Added async `app_lifespan` managing thread-safe idempotent `TelemetryManager` initialization and shutdown.
+  - Implemented outer ASGI `tracing_middleware` managing `http.request` root spans, extracting incoming W3C `traceparent` headers, recording HTTP status codes, and injecting standard outgoing `traceparent` and `X-Trace-Id` headers.
+  - Configured middleware execution order to ensure HTTP 413 (payload too large) and 422 (validation error) rejections short-circuit before workflow initialization, emitting zero internal graph spans.
+- **Reproducible Performance Benchmarking & Developer Documentation:**
+  - Implemented `tools/benchmark_telemetry.py` evaluating latency overhead across $N=100$ iterations.
+  - Empirical results: Disabled baseline 11.057 ms mean / 18.307 ms p95; In-Memory tracing 14.901 ms mean (+3.844 ms) / 29.277 ms p95 (+10.970 ms overhead; 1.50 ms optimization target not met; p99/max 54.998 ms); Console exporter 24.284 ms mean / 75.219 ms p95 / 174.732 ms p99/max; OTLP exporter unmeasured due to local Docker unavailability. Output report written to `eval/reports/telemetry_benchmark.json`.
+  - Documented residual timing and exceptional termination side-channel limitations in `docs/guides/TELEMETRY_GUIDE.md` and `docs/architecture/NEXT_ENGINEERING_ENHANCEMENT_PLAN.md`.
+  - Authored comprehensive developer guide `docs/guides/TELEMETRY_GUIDE.md` detailing architecture, privacy invariants, non-interference guarantees, environment configuration, local Docker Jaeger instructions, and acceptance gates.
+  - Authored 28 automated tests across 3 suites: `tests/unit/test_telemetry.py` (13 tests), `tests/unit/test_workflow_telemetry.py` (7 tests), and `tests/integration/test_telemetry_api.py` (8 tests), verifying all 12 Acceptance Gates.
+
 ## [Unreleased] - Backend Engineering Audit, Hardening & Out-of-Domain Gating
 
 ### Added & Hardened

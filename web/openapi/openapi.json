@@ -135,6 +135,30 @@
         }
       }
     },
+    "/api/triage/workflow": {
+      "get": {
+        "tags": [
+          "triage"
+        ],
+        "summary": "Get Workflow Graph Metadata",
+        "description": "Return LangGraph workflow structure, node inventory, and Mermaid definition.",
+        "operationId": "get_workflow_graph_metadata_api_triage_workflow_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Workflow Graph Metadata Api Triage Workflow Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/triage/explain": {
       "post": {
         "tags": [
@@ -162,6 +186,48 @@
                   "additionalProperties": true,
                   "type": "object",
                   "title": "Response Explain Triage Retrieval Api Triage Explain Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/triage/alert-why": {
+      "post": {
+        "tags": [
+          "triage"
+        ],
+        "summary": "Explain Alert Endpoint",
+        "description": "Return structured provenance, matched facts, and severity rationale for an alert.",
+        "operationId": "explain_alert_endpoint_api_triage_alert_why_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertWhyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertWhyExplanation"
                 }
               }
             }
@@ -320,6 +386,48 @@
         }
       }
     },
+    "/api/corpus/ask": {
+      "post": {
+        "tags": [
+          "corpus"
+        ],
+        "summary": "Ask Corpus Endpoint",
+        "description": "Answer questions strictly via verbatim evidence extraction from approved protocols.",
+        "operationId": "ask_corpus_endpoint_api_corpus_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskCorpusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorpusAskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/eval/summary": {
       "get": {
         "tags": [
@@ -429,6 +537,7 @@
         "enum": [
           "NONE",
           "NO_POPULATION_COVERAGE",
+          "NO_RESULTS",
           "UNKNOWN_SYNDROME",
           "LOW_CONFIDENCE",
           "AMBIGUOUS_MARGIN",
@@ -567,6 +676,111 @@
         "title": "Alert",
         "description": "Deterministic clinical rule alert."
       },
+      "AlertWhyExplanation": {
+        "properties": {
+          "rule_id": {
+            "type": "string",
+            "title": "Rule Id"
+          },
+          "rule_type": {
+            "type": "string",
+            "title": "Rule Type"
+          },
+          "severity": {
+            "type": "string",
+            "title": "Severity"
+          },
+          "consequence": {
+            "type": "string",
+            "title": "Consequence"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "matched_facts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Matched Facts"
+          },
+          "unknown_facts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unknown Facts"
+          },
+          "satisfied_predicates": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Satisfied Predicates"
+          },
+          "conflicting_predicates": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Conflicting Predicates"
+          },
+          "supporting_evidence": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Supporting Evidence"
+          },
+          "severity_rationale": {
+            "type": "string",
+            "title": "Severity Rationale",
+            "default": ""
+          },
+          "unestablished_scope": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unestablished Scope"
+          },
+          "provenance": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Provenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rule_id",
+          "rule_type",
+          "severity",
+          "consequence",
+          "action"
+        ],
+        "title": "AlertWhyExplanation",
+        "description": "Detailed clinical provenance and execution rationale for an alert."
+      },
+      "AlertWhyRequest": {
+        "properties": {
+          "alert": {
+            "$ref": "#/components/schemas/Alert"
+          },
+          "patient": {
+            "$ref": "#/components/schemas/Patient-Input"
+          }
+        },
+        "type": "object",
+        "required": [
+          "alert",
+          "patient"
+        ],
+        "title": "AlertWhyRequest"
+      },
       "AllergyEntry": {
         "properties": {
           "raw_substance": {
@@ -631,6 +845,40 @@
         ],
         "title": "AllergyEntry",
         "description": "Allergy or adverse substance reaction entry."
+      },
+      "AskCorpusRequest": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "population": {
+            "type": "string",
+            "title": "Population",
+            "default": "adult"
+          },
+          "syndrome": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Syndrome"
+          },
+          "top_k": {
+            "type": "integer",
+            "title": "Top K",
+            "default": 3
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "AskCorpusRequest"
       },
       "AuditEntryDto": {
         "properties": {
@@ -802,6 +1050,17 @@
               }
             ]
           },
+          "calculated_volume_ml": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calculated Volume Ml"
+          },
           "magnitude_tripwire_triggered": {
             "type": "boolean",
             "title": "Magnitude Tripwire Triggered",
@@ -862,10 +1121,101 @@
         "enum": [
           "AGENT_DRAFT_UNSOURCED",
           "HUMAN_AUTHORED",
-          "SOURCE_EXTRACT"
+          "SOURCE_EXTRACT",
+          "AGENT_DRAFT_SYNTHETIC"
         ],
         "title": "ContentOrigin",
         "description": "Origin tracking for rule and formulary facts."
+      },
+      "CorpusAskResponse": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "abstained": {
+            "type": "boolean",
+            "title": "Abstained"
+          },
+          "abstain_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abstain Reason"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/CorpusCitation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "retrieved_chunks_count": {
+            "type": "integer",
+            "title": "Retrieved Chunks Count",
+            "default": 0
+          },
+          "generator_badge": {
+            "type": "string",
+            "title": "Generator Badge",
+            "default": "EXTRACTIVE_VERBATIM"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question",
+          "answer",
+          "abstained"
+        ],
+        "title": "CorpusAskResponse",
+        "description": "Extractive, citation-grounded response to a user clinical question."
+      },
+      "CorpusCitation": {
+        "properties": {
+          "chunk_id": {
+            "type": "string",
+            "title": "Chunk Id"
+          },
+          "doc_id": {
+            "type": "string",
+            "title": "Doc Id"
+          },
+          "section": {
+            "type": "string",
+            "title": "Section"
+          },
+          "license": {
+            "type": "string",
+            "title": "License",
+            "default": "Open Government Licence v3.0 / Synthetic"
+          },
+          "exact_quote": {
+            "type": "string",
+            "title": "Exact Quote"
+          },
+          "source_status": {
+            "type": "string",
+            "title": "Source Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chunk_id",
+          "doc_id",
+          "section",
+          "exact_quote",
+          "source_status"
+        ],
+        "title": "CorpusCitation"
       },
       "DoseUnit": {
         "type": "string",
@@ -917,6 +1267,17 @@
         "properties": {
           "verdict": {
             "$ref": "#/components/schemas/Verdict"
+          },
+          "unverified_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unverified Reason"
           },
           "score": {
             "anyOf": [
@@ -1001,6 +1362,25 @@
             "type": "string",
             "title": "Ruleset Version",
             "default": "0.1.0"
+          },
+          "trust_mode": {
+            "$ref": "#/components/schemas/TrustMode",
+            "default": "demo"
+          },
+          "verified_rules_count": {
+            "type": "integer",
+            "title": "Verified Rules Count",
+            "default": 0
+          },
+          "total_rules_count": {
+            "type": "integer",
+            "title": "Total Rules Count",
+            "default": 0
+          },
+          "verified_rules_summary": {
+            "type": "string",
+            "title": "Verified Rules Summary",
+            "default": "verified 0 of 0"
           }
         },
         "additionalProperties": false,
@@ -1103,6 +1483,16 @@
               }
             ],
             "title": "Assessed At"
+          },
+          "retrieval_backend": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetrievalBackend"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -1163,7 +1553,10 @@
           "INVALID_CITATION",
           "IGNORE_BLOCK",
           "OBEY_COMPLAINT",
-          "NAIVE_FREE_TEXT"
+          "NAIVE_FREE_TEXT",
+          "RANKED_CHOICE",
+          "WRONG_BUT_MATCHING_CLAUSE",
+          "QUALIFIER_DROP"
         ],
         "title": "FakeLLMProfile",
         "description": "Profiles for deterministic FakeLLM behavior."
@@ -1692,7 +2085,11 @@
             "enum": [
               "yes",
               "no",
-              "unknown"
+              "unknown",
+              "none",
+              "mild",
+              "moderate",
+              "severe"
             ],
             "title": "Renal Impairment",
             "default": "unknown"
@@ -1702,7 +2099,11 @@
             "enum": [
               "yes",
               "no",
-              "unknown"
+              "unknown",
+              "none",
+              "mild",
+              "moderate",
+              "severe"
             ],
             "title": "Hepatic Impairment",
             "default": "unknown"
@@ -1723,6 +2124,46 @@
             "maxLength": 500,
             "title": "Chief Complaint Untrusted",
             "default": ""
+          },
+          "conditions": {
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "yes",
+                "no",
+                "unknown"
+              ]
+            },
+            "type": "object",
+            "title": "Conditions"
+          },
+          "labs": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Measured_Decimal_-Input"
+            },
+            "type": "object",
+            "title": "Labs"
+          },
+          "gestation_weeks": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gestation Weeks"
+          },
+          "lactating": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "title": "Lactating",
+            "default": "unknown"
           }
         },
         "additionalProperties": false,
@@ -1817,7 +2258,11 @@
             "enum": [
               "yes",
               "no",
-              "unknown"
+              "unknown",
+              "none",
+              "mild",
+              "moderate",
+              "severe"
             ],
             "title": "Renal Impairment",
             "default": "unknown"
@@ -1827,7 +2272,11 @@
             "enum": [
               "yes",
               "no",
-              "unknown"
+              "unknown",
+              "none",
+              "mild",
+              "moderate",
+              "severe"
             ],
             "title": "Hepatic Impairment",
             "default": "unknown"
@@ -1848,6 +2297,46 @@
             "maxLength": 500,
             "title": "Chief Complaint Untrusted",
             "default": ""
+          },
+          "conditions": {
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "yes",
+                "no",
+                "unknown"
+              ]
+            },
+            "type": "object",
+            "title": "Conditions"
+          },
+          "labs": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Measured_Decimal_-Output"
+            },
+            "type": "object",
+            "title": "Labs"
+          },
+          "gestation_weeks": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gestation Weeks"
+          },
+          "lactating": {
+            "type": "string",
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "title": "Lactating",
+            "default": "unknown"
           }
         },
         "additionalProperties": false,
@@ -1914,8 +2403,51 @@
               "$ref": "#/components/schemas/SpanCitation"
             },
             "type": "array",
-            "minItems": 1,
             "title": "Citations"
+          },
+          "concentration_mg_per_ml": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concentration Mg Per Ml"
+          },
+          "diluent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diluent"
+          },
+          "rate_mg_per_min": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Mg Per Min"
+          },
+          "frequency_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frequency Hours"
           },
           "relative_time_minutes": {
             "anyOf": [
@@ -1938,8 +2470,7 @@
         "required": [
           "step_number",
           "action_type",
-          "narrative_instruction",
-          "citations"
+          "narrative_instruction"
         ],
         "title": "PlanStepDraft",
         "description": "A single proposed clinical plan step drafted by the LLM."
@@ -1964,6 +2495,24 @@
               }
             ],
             "title": "Parent Id"
+          },
+          "legacy_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legacy Id"
+          },
+          "aliases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aliases"
           },
           "title": {
             "type": "string",
@@ -2010,6 +2559,11 @@
               }
             ],
             "title": "License"
+          },
+          "license_tag": {
+            "type": "string",
+            "title": "License Tag",
+            "default": "synthetic"
           },
           "attribution": {
             "anyOf": [
@@ -2197,6 +2751,19 @@
         ],
         "title": "RegistrySummaryResponse"
       },
+      "RetrievalBackend": {
+        "type": "string",
+        "enum": [
+          "bm25",
+          "char_ngram",
+          "dense",
+          "hybrid_rrf",
+          "hybrid_rrf_rerank",
+          "hybrid_rerank"
+        ],
+        "title": "RetrievalBackend",
+        "description": "Supported protocol retrieval backends (T0.9 / AUB-OPS-01)."
+      },
       "RetrievalReport": {
         "properties": {
           "chunks": {
@@ -2274,6 +2841,35 @@
             "type": "string",
             "title": "Config Hash",
             "default": ""
+          },
+          "expansion_mode": {
+            "type": "string",
+            "title": "Expansion Mode",
+            "default": "predicate_aware_bm25"
+          },
+          "expansion_trace": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expansion Trace"
+          },
+          "diagnostics": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diagnostics"
           }
         },
         "additionalProperties": false,
@@ -2305,6 +2901,25 @@
               }
             ],
             "title": "Parent Id"
+          },
+          "legacy_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Legacy Id"
+          },
+          "aliases": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aliases",
+            "default": []
           },
           "text": {
             "type": "string",
@@ -2617,7 +3232,8 @@
           "PLACEHOLDER_UNRETRIEVED",
           "RETRIEVED_UNREVIEWED",
           "REVIEWED",
-          "REJECTED"
+          "REJECTED",
+          "SYNTHETIC_AUTHORED"
         ],
         "title": "SourceStatus",
         "description": "Retrieval and clinical review status of an evidence source."
@@ -2673,7 +3289,8 @@
           "FLAGGED_MODERATE",
           "UNVERIFIED_MISSING_DATA",
           "CITATION_UNVERIFIED",
-          "BLOCKED_STRUCK_THROUGH"
+          "BLOCKED_STRUCK_THROUGH",
+          "NOT_APPLICABLE"
         ],
         "title": "StepStatus",
         "description": "Verification verdict for a proposed plan step."
@@ -2709,13 +3326,12 @@
           "retrieval_backend": {
             "anyOf": [
               {
-                "type": "string"
+                "$ref": "#/components/schemas/RetrievalBackend"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Retrieval Backend"
+            ]
           }
         },
         "type": "object",
@@ -2849,6 +3465,16 @@
                 "type": "null"
               }
             ]
+          },
+          "patient": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Patient-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -2858,6 +3484,15 @@
         ],
         "title": "TriageResponse",
         "description": "Full triage response returned to UI and CLI."
+      },
+      "TrustMode": {
+        "type": "string",
+        "enum": [
+          "strict",
+          "demo"
+        ],
+        "title": "TrustMode",
+        "description": "Operational trust policy mode for deterministic clinical rules (T6.0 / AUB-ENG-04 / HD-7).\n\nSTRICT: Only clinically reviewed rules with verified: true can yield authoritative clearance.\n        Under HD-7, unverified draft rules cause clearance checks to fail closed to UNVERIFIED.\nDEMO: Research prototype demonstration mode allowing unverified draft rules to execute\n      with explicit 'UNSOURCED DRAFT' status and verified rule counts reported."
       },
       "ValidationError": {
         "properties": {
