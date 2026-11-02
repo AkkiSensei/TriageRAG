@@ -155,6 +155,10 @@ def evaluate_data_quality(
 
     total = len(measured) + len(assumed) + len(missing)
     pct = Decimal(str(round((len(measured) / total) * 100, 1))) if total > 0 else Decimal("0.0")
+    desc = (
+        f"{len(measured)} of {total} standard triage parameters measured ({pct}%). "
+        f"{len(assumed)} assumed demo default(s) do not count toward measured completeness."
+    )
 
     return DataQualityReport(
         total_parameters=total,
@@ -162,6 +166,7 @@ def evaluate_data_quality(
         assumed_count=len(assumed),
         missing_count=len(missing),
         completeness_pct=pct,
+        completeness_description=desc,
         measured_fields=measured,
         assumed_fields=assumed,
         missing_fields=missing,
@@ -173,45 +178,92 @@ def evaluate_confidence(
     report: EngineReport,
     quality: DataQualityReport,
 ) -> ConfidenceReport:
-    """Compute a deterministic, explainable confidence evaluation of the triage verdict."""
+    """Compute a deterministic, explainable confidence evaluation of the triage verdict.
+
+    Safety Disclosure (Rule R1, R3, R10):
+    Confidence level and heuristic score reflect deterministic rule decisiveness, case data
+    completeness, and protocol verification status. They are NOT empirical clinical probabilities.
+    """
     reasons: list[str] = []
 
     if verdict == Verdict.BLOCKED:
         level: Literal["HIGH", "MEDIUM", "LOW"] = "HIGH"
-        score = Decimal("0.95")
-        headline = "HIGH CONFIDENCE -- Absolute Safety Interlock Triggered"
-        reasons.append(
-            "Definitive drug-drug or physiologic contraindication identified from confirmed patient records."
-        )
-        reasons.append(
-            "Rule R11 strictly prohibits plan execution when an absolute BLOCK rule fires."
-        )
+        rule_evidence = "DECISIVE_INTERLOCK"
+        score = Decimal("0.90")
+        if quality.missing_count > 0:
+            case_completeness = f"INCOMPLETE ({quality.missing_count} parameters unmeasured)"
+            headline = (
+                "Safety Interlock Decisive: Contraindication Identified (Case Record Incomplete)"
+            )
+            reasons.append(
+                "Rule R11 Interlock: Absolute contraindication decisively identified from confirmed clinical records."
+            )
+            reasons.append(
+                f"Overall intake record is incomplete ({quality.missing_count} parameter(s) unmeasured); however, Rule R11 strictly prohibits plan execution regardless of other findings."
+            )
+            reasons.append(
+                "High confidence reflects certainty in the contraindication rule hit, NOT overall clinical case completeness."
+            )
+        else:
+            case_completeness = "COMPLETE (100% measured)"
+            headline = (
+                "Safety Interlock Decisive: Absolute Contraindication Identified on Complete Case"
+            )
+            reasons.append(
+                "Rule R11 Interlock: Absolute contraindication decisively identified from confirmed clinical records."
+            )
+            reasons.append(
+                "Patient presentation is complete across all standard triage parameters."
+            )
+            reasons.append(
+                "Plan execution is unconditionally prohibited under clinical safety policy."
+            )
 
     elif verdict == Verdict.UNVERIFIED:
         level = "LOW"
-        score = Decimal("0.30")
-        headline = "LOW CONFIDENCE -- Incomplete Clinical Data (Fail-Closed Safety)"
+        rule_evidence = "FAIL_CLOSED_INSUFFICIENT_DATA"
+        score = Decimal("0.20")
+        case_completeness = f"INCOMPLETE ({quality.missing_count} parameters missing/unknown)"
+        headline = "Safety Status Unverified: Intake Clinical Data Incomplete"
         if quality.missing_fields:
             missing_sample = ", ".join(quality.missing_fields[:3])
             reasons.append(
                 f"Required clinical parameters missing or unobtainable: {missing_sample}."
             )
-        reasons.append("Under Rule R2, missing parameters cannot be presumed safe.")
+        reasons.append(
+            "Under fail-closed Rule R2, missing parameters cannot be presumed normal or safe."
+        )
         reasons.append("Mandatory deferral to attending clinician before initiating treatment.")
 
     elif verdict == Verdict.CHECKED_ALERTS:
-        if quality.assumed_count > 0:
-            level = "MEDIUM"
-            score = Decimal("0.70")
-            headline = "MEDIUM CONFIDENCE -- Clinical Alerts Flagged with Assumed Defaults"
+        if quality.missing_count > 0:
+            level = "LOW"
+            score = Decimal("0.50")
+            rule_evidence = "CLINICAL_WARNINGS_ON_INCOMPLETE_DATA"
+            case_completeness = f"INCOMPLETE ({quality.missing_count} parameters unmeasured)"
+            headline = "Clinical Warnings Identified on Incomplete Presentation (Attending Review Required)"
             reasons.append(
-                f"Plan evaluated with safety warnings, but {quality.assumed_count} parameter(s) relied on assumed demo defaults."
+                f"Plan evaluated with safety warnings, but {quality.missing_count} parameter(s) remain unmeasured."
+            )
+            reasons.append(
+                "Attending clinician evaluation required to assess warnings against missing baseline vitals."
+            )
+        elif quality.assumed_count > 0:
+            level = "MEDIUM"
+            score = Decimal("0.60")
+            rule_evidence = "CLINICAL_WARNINGS_WITH_ASSUMED_DEFAULTS"
+            case_completeness = f"PARTIAL ({quality.assumed_count} demo defaults)"
+            headline = "Clinical Warnings Identified (Relies on Assumed Demo Defaults)"
+            reasons.append(
+                f"Plan evaluated with safety warnings; {quality.assumed_count} parameter(s) relied on assumed demo defaults."
             )
             reasons.append("Requires documented clinician override and vital signs verification.")
         else:
-            level = "HIGH"
-            score = Decimal("0.85")
-            headline = "HIGH CONFIDENCE -- Clinical Alerts Require Attending Review"
+            level = "MEDIUM"
+            score = Decimal("0.75")
+            rule_evidence = "CLINICAL_WARNINGS_ON_COMPLETE_DATA"
+            case_completeness = "COMPLETE (100% measured)"
+            headline = "Clinical Warnings Identified on Complete Presentation (Clinician Override Required)"
             reasons.append(
                 "Input data is complete; alerts indicate non-blocking clinical warnings requiring clinician override."
             )
@@ -221,31 +273,37 @@ def evaluate_confidence(
         if quality.assumed_count == 0 and quality.missing_count == 0:
             level = "HIGH"
             score = Decimal("0.95")
-            headline = "HIGH CONFIDENCE -- All Safety Checks Verified on Measured Data"
-            reasons.append(
-                "100% of required physiological vitals and clinical histories are measured."
-            )
+            rule_evidence = "VERIFIED_CLEAR_ON_MEASURED_DATA"
+            case_completeness = "COMPLETE (100% measured)"
+            headline = "All Configured Safety Checks Verified Clear on Complete Measured Data"
+            reasons.append("100% of standard triage parameters are clinically measured.")
             reasons.append(
                 "Zero contraindications or formulary limit violations detected across active ruleset."
             )
         elif quality.assumed_count > 0:
             level = "MEDIUM"
-            score = Decimal("0.70")
-            headline = "MEDIUM CONFIDENCE -- Verified Clear Using Assumed Demo Defaults"
+            score = Decimal("0.65")
+            rule_evidence = "CLEAR_WITH_ASSUMED_DEFAULTS"
+            case_completeness = f"PARTIAL ({quality.assumed_count} demo defaults)"
+            headline = "Safety Rules Clear with Assumed Demo Defaults (Measurements Required)"
             reasons.append(
-                f"All active safety rules passed, but {quality.assumed_count} vital(s) used conservative demo defaults."
+                f"All active safety rules passed, but {quality.assumed_count} parameter(s) used conservative demo defaults."
             )
             reasons.append("Vital signs must be measured clinically before administering therapy.")
         else:
             level = "LOW"
-            score = Decimal("0.40")
-            headline = "LOW CONFIDENCE -- Low Clinical Data Completeness"
-            reasons.append("Low parameter completeness prevents high-confidence clearance.")
+            score = Decimal("0.35")
+            rule_evidence = "CLEAR_ON_PARTIAL_DATA"
+            case_completeness = f"PARTIAL ({quality.missing_count} parameters unmeasured)"
+            headline = "Low Clinical Data Completeness: Clearance Cannot Be Confirmed"
+            reasons.append("Unmeasured clinical parameters prevent high-confidence clearance.")
 
     return ConfidenceReport(
         level=level,
         score=score,
         headline=headline,
+        rule_evidence=rule_evidence,
+        case_completeness=case_completeness,
         reasons=reasons,
         data_quality=quality,
     )
@@ -321,7 +379,7 @@ def _build_medications(response: TriageResponse) -> list[MedicationInstruction]:
         else None
     )
 
-    # In BLOCKED or UNVERIFIED state, strictly inhibit medication administration
+    # In BLOCKED or UNVERIFIED state, strictly inhibit medication administration (Rule R11, R2)
     if response.engine.verdict in (Verdict.BLOCKED, Verdict.UNVERIFIED):
         return []
 
@@ -330,27 +388,37 @@ def _build_medications(response: TriageResponse) -> list[MedicationInstruction]:
         if draft.drug_id is None:
             continue
 
-        # Inhibit blocked steps
-        if vs.status == StepStatus.BLOCKED_STRUCK_THROUGH or "BLOCK" in vs.status.value:
+        # CRITICAL SAFETY GATE: Only individually APPROVED steps with verified citations become instructions
+        if vs.status != StepStatus.APPROVED:
+            continue
+        if not vs.citation_verified:
             continue
 
         dose_str = "Not specified"
         route_str = "Not specified"
-        dose_source = "Protocol standard titration"
+        dose_source = "Standard protocol dosage"
         if draft.requested_dose:
             dose_str = f"{draft.requested_dose.amount} {draft.requested_dose.unit.value}"
-            dose_source = f"Standard emergency protocol dose ({dose_str})"
             if (
                 response.patient
-                and getattr(response.patient.weight_kg, "source", "") == "estimated"
+                and getattr(response.patient.weight_kg, "source", "") == "measured"
+                and response.patient.weight_kg.value is not None
             ):
-                dose_source += f" checked against weight {response.patient.weight_kg.value} kg (assumed demo default)"
-            elif (
-                response.patient and getattr(response.patient.weight_kg, "source", "") == "measured"
-            ):
-                dose_source += (
-                    f" checked against measured weight {response.patient.weight_kg.value} kg"
+                dose_source = (
+                    f"Protocol dose ({dose_str}) verified against measured weight "
+                    f"({response.patient.weight_kg.value} kg)"
                 )
+            elif (
+                response.patient
+                and getattr(response.patient.weight_kg, "source", "") == "estimated"
+                and response.patient.weight_kg.value is not None
+            ):
+                dose_source = (
+                    f"Protocol dose ({dose_str}) checked against estimated weight "
+                    f"({response.patient.weight_kg.value} kg, demo default)"
+                )
+            else:
+                dose_source = f"Standard fixed protocol dose ({dose_str}); weight not documented"
 
         if draft.route:
             route_str = draft.route.value
@@ -368,28 +436,43 @@ def _build_medications(response: TriageResponse) -> list[MedicationInstruction]:
             if a.rule_id and draft.drug_id and draft.drug_id.lower() in a.rule_id.lower()
         ]
 
-        # Clinical rationale for why this drug was selected & why alternatives were avoided
-        drug_name_lower = draft.drug_id.lower()
-        if "epinephrine" in drug_name_lower:
-            why_chosen = f"First-line alpha/beta-agonist indicated for acute anaphylaxis under protocol '{protocol_title or 'Emergency Management'}'."
-            why_not = [
-                "Antihistamines withheld as monotherapy because they do not reverse respiratory or cardiovascular collapse.",
-                "Oral route contraindicated due to airway compromise risk.",
-            ]
-        elif "ceftriaxone" in drug_name_lower:
-            why_chosen = f"Broad-spectrum 3rd generation cephalosporin indicated under '{protocol_title or 'Infection Management'}'; dissimilar R1 side-chain permits clinician override despite penicillin allergy history."
-            why_not = [
-                "Direct aminopenicillins strictly contraindicated due to documented penicillin allergy history.",
-                "Narrow-spectrum beta-lactams excluded by allergy cross-reactivity interlocks.",
-            ]
-        elif "nitroglycerin" in drug_name_lower:
-            why_chosen = f"Coronary vasodilator indicated for acute chest pain under '{protocol_title or 'Chest Pain Management'}'."
-            why_not = [
-                "Calcium channel blockers deferred until initial response to nitrates is assessed.",
-            ]
+        # Clinical rationale derived directly from machine verification artifacts
+        if vs.support_reason:
+            why_chosen = vs.support_reason
+        elif draft.citations:
+            cit = draft.citations[0]
+            doc_ref = cit.doc_id or protocol_title or "Protocol"
+            sec_ref = f", section '{cit.section}'" if cit.section else ""
+            why_chosen = (
+                f"Proposed under protocol '{doc_ref}'{sec_ref}; machine-verified "
+                f"with citation overlap score {vs.citation_overlap_score}."
+            )
         else:
-            why_chosen = f"Formulary intervention aligned with presentation under '{protocol_title or 'Emergency Protocol'}'."
-            why_not = ["Alternative agents excluded by deterministic safety filters."]
+            why_chosen = (
+                f"Step verified and approved against retrieved protocol '{protocol_title or 'Emergency Protocol'}'. "
+                f"Citation overlap score: {vs.citation_overlap_score}."
+            )
+
+        # Excluded alternatives derived directly from actual case artifacts
+        why_not: list[str] = []
+        for other_step in response.verified_steps:
+            if (
+                other_step.draft.step_number != draft.step_number
+                and other_step.status != StepStatus.APPROVED
+            ):
+                other_drug = other_step.draft.drug_id or f"Step {other_step.draft.step_number}"
+                reasons = (
+                    "; ".join(other_step.rejection_reasons)
+                    if other_step.rejection_reasons
+                    else "rejected by safety verifier"
+                )
+                why_not.append(f"{other_drug} [{other_step.status.value}]: {reasons}")
+
+        for alert in response.engine.baseline_alerts:
+            if alert.rule_type in ("allergy", "ddi", "contraindication") and (
+                not draft.drug_id or draft.drug_id.lower() not in alert.consequence.lower()
+            ):
+                why_not.append(f"{alert.rule_id} [{alert.severity.value}]: {alert.consequence}")
 
         meds.append(
             MedicationInstruction(
@@ -410,6 +493,72 @@ def _build_medications(response: TriageResponse) -> list[MedicationInstruction]:
         )
 
     return meds
+
+
+def _build_unapproved_draft_steps(response: TriageResponse) -> list[str]:
+    """Capture proposed draft steps that failed verification or are prohibited."""
+    unapproved: list[str] = []
+    verdict = response.engine.verdict
+
+    for vs in response.verified_steps:
+        draft = vs.draft
+        drug_label = draft.drug_id or (
+            draft.action_type.value
+            if hasattr(draft.action_type, "value")
+            else str(draft.action_type)
+        )
+        dose_label = (
+            f" {draft.requested_dose.amount} {draft.requested_dose.unit.value}"
+            if draft.requested_dose
+            else ""
+        )
+        route_label = f" {draft.route.value.upper()}" if draft.route else ""
+        step_desc = f"Step {draft.step_number} ({drug_label}{dose_label}{route_label})"
+
+        if verdict == Verdict.BLOCKED or vs.status == StepStatus.BLOCKED_STRUCK_THROUGH:
+            reasons = (
+                "; ".join(vs.rejection_reasons)
+                if vs.rejection_reasons
+                else "Absolute contraindication interlock active"
+            )
+            unapproved.append(
+                f"{step_desc} [BLOCKED]: {reasons} -- Administration strictly prohibited (Rule R11)."
+            )
+        elif verdict == Verdict.UNVERIFIED or vs.status == StepStatus.UNVERIFIED_MISSING_DATA:
+            unapproved.append(
+                f"{step_desc} [UNVERIFIED]: Clinical presentation incomplete under fail-closed Rule R2 -- Administration prohibited."
+            )
+        elif vs.status == StepStatus.REQUIRES_CLINICIAN_CONFIRMATION:
+            reasons = (
+                "; ".join(vs.rejection_reasons)
+                if vs.rejection_reasons
+                else "Requires attending clinician assessment"
+            )
+            unapproved.append(
+                f"{step_desc} [REQUIRES_CLINICIAN_CONFIRMATION]: {reasons} -- NOT approved for administration without attending signoff."
+            )
+        elif vs.status == StepStatus.FLAGGED_HIGH:
+            reasons = (
+                "; ".join(vs.rejection_reasons)
+                if vs.rejection_reasons
+                else "High-severity safety warning flagged"
+            )
+            unapproved.append(
+                f"{step_desc} [FLAGGED_HIGH]: {reasons} -- NOT approved for administration without documented override."
+            )
+        elif not vs.citation_verified:
+            unapproved.append(
+                f"{step_desc} [CITATION_UNVERIFIED]: Evidence citation unverified against protocol corpus -- Administration prohibited."
+            )
+        elif vs.status != StepStatus.APPROVED:
+            reasons = (
+                "; ".join(vs.rejection_reasons)
+                if vs.rejection_reasons
+                else "Failed machine verification"
+            )
+            unapproved.append(f"{step_desc} [{vs.status.value}]: {reasons} -- NOT approved.")
+
+    return unapproved
 
 
 def _build_monitoring(report: EngineReport) -> list[MonitoringStep]:
@@ -579,32 +728,51 @@ def _build_why_decision(verdict: Verdict, report: EngineReport, response: Triage
         )
 
 
-def _build_rejected_alternatives(verdict: Verdict) -> list[str]:
-    """Plain-language explanations of why other lattice states were rejected."""
+def _build_rejected_alternatives(
+    verdict: Verdict,
+    unapproved_steps: list[str] | None = None,
+) -> list[str]:
+    """Plain-language explanations of why other lattice states or proposed steps were rejected."""
+    alternatives: list[str] = []
+
     if verdict == Verdict.BLOCKED:
-        return [
-            "Rejected CHECKED_CLEAR: Rule R11 strictly prohibits clearing a plan when an active BLOCK alert is present.",
-            "Rejected CHECKED_ALERTS: Absolute contraindication interlocks cannot be overridden by clinician discretion.",
-            "Rejected UNVERIFIED: Sufficient structured clinical parameters were verified to definitively prove contraindication.",
-        ]
+        alternatives.extend(
+            [
+                "Rejected CHECKED_CLEAR: Rule R11 strictly prohibits clearing a plan when an active BLOCK alert is present.",
+                "Rejected CHECKED_ALERTS: Absolute contraindication interlocks cannot be overridden by clinician discretion.",
+                "Rejected UNVERIFIED: Sufficient structured clinical parameters were verified to definitively prove contraindication.",
+            ]
+        )
     elif verdict == Verdict.UNVERIFIED:
-        return [
-            "Rejected CHECKED_CLEAR: Rule R2 fail-closed boundary prohibits assuming safety when required parameters are missing.",
-            "Rejected BLOCKED: Incomplete data prevents confirming active contraindications; missing parameters trigger UNVERIFIED.",
-            "Rejected CHECKED_ALERTS: Partial safety cannot be granted while unverified safety interlocks remain unperformed.",
-        ]
+        alternatives.extend(
+            [
+                "Rejected CHECKED_CLEAR: Rule R2 fail-closed boundary prohibits assuming safety when required parameters are missing.",
+                "Rejected BLOCKED: Incomplete data prevents confirming active contraindications; missing parameters trigger UNVERIFIED.",
+                "Rejected CHECKED_ALERTS: Partial safety cannot be granted while unverified safety interlocks remain unperformed.",
+            ]
+        )
     elif verdict == Verdict.CHECKED_ALERTS:
-        return [
-            "Rejected CHECKED_CLEAR: High-severity clinical warnings fired, requiring active clinician override before administration.",
-            "Rejected BLOCKED: Fired alerts are classified as HIGH (clinical warning), not non-overridable BLOCK contraindications.",
-            "Rejected UNVERIFIED: Patient parameters were sufficiently resolved to verify all applicable safety rules.",
-        ]
+        alternatives.extend(
+            [
+                "Rejected CHECKED_CLEAR: High-severity clinical warnings fired, requiring active clinician override before administration.",
+                "Rejected BLOCKED: Fired alerts are classified as HIGH (clinical warning), not non-overridable BLOCK contraindications.",
+                "Rejected UNVERIFIED: Patient parameters were sufficiently resolved to verify all applicable safety rules.",
+            ]
+        )
     else:
-        return [
-            "Rejected BLOCKED: Zero drug-drug, allergy, or physiological contraindication rules fired.",
-            "Rejected CHECKED_ALERTS: Zero clinical warnings or formulary ceiling violations detected.",
-            "Rejected UNVERIFIED: All intake histories and vital signs required for active rulesets were successfully verified.",
-        ]
+        alternatives.extend(
+            [
+                "Rejected BLOCKED: Zero drug-drug, allergy, or physiological contraindication rules fired.",
+                "Rejected CHECKED_ALERTS: Zero clinical warnings or formulary ceiling violations detected.",
+                "Rejected UNVERIFIED: All intake histories and vital signs required for active rulesets were successfully verified.",
+            ]
+        )
+
+    if unapproved_steps:
+        for u in unapproved_steps:
+            alternatives.append(f"Rejected Proposed Step: {u}")
+
+    return alternatives
 
 
 def generate_action_plan(
@@ -636,9 +804,12 @@ def generate_action_plan(
     elif response.retrieval and response.retrieval.abstained:
         protocol_match_summary = f"Protocol retrieval abstained: {response.retrieval.abstain_code} ({response.retrieval.reason or 'No match'})."
 
+    unapproved = _build_unapproved_draft_steps(response)
+
     return ActionPlan(
         immediate_actions=_build_immediate_actions(report, verdict),
         medications=_build_medications(response),
+        unapproved_draft_steps=unapproved,
         monitoring_steps=_build_monitoring(report),
         escalation_steps=_build_escalation(report, verdict),
         assumptions=tags,
@@ -648,5 +819,5 @@ def generate_action_plan(
         confidence=confidence,
         protocol_match_summary=protocol_match_summary,
         why_decision=_build_why_decision(verdict, report, response),
-        rejected_alternatives=_build_rejected_alternatives(verdict),
+        rejected_alternatives=_build_rejected_alternatives(verdict, unapproved),
     )

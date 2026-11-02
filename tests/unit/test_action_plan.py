@@ -164,3 +164,68 @@ def test_action_plan_medications_populated_for_clear() -> None:
     assert med.medication_name == "epinephrine"
     assert "0.5 mg" in med.dose
     assert med.route == "im"
+
+
+def test_action_plan_unapproved_or_flagged_step_isolated_from_medications() -> None:
+    """Steps that require clinician confirmation must NEVER be emitted as medication instructions."""
+    resp = _minimal_response(Verdict.CHECKED_ALERTS)
+    draft = PlanStepDraft(
+        step_number=1,
+        action_type=ActionType.administer,
+        narrative_instruction="Administer IV ceftriaxone 1 g",
+        drug_id="ceftriaxone",
+        requested_dose=ExplicitDose(amount=Decimal("1.0"), unit=DoseUnit.g),
+        route=Route.iv,
+    )
+    resp.verified_steps = [
+        VerifiedStep(
+            draft=draft,
+            status=StepStatus.REQUIRES_CLINICIAN_CONFIRMATION,
+            triggered_rule_ids=["ALLERGY_PCN_CEPH"],
+            rejection_reasons=["Requires clinician confirmation due to penicillin allergy history"],
+            citation_verified=True,
+        )
+    ]
+    plan = generate_action_plan(resp)
+    # MUST NOT be in medications
+    assert len(plan.medications) == 0
+    # MUST be captured in unapproved_draft_steps
+    assert len(plan.unapproved_draft_steps) == 1
+    assert "REQUIRES_CLINICIAN_CONFIRMATION" in plan.unapproved_draft_steps[0]
+    assert "NOT approved for administration" in plan.unapproved_draft_steps[0]
+
+
+def test_action_plan_unverified_citation_prohibits_medication() -> None:
+    """Steps with unverified citations cannot be emitted as medication instructions."""
+    resp = _minimal_response(Verdict.CHECKED_CLEAR)
+    draft = PlanStepDraft(
+        step_number=1,
+        action_type=ActionType.administer,
+        narrative_instruction="Administer unverified medication",
+        drug_id="aspirin",
+        requested_dose=ExplicitDose(amount=Decimal("300"), unit=DoseUnit.mg),
+        route=Route.oral,
+    )
+    resp.verified_steps = [
+        VerifiedStep(
+            draft=draft,
+            status=StepStatus.APPROVED,
+            citation_verified=False,  # Unverified citation
+        )
+    ]
+    plan = generate_action_plan(resp)
+    assert len(plan.medications) == 0
+    assert len(plan.unapproved_draft_steps) == 1
+    assert "CITATION_UNVERIFIED" in plan.unapproved_draft_steps[0]
+
+
+def test_confidence_distinguishes_interlock_from_case_completeness() -> None:
+    """BLOCKED result with missing vitals clearly distinguishes decisive rule from incomplete case."""
+    resp = _minimal_response(Verdict.BLOCKED)
+    plan = generate_action_plan(resp)
+    assert plan.confidence is not None
+    assert plan.confidence.level == "HIGH"
+    assert plan.confidence.rule_evidence == "DECISIVE_INTERLOCK"
+    assert "INCOMPLETE" in plan.confidence.case_completeness
+    assert any("Rule R11 Interlock" in r for r in plan.confidence.reasons)
+    assert any("NOT overall clinical case completeness" in r for r in plan.confidence.reasons)

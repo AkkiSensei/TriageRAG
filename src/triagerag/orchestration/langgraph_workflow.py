@@ -566,13 +566,8 @@ def explain_node(state: TriageGraphState) -> dict[str, Any]:
         )
 
         from triagerag.action_plan import generate_action_plan
-        from triagerag.defaults import apply_demo_defaults
 
-        orig_patient = state.get("patient") or state.get("normalized_patient")
-        assumption_tags: list[str] = []
-        if orig_patient is not None:
-            _, assumption_tags = apply_demo_defaults(orig_patient)
-        action_plan = generate_action_plan(final_response, assumption_tags=assumption_tags)
+        action_plan = generate_action_plan(final_response)
         final_response = final_response.model_copy(
             update={
                 "action_plan": action_plan,

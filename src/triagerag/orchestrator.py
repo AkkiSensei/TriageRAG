@@ -1353,10 +1353,8 @@ def run_triage_linear(
         execution_trace=[],
     )
     from triagerag.action_plan import generate_action_plan
-    from triagerag.defaults import apply_demo_defaults
 
-    _, tags = apply_demo_defaults(patient)
-    plan = generate_action_plan(linear_resp, tags)
+    plan = generate_action_plan(linear_resp)
     return linear_resp.model_copy(
         update={
             "action_plan": plan,
@@ -1398,12 +1396,8 @@ def run_triage(
         provider_info=provider_info,
     )
     from triagerag.action_plan import generate_action_plan
-    from triagerag.defaults import apply_demo_defaults
 
-    _, assumption_tags = apply_demo_defaults(patient)
-    action_plan = response.action_plan or generate_action_plan(
-        response, assumption_tags=assumption_tags
-    )
+    action_plan = response.action_plan or generate_action_plan(response)
     return response.model_copy(
         update={
             "execution_trace": _trace,

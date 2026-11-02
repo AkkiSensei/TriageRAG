@@ -564,6 +564,14 @@
             "type": "array",
             "title": "Medications"
           },
+          "unapproved_draft_steps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unapproved Draft Steps",
+            "description": "Draft proposed steps that were rejected, flagged, or unverified. Administration strictly prohibited."
+          },
           "monitoring_steps": {
             "items": {
               "$ref": "#/components/schemas/MonitoringStep"
@@ -1258,11 +1266,24 @@
           },
           "score": {
             "type": "string",
-            "title": "Score"
+            "title": "Score",
+            "description": "Heuristic completeness/certainty index (0.00-1.00 scale). NOT a clinical probability."
           },
           "headline": {
             "type": "string",
             "title": "Headline"
+          },
+          "rule_evidence": {
+            "type": "string",
+            "title": "Rule Evidence",
+            "description": "Certainty of specific triggered rule or safety interlock.",
+            "default": "UNSPECIFIED"
+          },
+          "case_completeness": {
+            "type": "string",
+            "title": "Case Completeness",
+            "description": "Documentation completeness across the overall clinical case record.",
+            "default": "COMPLETE"
           },
           "reasons": {
             "items": {
@@ -1284,7 +1305,7 @@
           "data_quality"
         ],
         "title": "ConfidenceReport",
-        "description": "Deterministic, explainable confidence evaluation of the triage decision."
+        "description": "Deterministic, explainable confidence evaluation of the triage decision.\n\nSafety Disclosure (Rule R1, R3, R10):\nConfidence level and heuristic index reflect deterministic rule decisiveness, case data\ncompleteness, and protocol verification status. They are NOT empirical clinical probabilities."
       },
       "Consciousness": {
         "type": "string",
@@ -1420,6 +1441,18 @@
           "completeness_pct": {
             "type": "string",
             "title": "Completeness Pct"
+          },
+          "audit_scope": {
+            "type": "string",
+            "title": "Audit Scope",
+            "description": "Explicit scope of clinical parameters counted in the data quality audit.",
+            "default": "12 standard triage parameters: HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight, Allergies, Meds, Age, Sex"
+          },
+          "completeness_description": {
+            "type": "string",
+            "title": "Completeness Description",
+            "description": "Plain-English explanation of measured vs assumed vs missing parameters.",
+            "default": ""
           },
           "measured_fields": {
             "items": {

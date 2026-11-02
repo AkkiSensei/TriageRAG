@@ -173,7 +173,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
                 )}
                 {dataQuality && (
                   <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-white/80 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
-                    Data Quality: {dataQuality.measured_count} Measured &bull; {dataQuality.assumed_count} Assumed &bull; {dataQuality.missing_count} Missing ({Number(dataQuality.completeness_pct).toFixed(0)}%)
+                    Intake Completeness: {dataQuality.measured_count}/12 Measured &bull; {dataQuality.assumed_count} Assumed &bull; {dataQuality.missing_count} Missing ({Number(dataQuality.completeness_pct).toFixed(0)}%)
                   </span>
                 )}
               </div>
@@ -272,9 +272,26 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
           {/* Confidence Trust Drivers */}
           {Boolean(confidence?.reasons?.length) && (
             <div className="mb-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 p-3.5 border border-slate-200 dark:border-slate-700">
-              <span className="text-[11px] font-bold font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 block mb-1.5">
-                Confidence Trust Drivers ({confidence?.level} &bull; Score: {confidence?.score})
-              </span>
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[11px] font-bold font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                    Evidence & Verification Status ({confidence?.level})
+                  </span>
+                  {confidence?.rule_evidence && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">
+                      Rule: {confidence.rule_evidence}
+                    </span>
+                  )}
+                  {confidence?.case_completeness && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-200">
+                      Case: {confidence.case_completeness}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                  Heuristic Index: {confidence?.score} (Not a clinical probability)
+                </span>
+              </div>
               <ul className="space-y-1 text-xs text-slate-700 dark:text-slate-300 font-sans">
                 {confidence?.reasons?.map((r, i) => (
                   <li key={i} className="flex items-start gap-2">
@@ -304,7 +321,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
                 <div className="flex items-center gap-2">
                   <ListChecks className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                   <span className="text-xs font-bold uppercase tracking-wider font-mono text-slate-900 dark:text-white">
-                    Data Quality &bull; {dataQuality.measured_count} Measured &bull; {dataQuality.assumed_count} Assumed &bull; {dataQuality.missing_count} Missing ({Number(dataQuality.completeness_pct).toFixed(0)}% Complete)
+                    Data Quality Audit &bull; {dataQuality.measured_count}/12 Measured &bull; {dataQuality.assumed_count} Assumed &bull; {dataQuality.missing_count} Missing ({Number(dataQuality.completeness_pct).toFixed(0)}% Complete)
                   </span>
                 </div>
                 <button
@@ -317,38 +334,43 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
               </div>
 
               {showDataQualityAudit && (
-                <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-slate-100 dark:border-slate-700 text-xs">
-                  <div className="rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 p-2.5">
-                    <span className="font-bold text-emerald-800 dark:text-emerald-300 font-mono text-[11px] block mb-1">
-                      MEASURED CLINICALLY ({dataQuality.measured_count})
-                    </span>
-                    <ul className="space-y-1 font-mono text-[11px] text-emerald-900 dark:text-emerald-200">
-                      {dataQuality.measured_fields?.map((f, i) => <li key={i}>&bull; {f}</li>)}
-                    </ul>
-                  </div>
-                  <div className="rounded-lg bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-2.5">
-                    <span className="font-bold text-amber-800 dark:text-amber-300 font-mono text-[11px] block mb-1">
-                      ASSUMED DEMO DEFAULTS ({dataQuality.assumed_count})
-                    </span>
-                    <ul className="space-y-1 font-mono text-[11px] text-amber-900 dark:text-amber-200">
-                      {dataQuality.assumed_fields && dataQuality.assumed_fields.length > 0 ? (
-                        dataQuality.assumed_fields.map((f, i) => <li key={i}>&bull; {f}</li>)
-                      ) : (
-                        <li className="italic text-slate-400">None</li>
-                      )}
-                    </ul>
-                  </div>
-                  <div className="rounded-lg bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/50 p-2.5">
-                    <span className="font-bold text-rose-800 dark:text-rose-300 font-mono text-[11px] block mb-1">
-                      MISSING / UNKNOWN ({dataQuality.missing_count})
-                    </span>
-                    <ul className="space-y-1 font-mono text-[11px] text-rose-900 dark:text-rose-200">
-                      {dataQuality.missing_fields && dataQuality.missing_fields.length > 0 ? (
-                        dataQuality.missing_fields.map((f, i) => <li key={i}>&bull; {f}</li>)
-                      ) : (
-                        <li className="italic text-slate-400">None</li>
-                      )}
-                    </ul>
+                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700 text-xs">
+                  <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 mb-2">
+                    Scope: 12 standard triage parameters (HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight, Allergies, Meds, Age, Sex). Assumed demo defaults do not count toward measured completeness.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 p-2.5">
+                      <span className="font-bold text-emerald-800 dark:text-emerald-300 font-mono text-[11px] block mb-1">
+                        MEASURED CLINICALLY ({dataQuality.measured_count})
+                      </span>
+                      <ul className="space-y-1 font-mono text-[11px] text-emerald-900 dark:text-emerald-200">
+                        {dataQuality.measured_fields?.map((f, i) => <li key={i}>&bull; {f}</li>)}
+                      </ul>
+                    </div>
+                    <div className="rounded-lg bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-2.5">
+                      <span className="font-bold text-amber-800 dark:text-amber-300 font-mono text-[11px] block mb-1">
+                        ASSUMED DEMO DEFAULTS ({dataQuality.assumed_count})
+                      </span>
+                      <ul className="space-y-1 font-mono text-[11px] text-amber-900 dark:text-amber-200">
+                        {dataQuality.assumed_fields && dataQuality.assumed_fields.length > 0 ? (
+                          dataQuality.assumed_fields.map((f, i) => <li key={i}>&bull; {f}</li>)
+                        ) : (
+                          <li className="italic text-slate-400">None</li>
+                        )}
+                      </ul>
+                    </div>
+                    <div className="rounded-lg bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/50 p-2.5">
+                      <span className="font-bold text-rose-800 dark:text-rose-300 font-mono text-[11px] block mb-1">
+                        MISSING / UNKNOWN ({dataQuality.missing_count})
+                      </span>
+                      <ul className="space-y-1 font-mono text-[11px] text-rose-900 dark:text-rose-200">
+                        {dataQuality.missing_fields && dataQuality.missing_fields.length > 0 ? (
+                          dataQuality.missing_fields.map((f, i) => <li key={i}>&bull; {f}</li>)
+                        ) : (
+                          <li className="italic text-slate-400">None</li>
+                        )}
+                      </ul>
+                    </div>
                   </div>
                 </div>
               )}
@@ -463,6 +485,31 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {/* Non-Approved / Prohibited Proposed Steps */}
+          {Boolean(triage.action_plan.unapproved_draft_steps?.length) && (
+            <div className="mb-4 rounded-xl border border-rose-300 dark:border-rose-900 bg-rose-50/70 dark:bg-rose-950/30 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <XCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0" />
+                <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-rose-900 dark:text-rose-200">
+                  Non-Approved / Prohibited Proposed Steps (Administration Prohibited)
+                </h4>
+              </div>
+              <p className="text-[11px] text-rose-800 dark:text-rose-300 mb-2 font-sans">
+                The following proposed steps were evaluated by machine verification and are NOT approved for clinical administration:
+              </p>
+              <div className="flex flex-col gap-1.5 font-mono text-xs">
+                {triage.action_plan.unapproved_draft_steps?.map((u, idx) => (
+                  <div
+                    key={idx}
+                    className="p-2.5 rounded-lg bg-white/90 dark:bg-slate-900/90 border border-rose-200 dark:border-rose-900/60 text-rose-900 dark:text-rose-200"
+                  >
+                    &bull; {u}
+                  </div>
+                ))}
               </div>
             </div>
           )}

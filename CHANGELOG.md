@@ -8,12 +8,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - Decision Credibility Ledger, Deterministic Confidence Scoring & Data Quality Audit
 
 ### Added & Hardened
+- **CI Dependency Configuration & Mypy Gating (`.github/workflows/ci.yml`, `pyproject.toml`):**
+  - Resolved CI failure at mypy by adding `telemetry` extra to the CI install (`pip install -e ".[dev,api,telemetry]"`) in both `verify-and-eval` and `quickstart-smoke` workflows.
+  - Added `"opentelemetry.*"` to `ignore_missing_imports = true` in `pyproject.toml` so type-checking passes cleanly in any environment lacking optional telemetry SDKs.
+- **Removed Phantom Demo Defaults & Enforced Patient Honesty (`src/triagerag/orchestration/langgraph_workflow.py`, `src/triagerag/orchestrator.py`):**
+  - Eliminated the background synthetic `apply_demo_defaults` invocation that discarded the defaulted patient while injecting phantom assumption tags into the report.
+  - Ensured data quality and confidence strictly evaluate the patient data actually processed by the clinical engine (unmeasured parameters remain `MISSING`, never masquerading as assumed defaults).
+- **Gated Medication Instructions on Step Approval & Verified Citations (`src/triagerag/action_plan.py`):**
+  - Enforced that proposed steps MUST have `vs.status == StepStatus.APPROVED` and `vs.citation_verified is True` before becoming a `MedicationInstruction`.
+  - Added `unapproved_draft_steps` to `ActionPlan` to isolate steps requiring clinician confirmation (`REQUIRES_CLINICIAN_CONFIRMATION`), flagged steps (`FLAGGED_HIGH`), blocked steps, and citation-unverified steps with explicit warnings: `Administration strictly prohibited`.
+  - In `UNVERIFIED` or `BLOCKED` states, `medications` is strictly empty `[]`, preventing unverified draft content from being read as clinical instructions.
+- **Truthful Evidence Status & Removal of Pseudo-Probabilities (`src/triagerag/action_plan.py`, `src/triagerag/contracts/schemas.py`):**
+  - Added `rule_evidence` (certainty of specific triggered safety interlock, e.g. `DECISIVE_INTERLOCK`) and `case_completeness` (record completeness across 12 standard triage parameters).
+  - Explicitly decoupled interlock confidence from case completeness: a `BLOCKED` presentation with missing vitals is labeled `"Safety Interlock Decisive: Contraindication Identified (Case Record Incomplete)"`, clearly stating that confidence is in the interlock, not overall clinical completeness.
+  - Explicitly disclosed that numeric scores are heuristic completeness indices (0.00-1.00), not empirical or calibrated clinical probabilities.
+- **Evidence-Grounded Explanations & Dose Derivation (`src/triagerag/action_plan.py`):**
+  - Eliminated hardcoded drug-name string matching (`"epinephrine"`, `"ceftriaxone"`, `"nitroglycerin"`) in `_build_medications()`.
+  - Derived `why_chosen` directly from verifier evidence artifacts (`vs.support_reason` and `draft.citations` with overlap scores).
+  - Derived `why_not_alternatives` directly from other rejected/flagged steps and applicable baseline alerts in the presentation.
+  - Derived `dose_computation_source` directly from verified patient weight provenance (`measured`, `estimated`, or `not documented`).
+- **Explicit Data Quality Audit Scope (`src/triagerag/contracts/schemas.py`, `web/src/features/results/ExplanationSection.tsx`):**
+  - Documented audit scope explicitly as the 12 standard triage parameters (HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight, Allergies, Meds, Age, Sex).
+  - Added `completeness_description` clarifying that assumed defaults do not count toward measured completeness.
 - **Decision Credibility & Trust Layer (`src/triagerag/contracts/schemas.py`, `src/triagerag/action_plan.py`):**
   - Added strongly-typed Pydantic schemas:
     - `DataQualityReport`: audits measured vs assumed demo defaults vs missing parameters with exact parameter counts and completeness percentages.
-    - `ConfidenceReport`: deterministic `HIGH`, `MEDIUM`, or `LOW` confidence rating with numerical scores (e.g. 0.95 for BLOCK / confirmed clear; 0.70 for plans with assumed defaults; 0.30 for UNVERIFIED fail-closed) and bulleted trust drivers explaining *why* the engine is confident or unverified.
+    - `ConfidenceReport`: deterministic `HIGH`, `MEDIUM`, or `LOW` confidence rating with numerical scores and bulleted trust drivers explaining *why* the engine is confident or unverified.
     - Enriched `MedicationInstruction` with `why_chosen`, `why_not_alternatives`, and `dose_computation_source` to provide complete clinical evidence and dose derivation provenance.
-    - Enriched `ActionPlan` with `why_decision` (human-readable clinical rationale), `confidence` report, `protocol_match_summary`, and `rejected_alternatives`.
+    - Enriched `ActionPlan` with `why_decision` (human-readable clinical rationale), `confidence` report, `protocol_match_summary`, `unapproved_draft_steps`, and `rejected_alternatives`.
   - Added `confidence` and `data_quality` directly to `TriageResponse`.
 - **Deterministic Action Planning Layer (`src/triagerag/contracts/schemas.py`, `src/triagerag/action_plan.py`):**
   - Added strongly-typed Pydantic schemas: `ActionPlan`, `ActionStep`, `MedicationInstruction`, `MonitoringStep`, and `EscalationStep` (`extra="forbid"` enforced).
@@ -34,15 +56,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added Rich formatted output panels for:
     - `INPUT DATA QUALITY AUDIT` (measured parameters, assumed defaults, missing fields, completeness %).
     - `DECISION CONFIDENCE` badge and trust driver bullet points.
+    - `NON-APPROVED / PROHIBITED DRAFT STEPS` panel with explicit safety prohibition warnings.
     - `IMMEDIATE CLINICAL ACTIONS`, `MEDICATION ADMINISTRATION INSTRUCTIONS` (including clinical rationale, dose origin, and excluded alternatives), and `MONITORING & ESCALATION PROTOCOL`.
   - Added dedicated UI cards in `ExplanationSection.tsx`:
-    - Top-level Confidence Badge (`HIGH`, `MEDIUM`, `LOW`) and Data Quality summary pill.
-    - Expandable Input Data Quality & Provenance Audit drawer.
+    - Top-level Confidence Badge (`HIGH`, `MEDIUM`, `LOW`) with Rule Interlock and Case Record chips.
+    - Expandable Input Data Quality & Provenance Audit drawer with explicit 12-parameter scope disclosure.
     - Clinical Safety Rationale and Protocol Match Summary callouts.
-    - Action Plan with Confidence Trust Drivers, immediate urgency badges, and expanded medication table with `Why Chosen / Derivation` and `Excluded Alternatives` columns.
+    - Non-Approved / Prohibited Proposed Steps card for unverified/flagged draft steps.
+    - Action Plan with Confidence Trust Drivers, immediate urgency badges, and expanded medication table with `Why Chosen / Derivation` and `Excluded Alternatives` columns (rendered only when approved medications exist).
     - Propagated `rejected_alternatives` into the "Why Alternative Paths Were Rejected" card.
   - Exported updated OpenAPI specification (`web/openapi/openapi.json`) and regenerated TypeScript bindings (`web/src/types/api.ts`).
 - **Test Suite & CI Hardening:**
+  - Added unit test suite `tests/unit/test_defaults.py` verifying demo defaults, non-override of measured values, and GCS protection.
+  - Added unit test suite `tests/unit/test_action_plan.py` (12 tests) verifying data quality audits, confidence calculations, immediate actions, blocked medication inhibition, unapproved step isolation, and monitoring schedules across all lattice states.
+  - Updated integration test `tests/integration/test_api_contract.py` scenario count assertion for the 5-case reference set (`{"BLOCK", "UNVERIFIED", "HIGH", "CLEAN", "ABSTAIN"}`).
+  - Added frontend test in `ExplanationSection.test.tsx` verifying Action Plan and trust layer rendering.
+  - Full test suites clean: 533 unit tests passed (1 xfailed), 64 integration tests passed, 44 frontend tests passed. All linters and typechecks exit 0.
   - Added unit test suite `tests/unit/test_defaults.py` verifying demo defaults, non-override of measured values, and GCS protection.
   - Added unit test suite `tests/unit/test_action_plan.py` verifying data quality audits, confidence calculations, immediate actions, blocked medication inhibition, and monitoring schedules across all lattice states.
   - Updated integration test `tests/integration/test_api_contract.py` scenario count assertion for the 5-case reference set (`{"BLOCK", "UNVERIFIED", "HIGH", "CLEAN", "ABSTAIN"}`).

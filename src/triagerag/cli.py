@@ -516,6 +516,22 @@ def run(
                 )
             console.print(med_table)
 
+        if plan.unapproved_draft_steps:
+            unapp_table = Table(
+                title="NON-APPROVED / PROHIBITED DRAFT STEPS (ADMINISTRATION FORBIDDEN)",
+                expand=True,
+            )
+            unapp_table.add_column("Proposed Step & Status", style="bold red")
+            unapp_table.add_column("Clinical Safety Interlock", style="yellow")
+            for u in plan.unapproved_draft_steps:
+                parts = u.split(" -- ")
+                step_part = parts[0]
+                prohib_part = (
+                    parts[1] if len(parts) > 1 else "Administration prohibited under safety policy"
+                )
+                unapp_table.add_row(step_part, prohib_part)
+            console.print(unapp_table)
+
         if plan.monitoring_steps or plan.escalation_steps:
             obs_table = Table(title="MONITORING & ESCALATION PROTOCOL", expand=True)
             obs_table.add_column("Type", style="bold")

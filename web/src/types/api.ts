@@ -106,6 +106,11 @@ export interface components {
       immediate_actions?: components["schemas"]["ActionStep"][];
       /** Medications */
       medications?: components["schemas"]["MedicationInstruction"][];
+      /**
+       * Unapproved Draft Steps
+       * @description Draft proposed steps that were rejected, flagged, or unverified. Administration strictly prohibited.
+       */
+      unapproved_draft_steps?: string[];
       /** Monitoring Steps */
       monitoring_steps?: components["schemas"]["MonitoringStep"][];
       /** Escalation Steps */
@@ -397,6 +402,10 @@ export interface components {
     /**
      * ConfidenceReport
      * @description Deterministic, explainable confidence evaluation of the triage decision.
+     *
+     * Safety Disclosure (Rule R1, R3, R10):
+     * Confidence level and heuristic index reflect deterministic rule decisiveness, case data
+     * completeness, and protocol verification status. They are NOT empirical clinical probabilities.
      */
     ConfidenceReport: {
       /**
@@ -404,10 +413,25 @@ export interface components {
        * @enum {string}
        */
       level: "HIGH" | "MEDIUM" | "LOW";
-      /** Score */
+      /**
+       * Score
+       * @description Heuristic completeness/certainty index (0.00-1.00 scale). NOT a clinical probability.
+       */
       score: string;
       /** Headline */
       headline: string;
+      /**
+       * Rule Evidence
+       * @description Certainty of specific triggered rule or safety interlock.
+       * @default UNSPECIFIED
+       */
+      rule_evidence?: string;
+      /**
+       * Case Completeness
+       * @description Documentation completeness across the overall clinical case record.
+       * @default COMPLETE
+       */
+      case_completeness?: string;
       /** Reasons */
       reasons?: string[];
       data_quality: components["schemas"]["DataQualityReport"];
@@ -485,6 +509,18 @@ export interface components {
       missing_count: number;
       /** Completeness Pct */
       completeness_pct: string;
+      /**
+       * Audit Scope
+       * @description Explicit scope of clinical parameters counted in the data quality audit.
+       * @default 12 standard triage parameters: HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight, Allergies, Meds, Age, Sex
+       */
+      audit_scope?: string;
+      /**
+       * Completeness Description
+       * @description Plain-English explanation of measured vs assumed vs missing parameters.
+       * @default
+       */
+      completeness_description?: string;
       /** Measured Fields */
       measured_fields?: string[];
       /** Assumed Fields */

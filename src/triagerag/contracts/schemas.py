@@ -590,19 +590,42 @@ class DataQualityReport(BaseModel):
     assumed_count: int
     missing_count: int
     completeness_pct: Decimal
+    audit_scope: str = Field(
+        default="12 standard triage parameters: HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight, Allergies, Meds, Age, Sex",
+        description="Explicit scope of clinical parameters counted in the data quality audit.",
+    )
+    completeness_description: str = Field(
+        default="",
+        description="Plain-English explanation of measured vs assumed vs missing parameters.",
+    )
     measured_fields: list[str] = Field(default_factory=list)
     assumed_fields: list[str] = Field(default_factory=list)
     missing_fields: list[str] = Field(default_factory=list)
 
 
 class ConfidenceReport(BaseModel):
-    """Deterministic, explainable confidence evaluation of the triage decision."""
+    """Deterministic, explainable confidence evaluation of the triage decision.
+
+    Safety Disclosure (Rule R1, R3, R10):
+    Confidence level and heuristic index reflect deterministic rule decisiveness, case data
+    completeness, and protocol verification status. They are NOT empirical clinical probabilities.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     level: Literal["HIGH", "MEDIUM", "LOW"]
-    score: Decimal
+    score: Decimal = Field(
+        description="Heuristic completeness/certainty index (0.00-1.00 scale). NOT a clinical probability."
+    )
     headline: str
+    rule_evidence: str = Field(
+        default="UNSPECIFIED",
+        description="Certainty of specific triggered rule or safety interlock.",
+    )
+    case_completeness: str = Field(
+        default="COMPLETE",
+        description="Documentation completeness across the overall clinical case record.",
+    )
     reasons: list[str] = Field(default_factory=list)
     data_quality: DataQualityReport
 
@@ -665,6 +688,10 @@ class ActionPlan(BaseModel):
 
     immediate_actions: list[ActionStep] = Field(default_factory=list)
     medications: list[MedicationInstruction] = Field(default_factory=list)
+    unapproved_draft_steps: list[str] = Field(
+        default_factory=list,
+        description="Draft proposed steps that were rejected, flagged, or unverified. Administration strictly prohibited.",
+    )
     monitoring_steps: list[MonitoringStep] = Field(default_factory=list)
     escalation_steps: list[EscalationStep] = Field(default_factory=list)
     assumptions: list[str] = Field(default_factory=list)
