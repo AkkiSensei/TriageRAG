@@ -131,7 +131,7 @@ export const ReportPage: React.FC = () => {
     )
   }
 
-  const patient = patientRequest?.patient
+  const patient = triageResult?.patient || patientRequest?.patient
   const engine = triageResult.engine
   const verdict = engine.verdict
   const isBlock = verdict === 'BLOCKED'
@@ -219,7 +219,7 @@ export const ReportPage: React.FC = () => {
               <span className="text-slate-300 dark:text-slate-700">&bull;</span>
               <span className="text-slate-600 dark:text-slate-300 flex items-center gap-1">
                 <Scale className="h-3.5 w-3.5 text-slate-400" />
-                Weight: {patient.weight_kg.value ? `${patient.weight_kg.value} kg` : 'Unknown'}
+                Weight: {patient?.weight_kg?.value !== null && patient?.weight_kg?.value !== undefined ? `${patient.weight_kg.value} kg` : 'Unknown'}
               </span>
               <span className="text-slate-300 dark:text-slate-700">&bull;</span>
               <span className="text-teal-800 dark:text-teal-300 font-bold bg-teal-50 dark:bg-teal-950/60 px-2.5 py-0.5 rounded-md border border-teal-200 dark:border-teal-800">

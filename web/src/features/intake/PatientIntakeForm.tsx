@@ -101,8 +101,8 @@ export const INITIAL_FORM_STATE: FormState = {
   ageUnit: 'years',
   sex: 'male',
   pregnancy: 'no',
-  weightStatus: 'unknown',
-  weightValue: '',
+  weightStatus: 'measured',
+  weightValue: '82.0',
 
   hrStatus: 'unknown',
   hrValue: null,
@@ -114,13 +114,13 @@ export const INITIAL_FORM_STATE: FormState = {
   rrValue: null,
   spo2Status: 'unknown',
   spo2Value: null,
-  o2Status: 'unknown',
-  o2Value: 'unknown',
+  o2Status: 'measured',
+  o2Value: 'no',
   tempStatus: 'unknown',
   tempValue: '',
   glucoseStatus: 'unknown',
   glucoseValue: '',
-  consciousnessStatus: 'unknown',
+  consciousnessStatus: 'measured',
   consciousnessValue: 'A',
 
   medicationStatus: 'unknown_unobtainable',
@@ -351,23 +351,29 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
   }
 
   const cleanMeasuredDecimal = (valStr: string, status: MeasurementStatus): { value: string | null; source: MeasurementStatus } => {
-    if (status === 'unknown' || !valStr.trim()) {
+    const trimmed = (valStr || '').trim()
+    if (!trimmed) {
       return { value: null, source: 'unknown' }
     }
-    const num = parseFloat(valStr)
+    const num = parseFloat(trimmed)
+    if (isNaN(num)) {
+      return { value: null, source: 'unknown' }
+    }
+    const resolvedStatus = status === 'unknown' ? 'measured' : status
     return {
-      value: isNaN(num) ? null : valStr.trim(),
-      source: status,
+      value: trimmed,
+      source: resolvedStatus,
     }
   }
 
   const cleanMeasuredInt = (val: number | null, status: MeasurementStatus): { value: number | null; source: MeasurementStatus } => {
-    if (status === 'unknown' || val === null || val === undefined || isNaN(val)) {
+    if (val === null || val === undefined || isNaN(val)) {
       return { value: null, source: 'unknown' }
     }
+    const resolvedStatus = status === 'unknown' ? 'measured' : status
     return {
       value: Math.round(val),
-      source: status,
+      source: resolvedStatus,
     }
   }
 
@@ -384,20 +390,24 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
     // 3. Supplemental O2
     let o2Payload: { value: 'yes' | 'no' | 'unknown' | null; source: MeasurementStatus }
-    if (form.o2Status === 'unknown') {
+    if (form.o2Value === 'unknown') {
       o2Payload = { value: null, source: 'unknown' }
     } else {
-      o2Payload = { value: form.o2Value, source: form.o2Status }
+      const resolvedO2Status = form.o2Status === 'unknown' ? 'measured' : form.o2Status
+      o2Payload = { value: form.o2Value, source: resolvedO2Status }
     }
 
     // 4. Consciousness
     let consciousnessPayload: { value: Consciousness | null; source: MeasurementStatus }
-    if (form.consciousnessStatus === 'unknown') {
-      consciousnessPayload = { value: null, source: 'unknown' }
-    } else if (['A', 'C', 'V', 'P', 'U'].includes(form.consciousnessValue)) {
-      consciousnessPayload = { value: form.consciousnessValue, source: form.consciousnessStatus }
+    if (form.consciousnessValue && ['A', 'C', 'V', 'P', 'U'].includes(form.consciousnessValue)) {
+      const resolvedConsciousnessStatus =
+        form.consciousnessStatus === 'unknown' ? 'measured' : form.consciousnessStatus
+      consciousnessPayload = {
+        value: form.consciousnessValue,
+        source: resolvedConsciousnessStatus,
+      }
     } else {
-      consciousnessPayload = { value: 'A', source: 'measured' }
+      consciousnessPayload = { value: null, source: 'unknown' }
     }
 
     // 5. Sanitize medications and reconcile status
@@ -710,7 +720,14 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             <input
               type="text"
               value={form.weightValue}
-              onChange={(e) => setForm({ ...form, weightValue: e.target.value })}
+              onChange={(e) => {
+                const val = e.target.value
+                setForm({
+                  ...form,
+                  weightValue: val,
+                  weightStatus: val.trim() ? (form.weightStatus === 'unknown' ? 'measured' : form.weightStatus) : 'unknown',
+                })
+              }}
               placeholder="82.0"
               className="mt-1 h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 dark:focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             />
@@ -806,9 +823,14 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               </div>
               <select
                 value={form.o2Value}
-                onChange={(e) =>
-                  setForm({ ...form, o2Value: e.target.value as 'yes' | 'no' | 'unknown' })
-                }
+                onChange={(e) => {
+                  const val = e.target.value as 'yes' | 'no' | 'unknown'
+                  setForm({
+                    ...form,
+                    o2Value: val,
+                    o2Status: val === 'unknown' ? 'unknown' : 'measured',
+                  })
+                }}
                 className="h-10 w-full rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 focus:outline-none"
               >
                 <option value="no">No (Normal room air)</option>
@@ -825,9 +847,14 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
             </label>
             <select
               value={form.consciousnessValue}
-              onChange={(e) =>
-                setForm({ ...form, consciousnessValue: e.target.value as Consciousness })
-              }
+              onChange={(e) => {
+                const val = e.target.value as Consciousness
+                setForm({
+                  ...form,
+                  consciousnessValue: val,
+                  consciousnessStatus: 'measured',
+                })
+              }}
               className="mt-1.5 h-10 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-900 dark:text-white focus:border-teal-600 focus:outline-none"
             >
               <option value="A">Alert - Fully awake and talking normally (0 points)</option>

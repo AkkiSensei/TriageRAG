@@ -593,6 +593,7 @@ class TriageResponse(BaseModel):
     audit_hash: str = ""
     provider_info: ProviderMetadata = Field(default_factory=ProviderMetadata)
     explanation: TriageExplanation | None = Field(default=None)
+    patient: Patient | None = None
 
 
 class Clock(Protocol):

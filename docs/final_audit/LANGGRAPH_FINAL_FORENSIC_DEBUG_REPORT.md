@@ -156,3 +156,4 @@ Live HTTP requests to running Uvicorn daemon (`http://127.0.0.1:8000`):
 2. **Deterministic Mock Boundary:** LLM generation uses `FakeLLM` mock provider; live neural models remain blocked under HD-10 and HD-14.
 3. **Observational ECE:** Calibration metrics remain observational under HD-12; probability calibration is refused without verified clinician labels.
 4. **Draft Ruleset:** Candidate rules (49 rules) remain in unreviewed draft status pending formal clinician sign-off (HD-7).
+

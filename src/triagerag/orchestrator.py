@@ -1306,6 +1306,7 @@ def run_triage_linear(
         audit_hash=stg6.audit_hash,
         provider_info=prov_meta,
         explanation=stg7.explanation,
+        patient=stg1.normalized_patient,
     )
 
 

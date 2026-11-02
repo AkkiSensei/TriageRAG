@@ -519,6 +519,7 @@ def explain_node(state: TriageGraphState) -> dict[str, Any]:
         audit_hash=state.get("audit_hash", ""),
         provider_info=state["provider_info"],
         explanation=stg7.explanation,
+        patient=state.get("normalized_patient") or state.get("patient"),
     )
     duration_ms = round((time.perf_counter() - start_time) * 1000, 3)
 

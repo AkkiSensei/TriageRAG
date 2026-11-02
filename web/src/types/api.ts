@@ -951,6 +951,7 @@ export interface components {
       audit_hash?: string;
       provider_info?: components["schemas"]["ProviderMetadata"];
       explanation?: components["schemas"]["TriageExplanation"] | null;
+      patient?: components["schemas"]["Patient-Output"] | null;
     };
     TriageExplanation: {
       headline: string;
