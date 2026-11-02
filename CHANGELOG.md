@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - Decision Credibility Ledger, Deterministic Confidence Scoring & Data Quality Audit
 
 ### Added & Hardened
+- **Withhold Steps Excluded from Medication Instructions (`src/triagerag/action_plan.py`, `tests/unit/test_action_plan.py`):**
+  - Restricted `MedicationInstruction` generation in `_build_medications` strictly to approved, cited `ActionType.administer` steps.
+  - Handled approved `withhold` steps exclusively as non-administration actions in `immediate_actions` (`WITHHOLD -- <drug_id>`), eliminating the possibility of a withhold directive rendering in the medication administration table.
+  - Added unit regression test `test_action_plan_approved_withhold_step_excluded_from_medications`.
+- **Truthful UI Confidence Badge & Dynamic Workflow Timeline (`web/src/features/results/ExplanationSection.tsx`):**
+  - Replaced ambiguous "HIGH CONFIDENCE" badge on decisive blocks with explicit `DECISIVE SAFETY INTERLOCK` (and `FAIL-CLOSED (INSUFFICIENT DATA)` on unverified presentations), keeping adjacent 12-parameter case completeness prominent.
+  - Dynamically derived 9-stage verification timeline statuses from actual execution state rather than static hardcoded claims: Stage 1 reflects `PARTIAL INTAKE` vs `VALIDATED` based on real measured counts, and Stage 8 reflects actual verdict outcome (`INTERLOCK ACTIVATED`, `FAIL-CLOSED`, `WARNINGS FLAGGED`, `CLEARED`).
+  - Refined clinical claim from absolute "Zero LLM Hallucination" to precise factual description: "Orders Emitted Only for Approved, Citation-Verified Steps".
+  - Added comprehensive frontend unit tests in `ExplanationSection.test.tsx` verifying badge and stage dynamics.
 - **CI Dependency Configuration & Mypy Gating (`.github/workflows/ci.yml`, `pyproject.toml`):**
   - Resolved CI failure at mypy by adding `telemetry` extra to the CI install (`pip install -e ".[dev,api,telemetry]"`) in both `verify-and-eval` and `quickstart-smoke` workflows.
   - Added `"opentelemetry.*"` to `ignore_missing_imports = true` in `pyproject.toml` so type-checking passes cleanly in any environment lacking optional telemetry SDKs.

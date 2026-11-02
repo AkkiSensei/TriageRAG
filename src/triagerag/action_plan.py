@@ -13,7 +13,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import TYPE_CHECKING, Literal
 
-from triagerag.contracts.enums import StepStatus, Verdict
+from triagerag.contracts.enums import ActionType, StepStatus, Verdict
 from triagerag.contracts.schemas import (
     ActionPlan,
     ActionStep,
@@ -309,8 +309,35 @@ def evaluate_confidence(
     )
 
 
-def _build_immediate_actions(report: EngineReport, verdict: Verdict) -> list[ActionStep]:
+def _build_immediate_actions(
+    report: EngineReport,
+    verdict: Verdict,
+    response: TriageResponse | None = None,
+) -> list[ActionStep]:
     actions: list[ActionStep] = []
+
+    # First, capture any machine-verified withhold instructions from verified protocol steps
+    if response and response.verified_steps:
+        for vs in response.verified_steps:
+            if (
+                vs.status == StepStatus.APPROVED
+                and vs.draft.action_type in (ActionType.withhold, "withhold")
+                and vs.citation_verified
+            ):
+                drug_label = vs.draft.drug_id or "Medication"
+                reason_desc = (
+                    vs.support_reason
+                    or f"Machine-verified protocol directive to withhold {drug_label}."
+                )
+                actions.append(
+                    ActionStep(
+                        title=f"WITHHOLD -- {drug_label}",
+                        description=f"Verified protocol instruction: WITHHOLD {drug_label}. {reason_desc}",
+                        reason="Evidence-verified protocol withholding directive (non-administration action).",
+                        rule_id=None,
+                        urgency="immediate",
+                    )
+                )
 
     if verdict == Verdict.BLOCKED:
         block_rules = [a for a in report.baseline_alerts if a.severity.value == "BLOCK"]
@@ -324,7 +351,7 @@ def _build_immediate_actions(report: EngineReport, verdict: Verdict) -> list[Act
                     urgency="immediate",
                 )
             )
-        if not actions:
+        if not any("STOP" in a.title for a in actions):
             actions.append(
                 ActionStep(
                     title="STOP -- Administration blocked",
@@ -392,6 +419,10 @@ def _build_medications(response: TriageResponse) -> list[MedicationInstruction]:
         if vs.status != StepStatus.APPROVED:
             continue
         if not vs.citation_verified:
+            continue
+        # CRITICAL SAFETY GATE: Only 'administer' action types can enter medication administration instructions.
+        # Withhold, monitor, diagnostic, maneuver steps must NEVER be represented as administration instructions.
+        if draft.action_type not in (ActionType.administer, "administer"):
             continue
 
         dose_str = "Not specified"
@@ -807,7 +838,7 @@ def generate_action_plan(
     unapproved = _build_unapproved_draft_steps(response)
 
     return ActionPlan(
-        immediate_actions=_build_immediate_actions(report, verdict),
+        immediate_actions=_build_immediate_actions(report, verdict, response),
         medications=_build_medications(response),
         unapproved_draft_steps=unapproved,
         monitoring_steps=_build_monitoring(report),

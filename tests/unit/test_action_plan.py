@@ -229,3 +229,33 @@ def test_confidence_distinguishes_interlock_from_case_completeness() -> None:
     assert "INCOMPLETE" in plan.confidence.case_completeness
     assert any("Rule R11 Interlock" in r for r in plan.confidence.reasons)
     assert any("NOT overall clinical case completeness" in r for r in plan.confidence.reasons)
+
+
+def test_action_plan_approved_withhold_step_excluded_from_medications() -> None:
+    """Approved, citation-verified withhold step must NEVER be in medications; represented as non-administration action."""
+    resp = _minimal_response(Verdict.CHECKED_CLEAR)
+    draft = PlanStepDraft(
+        step_number=1,
+        action_type=ActionType.withhold,
+        narrative_instruction="Withhold nitroglycerin if systolic BP < 90 mmHg",
+        drug_id="nitroglycerin",
+    )
+    resp.verified_steps = [
+        VerifiedStep(
+            draft=draft,
+            status=StepStatus.APPROVED,
+            citation_verified=True,
+            support_reason="Protocol directive to withhold nitrates in presence of hypotension risk",
+        )
+    ]
+    plan = generate_action_plan(resp)
+
+    # MUST NOT enter medication administration instructions (draft.action_type == withhold)
+    assert len(plan.medications) == 0
+
+    # MUST be captured in immediate_actions as a non-administration clinical action
+    withhold_actions = [a for a in plan.immediate_actions if "WITHHOLD" in a.title]
+    assert len(withhold_actions) == 1
+    assert "nitroglycerin" in withhold_actions[0].title.lower()
+    assert withhold_actions[0].urgency == "immediate"
+    assert "withholding directive" in withhold_actions[0].reason

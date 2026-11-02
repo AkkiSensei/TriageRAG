@@ -1,6 +1,6 @@
 === TRIAGERAG FAST VERIFICATION RUN RECORD ===
-TIMESTAMP: 2026-11-02T20:21:51.233316+00:00
-GIT_COMMIT: 085d7df0343fd0218d2f7d22373f6e162df963e7
+TIMESTAMP: 2026-11-02T20:49:09.485203+00:00
+GIT_COMMIT: df28f3906e5a56d17880089c9ed280d6b74bb8c3
 PYTHON: 3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]
 PLATFORM: win32
 
@@ -79,25 +79,25 @@ platform win32 -- Python 3.13.7, pytest-9.1.1, pluggy-1.7.0
 rootdir: C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG
 configfile: pyproject.toml
 plugins: anyio-4.15.1, hypothesis-6.170.11, langsmith-0.14.17, platformdirs-4.13.5
-collected 534 items
+collected 535 items
 
-tests\unit\test_action_plan.py ............                              [  2%]
+tests\unit\test_action_plan.py .............                             [  2%]
 tests\unit\test_aub_phase1_abstention.py ........                        [  3%]
 tests\unit\test_aub_phase1_citations.py ..                               [  4%]
 tests\unit\test_aub_phase1_explanations.py ...                           [  4%]
 tests\unit\test_aub_phase1_orchestrator_pipeline.py ...                  [  5%]
-tests\unit\test_aub_phase1_verdict.py ....................               [  8%]
+tests\unit\test_aub_phase1_verdict.py ....................               [  9%]
 tests\unit\test_aub_phase1_wording.py ....                               [  9%]
 tests\unit\test_aub_phase2_cues.py .....                                 [ 10%]
 tests\unit\test_aub_phase2_hygiene.py .....                              [ 11%]
-tests\unit\test_aub_phase2_inference.py .......                          [ 12%]
+tests\unit\test_aub_phase2_inference.py .......                          [ 13%]
 tests\unit\test_aub_phase2_node_predicates.py ......                     [ 14%]
 tests\unit\test_aub_phase2_predicates.py .......                         [ 15%]
 tests\unit\test_aub_phase2_scale_integrity.py ....                       [ 16%]
 tests\unit\test_aub_phase2_scoring.py .........                          [ 17%]
 tests\unit\test_aub_phase3_content_ids.py .......                        [ 19%]
 tests\unit\test_aub_phase3_contextual_chunking.py ........               [ 20%]
-tests\unit\test_aub_phase3_corpus.py .......                             [ 21%]
+tests\unit\test_aub_phase3_corpus.py .......                             [ 22%]
 tests\unit\test_aub_phase3_generator.py ....                             [ 22%]
 tests\unit\test_aub_phase3_licensing.py ....                             [ 23%]
 tests\unit\test_aub_phase3_openfda.py ......                             [ 24%]
@@ -105,7 +105,7 @@ tests\unit\test_aub_phase4_ablation.py ......                            [ 25%]
 tests\unit\test_aub_phase4_annotations.py ......                         [ 26%]
 tests\unit\test_aub_phase4_baselines.py .....                            [ 27%]
 tests\unit\test_aub_phase4_gates.py .....                                [ 28%]
-tests\unit\test_aub_phase4_metric_fixtures.py .......                    [ 29%]
+tests\unit\test_aub_phase4_metric_fixtures.py .......                    [ 30%]
 tests\unit\test_aub_phase4_metrics.py ....                               [ 30%]
 tests\unit\test_aub_phase4_splits.py ....                                [ 31%]
 tests\unit\test_aub_phase5_applicability.py ......                       [ 32%]
@@ -117,10 +117,10 @@ tests\unit\test_aub_phase6_classes_and_fdc.py ......                     [ 37%]
 tests\unit\test_aub_phase6_dose_engine.py .......                        [ 39%]
 tests\unit\test_aub_phase6_mine_rules.py ......                          [ 40%]
 tests\unit\test_aub_phase6_rule_coverage.py ...                          [ 40%]
-tests\unit\test_aub_phase6_schema_v2.py ......                           [ 41%]
+tests\unit\test_aub_phase6_schema_v2.py ......                           [ 42%]
 tests\unit\test_aub_phase6_trust_policy.py ......                        [ 43%]
 tests\unit\test_aub_phase7_diagnostics_and_mmr.py ......                 [ 44%]
-tests\unit\test_aub_phase7_neural_interface.py ....                      [ 44%]
+tests\unit\test_aub_phase7_neural_interface.py ....                      [ 45%]
 tests\unit\test_aub_phase7_provider_cassettes.py ....                    [ 45%]
 tests\unit\test_aub_phase7_query_expansion.py .....                      [ 46%]
 tests\unit\test_aub_phase7_security.py ....                              [ 47%]
@@ -179,7 +179,7 @@ tests/unit/test_rag_wp7_hybrid.py::test_dense_and_hybrid_retrievers_conform_to_p
     r_dense = build_retriever_backend("dense", chunks)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-=========== 533 passed, 1 xfailed, 3 warnings in 128.63s (0:02:08) ============
+=========== 534 passed, 1 xfailed, 3 warnings in 137.77s (0:02:17) ============
 ============================================================
 [OK] FAST VERIFICATION GATES GREEN (Static, Types, Architecture, Data, Unit)
 ============================================================

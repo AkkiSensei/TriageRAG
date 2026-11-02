@@ -83,12 +83,20 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
   const stepsCount = triage.verified_steps?.length || 0
   const retrievalAbstained = Boolean(triage.retrieval?.abstained)
 
-  // Timeline stage definitions for the 9-stage verification timeline
+  // Timeline stage definitions for the 9-stage verification timeline (derived from execution state)
   const timelineStages = [
-    { name: '1. Patient Input Validation', status: 'COMPLETED', note: 'All fields type-checked' },
+    {
+      name: '1. Patient Input Validation',
+      status: dataQuality
+        ? (dataQuality.missing_count > 0 ? 'PARTIAL INTAKE' : 'VALIDATED')
+        : 'SCHEMA CHECKED',
+      note: dataQuality
+        ? `${dataQuality.measured_count}/12 measured (${dataQuality.missing_count} unmeasured)`
+        : 'Pydantic type-contract validation',
+    },
     {
       name: '2. Clinical Data Normalization',
-      status: (engine.unresolved_entities?.length || 0) > 0 ? 'UNRESOLVED ENTITIES' : 'COMPLETED',
+      status: (engine.unresolved_entities?.length || 0) > 0 ? 'UNRESOLVED ENTITIES' : 'NORMALIZED',
       note: (engine.unresolved_entities?.length || 0) > 0
         ? `${engine.unresolved_entities?.length} unmapped entities`
         : 'Controlled units & vocabularies',
@@ -134,8 +142,14 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
     },
     {
       name: '8. Safety Verdict Lattice',
-      status: 'RESOLVED',
-      note: `Final verdict: ${verdict}`,
+      status: (() => {
+        if (verdict === 'BLOCKED') return 'INTERLOCK ACTIVATED'
+        if (verdict === 'UNVERIFIED') return 'FAIL-CLOSED'
+        if (verdict === 'CHECKED_ALERTS') return 'WARNINGS FLAGGED'
+        if (verdict === 'CHECKED_CLEAR') return 'CLEARED'
+        return String(verdict)
+      })(),
+      note: `Lattice evaluated to ${verdict}`,
     },
     {
       name: '9. Audit Hash Chain Sealed',
@@ -143,6 +157,45 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
       note: triage.audit_hash ? `${triage.audit_hash.slice(0, 16)}...` : 'No log path configured',
     },
   ]
+
+  const getConfidenceBadge = () => {
+    if (!confidence) return null
+    if (confidence.rule_evidence === 'DECISIVE_INTERLOCK' || verdict === 'BLOCKED') {
+      return {
+        label: 'DECISIVE SAFETY INTERLOCK',
+        classes: 'bg-rose-700 text-white dark:bg-rose-800',
+        detail: 'Certainty in triggered contraindication; not overall case completeness',
+      }
+    }
+    if (confidence.rule_evidence === 'FAIL_CLOSED_INSUFFICIENT_DATA' || verdict === 'UNVERIFIED') {
+      return {
+        label: 'FAIL-CLOSED (INSUFFICIENT DATA)',
+        classes: 'bg-amber-700 text-white dark:bg-amber-800',
+        detail: 'Safety unverified under Rule R2 fail-closed policy',
+      }
+    }
+    if (confidence.level === 'HIGH') {
+      return {
+        label: 'HIGH CONFIDENCE (MEASURED CLEAR)',
+        classes: 'bg-emerald-600 text-white',
+        detail: 'Evaluated clear across measured parameters',
+      }
+    }
+    if (confidence.level === 'MEDIUM') {
+      return {
+        label: 'MEDIUM CONFIDENCE (ALERTS / DEFAULTS)',
+        classes: 'bg-amber-600 text-white',
+        detail: 'Warnings flagged or demo defaults present',
+      }
+    }
+    return {
+      label: 'LOW CONFIDENCE (INCOMPLETE)',
+      classes: 'bg-rose-600 text-white',
+      detail: 'Incomplete clinical presentation',
+    }
+  }
+
+  const confBadge = getConfidenceBadge()
 
   return (
     <div className="flex flex-col gap-5">
@@ -158,17 +211,12 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
                 <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold tracking-wider ${vStyles.badgeBg} shadow-sm`}>
                   {vStyles.badgeText}
                 </span>
-                {confidence && (
+                {confBadge && (
                   <span
-                    className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold tracking-wider shadow-sm ${
-                      confidence.level === 'HIGH'
-                        ? 'bg-emerald-600 text-white'
-                        : confidence.level === 'MEDIUM'
-                          ? 'bg-amber-600 text-white'
-                          : 'bg-rose-600 text-white'
-                    }`}
+                    className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold tracking-wider shadow-sm ${confBadge.classes}`}
+                    title={confBadge.detail}
                   >
-                    {confidence.level} CONFIDENCE
+                    {confBadge.label}
                   </span>
                 )}
                 {dataQuality && (
@@ -245,7 +293,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
               </div>
             </div>
             <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
-              Derived from Rule Engine &bull; Zero LLM Hallucination
+              Derived from Rule Engine &bull; Orders Emitted Only for Approved, Citation-Verified Steps
             </span>
           </div>
 

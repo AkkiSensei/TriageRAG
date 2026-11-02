@@ -399,4 +399,97 @@ describe('ExplanationSection Component Tests', () => {
     expect(screen.getByText(/0\.5 mg/i)).toBeInTheDocument()
     expect(screen.getByText(/Assumed Demo Defaults:/i)).toBeInTheDocument()
   })
+
+  it('displays DECISIVE SAFETY INTERLOCK badge when verdict is BLOCKED', () => {
+    const mock = createMockTriage({
+      engine: {
+        verdict: 'BLOCKED',
+        checks_run: 5,
+        checks_skipped: [],
+        unresolved_entities: [],
+        ruleset_coverage: [],
+        coverage_gaps: [],
+        baseline_alerts: [
+          {
+            rule_id: 'ALLERGY_PENICILLIN_CEPH',
+            rule_type: 'allergy',
+            severity: 'BLOCK' as const,
+            consequence: 'Severe anaphylaxis contraindication',
+            action: 'Block administration',
+            provenance: {
+              source_status: 'PLACEHOLDER_UNRETRIEVED' as const,
+              source_doc: 'TEST',
+              section_ref: 'TO_BE_RESOLVED',
+              version_or_date: '2026-01-01',
+              verified: false,
+              content_origin: 'AGENT_DRAFT_UNSOURCED' as const,
+            },
+          },
+        ],
+        plan_alerts: [],
+      },
+      action_plan: {
+        confidence: {
+          level: 'HIGH',
+          score: '0.90',
+          headline: 'Safety Interlock Decisive',
+          rule_evidence: 'DECISIVE_INTERLOCK',
+          case_completeness: 'INCOMPLETE (5 parameters unmeasured)',
+          reasons: [],
+          data_quality: {
+            measured_count: 7,
+            assumed_count: 0,
+            missing_count: 5,
+            completeness_pct: '58.3',
+            measured_fields: [],
+            assumed_fields: [],
+            missing_fields: [],
+          },
+        },
+      } as unknown as NonNullable<TriageResponse['action_plan']>,
+    })
+    render(<ExplanationSection triage={mock} />)
+
+    expect(screen.getByText(/DECISIVE SAFETY INTERLOCK/i)).toBeInTheDocument()
+    expect(screen.queryByText(/^HIGH CONFIDENCE$/i)).not.toBeInTheDocument()
+  })
+
+  it('truthfully derives stage 1 and stage 8 timeline statuses from execution state', () => {
+    const mock = createMockTriage({
+      engine: {
+        verdict: 'UNVERIFIED',
+        checks_run: 2,
+        checks_skipped: [],
+        unresolved_entities: [],
+        ruleset_coverage: [],
+        coverage_gaps: [],
+        baseline_alerts: [],
+        plan_alerts: [],
+      },
+      action_plan: {
+        confidence: {
+          level: 'LOW',
+          score: '0.20',
+          headline: 'Incomplete',
+          rule_evidence: 'FAIL_CLOSED_INSUFFICIENT_DATA',
+          case_completeness: 'INCOMPLETE (6 missing)',
+          reasons: [],
+          data_quality: {
+            measured_count: 6,
+            assumed_count: 0,
+            missing_count: 6,
+            completeness_pct: '50.0',
+            measured_fields: [],
+            assumed_fields: [],
+            missing_fields: [],
+          },
+        },
+      } as unknown as NonNullable<TriageResponse['action_plan']>,
+    })
+    render(<ExplanationSection triage={mock} />)
+    fireEvent.click(screen.getByRole('button', { name: /Execution Pipeline Timeline/i }))
+
+    expect(screen.getByText(/PARTIAL INTAKE/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/FAIL-CLOSED/i).length).toBeGreaterThanOrEqual(2)
+  })
 })
