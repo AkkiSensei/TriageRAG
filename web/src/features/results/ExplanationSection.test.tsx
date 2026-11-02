@@ -257,4 +257,95 @@ describe('ExplanationSection Component Tests', () => {
 
     expect(screen.getByText(/Plan generation mode: deterministic_mock/i)).toBeInTheDocument()
   })
+
+  it('renders rejected paths explaining why alternative paths were rejected', () => {
+    const mock = createMockTriage({
+      explanation: {
+        headline: 'BLOCKED: Absolute Safety Interlock Triggered',
+        plain_language_summary: 'Contraindication interlock fired.',
+        outcome_reasons: ['[BLOCK] Absolute contraindication triggered.'],
+        retrieval_explanation: 'Retrieval completed.',
+        evidence_summary: 'Evidence available.',
+        completed_checks: [],
+        unresolved_checks: [],
+        rejected_paths: [
+          'Rejected CHECKED_CLEAR: Rule R11 strictly prohibits clearing a plan when a BLOCK severity alert is active.',
+          'Rejected CHECKED_ALERTS: Absolute contraindication interlocks cannot be overridden by clinical judgment.',
+        ],
+        generation_disclosure: 'Deterministic mock mode.',
+        permitted_ui_actions: [],
+      },
+    })
+    render(<ExplanationSection triage={mock} />)
+
+    expect(screen.getByText(/Why Alternative Paths Were Rejected/i)).toBeInTheDocument()
+    expect(screen.getByText(/Rejected CHECKED_CLEAR: Rule R11 strictly prohibits/i)).toBeInTheDocument()
+    expect(screen.getByText(/Rejected CHECKED_ALERTS: Absolute contraindication/i)).toBeInTheDocument()
+  })
+
+  it('toggles input normalization ledger drawer', () => {
+    const mock = createMockTriage({
+      patient: {
+        medications: [
+          { raw_text: 'Advil 200mg', resolved: true, ingredients: [{ ingredient_id: 'ibuprofen' }] },
+          { raw_text: 'UnknownHerb', resolved: false, suggestion: 'St Johns Wort' },
+        ],
+        allergies: [
+          { raw_substance: 'Penicillin', resolved: true, normalized_allergen_id: 'penicillin' },
+        ],
+        age: { value: '45', unit: 'years' },
+      } as unknown as NonNullable<TriageResponse['patient']>,
+    })
+    render(<ExplanationSection triage={mock} />)
+
+    const toggleButton = screen.getByRole('button', { name: /Input Normalization Ledger/i })
+    expect(toggleButton).toBeInTheDocument()
+
+    // Initially collapsed
+    expect(screen.queryByText(/Medications Normalization/i)).not.toBeInTheDocument()
+
+    // Click to expand
+    fireEvent.click(toggleButton)
+    expect(screen.getByText(/Medications Normalization/i)).toBeInTheDocument()
+    expect(screen.getByText(/Advil 200mg/i)).toBeInTheDocument()
+    expect(screen.getByText(/ibuprofen/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Penicillin/i).length).toBeGreaterThan(0)
+  })
+
+  it('toggles retriever evidence and plan grounding ledger', () => {
+    const mock = createMockTriage()
+    render(<ExplanationSection triage={mock} />)
+
+    const toggleButton = screen.getByRole('button', { name: /Retriever Evidence & Plan Grounding Ledger/i })
+    expect(toggleButton).toBeInTheDocument()
+
+    // Initially collapsed
+    expect(screen.queryByText(/Retrieved Protocol Evidence Chunks/i)).not.toBeInTheDocument()
+
+    // Click to expand
+    fireEvent.click(toggleButton)
+    expect(screen.getByText(/Retrieved Protocol Evidence Chunks/i)).toBeInTheDocument()
+    expect(screen.getByText(/CHUNK_01/i)).toBeInTheDocument()
+  })
+
+  it('renders live LangGraph execution trace nodes when execution_trace is provided', () => {
+    const mock = createMockTriage({
+      execution_trace: [
+        { node: 'normalise', status: 'completed', duration_ms: 1.25, details: {} },
+        { node: 'intake_safety', status: 'completed', duration_ms: 3.42, details: {} },
+        { node: 'retrieve', status: 'completed', duration_ms: 2.10, details: {} },
+        { node: 'draft_plan', status: 'completed', duration_ms: 5.60, details: {} },
+        { node: 'verify_plan', status: 'completed', duration_ms: 4.80, details: {} },
+        { node: 'block_seal', status: 'completed', duration_ms: 0.35, details: {} },
+        { node: 'audit', status: 'completed', duration_ms: 1.15, details: {} },
+        { node: 'explain', status: 'completed', duration_ms: 2.05, details: {} },
+      ],
+    } as unknown as Partial<TriageResponse>)
+    render(<ExplanationSection triage={mock} />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Execution Pipeline Timeline/i }))
+    expect(screen.getByText(/Live LangGraph Runtime State Nodes/i)).toBeInTheDocument()
+    expect(screen.getByText(/1\. normalise/i)).toBeInTheDocument()
+    expect(screen.getByText(/1\.25 ms/i)).toBeInTheDocument()
+  })
 })

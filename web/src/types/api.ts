@@ -21,6 +21,27 @@ export interface paths {
     /** Execute Triage */
     post: operations["execute_triage_api_triage_post"];
   };
+  "/api/triage/workflow": {
+    /**
+     * Get Workflow Graph Metadata
+     * @description Return LangGraph workflow structure, node inventory, and Mermaid definition.
+     */
+    get: operations["get_workflow_graph_metadata_api_triage_workflow_get"];
+  };
+  "/api/triage/explain": {
+    /**
+     * Explain Triage Retrieval
+     * @description Return full Retrieval Inspector diagnostic trace for a patient presentation.
+     */
+    post: operations["explain_triage_retrieval_api_triage_explain_post"];
+  };
+  "/api/triage/alert-why": {
+    /**
+     * Explain Alert Endpoint
+     * @description Return structured provenance, matched facts, and severity rationale for an alert.
+     */
+    post: operations["explain_alert_endpoint_api_triage_alert_why_post"];
+  };
   "/api/registry/summary": {
     /** Get Registry Summary */
     get: operations["get_registry_summary_api_registry_summary_get"];
@@ -41,13 +62,28 @@ export interface paths {
     /** Verify Audit */
     post: operations["verify_audit_api_audit_verify_post"];
   };
+  "/api/corpus/ask": {
+    /**
+     * Ask Corpus Endpoint
+     * @description Answer questions strictly via verbatim evidence extraction from approved protocols.
+     */
+    post: operations["ask_corpus_endpoint_api_corpus_ask_post"];
+  };
   "/api/eval/summary": {
     /** Get Eval Summary */
     get: operations["get_eval_summary_api_eval_summary_get"];
   };
-  "/": {
-    /** Root */
-    get: operations["root__get"];
+  "/health": {
+    /** Get Health */
+    get: operations["get_health_health_get"];
+  };
+  "/api": {
+    /** Api Info */
+    get: operations["api_info_api_get"];
+  };
+  "/{full_path}": {
+    /** Serve Spa */
+    get: operations["serve_spa__full_path__get"];
   };
 }
 
@@ -56,6 +92,12 @@ export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     /**
+     * AbstainCode
+     * @description Typed outcome codes for retrieval abstention and syndrome inference (RAG-01, RAG-15).
+     * @enum {string}
+     */
+    AbstainCode: "NONE" | "NO_POPULATION_COVERAGE" | "NO_RESULTS" | "UNKNOWN_SYNDROME" | "LOW_CONFIDENCE" | "AMBIGUOUS_MARGIN" | "EMPTY_QUERY" | "INDEX_UNAVAILABLE" | "SYNDROME_INFERRED";
+    /**
      * ActionType
      * @description Action category of a clinical plan step.
      * @enum {string}
@@ -63,7 +105,7 @@ export interface components {
     ActionType: "administer" | "withhold" | "monitor" | "diagnostic" | "maneuver";
     /**
      * Age
-     * @description Patient chronological age with population classification.
+     * @description Patient chronological age with population classification (FG-04, HD-2).
      */
     "Age-Input": {
       /** Value */
@@ -73,7 +115,7 @@ export interface components {
     };
     /**
      * Age
-     * @description Patient chronological age with population classification.
+     * @description Patient chronological age with population classification (FG-04, HD-2).
      */
     "Age-Output": {
       /** Value */
@@ -109,6 +151,52 @@ export interface components {
        * @default false
        */
       unverified?: boolean;
+      /** Step Number */
+      step_number?: number | null;
+    };
+    /**
+     * AlertWhyExplanation
+     * @description Detailed clinical provenance and execution rationale for an alert.
+     */
+    AlertWhyExplanation: {
+      /** Rule Id */
+      rule_id: string;
+      /** Rule Type */
+      rule_type: string;
+      /** Severity */
+      severity: string;
+      /** Consequence */
+      consequence: string;
+      /** Action */
+      action: string;
+      /** Matched Facts */
+      matched_facts?: string[];
+      /** Unknown Facts */
+      unknown_facts?: string[];
+      /** Satisfied Predicates */
+      satisfied_predicates?: string[];
+      /** Conflicting Predicates */
+      conflicting_predicates?: string[];
+      /** Supporting Evidence */
+      supporting_evidence?: {
+          [key: string]: string;
+        }[];
+      /**
+       * Severity Rationale
+       * @default
+       */
+      severity_rationale?: string;
+      /** Unestablished Scope */
+      unestablished_scope?: string[];
+      /** Provenance */
+      provenance?: {
+        [key: string]: unknown;
+      };
+    };
+    /** AlertWhyRequest */
+    AlertWhyRequest: {
+      alert: components["schemas"]["Alert"];
+      patient: components["schemas"]["Patient-Input"];
     };
     /**
      * AllergyEntry
@@ -135,6 +223,23 @@ export interface components {
        */
       resolved?: boolean;
     };
+    /** AskCorpusRequest */
+    AskCorpusRequest: {
+      /** Question */
+      question: string;
+      /**
+       * Population
+       * @default adult
+       */
+      population?: string;
+      /** Syndrome */
+      syndrome?: string | null;
+      /**
+       * Top K
+       * @default 3
+       */
+      top_k?: number;
+    };
     /** AuditEntryDto */
     AuditEntryDto: {
       /** Sequence Number */
@@ -149,6 +254,39 @@ export interface components {
       formulary_version: string;
       /** Retrieved Chunk Ids */
       retrieved_chunk_ids: string[];
+      /**
+       * Retrieval Query
+       * @default
+       */
+      retrieval_query?: string;
+      /** Retrieval Filters */
+      retrieval_filters?: {
+        [key: string]: unknown;
+      };
+      /** Retrieval Stage Scores */
+      retrieval_stage_scores?: {
+        [key: string]: unknown;
+      };
+      /**
+       * Corpus Hash
+       * @default
+       */
+      corpus_hash?: string;
+      /**
+       * Index Version
+       * @default
+       */
+      index_version?: string;
+      /**
+       * Config Hash
+       * @default
+       */
+      config_hash?: string;
+      /**
+       * Abstain Code
+       * @default NONE
+       */
+      abstain_code?: string;
       /** Provider Name */
       provider_name: string;
       /** Model Name */
@@ -181,6 +319,8 @@ export interface components {
       requested_dose: components["schemas"]["ExplicitDose-Output"];
       calculated_ceiling?: components["schemas"]["ExplicitDose-Output"] | null;
       calculated_recommended?: components["schemas"]["ExplicitDose-Output"] | null;
+      /** Calculated Volume Ml */
+      calculated_volume_ml?: string | null;
       /**
        * Magnitude Tripwire Triggered
        * @default false
@@ -196,6 +336,8 @@ export interface components {
        * @default
        */
       notes?: string;
+      /** Step Number */
+      step_number?: number | null;
     };
     /**
      * Consciousness
@@ -210,7 +352,51 @@ export interface components {
      * @description Origin tracking for rule and formulary facts.
      * @enum {string}
      */
-    ContentOrigin: "AGENT_DRAFT_UNSOURCED" | "HUMAN_AUTHORED" | "SOURCE_EXTRACT";
+    ContentOrigin: "AGENT_DRAFT_UNSOURCED" | "HUMAN_AUTHORED" | "SOURCE_EXTRACT" | "AGENT_DRAFT_SYNTHETIC";
+    /**
+     * CorpusAskResponse
+     * @description Extractive, citation-grounded response to a user clinical question.
+     */
+    CorpusAskResponse: {
+      /** Question */
+      question: string;
+      /** Answer */
+      answer: string;
+      /** Abstained */
+      abstained: boolean;
+      /** Abstain Reason */
+      abstain_reason?: string | null;
+      /** Citations */
+      citations?: components["schemas"]["CorpusCitation"][];
+      /**
+       * Retrieved Chunks Count
+       * @default 0
+       */
+      retrieved_chunks_count?: number;
+      /**
+       * Generator Badge
+       * @default EXTRACTIVE_VERBATIM
+       */
+      generator_badge?: string;
+    };
+    /** CorpusCitation */
+    CorpusCitation: {
+      /** Chunk Id */
+      chunk_id: string;
+      /** Doc Id */
+      doc_id: string;
+      /** Section */
+      section: string;
+      /**
+       * License
+       * @default Open Government Licence v3.0 / Synthetic
+       */
+      license?: string;
+      /** Exact Quote */
+      exact_quote: string;
+      /** Source Status */
+      source_status: string;
+    };
     /**
      * DoseUnit
      * @description Controlled clinical dosage units.
@@ -218,11 +404,28 @@ export interface components {
      */
     DoseUnit: "mcg" | "mg" | "g" | "mL" | "IU" | "mcg/kg" | "mg/kg" | "mcg/kg/min" | "mg/kg/hr";
     /**
+     * DrugAction
+     * @description Clause-scoped binding between a clinical action polarity and a formulary drug (FG-01).
+     */
+    DrugAction: {
+      /**
+       * Action
+       * @enum {string}
+       */
+      action: "administer" | "withhold" | "unparsed";
+      /** Drug Id */
+      drug_id: string;
+      /** Clause Text */
+      clause_text: string;
+    };
+    /**
      * EngineReport
      * @description Deterministic, pure output from the clinical decision engine.
      */
     EngineReport: {
       verdict: components["schemas"]["Verdict"];
+      /** Unverified Reason */
+      unverified_reason?: string | null;
       score?: components["schemas"]["ScoreResult"] | null;
       /** Baseline Alerts */
       baseline_alerts?: components["schemas"]["Alert"][];
@@ -259,16 +462,22 @@ export interface components {
        * @default 0.1.0
        */
       ruleset_version?: string;
+      /** @default demo */
+      trust_mode?: components["schemas"]["TrustMode"];
       /**
-       * Trust Mode
-       * @default demo
+       * Verified Rules Count
+       * @default 0
        */
-      trust_mode?: "strict" | "demo";
-      /** Verified Rules Count */
       verified_rules_count?: number;
-      /** Total Rules Count */
+      /**
+       * Total Rules Count
+       * @default 0
+       */
       total_rules_count?: number;
-      /** Verified Rules Summary */
+      /**
+       * Verified Rules Summary
+       * @default verified 0 of 0
+       */
       verified_rules_summary?: string;
     };
     /** EvalSummaryResponse */
@@ -301,6 +510,30 @@ export interface components {
       ablation?: {
         [key: string]: unknown;
       };
+    };
+    /**
+     * ExplainApiRequest
+     * @description Request payload for the retrieval explain diagnostic endpoint.
+     *
+     * Accepts either a full Patient (wrapped under `patient` or inline), or minimal
+     * retrieval attributes (population, suspected_syndrome, vitals).
+     */
+    ExplainApiRequest: {
+      patient?: components["schemas"]["Patient-Input"] | null;
+      /**
+       * Population
+       * @default adult
+       */
+      population?: string;
+      /** Suspected Syndrome */
+      suspected_syndrome?: string | null;
+      /** Vitals */
+      vitals?: components["schemas"]["Vitals-Input"] | {
+        [key: string]: unknown;
+      };
+      /** Assessed At */
+      assessed_at?: string | null;
+      retrieval_backend?: components["schemas"]["RetrievalBackend"] | null;
     };
     /**
      * ExplicitDose
@@ -348,6 +581,10 @@ export interface components {
        * @default true
        */
       llm_available?: boolean;
+      /**
+       * Generation Mode
+       * @default deterministic_mock
+       */
       generation_mode?: string;
       /**
        * Retrieval Backend
@@ -539,13 +776,13 @@ export interface components {
        * @default unknown
        * @enum {string}
        */
-      renal_impairment?: "yes" | "no" | "unknown";
+      renal_impairment?: "yes" | "no" | "unknown" | "none" | "mild" | "moderate" | "severe";
       /**
        * Hepatic Impairment
        * @default unknown
        * @enum {string}
        */
-      hepatic_impairment?: "yes" | "no" | "unknown";
+      hepatic_impairment?: "yes" | "no" | "unknown" | "none" | "mild" | "moderate" | "severe";
       /** Suspected Syndrome */
       suspected_syndrome?: string | null;
       /**
@@ -553,6 +790,22 @@ export interface components {
        * @default
        */
       chief_complaint_untrusted?: string;
+      /** Conditions */
+      conditions?: {
+        [key: string]: "yes" | "no" | "unknown";
+      };
+      /** Labs */
+      labs?: {
+        [key: string]: components["schemas"]["Measured_Decimal_-Input"];
+      };
+      /** Gestation Weeks */
+      gestation_weeks?: number | null;
+      /**
+       * Lactating
+       * @default unknown
+       * @enum {string}
+       */
+      lactating?: "yes" | "no" | "unknown";
     };
     /**
      * Patient
@@ -596,13 +849,13 @@ export interface components {
        * @default unknown
        * @enum {string}
        */
-      renal_impairment?: "yes" | "no" | "unknown";
+      renal_impairment?: "yes" | "no" | "unknown" | "none" | "mild" | "moderate" | "severe";
       /**
        * Hepatic Impairment
        * @default unknown
        * @enum {string}
        */
-      hepatic_impairment?: "yes" | "no" | "unknown";
+      hepatic_impairment?: "yes" | "no" | "unknown" | "none" | "mild" | "moderate" | "severe";
       /** Suspected Syndrome */
       suspected_syndrome?: string | null;
       /**
@@ -610,6 +863,22 @@ export interface components {
        * @default
        */
       chief_complaint_untrusted?: string;
+      /** Conditions */
+      conditions?: {
+        [key: string]: "yes" | "no" | "unknown";
+      };
+      /** Labs */
+      labs?: {
+        [key: string]: components["schemas"]["Measured_Decimal_-Output"];
+      };
+      /** Gestation Weeks */
+      gestation_weeks?: number | null;
+      /**
+       * Lactating
+       * @default unknown
+       * @enum {string}
+       */
+      lactating?: "yes" | "no" | "unknown";
     };
     /**
      * PlanStepDraft
@@ -626,7 +895,21 @@ export interface components {
       requested_dose?: components["schemas"]["ExplicitDose-Output"] | null;
       route?: components["schemas"]["Route"] | null;
       /** Citations */
-      citations: components["schemas"]["SpanCitation"][];
+      citations?: components["schemas"]["SpanCitation"][];
+      /** Concentration Mg Per Ml */
+      concentration_mg_per_ml?: string | null;
+      /** Diluent */
+      diluent?: string | null;
+      /** Rate Mg Per Min */
+      rate_mg_per_min?: string | null;
+      /** Frequency Hours */
+      frequency_hours?: string | null;
+      /**
+       * Relative Time Minutes
+       * @description Planned administration offset in minutes from assessed_at (max 1440m/24h).
+       * @default 0
+       */
+      relative_time_minutes?: number | null;
     };
     /** ProtocolChunkDto */
     ProtocolChunkDto: {
@@ -634,6 +917,17 @@ export interface components {
       chunk_id: string;
       /** Doc Id */
       doc_id: string;
+      /** Parent Id */
+      parent_id?: string | null;
+      /** Legacy Id */
+      legacy_id?: string | null;
+      /** Aliases */
+      aliases?: string[];
+      /**
+       * Title
+       * @default
+       */
+      title?: string;
       /** Section */
       section: string;
       /** Population */
@@ -642,11 +936,34 @@ export interface components {
       syndrome: string;
       /** Text */
       text: string;
+      /** Synthetic */
+      synthetic: boolean;
       /**
-       * Synthetic
-       * @default true
+       * Version
+       * @default 1.0.0
        */
-      synthetic?: boolean;
+      version?: string;
+      /**
+       * Content Hash
+       * @default
+       */
+      content_hash?: string;
+      /** License */
+      license?: string | null;
+      /**
+       * License Tag
+       * @default synthetic
+       */
+      license_tag?: string;
+      /** Attribution */
+      attribution?: string | null;
+      /** Source Url */
+      source_url?: string | null;
+      /**
+       * Source Status
+       * @default PLACEHOLDER_UNRETRIEVED
+       */
+      source_status?: string;
     };
     /**
      * Provenance
@@ -670,6 +987,34 @@ export interface components {
       verified?: boolean;
       /** Reviewer */
       reviewer?: string | null;
+    };
+    /**
+     * ProviderMetadata
+     * @description Execution metadata for deterministic mock plan generation and repair cycles.
+     */
+    ProviderMetadata: {
+      /**
+       * Generation Mode
+       * @default deterministic_mock
+       */
+      generation_mode?: string;
+      /** Requested Profile */
+      requested_profile?: string | null;
+      /**
+       * Repair Attempted
+       * @default false
+       */
+      repair_attempted?: boolean;
+      /**
+       * Repair Cycles
+       * @default 0
+       */
+      repair_cycles?: number;
+      /**
+       * Retrieval Backend
+       * @default bm25
+       */
+      retrieval_backend?: string;
     };
     /** RegistrySummaryResponse */
     RegistrySummaryResponse: {
@@ -695,14 +1040,18 @@ export interface components {
       unreviewed_count: number;
     };
     /**
+     * RetrievalBackend
+     * @description Supported protocol retrieval backends (T0.9 / AUB-OPS-01).
+     * @enum {string}
+     */
+    RetrievalBackend: "bm25" | "char_ngram" | "dense" | "hybrid_rrf" | "hybrid_rrf_rerank" | "hybrid_rerank";
+    /**
      * RetrievalReport
-     * @description Report on retrieval execution, backend used, and abstain decisions.
+     * @description Report on retrieval execution, backend used, provenance hashes, and abstain decisions.
      */
     RetrievalReport: {
       /** Chunks */
       chunks?: components["schemas"]["RetrievedChunk"][];
-      /** Parent Chunks */
-      parent_chunks?: components["schemas"]["RetrievedChunk"][];
       /**
        * Backend
        * @default bm25
@@ -713,18 +1062,18 @@ export interface components {
        * @default false
        */
       abstained?: boolean;
-      /**
-       * Abstain Code
-       * @default NONE
-       */
-      abstain_code?: string;
+      /** @default NONE */
+      abstain_code?: components["schemas"]["AbstainCode"];
       /** Reason */
       reason?: string | null;
-      /** Query */
+      /**
+       * Query
+       * @default
+       */
       query?: string;
       /** Filters */
       filters?: {
-        [key: string]: string | null;
+        [key: string]: string;
       };
       /** Skipped Flags */
       skipped_flags?: string[];
@@ -734,16 +1083,34 @@ export interface components {
           [key: string]: number;
         };
       };
-      /** Corpus Hash */
+      /**
+       * Corpus Hash
+       * @default
+       */
       corpus_hash?: string;
-      /** Index Version */
+      /**
+       * Index Version
+       * @default 1.0.0
+       */
       index_version?: string;
-      /** Config Hash */
+      /**
+       * Config Hash
+       * @default
+       */
       config_hash?: string;
-      /** Expansion Mode */
+      /**
+       * Expansion Mode
+       * @default predicate_aware_bm25
+       */
       expansion_mode?: string;
       /** Expansion Trace */
-      expansion_trace?: Record<string, any> | null;
+      expansion_trace?: {
+        [key: string]: unknown;
+      } | null;
+      /** Diagnostics */
+      diagnostics?: {
+        [key: string]: unknown;
+      } | null;
     };
     /**
      * RetrievedChunk
@@ -758,6 +1125,13 @@ export interface components {
       chunk_id: string;
       /** Parent Id */
       parent_id?: string | null;
+      /** Legacy Id */
+      legacy_id?: string | null;
+      /**
+       * Aliases
+       * @default []
+       */
+      aliases?: string[];
       /** Text */
       text: string;
       /** Population */
@@ -769,10 +1143,11 @@ export interface components {
        * @default 0.0
        */
       score?: string;
-      /** Content Hash */
-      content_hash?: string;
-      /** License */
-      license?: string | null;
+      /**
+       * Drug Actions
+       * @default []
+       */
+      drug_actions?: components["schemas"]["DrugAction"][];
     };
     /**
      * Route
@@ -889,7 +1264,7 @@ export interface components {
      * @description Retrieval and clinical review status of an evidence source.
      * @enum {string}
      */
-    SourceStatus: "PLACEHOLDER_UNRETRIEVED" | "RETRIEVED_UNREVIEWED" | "REVIEWED";
+    SourceStatus: "PLACEHOLDER_UNRETRIEVED" | "RETRIEVED_UNREVIEWED" | "REVIEWED" | "REJECTED" | "SYNTHETIC_AUTHORED";
     /**
      * SpanCitation
      * @description Verbatim citation pointing directly to a retrieved protocol chunk.
@@ -924,7 +1299,33 @@ export interface components {
        * @default false
        */
       include_complaint_in_llm?: boolean;
-      retrieval_backend?: string | null;
+      retrieval_backend?: components["schemas"]["RetrievalBackend"] | null;
+    };
+    /**
+     * TriageExplanation
+     * @description Structured, deterministic explanation of the triage result answering user questions.
+     */
+    TriageExplanation: {
+      /** Headline */
+      headline: string;
+      /** Plain Language Summary */
+      plain_language_summary: string;
+      /** Outcome Reasons */
+      outcome_reasons?: string[];
+      /** Retrieval Explanation */
+      retrieval_explanation: string;
+      /** Evidence Summary */
+      evidence_summary: string;
+      /** Completed Checks */
+      completed_checks?: string[];
+      /** Unresolved Checks */
+      unresolved_checks?: string[];
+      /** Rejected Paths */
+      rejected_paths?: string[];
+      /** Generation Disclosure */
+      generation_disclosure: string;
+      /** Permitted Ui Actions */
+      permitted_ui_actions?: string[];
     };
     /**
      * TriageResponse
@@ -952,25 +1353,23 @@ export interface components {
       provider_info?: components["schemas"]["ProviderMetadata"];
       explanation?: components["schemas"]["TriageExplanation"] | null;
       patient?: components["schemas"]["Patient-Output"] | null;
+      input_patient?: components["schemas"]["Patient-Output"] | null;
+      /** Execution Trace */
+      execution_trace?: {
+          [key: string]: unknown;
+        }[];
     };
-    TriageExplanation: {
-      headline: string;
-      plain_language_summary: string;
-      outcome_reasons: string[];
-      retrieval_explanation: string;
-      evidence_summary: string;
-      completed_checks: string[];
-      unresolved_checks: string[];
-      generation_disclosure: string;
-      permitted_ui_actions: string[];
-    };
-    ProviderMetadata: {
-      generation_mode?: string;
-      requested_profile?: string | null;
-      repair_attempted?: boolean;
-      repair_cycles?: number;
-      retrieval_backend?: string;
-    };
+    /**
+     * TrustMode
+     * @description Operational trust policy mode for deterministic clinical rules (T6.0 / AUB-ENG-04 / HD-7).
+     *
+     * STRICT: Only clinically reviewed rules with verified: true can yield authoritative clearance.
+     *         Under HD-7, unverified draft rules cause clearance checks to fail closed to UNVERIFIED.
+     * DEMO: Research prototype demonstration mode allowing unverified draft rules to execute
+     *       with explicit 'UNSOURCED DRAFT' status and verified rule counts reported.
+     * @enum {string}
+     */
+    TrustMode: "strict" | "demo";
     /** ValidationError */
     ValidationError: {
       /** Location */
@@ -1011,6 +1410,8 @@ export interface components {
        * @default 0.0
        */
       citation_overlap_score?: string;
+      /** Support Reason */
+      support_reason?: string | null;
     };
     /**
      * Vitals
@@ -1124,6 +1525,74 @@ export interface operations {
       };
     };
   };
+  /**
+   * Get Workflow Graph Metadata
+   * @description Return LangGraph workflow structure, node inventory, and Mermaid definition.
+   */
+  get_workflow_graph_metadata_api_triage_workflow_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": {
+            [key: string]: unknown;
+          };
+        };
+      };
+    };
+  };
+  /**
+   * Explain Triage Retrieval
+   * @description Return full Retrieval Inspector diagnostic trace for a patient presentation.
+   */
+  explain_triage_retrieval_api_triage_explain_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ExplainApiRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": {
+            [key: string]: unknown;
+          };
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Explain Alert Endpoint
+   * @description Return structured provenance, matched facts, and severity rationale for an alert.
+   */
+  explain_alert_endpoint_api_triage_alert_why_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AlertWhyRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["AlertWhyExplanation"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   /** Get Registry Summary */
   get_registry_summary_api_registry_summary_get: {
     responses: {
@@ -1190,6 +1659,31 @@ export interface operations {
       };
     };
   };
+  /**
+   * Ask Corpus Endpoint
+   * @description Answer questions strictly via verbatim evidence extraction from approved protocols.
+   */
+  ask_corpus_endpoint_api_corpus_ask_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AskCorpusRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["CorpusAskResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   /** Get Eval Summary */
   get_eval_summary_api_eval_summary_get: {
     responses: {
@@ -1201,8 +1695,19 @@ export interface operations {
       };
     };
   };
-  /** Root */
-  root__get: {
+  /** Get Health */
+  get_health_health_get: {
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": components["schemas"]["HealthResponse"];
+        };
+      };
+    };
+  };
+  /** Api Info */
+  api_info_api_get: {
     responses: {
       /** @description Successful Response */
       200: {
@@ -1210,6 +1715,28 @@ export interface operations {
           "application/json": {
             [key: string]: string;
           };
+        };
+      };
+    };
+  };
+  /** Serve Spa */
+  serve_spa__full_path__get: {
+    parameters: {
+      path: {
+        full_path: string;
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: {
+          "application/json": unknown;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };

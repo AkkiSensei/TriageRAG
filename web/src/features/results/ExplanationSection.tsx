@@ -10,6 +10,9 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  XCircle,
+  Layers,
+  Search,
 } from 'lucide-react'
 import type { TriageResponse } from '@/lib/api'
 
@@ -19,9 +22,15 @@ interface ExplanationSectionProps {
 
 export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }) => {
   const [showTimeline, setShowTimeline] = useState(false)
+  const [showNormalizationLedger, setShowNormalizationLedger] = useState(false)
+  const [showRetrieverLedger, setShowRetrieverLedger] = useState(false)
+
   const engine = triage.engine
   const explanation = triage.explanation
   const verdict = engine.verdict
+  const patient = triage.patient
+  const inputPatient = (triage as { input_patient?: typeof patient }).input_patient || patient
+  const executionTrace = (triage as { execution_trace?: Array<{ node: string; status: string; duration_ms: number; details?: Record<string, unknown> }> }).execution_trace || []
 
   const getVerdictStyles = () => {
     switch (verdict) {
@@ -71,7 +80,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
   const stepsCount = triage.verified_steps?.length || 0
   const retrievalAbstained = Boolean(triage.retrieval?.abstained)
 
-  // Timeline stage definitions
+  // Timeline stage definitions for the 9-stage verification timeline
   const timelineStages = [
     { name: '1. Patient Input Validation', status: 'COMPLETED', note: 'All fields type-checked' },
     {
@@ -90,7 +99,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
       name: '4. Deterministic Safety Interlocks',
       status: alertsCount > 0
         ? (verdict === 'BLOCKED' ? 'BLOCK TRIGGERED' : 'ALERTS FLAGGED')
-        : (skipsCount > 0 ? 'CHECKS SKIPPED' : 'CLEAR'),
+        : (skipsCount > 0 ? 'CHECKS SKIPPED' : (verdict === 'CHECKED_CLEAR' ? 'CHECKED CLEAR' : 'NO_ALERTS')),
       note: skipsCount > 0
         ? `${engine.checks_run} evaluated, ${skipsCount} skipped`
         : `${engine.checks_run} rules evaluated`,
@@ -195,33 +204,60 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
         )}
       </div>
 
-      {/* 2. "WHY DID I GET THIS RESULT?" & NEXT ACTIONS */}
+      {/* 2. "WHY DID I GET THIS RESULT?" & REJECTED ALTERNATIVES */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
-          <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3 mb-3">
-            <Compass className="h-4 w-4 text-teal-700 dark:text-teal-400" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-              Why Did I Get This Result?
-            </h3>
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          {/* Why Did I Get This Result Card */}
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
+            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3 mb-3">
+              <Compass className="h-4 w-4 text-teal-700 dark:text-teal-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                Why Did I Get This Result?
+              </h3>
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              {explanation?.outcome_reasons && explanation.outcome_reasons.length > 0 ? (
+                explanation.outcome_reasons.map((reason, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 p-3 text-xs text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700"
+                  >
+                    <ArrowRight className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
+                    <span className="leading-relaxed font-sans">{reason}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+                  No specific blocking interlocks or contraindication alerts triggered.
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-col gap-2.5">
-            {explanation?.outcome_reasons && explanation.outcome_reasons.length > 0 ? (
-              explanation.outcome_reasons.map((reason, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-start gap-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 p-3 text-xs text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700"
-                >
-                  <ArrowRight className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
-                  <span className="leading-relaxed font-sans">{reason}</span>
-                </div>
-              ))
-            ) : (
-              <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-                No specific blocking interlocks or contraindication alerts triggered.
-              </p>
-            )}
-          </div>
+          {/* Why Other Paths Were Rejected Card */}
+          {Boolean((explanation as { rejected_paths?: string[] })?.rejected_paths?.length) && (
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
+              <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-3 mb-3">
+                <XCircle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                  Why Alternative Paths Were Rejected
+                </h3>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {((explanation as { rejected_paths?: string[] }).rejected_paths || []).map((rej, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-2 rounded-xl bg-rose-50/50 dark:bg-rose-950/20 p-2.5 text-xs text-slate-700 dark:text-slate-300 border border-rose-100 dark:border-rose-900/40"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0 mt-1.5" />
+                    <span className="leading-relaxed font-sans">{rej}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Permitted Clinical Actions Card */}
@@ -248,7 +284,249 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
         </div>
       </div>
 
-      {/* 2.5 COMPLETED VS UNRESOLVED CHECKS SCOPE */}
+      {/* 3. INPUT NORMALIZATION LEDGER (INPUT VS NORMALIZED PATIENT) */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
+        <button
+          type="button"
+          onClick={() => setShowNormalizationLedger(!showNormalizationLedger)}
+          className="flex w-full items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Layers className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+            <span>Input Normalization Ledger (Input vs Normalized Entities)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono font-normal text-slate-500 dark:text-slate-400">
+              {((patient?.medications?.length || 0) + (patient?.allergies?.length || 0))} entities mapped
+            </span>
+            {showNormalizationLedger ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </div>
+        </button>
+
+        {showNormalizationLedger && (
+          <div className="mt-4 flex flex-col gap-4 pt-3 border-t border-slate-100 dark:border-slate-700">
+            {/* Medications Mapping */}
+            <div>
+              <h4 className="text-[11px] font-mono font-bold uppercase text-slate-700 dark:text-slate-300 mb-2">
+                Medications Normalization
+              </h4>
+              {patient?.medications && patient.medications.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-700 text-[10px] font-mono text-slate-500 uppercase">
+                        <th className="py-2 pr-3">Input Text</th>
+                        <th className="py-2 px-3">Resolved Active Ingredients</th>
+                        <th className="py-2 pl-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-[11px] font-mono">
+                      {patient.medications.map((m, idx) => {
+                        const inputRaw = (inputPatient?.medications?.[idx]?.raw_text) || m.raw_text
+                        const ings = m.ingredients?.map(i => i.ingredient_id).join(', ') || 'None'
+                        return (
+                          <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                            <td className="py-2 pr-3 font-semibold text-slate-900 dark:text-slate-100">{inputRaw}</td>
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">{ings}</td>
+                            <td className="py-2 pl-3">
+                              {m.resolved ? (
+                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
+                                  RESOLVED
+                                </span>
+                              ) : (
+                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200">
+                                  UNRESOLVED {m.suggestion ? `(Suggest: ${m.suggestion})` : ''}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500 dark:text-slate-400 italic">No medications recorded.</p>
+              )}
+            </div>
+
+            {/* Allergies Mapping */}
+            <div>
+              <h4 className="text-[11px] font-mono font-bold uppercase text-slate-700 dark:text-slate-300 mb-2">
+                Allergies Normalization
+              </h4>
+              {patient?.allergies && patient.allergies.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 dark:border-slate-700 text-[10px] font-mono text-slate-500 uppercase">
+                        <th className="py-2 pr-3">Input Substance</th>
+                        <th className="py-2 px-3">Normalized Allergen ID</th>
+                        <th className="py-2 pl-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-[11px] font-mono">
+                      {patient.allergies.map((a, idx) => {
+                        const inputRaw = (inputPatient?.allergies?.[idx]?.raw_substance) || a.raw_substance
+                        return (
+                          <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50">
+                            <td className="py-2 pr-3 font-semibold text-slate-900 dark:text-slate-100">{inputRaw}</td>
+                            <td className="py-2 px-3 text-slate-700 dark:text-slate-300">{a.normalized_allergen_id || 'None'}</td>
+                            <td className="py-2 pl-3">
+                              {a.resolved ? (
+                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
+                                  RESOLVED
+                                </span>
+                              ) : (
+                                <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200">
+                                  UNRESOLVED {a.suggestion ? `(Suggest: ${a.suggestion})` : ''}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500 dark:text-slate-400 italic">No allergies recorded.</p>
+              )}
+            </div>
+
+            {/* Demographics & Measurements */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 dark:border-slate-700 text-[11px] font-mono">
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900">
+                <span className="text-slate-500 block text-[10px]">Population</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200 uppercase">{String((patient?.age as { population_category?: string } | undefined)?.population_category || 'adult')}</span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900">
+                <span className="text-slate-500 block text-[10px]">Weight</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">
+                  {patient?.weight_kg?.value ? `${patient.weight_kg.value} kg (${patient.weight_kg.source})` : 'Unknown'}
+                </span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900">
+                <span className="text-slate-500 block text-[10px]">Medication History</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">{patient?.medication_history_status || 'unknown'}</span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900">
+                <span className="text-slate-500 block text-[10px]">Allergy History</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">{patient?.allergy_history_status || 'unknown'}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 4. RETRIEVER EVIDENCE & PLAN GROUNDING LEDGER */}
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
+        <button
+          type="button"
+          onClick={() => setShowRetrieverLedger(!showRetrieverLedger)}
+          className="flex w-full items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Search className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+            <span>Retriever Evidence &amp; Plan Grounding Ledger</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono font-normal text-slate-500 dark:text-slate-400">
+              {triage.retrieval?.chunks?.length || 0} chunks &bull; {triage.verified_steps?.length || 0} plan steps
+            </span>
+            {showRetrieverLedger ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </div>
+        </button>
+
+        {showRetrieverLedger && (
+          <div className="mt-4 flex flex-col gap-4 pt-3 border-t border-slate-100 dark:border-slate-700">
+            {/* Retrieval Parameters */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px] font-mono">
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900">
+                <span className="text-slate-500 block text-[10px]">Retriever Query</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">{triage.retrieval?.query || '(automatic syndrome query)'}</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900">
+                <span className="text-slate-500 block text-[10px]">Backend &amp; Filters</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200 uppercase">
+                  {triage.retrieval?.backend || 'BM25'} (pop: {triage.retrieval?.filters?.population || 'all'})
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900">
+                <span className="text-slate-500 block text-[10px]">Abstention Status</span>
+                <span className={`font-bold ${retrievalAbstained ? 'text-amber-700 dark:text-amber-300' : 'text-teal-700 dark:text-teal-300'}`}>
+                  {retrievalAbstained ? `Abstained (${triage.retrieval?.abstain_code})` : 'Active / Evaluated'}
+                </span>
+              </div>
+            </div>
+
+            {/* Chunks Considered Table */}
+            {triage.retrieval?.chunks && triage.retrieval.chunks.length > 0 && (
+              <div>
+                <h4 className="text-[11px] font-mono font-bold uppercase text-slate-700 dark:text-slate-300 mb-2">
+                  Retrieved Protocol Evidence Chunks
+                </h4>
+                <div className="flex flex-col gap-2">
+                  {triage.retrieval.chunks.map((chk, idx) => (
+                    <div
+                      key={idx}
+                      className="rounded-xl border border-slate-200/80 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 p-3 text-xs font-mono"
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="font-bold text-slate-900 dark:text-white text-[11px]">
+                          Rank #{idx + 1}: {chk.chunk_id ? `[${chk.chunk_id}] ` : ''}{chk.doc_id} &bull; {chk.section}
+                        </span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
+                          Score: {typeof chk.score === 'number' ? (chk.score as number).toFixed(2) : String(chk.score ?? '')}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-sans leading-relaxed line-clamp-2">
+                        {chk.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Plan Grounding Citations */}
+            {triage.verified_steps && triage.verified_steps.length > 0 && (
+              <div>
+                <h4 className="text-[11px] font-mono font-bold uppercase text-slate-700 dark:text-slate-300 mb-2">
+                  Plan Steps Grounding &amp; Citation Verification
+                </h4>
+                <div className="flex flex-col gap-2">
+                  {triage.verified_steps.map((step, idx) => (
+                    <div
+                      key={idx}
+                      className="rounded-xl border border-slate-200/80 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900 p-3 text-xs font-mono"
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="font-bold text-slate-900 dark:text-white text-[11px]">
+                          Step #{step.draft?.step_number}: {step.draft?.action_type} {step.draft?.drug_id || ''}
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${step.citation_verified ? 'bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300' : 'bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200'}`}>
+                          {step.citation_verified ? 'CITATION VERIFIED' : 'CITATION UNVERIFIED'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-sans leading-relaxed mb-1">
+                        {step.draft?.narrative_instruction}
+                      </p>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                        <span>Citations: {step.draft?.citations?.map(c => c.chunk_id).join(', ') || 'None'}</span>
+                        <span className="mx-2">&bull;</span>
+                        <span>Overlap: {String(step.citation_overlap_score || 0)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 5. COMPLETED VS UNRESOLVED CHECKS SCOPE */}
       {(Boolean(explanation?.completed_checks?.length) || Boolean(explanation?.unresolved_checks?.length)) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-soft">
@@ -287,7 +565,7 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
         </div>
       )}
 
-      {/* 3. EXECUTION PIPELINE TIMELINE (COLLAPSIBLE) */}
+      {/* 6. EXECUTION PIPELINE TIMELINE & 8-STAGE LANGGRAPH DECISION LEDGER */}
       <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-soft">
         <button
           type="button"
@@ -298,27 +576,66 @@ export const ExplanationSection: React.FC<ExplanationSectionProps> = ({ triage }
             <Clock className="h-4 w-4 text-teal-600 dark:text-teal-400" />
             <span>Execution Pipeline Timeline (9 Verification Stages)</span>
           </div>
-          {showTimeline ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          <div className="flex items-center gap-2">
+            {executionTrace.length > 0 && (
+              <span className="text-[11px] font-mono font-normal text-slate-500 dark:text-slate-400">
+                {executionTrace.length} LangGraph nodes traced
+              </span>
+            )}
+            {showTimeline ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </div>
         </button>
 
         {showTimeline && (
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-700">
-            {timelineStages.map((stage, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl border border-slate-200/80 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900 p-2.5 text-xs font-mono"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px] truncate">
-                    {stage.name}
-                  </span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
-                    {stage.status}
-                  </span>
+          <div className="mt-4 flex flex-col gap-4 pt-3 border-t border-slate-100 dark:border-slate-700">
+            {/* Live LangGraph Execution Trace Ledger */}
+            {executionTrace.length > 0 && (
+              <div className="mb-2">
+                <h4 className="text-[11px] font-mono font-bold uppercase text-slate-700 dark:text-slate-300 mb-2">
+                  Live LangGraph Runtime State Nodes ({executionTrace.length} Nodes)
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 font-mono text-xs">
+                  {executionTrace.map((tr, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-[11px] text-slate-900 dark:text-slate-100 truncate">
+                          {idx + 1}. {tr.node}
+                        </span>
+                        <span className="text-[10px] font-bold px-1 py-0.5 rounded bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
+                          {tr.duration_ms} ms
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                        Status: {tr.status}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{stage.note}</p>
               </div>
-            ))}
+            )}
+
+            {/* Standard 9 Verification Stages Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+              {timelineStages.map((stage, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-xl border border-slate-200/80 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900 p-2.5 text-xs font-mono"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 text-[11px] truncate">
+                      {stage.name}
+                    </span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
+                      {stage.status}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{stage.note}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

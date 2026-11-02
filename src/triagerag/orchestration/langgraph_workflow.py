@@ -562,6 +562,7 @@ def explain_node(state: TriageGraphState) -> dict[str, Any]:
             provider_info=state["provider_info"],
             explanation=stg7.explanation,
             patient=state.get("normalized_patient") or state.get("patient"),
+            input_patient=state.get("patient"),
         )
         duration_ms = round((time.perf_counter() - start_time) * 1000, 3)
 
@@ -737,7 +738,11 @@ def run_triage_graph(
             except Exception:
                 pass
 
-        return final_state["final_response"], final_state.get("execution_trace", [])
+        full_trace = final_state.get("execution_trace", [])
+        final_resp = final_state["final_response"].model_copy(
+            update={"execution_trace": full_trace}
+        )
+        return final_resp, full_trace
 
     except Exception as graph_err:
         if active_wf_span is not None:

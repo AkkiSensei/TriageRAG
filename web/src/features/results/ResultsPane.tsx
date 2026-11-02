@@ -1,5 +1,6 @@
 import React from 'react'
 import { SafetyBanner } from './SafetyBanner'
+import { ExplanationSection } from './ExplanationSection'
 import { ScoreCard } from './ScoreCard'
 import { AlertsList } from './AlertsList'
 import { SkippedChecksList } from './SkippedChecksList'
@@ -59,29 +60,32 @@ export const ResultsPane: React.FC<ResultsPaneProps> = ({
       {/* 1. Top-Level Safety Banner (NEVER animated) */}
       <SafetyBanner report={engine} />
 
-      {/* 2. Physiological Score */}
+      {/* 2. Canonical Decision Ledger & Clinical Explanation */}
+      <ExplanationSection triage={triage} />
+
+      {/* 3. Physiological Score */}
       {engine.score && <ScoreCard score={engine.score} />}
 
-      {/* 3. Safety Alerts & Blocked Contraindications */}
+      {/* 4. Safety Alerts & Blocked Contraindications */}
       <AlertsList alerts={allAlerts} onOverrideHighAlert={onOverrideHighAlert} />
 
-      {/* 4. Skipped Checks / Fail Closed */}
+      {/* 5. Skipped Checks / Fail Closed */}
       {engine.checks_skipped && engine.checks_skipped.length > 0 && (
         <SkippedChecksList skippedChecks={engine.checks_skipped} />
       )}
 
-      {/* 5. Verified Plan Steps */}
+      {/* 6. Verified Plan Steps */}
       {triage.verified_steps && triage.verified_steps.length > 0 && (
         <VerifiedPlanView steps={triage.verified_steps} />
       )}
 
-      {/* 6. Retrieval Context & Chunks */}
+      {/* 7. Retrieval Context & Chunks */}
       <RetrievalView triage={triage} />
 
-      {/* 7. Ask-the-Corpus Extractive Q&A */}
+      {/* 8. Ask-the-Corpus Extractive Q&A */}
       <AskCorpusSection />
 
-      {/* 8. Cryptographic Audit Hash Bar */}
+      {/* 9. Cryptographic Audit Hash Bar */}
       {triage.audit_hash && (
         <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-xs font-mono text-slate-500 dark:text-slate-400 shadow-soft">
           <div className="flex items-center gap-2">

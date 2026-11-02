@@ -209,7 +209,7 @@ export const RetrievalView: React.FC<RetrievalViewProps> = ({ triage }) => {
                 <span>&bull;</span>
                 <span>Syndrome: {chunk.syndrome}</span>
                 <span>&bull;</span>
-                <span>License: {chunk.license || 'Open Government Licence v3.0 / Synthetic'}</span>
+                <span>License: {(chunk as { license?: string }).license || 'Open Government Licence v3.0 / Synthetic'}</span>
                 {chunk.parent_id && (
                   <>
                     <span>&bull;</span>

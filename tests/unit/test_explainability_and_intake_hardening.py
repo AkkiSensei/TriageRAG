@@ -235,3 +235,93 @@ def test_triage_explanation_structure_and_coverage() -> None:
     assert any("Deterministic" in check for check in explanation.completed_checks)
     assert any("Pediatric dosing adjustments" in gap for gap in explanation.unresolved_checks)
     assert len(explanation.permitted_ui_actions) >= 1
+    assert len(explanation.rejected_paths) >= 1
+    assert any("Rejected BLOCKED" in r for r in explanation.rejected_paths)
+
+
+def test_rejected_paths_for_all_canonical_verdicts() -> None:
+    """_build_rejected_paths explains why alternative verdicts were rejected for all lattice states."""
+    from triagerag.contracts.enums import Verdict
+    from triagerag.orchestrator import _build_rejected_paths
+
+    for v, expected_rejections in [
+        (
+            Verdict.BLOCKED,
+            ["Rejected CHECKED_CLEAR", "Rejected CHECKED_ALERTS", "Rejected UNVERIFIED"],
+        ),
+        (
+            Verdict.UNVERIFIED,
+            ["Rejected CHECKED_CLEAR", "Rejected BLOCKED", "Rejected CHECKED_ALERTS"],
+        ),
+        (
+            Verdict.CHECKED_ALERTS,
+            ["Rejected CHECKED_CLEAR", "Rejected BLOCKED", "Rejected UNVERIFIED"],
+        ),
+        (
+            Verdict.CHECKED_CLEAR,
+            ["Rejected BLOCKED", "Rejected CHECKED_ALERTS", "Rejected UNVERIFIED"],
+        ),
+    ]:
+        dummy_engine = EngineReport(
+            verdict=v,
+            score=None,
+            baseline_alerts=[],
+            plan_alerts=[],
+            dose_reports=[],
+            checks_run=1,
+            checks_skipped=[],
+            unresolved_entities=[],
+            ruleset_coverage=[],
+            coverage_gaps=[],
+            unverified_rules_evaluated=0,
+        )
+        rejections = _build_rejected_paths(dummy_engine, None)
+        assert len(rejections) == 3
+        for expected in expected_rejections:
+            assert any(expected in r for r in rejections)
+
+
+def test_triage_response_carries_input_patient_and_execution_trace() -> None:
+    """TriageResponse carries populated input_patient and 8-stage execution_trace."""
+    from triagerag.config import get_data_dir
+    from triagerag.contracts.scenarios import get_preloaded_scenario
+    from triagerag.engine.registry import ClinicalRegistry
+    from triagerag.llm.fake import FakeLLM, FakeLLMProfile
+    from triagerag.orchestrator import run_triage
+    from triagerag.rag.service import RetrievalService
+
+    data_dir = get_data_dir()
+    registry = ClinicalRegistry.load_from_directory(data_dir)
+    service = RetrievalService.create_default(data_dir)
+
+    patient, overrides = get_preloaded_scenario("BLOCK")
+    response = run_triage(
+        patient=patient,
+        registry=registry,
+        llm=FakeLLM(FakeLLMProfile.COMPLIANT),
+        index=service.index,
+        overrides=overrides,
+    )
+
+    # 1. Execution trace contains all 8 nodes
+    assert isinstance(response.execution_trace, list)
+    assert len(response.execution_trace) == 8
+    node_names = [stage["node"] for stage in response.execution_trace]
+    assert "normalise" in node_names
+    assert "intake_safety_checks" in node_names
+    assert "retrieve" in node_names
+    assert "draft_plan" in node_names
+    assert "verify" in node_names
+    assert "block_seal" in node_names
+    assert "audit" in node_names
+    assert "explain" in node_names
+
+    for stage in response.execution_trace:
+        assert stage["status"] == "completed"
+        assert isinstance(stage["duration_ms"], (int, float))
+        assert stage["duration_ms"] >= 0
+
+    # 2. Input patient is preserved alongside normalized patient
+    assert response.input_patient is not None
+    assert response.patient is not None
+    assert response.input_patient.age.value == patient.age.value

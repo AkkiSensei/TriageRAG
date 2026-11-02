@@ -180,6 +180,123 @@ def run(
     )
     console.print(banner_table)
 
+    # 1b. Canonical Decision Ledger & Explanation
+    if response.explanation:
+        exp = response.explanation
+        exp_lines = [
+            f"[bold]{exp.headline}[/bold]",
+            f"{exp.plain_language_summary}",
+            "",
+            "[bold cyan]Why Did I Get This Result?[/bold cyan]",
+        ]
+        for r in exp.outcome_reasons:
+            exp_lines.append(f" • {r}")
+
+        if exp.rejected_paths:
+            exp_lines.append("")
+            exp_lines.append("[bold red]Why Alternative Paths Were Rejected:[/bold red]")
+            for rej in exp.rejected_paths:
+                exp_lines.append(f" • {rej}")
+
+        if exp.permitted_ui_actions:
+            exp_lines.append("")
+            exp_lines.append("[bold green]Permitted Next Steps:[/bold green]")
+            for act in exp.permitted_ui_actions:
+                exp_lines.append(f" • {act}")
+
+        console.print(
+            Panel(
+                "\n".join(exp_lines),
+                title="CANONICAL DECISION LEDGER & EXPLANATION",
+                border_style="cyan",
+            )
+        )
+
+    # 1c. 8-Stage Execution Decision Ledger (LangGraph)
+    if response.execution_trace:
+        trace_table = Table(title="8-STAGE EXECUTION DECISION LEDGER (LANGGRAPH)", expand=True)
+        trace_table.add_column("Stage #", justify="right", style="bold")
+        trace_table.add_column("Node", style="bold cyan")
+        trace_table.add_column("Status", style="bold green")
+        trace_table.add_column("Duration", justify="right")
+        trace_table.add_column("Diagnostic Details", style="dim")
+
+        for idx, tr in enumerate(response.execution_trace, 1):
+            dur = f"{tr.get('duration_ms', 0):.2f} ms"
+            node_name = str(tr.get("node", "unknown"))
+            st = str(tr.get("status", "completed"))
+            details_str = ", ".join(f"{k}={v}" for k, v in tr.get("details", {}).items())
+            trace_table.add_row(str(idx), node_name, st, dur, details_str)
+        console.print(trace_table)
+
+    # 1d. Input Normalization Ledger
+    if response.patient:
+        pat = response.patient
+        norm_table = Table(
+            title="INPUT NORMALIZATION LEDGER (INPUT VS NORMALIZED PATIENT)", expand=True
+        )
+        norm_table.add_column("Entity Type", style="bold")
+        norm_table.add_column("Input Raw Text", style="dim")
+        norm_table.add_column("Normalized Active Entity / Value", style="bold")
+        norm_table.add_column("Status", justify="center")
+
+        for m in pat.medications:
+            ings = ", ".join(i.ingredient_id for i in m.ingredients) if m.ingredients else "None"
+            st_color = "green" if m.resolved else "yellow"
+            st_label = "RESOLVED" if m.resolved else f"UNRESOLVED ({m.suggestion or 'no match'})"
+            norm_table.add_row(
+                "Medication", m.raw_text, ings, f"[{st_color}]{st_label}[/{st_color}]"
+            )
+
+        for a in pat.allergies:
+            st_color = "green" if a.resolved else "yellow"
+            st_label = "RESOLVED" if a.resolved else f"UNRESOLVED ({a.suggestion or 'no match'})"
+            norm_table.add_row(
+                "Allergy",
+                a.raw_substance,
+                a.normalized_allergen_id or "None",
+                f"[{st_color}]{st_label}[/{st_color}]",
+            )
+
+        wt_val = (
+            f"{pat.weight_kg.value} kg ({pat.weight_kg.source})"
+            if pat.weight_kg and pat.weight_kg.value
+            else "Unknown"
+        )
+        pop_cat = getattr(pat.age.population_category, "value", str(pat.age.population_category))
+        unit_val = getattr(pat.age.unit, "value", str(pat.age.unit))
+        norm_table.add_row(
+            "Demographics",
+            f"Age: {pat.age.value} {unit_val}",
+            f"Population: {pop_cat}, Weight: {wt_val}",
+            "[green]NORMALIZED[/green]",
+        )
+        console.print(norm_table)
+
+    # 1e. Retriever Evidence Ledger
+    if response.retrieval:
+        ret = response.retrieval
+        ac_val = getattr(ret.abstain_code, "value", str(ret.abstain_code))
+        ret_status = (
+            f"[yellow]ABSTAINED ({ac_val})[/yellow]"
+            if ret.abstained
+            else "[green]EVALUATED[/green]"
+        )
+        ret_summary = (
+            f"Backend: {ret.backend.upper()} | Status: {ret_status}\n"
+            f"Query: {ret.query or '(automatic)'} | Filters: {ret.filters}\n"
+            f"Chunks Considered: {len(ret.chunks)}"
+        )
+        if ret.reason:
+            ret_summary += f"\nAbstention Reason: {ret.reason}"
+        console.print(
+            Panel(
+                ret_summary,
+                title="RETRIEVER EVIDENCE & GROUNDING LEDGER",
+                border_style="blue",
+            )
+        )
+
     # 2. Alerts and blocked drugs
     all_alerts = engine.baseline_alerts + engine.plan_alerts
     if all_alerts:

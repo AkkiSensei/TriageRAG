@@ -3379,6 +3379,13 @@
             "type": "array",
             "title": "Unresolved Checks"
           },
+          "rejected_paths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rejected Paths"
+          },
           "generation_disclosure": {
             "type": "string",
             "title": "Generation Disclosure"
@@ -3475,6 +3482,24 @@
                 "type": "null"
               }
             ]
+          },
+          "input_patient": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Patient-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "execution_trace": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Execution Trace"
           }
         },
         "additionalProperties": false,

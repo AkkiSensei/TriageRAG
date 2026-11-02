@@ -575,6 +575,7 @@ class TriageExplanation(BaseModel):
     evidence_summary: str
     completed_checks: list[str] = Field(default_factory=list)
     unresolved_checks: list[str] = Field(default_factory=list)
+    rejected_paths: list[str] = Field(default_factory=list)
     generation_disclosure: str
     permitted_ui_actions: list[str] = Field(default_factory=list)
 
@@ -594,6 +595,8 @@ class TriageResponse(BaseModel):
     provider_info: ProviderMetadata = Field(default_factory=ProviderMetadata)
     explanation: TriageExplanation | None = Field(default=None)
     patient: Patient | None = None
+    input_patient: Patient | None = Field(default=None)
+    execution_trace: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class Clock(Protocol):

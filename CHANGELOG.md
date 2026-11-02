@@ -5,6 +5,25 @@ All notable changes to TriageRAG will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - Evidence-First Decision Ledger & Stage Trace Presentation
+
+### Added & Hardened
+- **Canonical Decision Ledger & Primary Explainability (`src/triagerag/orchestrator.py`, `web/src/features/results/ExplanationSection.tsx`, `web/src/features/results/ResultsPane.tsx`):**
+  - Elevated `ExplanationSection` to the primary canonical output rendered prominently immediately below the top-level `SafetyBanner`.
+  - Added deterministic `rejected_paths` to `TriageExplanation` explaining why alternative verdict paths in the clinical safety lattice were rejected under Rules R1, R2, and R11.
+  - Surfaced "Why Did I Get This Result?" (`outcome_reasons`), "Why Alternative Paths Were Rejected" (`rejected_paths`), and "Permitted Next Steps" (`permitted_ui_actions`).
+- **Input Normalization Ledger:**
+  - Added dedicated Input Normalization Ledger comparing input patient parameters against normalized entities: raw medications mapped to active ingredients and formulary strengths, raw allergies resolved to allergen IDs, demographics, and derived vitals flags.
+  - Carried `input_patient` alongside normalized `patient` in `TriageResponse` to enable transparent before/after entity comparison.
+- **Retriever Evidence & Plan Grounding Ledger:**
+  - Surfaced protocol search query, backend (`BM25` / `CHAR_NGRAM`), partition filters, and abstention codes/reasons.
+  - Exposed retrieved protocol chunks (rank, doc_id, section, score, text snippet) and mapped plan steps against citations with verification status and overlap scores.
+- **8-Stage LangGraph Execution Decision Ledger:**
+  - Carried `execution_trace: list[dict[str, Any]]` formally in `TriageResponse` schema, OpenAPI specification, and TypeScript client types.
+  - Rendered complete 8-node LangGraph execution trace in both UI and CLI with live runtime stage durations in milliseconds and non-sensitive diagnostic details.
+- **CLI Rich Output (`src/triagerag/cli.py`):**
+  - Enhanced `triage run` command with formatted Rich tables and panels for the Canonical Decision Ledger, 8-Stage Execution Trace Table, Input Normalization Ledger, and Retriever Evidence Ledger.
+
 ## [Unreleased] - OpenTelemetry AI Workflow Observability & Distributed Tracing (v0.4.0)
 
 ### Added & Hardened

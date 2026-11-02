@@ -1018,6 +1018,58 @@ def _build_unresolved_checks(
     return unresolved_checks
 
 
+def _build_rejected_paths(
+    engine: EngineReport,
+    retrieval: RetrievalReport | None,
+) -> list[str]:
+    """Explain why alternative verdict paths were rejected (Rules R1, R2, R11)."""
+    verdict = engine.verdict
+    rejected: list[str] = []
+
+    if verdict == Verdict.BLOCKED:
+        rejected.append(
+            "Rejected CHECKED_CLEAR: Rule R11 strictly prohibits clearing a plan when a BLOCK severity alert is active."
+        )
+        rejected.append(
+            "Rejected CHECKED_ALERTS: Absolute contraindication interlocks cannot be overridden by clinical judgment."
+        )
+        rejected.append(
+            "Rejected UNVERIFIED: Sufficient structured clinical parameters were verified to definitively prove contraindication."
+        )
+    elif verdict == Verdict.UNVERIFIED:
+        rejected.append(
+            "Rejected CHECKED_CLEAR: Rule R2 fail-closed interlock forbids assuming safety when required clinical data is missing or unresolved."
+        )
+        rejected.append(
+            "Rejected BLOCKED: Incomplete data prevents confirming active contraindications; missing parameters trigger fail-closed UNVERIFIED."
+        )
+        rejected.append(
+            "Rejected CHECKED_ALERTS: Safety scope cannot be partially accepted while unverified safety interlocks remain unperformed."
+        )
+    elif verdict == Verdict.CHECKED_ALERTS:
+        rejected.append(
+            "Rejected CHECKED_CLEAR: Non-blocking clinical safety alerts (HIGH) were flagged that require explicit clinician acknowledgment."
+        )
+        rejected.append(
+            "Rejected BLOCKED: No absolute fatal contraindication or inviolable interlock rule fired."
+        )
+        rejected.append(
+            "Rejected UNVERIFIED: All required clinical parameters and vitals were present and evaluated without unresolved data gaps."
+        )
+    else:  # CHECKED_CLEAR
+        rejected.append(
+            "Rejected BLOCKED: Zero fatal drug-drug, allergy, or physiologic contraindication rules fired."
+        )
+        rejected.append(
+            "Rejected CHECKED_ALERTS: Zero clinical warnings or formulary ceiling violations detected."
+        )
+        rejected.append(
+            "Rejected UNVERIFIED: All intake histories and vitals required for active rulesets were successfully resolved."
+        )
+
+    return rejected
+
+
 def _build_generation_disclosure(
     patient: Any,
     provider_info: ProviderMetadata,
@@ -1077,6 +1129,7 @@ def build_triage_explanation(
 
     completed_checks = _build_completed_checks(engine, patient, verified_steps)
     unresolved_checks = _build_unresolved_checks(engine, verified_steps, retrieval)
+    rejected_paths = _build_rejected_paths(engine, retrieval)
     generation_disclosure = _build_generation_disclosure(
         patient, provider_info, include_complaint_in_llm
     )
@@ -1091,6 +1144,7 @@ def build_triage_explanation(
         evidence_summary=evidence_summary,
         completed_checks=completed_checks,
         unresolved_checks=unresolved_checks,
+        rejected_paths=rejected_paths,
         generation_disclosure=generation_disclosure,
         permitted_ui_actions=permitted_ui_actions,
     )
@@ -1307,6 +1361,8 @@ def run_triage_linear(
         provider_info=prov_meta,
         explanation=stg7.explanation,
         patient=stg1.normalized_patient,
+        input_patient=patient,
+        execution_trace=[],
     )
 
 
@@ -1341,4 +1397,4 @@ def run_triage(
         clock=clock,
         provider_info=provider_info,
     )
-    return response
+    return response.model_copy(update={"execution_trace": _trace, "input_patient": patient})
