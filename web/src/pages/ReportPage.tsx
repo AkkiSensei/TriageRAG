@@ -79,7 +79,8 @@ export const ReportPage: React.FC = () => {
         computePatientFingerprint(triageResult.input_patient || triageResult.patient)
   )
 
-  if ((isLoading && !triageResult) || isMismatched) {
+  // Never display an existing or stale result while a request is in flight or mismatched
+  if (isLoading || isMismatched || !triageResult) {
     return (
       <div className="mx-auto flex min-h-[500px] max-w-4xl flex-col items-center justify-center p-8 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 shadow-sm mb-4">
