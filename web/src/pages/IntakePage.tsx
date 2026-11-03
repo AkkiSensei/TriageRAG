@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PatientIntakeForm } from '@/features/intake/PatientIntakeForm'
+import { LiveProcessPanel } from '@/features/execution/LiveProcessPanel'
 import { useTriage } from '@/context/TriageContext'
 import type { TriageApiRequest } from '@/lib/api'
 import { DEMO_DISCLAIMER } from '@/lib/demoPatient'
@@ -12,13 +13,16 @@ import {
   AlertOctagon,
   RotateCcw,
   CheckCircle2,
+  ArrowRight,
 } from 'lucide-react'
 
 export const IntakePage: React.FC = () => {
   const navigate = useNavigate()
   const {
     patientRequest,
+    triageResult,
     evaluatePatient,
+    liveEvents,
     isLoading,
     error,
     isDemoActive,
@@ -28,14 +32,14 @@ export const IntakePage: React.FC = () => {
   const handleFormSubmit = async (req: TriageApiRequest) => {
     try {
       await evaluatePatient(req)
-      navigate('/report')
+      // Live graph executes and completes on this page; user can review stages and click View Results
     } catch (err) {
       console.error('Triage submission error:', err)
     }
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
       {/* Station Header */}
       <div className="flex flex-col gap-2 rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 sm:p-6 shadow-soft">
         <div className="flex items-center gap-2">
@@ -50,9 +54,9 @@ export const IntakePage: React.FC = () => {
         <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
           Enter Patient Details
         </h1>
-        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-          Fill in the patient&apos;s age, vital signs, and current medicines. The system will check all safety rules,
-          verify drug interactions, and display clear step-by-step instructions.
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed">
+          Fill in the patient&apos;s age, vital signs, and current medicines. The system evaluates deterministic safety rules,
+          verifies drug interactions via LangGraph, and renders clear machine-verified steps.
         </p>
       </div>
 
@@ -143,27 +147,62 @@ export const IntakePage: React.FC = () => {
         </div>
       )}
 
-      {/* Patient Intake Form */}
-      <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 sm:p-7 shadow-soft">
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3.5 mb-5">
-          <div className="flex items-center gap-2.5 text-slate-900 dark:text-white text-xs font-bold uppercase tracking-wider">
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300">
-              <Stethoscope className="h-4 w-4" />
+      {/* Responsive 2-Column Grid: Form + Live Execution Process Panel */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Patient Intake Form (Left Column: 7 cols) */}
+        <div className="lg:col-span-7 rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 sm:p-7 shadow-soft">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-3.5 mb-5">
+            <div className="flex items-center gap-2.5 text-slate-900 dark:text-white text-xs font-bold uppercase tracking-wider">
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-300">
+                <Stethoscope className="h-4 w-4" />
+              </div>
+              <span>Patient Intake Form</span>
             </div>
-            <span>Patient Intake Form</span>
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <ShieldAlert className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+              <span>Automatic Safety Check</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-            <ShieldAlert className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-            <span>Automatic Safety Check</span>
-          </div>
+
+          <PatientIntakeForm
+            onSubmit={handleFormSubmit}
+            isLoading={isLoading}
+            existingRequest={patientRequest}
+            errorMessage={error}
+          />
         </div>
 
-        <PatientIntakeForm
-          onSubmit={handleFormSubmit}
-          isLoading={isLoading}
-          existingRequest={patientRequest}
-          errorMessage={error}
-        />
+        {/* Live Process Graph & Activity Feed (Right Column: 5 cols / Stacked below on small screens) */}
+        <div className="lg:col-span-5 space-y-4">
+          {triageResult && !isLoading && (
+            <div
+              data-testid="evaluation-complete-banner"
+              className="rounded-2xl border-2 border-emerald-500/60 dark:border-emerald-400/60 bg-emerald-50/90 dark:bg-emerald-950/60 p-4 shadow-soft flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in"
+            >
+              <div className="flex items-start gap-2.5">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-200">
+                    Run Complete · Verdict: {triageResult.engine.verdict}
+                  </div>
+                  <p className="text-[11px] text-emerald-800 dark:text-emerald-300 mt-0.5">
+                    Deterministic pipeline finished. Click below to inspect the verified action plan.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/report')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 shadow-sm transition-colors shrink-0 cursor-pointer w-full sm:w-auto justify-center"
+              >
+                <span>View Full Results</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          <LiveProcessPanel events={liveEvents} isLoading={isLoading} onNavigateToReport={() => navigate('/report')} />
+        </div>
       </div>
     </div>
   )

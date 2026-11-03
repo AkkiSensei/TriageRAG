@@ -71,4 +71,23 @@ describe('PatientIntakeForm Data Propagation', () => {
     expect(vitals.consciousness?.value).toBe('C')
     expect(vitals.consciousness?.source).toBe('measured')
   })
+
+  it('submits exactly once on click and inhibits duplicate submission while loading', () => {
+    const handleSubmit = vi.fn()
+    const { rerender } = render(<PatientIntakeForm onSubmit={handleSubmit} isLoading={false} />)
+
+    const submitBtn = screen.getByRole('button', { name: /Check Safety & View Care Steps/i })
+    fireEvent.click(submitBtn)
+
+    expect(handleSubmit).toHaveBeenCalledTimes(1)
+
+    // Re-render in loading state
+    rerender(<PatientIntakeForm onSubmit={handleSubmit} isLoading={true} />)
+    const loadingBtn = screen.getByRole('button', { name: /Checking safety rules\.\.\./i })
+    expect(loadingBtn).toBeDisabled()
+    fireEvent.click(loadingBtn)
+
+    // Still only called once!
+    expect(handleSubmit).toHaveBeenCalledTimes(1)
+  })
 })

@@ -1,5 +1,13 @@
 import { QueryClient } from '@tanstack/react-query'
 import type { components } from '@/types/api'
+import type { TriageLifecycleEvent } from '@/types/execution'
+export type {
+  TriageLifecycleEvent,
+  TriageLifecycleEventType,
+  StageStatus,
+  ProcessStageDefinition,
+} from '@/types/execution'
+export { PROCESS_STAGES } from '@/types/execution'
 
 export type TriageResponse = components['schemas']['TriageResponse']
 export type TriageApiRequest = components['schemas']['TriageApiRequest']
@@ -94,6 +102,93 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+
+  streamTriage: async (
+    payload: TriageApiRequest,
+    onEvent: (event: TriageLifecycleEvent) => void,
+    signal?: AbortSignal
+  ): Promise<TriageResponse> => {
+    const origin =
+      typeof window !== 'undefined' && window.location?.origin
+        ? window.location.origin
+        : 'http://localhost:8000'
+    const fullUrl = `${origin}${API_BASE}/triage/stream`
+
+    const response = await fetch(fullUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal,
+    })
+
+    if (!response.ok) {
+      let errorData: unknown
+      try {
+        errorData = await response.json()
+      } catch {
+        errorData = await response.text()
+      }
+      throw new ApiError(response.status, `Stream failed with status ${response.status}`, errorData)
+    }
+
+    const reader = response.body?.getReader()
+    if (!reader) {
+      throw new ApiError(500, 'ReadableStream not supported by response')
+    }
+
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let finalResponse: TriageResponse | null = null
+
+    let streamDone = false
+    try {
+      while (!streamDone) {
+        const { done, value } = await reader.read()
+        if (done) {
+          streamDone = true
+          break
+        }
+        buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n')
+
+        const parts = buffer.split('\n\n')
+        buffer = parts.pop() || ''
+
+        for (const part of parts) {
+          if (!part.trim()) continue
+          const lines = part.split('\n')
+          let dataStr = ''
+
+          for (const line of lines) {
+            if (line.startsWith('data:')) {
+              dataStr = line.slice(5).trim()
+            }
+          }
+
+          if (dataStr) {
+            try {
+              const eventObj: TriageLifecycleEvent = JSON.parse(dataStr)
+              onEvent(eventObj)
+              if (eventObj.event_type === 'run.completed' && eventObj.data) {
+                finalResponse = eventObj.data as TriageResponse
+              }
+            } catch (err) {
+              console.error('Failed to parse SSE event JSON:', err)
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
+
+    if (!finalResponse) {
+      throw new ApiError(500, 'Stream ended without terminal run.completed event')
+    }
+
+    return finalResponse
+  },
 
   // Registry
   getRegistrySummary: () => request<RegistrySummaryResponse>('/registry/summary'),

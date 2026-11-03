@@ -135,6 +135,41 @@
         }
       }
     },
+    "/api/triage/stream": {
+      "post": {
+        "tags": [
+          "triage"
+        ],
+        "summary": "Stream Triage",
+        "description": "Stream request-scoped lifecycle events and final triage report via Server-Sent Events (ADR 0017).\n\nSafety Properties (Rule R1, Rule R2, Rule R7, Rule R11):\n1. Produces mathematically and clinically identical output to POST /api/triage.\n2. Emits real-time execution events from actual node/router evaluations (zero timers/fakes).\n3. Lifecycle summaries contain zero patient PII, vitals, drugs, allergies, or complaint texts.\n4. Each request runs in an isolated context without cross-talk.",
+        "operationId": "stream_triage_api_triage_stream_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriageApiRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/triage/workflow": {
       "get": {
         "tags": [

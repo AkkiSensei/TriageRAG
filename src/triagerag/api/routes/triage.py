@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextvars
 import logging
 import threading
+import uuid
 from typing import Any
 
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from triagerag.api.schemas import ExplainApiRequest, TriageApiRequest
@@ -20,6 +24,11 @@ from triagerag.contracts.schemas import (
 )
 from triagerag.engine.registry import ClinicalRegistry, load_registry
 from triagerag.llm.fake import FakeLLM
+from triagerag.orchestration.events import (
+    TriageEventSink,
+    reset_current_event_sink,
+    set_current_event_sink,
+)
 from triagerag.orchestrator import run_triage
 from triagerag.rag.alert_why import AlertWhyExplanation, explain_alert
 from triagerag.rag.service import RetrievalService
@@ -47,8 +56,16 @@ def get_retrieval_service(backend: str | None = None) -> RetrievalService:
     return RetrievalService.create_default(get_data_dir(), backend=eff_backend)
 
 
-@router.post("", response_model=TriageResponse)
-def execute_triage(request: TriageApiRequest) -> TriageResponse:
+def _prepare_triage_context(
+    request: TriageApiRequest,
+) -> tuple[
+    ClinicalRegistry,
+    RetrievalService,
+    FakeLLM,
+    ProviderMetadata,
+    Patient,
+    OrchestratorConfig,
+]:
     registry = get_cached_registry()
     raw_backend = (
         request.retrieval_backend.value
@@ -84,6 +101,12 @@ def execute_triage(request: TriageApiRequest) -> TriageResponse:
         include_complaint_in_llm=include_complaint,
     )
 
+    return registry, retrieval_service, llm, prov_meta, patient, config
+
+
+@router.post("", response_model=TriageResponse)
+def execute_triage(request: TriageApiRequest) -> TriageResponse:
+    registry, retrieval_service, llm, prov_meta, patient, config = _prepare_triage_context(request)
     response = run_triage(
         patient=patient,
         registry=registry,
@@ -94,6 +117,81 @@ def execute_triage(request: TriageApiRequest) -> TriageResponse:
         provider_info=prov_meta,
     )
     return response
+
+
+@router.post("/stream", response_class=StreamingResponse)
+async def stream_triage(request: TriageApiRequest) -> StreamingResponse:
+    """Stream request-scoped lifecycle events and final triage report via Server-Sent Events (ADR 0017).
+
+    Safety Properties (Rule R1, Rule R2, Rule R7, Rule R11):
+    1. Produces mathematically and clinically identical output to POST /api/triage.
+    2. Emits real-time execution events from actual node/router evaluations (zero timers/fakes).
+    3. Lifecycle summaries contain zero patient PII, vitals, drugs, allergies, or complaint texts.
+    4. Each request runs in an isolated context without cross-talk.
+    """
+    registry, retrieval_service, llm, prov_meta, patient, config = _prepare_triage_context(request)
+
+    request_id = f"req-{uuid.uuid4().hex[:8]}"
+    sink = TriageEventSink(request_id=request_id)
+
+    # Stage 0: Request validation was completed upon successful Pydantic parsing of TriageApiRequest
+    sink.emit_completed(
+        stage="validation",
+        safe_summary="Request payload and clinical schema validated",
+    )
+
+    async def event_generator():
+        token = set_current_event_sink(sink)
+        loop = asyncio.get_running_loop()
+        ctx = contextvars.copy_context()
+
+        def _run_in_context() -> TriageResponse:
+            return run_triage(
+                patient=patient,
+                registry=registry,
+                llm=llm,
+                index=retrieval_service.index,
+                overrides=request.overrides or [],
+                config=config,
+                provider_info=prov_meta,
+            )
+
+        async def _execute_pipeline():
+            try:
+                # Execute blocking clinical pipeline in worker thread with contextvar propagated
+                resp = await loop.run_in_executor(None, ctx.run, _run_in_context)
+                sink.emit_run_completed(
+                    safe_summary=f"Triage evaluation completed successfully; verdict {resp.engine.verdict}",
+                    result_dict=resp.model_dump(mode="json"),
+                )
+            except Exception as exc:
+                logger.exception("Streaming triage run failed: %s", exc)
+                sink.emit_failed(
+                    stage="pipeline",
+                    safe_summary="Triage execution failed",
+                )
+            finally:
+                sink.close()
+
+        runner_task = asyncio.create_task(_execute_pipeline())
+
+        try:
+            async for event in sink:
+                yield f"event: {event.event_type}\ndata: {event.model_dump_json()}\n\n"
+            await runner_task
+        finally:
+            reset_current_event_sink(token)
+            sink.close()
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("/workflow")

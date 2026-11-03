@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - Decision Credibility Ledger, Deterministic Confidence Scoring & Data Quality Audit
 
 ### Added & Hardened
+- **Live Evidence-Backed Process Graph & Real-Time Activity Feed (`web/src/features/execution/LiveProcessPanel.tsx`, `src/triagerag/orchestration/events.py`, `src/triagerag/api/routes/triage.py`):**
+  - Implemented request-scoped Server-Sent Events (SSE) streaming endpoint `POST /api/triage/stream` emitting strictly typed `TriageLifecycleEvent`s (`stage.started`, `stage.completed`, `stage.skipped`, `stage.failed`, `run.completed`).
+  - Added 11-node LangGraph execution tracking and router skip emission (`route_after_retrieve` emits `stage.skipped` for unselected fallback/plan drafting; `route_after_verify` emits `stage.skipped` for unselected seal branches).
+  - Enforced strict privacy allowlist across all lifecycle events: zero patient identifiers, vitals, drugs, allergies, complaint narratives, or exception tracebacks in `safe_summary` or `data`.
+  - Added request-scoped `ContextVar` isolation in `TriageEventSink`, verified via concurrent execution tests against cross-talk.
+  - Implemented client disconnect cleanup ensuring background pipeline tasks do not hang upon dropped connections.
+  - Built interactive `LiveProcessPanel` on `IntakePage` and `ReportPage` displaying dynamic 9-stage progression and real-time activity feed with monotonic sequence numbers, timestamps, and safe summaries.
+  - Preserved presenter control on `IntakePage`: live graph runs step-by-step during evaluation, presenting a prominent "Run Complete · Verdict {verdict}" action button to inspect the full report when ready.
+- **Stale Result Invalidation & Duplicate Submission Prevention (`web/src/context/TriageContext.tsx`, `web/src/features/intake/PatientIntakeForm.tsx`, `web/src/pages/ReportPage.tsx`):**
+  - Implemented deterministic `computePatientFingerprint` hashing to invalidate mismatched session storage and immediately clear prior triage results upon new submission or patient detail edits.
+  - Removed duplicate `onClick={handleSubmit}` on the submit CTA and added `if (isLoading) return` guard preventing double-dispatch.
 - **Persistent "Try Demo" Action & Synthetic Clinical Scenario Flow (`web/src/components/layout/TryDemoButton.tsx`, `web/src/pages/IntakePage.tsx`, `web/src/lib/demoPatient.ts`):**
   - Added an accessible, responsive "Try Demo" button fixed to the bottom-left (`fixed z-40 left-4 bottom-4 sm:left-6 sm:bottom-6`) with mobile safe-area insets (`env(safe-area-inset-left/bottom)`).
   - Clicking navigates to `/intake` and pre-fills the form with the canonical synthetic reference patient (`BLOCK` 58yo male with acute ischemic chest pain who took Silagra / Sildenafil 50mg 12 hours ago).

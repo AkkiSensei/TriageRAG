@@ -772,3 +772,29 @@ class OrchestratorConfig(BaseModel):
     max_repair_cycles: int = 2
     audit_log_path: Path | None = None
     trust_mode: TrustMode = TrustMode.DEMO
+
+
+TriageLifecycleEventType = Literal[
+    "stage.started",
+    "stage.completed",
+    "stage.skipped",
+    "stage.failed",
+    "run.completed",
+]
+
+StageStatus = Literal["pending", "running", "completed", "skipped", "failed"]
+
+
+class TriageLifecycleEvent(BaseModel):
+    """Sanitized, privacy-safe lifecycle event emitted during triage execution."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    request_id: str
+    sequence: int
+    timestamp: datetime
+    event_type: TriageLifecycleEventType
+    stage: str
+    status: StageStatus
+    safe_summary: str
+    data: dict[str, Any] | None = None

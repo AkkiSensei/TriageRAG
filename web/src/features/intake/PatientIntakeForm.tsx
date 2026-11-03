@@ -507,6 +507,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
+    if (isLoading) return
     setLocalError(null)
     const ageNum = parseFloat(form.ageValue)
     if (isNaN(ageNum) || ageNum < 0) {
@@ -1132,7 +1133,6 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
 
           <button
             type="submit"
-            onClick={handleSubmit}
             disabled={isLoading}
             className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-teal-600 hover:bg-teal-700 active:bg-teal-800 px-8 py-3 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer"
           >

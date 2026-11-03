@@ -21,6 +21,19 @@ export interface paths {
     /** Execute Triage */
     post: operations["execute_triage_api_triage_post"];
   };
+  "/api/triage/stream": {
+    /**
+     * Stream Triage
+     * @description Stream request-scoped lifecycle events and final triage report via Server-Sent Events (ADR 0017).
+     *
+     * Safety Properties (Rule R1, Rule R2, Rule R7, Rule R11):
+     * 1. Produces mathematically and clinically identical output to POST /api/triage.
+     * 2. Emits real-time execution events from actual node/router evaluations (zero timers/fakes).
+     * 3. Lifecycle summaries contain zero patient PII, vitals, drugs, allergies, or complaint texts.
+     * 4. Each request runs in an isolated context without cross-talk.
+     */
+    post: operations["stream_triage_api_triage_stream_post"];
+  };
   "/api/triage/workflow": {
     /**
      * Get Workflow Graph Metadata
@@ -1716,6 +1729,35 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["TriageResponse"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  /**
+   * Stream Triage
+   * @description Stream request-scoped lifecycle events and final triage report via Server-Sent Events (ADR 0017).
+   *
+   * Safety Properties (Rule R1, Rule R2, Rule R7, Rule R11):
+   * 1. Produces mathematically and clinically identical output to POST /api/triage.
+   * 2. Emits real-time execution events from actual node/router evaluations (zero timers/fakes).
+   * 3. Lifecycle summaries contain zero patient PII, vitals, drugs, allergies, or complaint texts.
+   * 4. Each request runs in an isolated context without cross-talk.
+   */
+  stream_triage_api_triage_stream_post: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TriageApiRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        content: never;
       };
       /** @description Validation Error */
       422: {

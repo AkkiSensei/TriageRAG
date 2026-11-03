@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useTriage } from '@/context/TriageContext'
+import { useTriage, computePatientFingerprint } from '@/context/TriageContext'
 import { OverrideModal } from '@/features/results/OverrideModal'
+import { LiveProcessPanel } from '@/features/execution/LiveProcessPanel'
 import type { OverrideRecord } from '@/lib/api'
 import {
   ArrowLeft,
@@ -26,6 +27,7 @@ export const ReportPage: React.FC = () => {
     evaluatePatient,
     applyOverride,
     clearPatient,
+    liveEvents,
     isLoading,
     error,
   } = useTriage()
@@ -50,16 +52,34 @@ export const ReportPage: React.FC = () => {
     navigate('/intake')
   }
 
-  // Auto-evaluate if patientRequest exists but triageResult is not loaded yet
+  // Auto-evaluate if patientRequest exists but triageResult is not loaded yet or is mismatched (stale)
   React.useEffect(() => {
-    if (!triageResult && patientRequest && !isLoading && !error) {
-      evaluatePatient(patientRequest).catch((err: unknown) => {
-        console.error('Auto-eval on ReportPage error:', err)
-      })
+    if (patientRequest && !isLoading && !error) {
+      if (!triageResult) {
+        evaluatePatient(patientRequest).catch((err: unknown) => {
+          console.error('Auto-eval on ReportPage error:', err)
+        })
+      } else {
+        const reqFp = computePatientFingerprint(patientRequest.patient)
+        const resFp = computePatientFingerprint(triageResult.input_patient || triageResult.patient)
+        if (reqFp !== resFp) {
+          evaluatePatient(patientRequest).catch((err: unknown) => {
+            console.error('Auto-eval on ReportPage error (mismatched stale result):', err)
+          })
+        }
+      }
     }
   }, [triageResult, patientRequest, isLoading, error, evaluatePatient])
 
-  if (isLoading && !triageResult) {
+  // Guard against displaying a mismatched stale result during state transition
+  const isMismatched = Boolean(
+    triageResult &&
+      patientRequest &&
+      computePatientFingerprint(patientRequest.patient) !==
+        computePatientFingerprint(triageResult.input_patient || triageResult.patient)
+  )
+
+  if ((isLoading && !triageResult) || isMismatched) {
     return (
       <div className="mx-auto flex min-h-[500px] max-w-4xl flex-col items-center justify-center p-8 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 shadow-sm mb-4">
@@ -688,6 +708,24 @@ export const ReportPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Execution Pipeline & State Machine Trace (ADR 0017) */}
+      {liveEvents.length > 0 && (
+        <div className="pt-2">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-teal-500" />
+              <h3 className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">
+                Software Execution Audit &amp; Event Trail
+              </h3>
+            </div>
+            <span className="text-xs text-slate-400 font-mono">
+              {liveEvents.length} lifecycle events recorded
+            </span>
+          </div>
+          <LiveProcessPanel events={liveEvents} isLoading={isLoading} />
+        </div>
+      )}
 
       {/* Clinician Justification Modal for HIGH severity alerts */}
       <OverrideModal

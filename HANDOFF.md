@@ -42,10 +42,10 @@
 | **Adversarial Suite** | Prompt injection attacks | 100% | 19/19 passed | PASS |
 | **Mutation Testing** | Code & rule mutant kill rate | 100% | 52/52 killed | PASS |
 | **Retrieval Benchmark** | 224-case node-level (136 dev / 88 test) | R@5 >= 65%, WrongProto == 0 | 73.21% Test R@5, 0.0 WrongProto | PASS |
-| **Scale Latency** | 10,000-chunk lexical search | p95 < 50 ms | p95 = 6.69 ms | PASS |
+| **Scale Latency** | 10,000-chunk lexical search | p95 < 50 ms | p95 = 16.28 ms | PASS |
 | **Frontend Linters** | ESLint with strict safety rules | 0 warnings | Clean | PASS |
 | **Frontend Typing** | TypeScript (`tsc --noEmit`) | 0 errors | Clean | PASS |
-| **Frontend Tests** | Vitest unit & component specs | 100% | 8/8 files, 54/54 tests passed | PASS |
+| **Frontend Tests** | Vitest unit & component specs | 100% | 10/10 files, 63/63 tests passed | PASS |
 | **Production Build** | Vite production bundle | < 2 MB | ~293 KB | PASS |
 <!-- AUTOGEN:end:verification-metrics -->
 

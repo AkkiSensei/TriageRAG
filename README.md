@@ -511,7 +511,7 @@ TriageRAG is evaluated continuously across seven automated quality and regressio
   Mutation Kill Score      52/52 Code & Rule Mutants     100% KILLED
   Retrieval: Overall Test  56 Test Positive Cases        73.21% R@5 [60.7, 83.9]
   Hard-Negative Abstention 14 Hard-Negative Cases        100% ABSTAINED (0 wrong proto)
-  Scale Latency (10k)      100 Queries                   p95 = 6.69 ms (< 50.0 ms target)
+  Scale Latency (10k)      100 Queries                   p95 = 16.28 ms (< 50.0 ms target)
 ======================================================================
 ```
 <!-- AUTOGEN:end:benchmarks -->

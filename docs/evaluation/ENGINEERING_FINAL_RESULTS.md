@@ -55,11 +55,11 @@ Synthetic scale corpus evaluated under simulated emergency triage load (`eval/re
 <!-- AUTOGEN:start:latency-summary -->
 - **Corpus Size:** 10,000 chunks (3.8 MB text index).
 - **Queries Evaluated:** 100 queries.
-- **Index Build Time:** 566.72 ms.
-- **BM25 Search Latency (Mean):** 4.259 ms.
-- **BM25 Search Latency (p50):** 3.979 ms.
-- **BM25 Search Latency (p95):** 6.687 ms (Target: <= 50.0 ms).
-- **BM25 Search Latency (p99):** 7.507 ms.
+- **Index Build Time:** 1417.10 ms.
+- **BM25 Search Latency (Mean):** 11.484 ms.
+- **BM25 Search Latency (p50):** 10.906 ms.
+- **BM25 Search Latency (p95):** 16.282 ms (Target: <= 50.0 ms).
+- **BM25 Search Latency (p99):** 17.180 ms.
 - **Deterministic Math:** Sub-millisecond Decimal scoring for physiological vitals.
 <!-- AUTOGEN:end:latency-summary -->
 

@@ -1,6 +1,6 @@
 === TRIAGERAG FAST VERIFICATION RUN RECORD ===
-TIMESTAMP: 2026-11-02T21:16:45.101828+00:00
-GIT_COMMIT: 2fabfc7112c0bed18bde446dc31440bb6b6689b7
+TIMESTAMP: 2026-11-03T06:46:38.637884+00:00
+GIT_COMMIT: db65556978afd9c85035f546dca423d8267ec1cd
 PYTHON: 3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]
 PLATFORM: win32
 
@@ -11,11 +11,14 @@ PLATFORM: win32
 --> Running: C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG\.venv\Scripts\python.exe -m ruff check src tests tools eval
 All checks passed!
 --> Running: C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG\.venv\Scripts\python.exe -m ruff format --check src tests tools eval
-210 files already formatted
+213 files already formatted
 [OK] Linting clean
 === Running Type Checking (mypy) ===
 --> Running: C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG\.venv\Scripts\python.exe -m mypy src tests tools eval
-Success: no issues found in 206 source files
+tests\unit\test_streaming_events.py:50: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+tests\unit\test_streaming_events.py:83: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+tests\unit\test_streaming_events.py:130: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+Success: no issues found in 209 source files
 [OK] Types clean
 === Checking Layer Isolation (import-linter) ===
 --> Running: C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG\.venv\Scripts\python.exe -m importlinter.cli
@@ -79,7 +82,7 @@ platform win32 -- Python 3.13.7, pytest-9.1.1, pluggy-1.7.0
 rootdir: C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG
 configfile: pyproject.toml
 plugins: anyio-4.15.1, hypothesis-6.170.11, langsmith-0.14.17, platformdirs-4.13.5
-collected 538 items
+collected 542 items
 
 tests\unit\test_action_plan.py ................                          [  2%]
 tests\unit\test_aub_phase1_abstention.py ........                        [  4%]
@@ -100,42 +103,42 @@ tests\unit\test_aub_phase3_contextual_chunking.py ........               [ 21%]
 tests\unit\test_aub_phase3_corpus.py .......                             [ 22%]
 tests\unit\test_aub_phase3_generator.py ....                             [ 23%]
 tests\unit\test_aub_phase3_licensing.py ....                             [ 23%]
-tests\unit\test_aub_phase3_openfda.py ......                             [ 25%]
+tests\unit\test_aub_phase3_openfda.py ......                             [ 24%]
 tests\unit\test_aub_phase4_ablation.py ......                            [ 26%]
 tests\unit\test_aub_phase4_annotations.py ......                         [ 27%]
 tests\unit\test_aub_phase4_baselines.py .....                            [ 28%]
-tests\unit\test_aub_phase4_gates.py .....                                [ 29%]
+tests\unit\test_aub_phase4_gates.py .....                                [ 28%]
 tests\unit\test_aub_phase4_metric_fixtures.py .......                    [ 30%]
-tests\unit\test_aub_phase4_metrics.py ....                               [ 31%]
+tests\unit\test_aub_phase4_metrics.py ....                               [ 30%]
 tests\unit\test_aub_phase4_splits.py ....                                [ 31%]
-tests\unit\test_aub_phase5_applicability.py ......                       [ 33%]
+tests\unit\test_aub_phase5_applicability.py ......                       [ 32%]
 tests\unit\test_aub_phase5_fake_llm.py ...                               [ 33%]
 tests\unit\test_aub_phase5_qualifiers.py ...........                     [ 35%]
-tests\unit\test_aub_phase5_verdict.py ...                                [ 36%]
-tests\unit\test_aub_phase6_candidate_rules.py .....                      [ 37%]
+tests\unit\test_aub_phase5_verdict.py ...                                [ 35%]
+tests\unit\test_aub_phase6_candidate_rules.py .....                      [ 36%]
 tests\unit\test_aub_phase6_classes_and_fdc.py ......                     [ 38%]
 tests\unit\test_aub_phase6_dose_engine.py .......                        [ 39%]
 tests\unit\test_aub_phase6_mine_rules.py ......                          [ 40%]
-tests\unit\test_aub_phase6_rule_coverage.py ...                          [ 41%]
+tests\unit\test_aub_phase6_rule_coverage.py ...                          [ 40%]
 tests\unit\test_aub_phase6_schema_v2.py ......                           [ 42%]
 tests\unit\test_aub_phase6_trust_policy.py ......                        [ 43%]
 tests\unit\test_aub_phase7_diagnostics_and_mmr.py ......                 [ 44%]
 tests\unit\test_aub_phase7_neural_interface.py ....                      [ 45%]
-tests\unit\test_aub_phase7_provider_cassettes.py ....                    [ 46%]
-tests\unit\test_aub_phase7_query_expansion.py .....                      [ 47%]
+tests\unit\test_aub_phase7_provider_cassettes.py ....                    [ 45%]
+tests\unit\test_aub_phase7_query_expansion.py .....                      [ 46%]
 tests\unit\test_aub_phase7_security.py ....                              [ 47%]
 tests\unit\test_aub_phase7_why_and_ask_corpus.py .....                   [ 48%]
 tests\unit\test_audit.py .....                                           [ 49%]
-tests\unit\test_audit_regressions.py ...x....                            [ 51%]
+tests\unit\test_audit_regressions.py ...x....                            [ 50%]
 tests\unit\test_block_and_citations_fixes.py ........                    [ 52%]
 tests\unit\test_contracts.py ..................                          [ 55%]
-tests\unit\test_defaults.py ......                                       [ 57%]
+tests\unit\test_defaults.py ......                                       [ 56%]
 tests\unit\test_docs_drift.py ..                                         [ 57%]
 tests\unit\test_docs_honesty.py ...                                      [ 57%]
-tests\unit\test_engine.py ......                                         [ 59%]
-tests\unit\test_explainability_and_intake_hardening.py .......           [ 60%]
+tests\unit\test_engine.py ......                                         [ 58%]
+tests\unit\test_explainability_and_intake_hardening.py .......           [ 59%]
 tests\unit\test_fail_closed_checks.py .............                      [ 62%]
-tests\unit\test_fg1_grounding.py ............                            [ 65%]
+tests\unit\test_fg1_grounding.py ............                            [ 64%]
 tests\unit\test_fg2_clinical_inputs.py ...................               [ 68%]
 tests\unit\test_fg3_abstention_and_context.py ...........                [ 70%]
 tests\unit\test_fg4_eval_and_calibration.py .......                      [ 71%]
@@ -144,22 +147,23 @@ tests\unit\test_frontend_safety_boundary.py ....                         [ 73%]
 tests\unit\test_langgraph_orchestration.py .......................       [ 77%]
 tests\unit\test_patient_data_propagation.py ......                       [ 78%]
 tests\unit\test_r_rules_conformance.py .....                             [ 79%]
-tests\unit\test_rag.py ......                                            [ 81%]
-tests\unit\test_rag_regressions.py .......                               [ 82%]
-tests\unit\test_rag_wp1_ingestion.py ......                              [ 83%]
-tests\unit\test_rag_wp2_chunker.py ....                                  [ 84%]
+tests\unit\test_rag.py ......                                            [ 80%]
+tests\unit\test_rag_regressions.py .......                               [ 81%]
+tests\unit\test_rag_wp1_ingestion.py ......                              [ 82%]
+tests\unit\test_rag_wp2_chunker.py ....                                  [ 83%]
 tests\unit\test_rag_wp3_query_and_flags.py ...                           [ 84%]
 tests\unit\test_rag_wp4_index.py ......                                  [ 85%]
-tests\unit\test_rag_wp5_eval.py ..                                       [ 86%]
+tests\unit\test_rag_wp5_eval.py ..                                       [ 85%]
 tests\unit\test_rag_wp6_grounding.py ....                                [ 86%]
 tests\unit\test_rag_wp7_hybrid.py ....                                   [ 87%]
-tests\unit\test_rag_wp8_service_and_audit.py ....                        [ 88%]
-tests\unit\test_rag_wp9_ops.py ....                                      [ 89%]
-tests\unit\test_repair.py .......                                        [ 90%]
-tests\unit\test_report_integrity.py .........                            [ 92%]
+tests\unit\test_rag_wp8_service_and_audit.py ....                        [ 87%]
+tests\unit\test_rag_wp9_ops.py ....                                      [ 88%]
+tests\unit\test_repair.py .......                                        [ 89%]
+tests\unit\test_report_integrity.py .........                            [ 91%]
 tests\unit\test_retrieval_edge_cases.py ....                             [ 92%]
-tests\unit\test_route_and_verification_hardening.py ........             [ 94%]
+tests\unit\test_route_and_verification_hardening.py ........             [ 93%]
 tests\unit\test_serialization.py ...                                     [ 94%]
+tests\unit\test_streaming_events.py ....                                 [ 95%]
 tests\unit\test_telemetry.py ..............                              [ 97%]
 tests\unit\test_verifier_edge_cases.py .....                             [ 98%]
 tests\unit\test_verify_fast_contract.py .                                [ 98%]
@@ -179,7 +183,7 @@ tests/unit/test_rag_wp7_hybrid.py::test_dense_and_hybrid_retrievers_conform_to_p
     r_dense = build_retriever_backend("dense", chunks)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-=========== 537 passed, 1 xfailed, 3 warnings in 180.78s (0:03:00) ============
+=========== 541 passed, 1 xfailed, 3 warnings in 313.31s (0:05:13) ============
 ============================================================
 [OK] FAST VERIFICATION GATES GREEN (Static, Types, Architecture, Data, Unit)
 ============================================================
