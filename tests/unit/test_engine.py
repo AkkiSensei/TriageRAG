@@ -283,3 +283,29 @@ def test_withhold_semantics_never_treated_as_administration() -> None:
     assert dose_reports == []
     # No new plan alerts should fire because withhold is NOT administration
     assert plan_alerts == []
+
+
+def test_alias_resolver_parenthetical_resolution() -> None:
+    """Verify AliasResolver resolves parenthetical combinations like 'Brand (Generic Dose)'."""
+    registry = ClinicalRegistry.load_from_directory(get_repo_root() / "data")
+    resolver = registry.resolver
+
+    # 1. Brand with generic and dose in parentheses
+    res, matched, _ = resolver.resolve("Silagra (Sildenafil 50mg)")
+    assert res is True
+    assert matched == "Silagra"
+
+    # 2. Generic with brand in parentheses
+    res, matched, _ = resolver.resolve("Sildenafil (Silagra 50mg)")
+    assert res is True
+    assert matched == "sildenafil"
+
+    # 3. Parenthesized only
+    res, matched, _ = resolver.resolve("(Silagra)")
+    assert res is True
+    assert matched == "Silagra"
+
+    # 4. Unknown entity with parenthetical details fails closed (Rule R2)
+    res, matched, _ = resolver.resolve("FakeBrand (Unknown Generic 100mg)")
+    assert res is False
+    assert matched is None

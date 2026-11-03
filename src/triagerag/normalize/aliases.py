@@ -102,7 +102,23 @@ class AliasResolver:
         if prefix and prefix != cleaned and prefix in self._clean_lookup:
             return True, self._clean_lookup[prefix], None
 
-        # 4. Fuzzy match -> Suggestion ONLY, resolved=False
+        # 4. Handle parenthetical annotations and qualifiers (e.g. "Silagra (Sildenafil 50mg)", "Ventolin (Albuterol)")
+        if "(" in raw_stripped or "[" in raw_stripped:
+            before_paren = re.split(r"[\(\[]", raw_stripped)[0].strip()
+            if before_paren:
+                res_b, match_b, _ = self.resolve(before_paren)
+                if res_b and match_b:
+                    return True, match_b, None
+
+            paren_match = re.search(r"[\(\[](.*?)[\)\]]", raw_stripped)
+            if paren_match:
+                inside_paren = paren_match.group(1).strip()
+                if inside_paren:
+                    res_in, match_in, _ = self.resolve(inside_paren)
+                    if res_in and match_in:
+                        return True, match_in, None
+
+        # 5. Fuzzy match -> Suggestion ONLY, resolved=False
         match_result = process.extractOne(
             raw_stripped,
             self._all_candidates,
