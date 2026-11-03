@@ -21,7 +21,7 @@
 | **Hard-Negative Abstain Recall** | 1.0000 | **1.0000** | Gate: == 1.0000 |
 | **Abstain Precision / Recall** | 0.6133 / 1.0000 | **0.6809 / 1.0000** | - |
 | **Expected Calibration Error (ECE)** | 0.1447 | **0.1453** | Observational (ADR-0008 / HD-3) |
-| **Latency p50 / p95 (ms)** | 0.017 / 0.092 | **0.019 / 0.060** | Budget: p95 < 50 ms |
+| **Latency p50 / p95 (ms)** | 0.041 / 0.492 | **0.072 / 0.201** | Budget: p95 < 50 ms |
 
 ## Stratified Performance Breakdown (FG-06 / HD-1)
 
