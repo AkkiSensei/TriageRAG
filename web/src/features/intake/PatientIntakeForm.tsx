@@ -650,10 +650,12 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
           {/* Age */}
           <div>
-            <label className="text-[11px] font-semibold text-slate-800 dark:text-slate-200">Age</label>
+            <label htmlFor="age-input" className="text-[11px] font-semibold text-slate-800 dark:text-slate-200">Age</label>
             <div className="mt-1 flex gap-1.5">
               <input
+                id="age-input"
                 type="text"
+                aria-label="Age"
                 value={form.ageValue}
                 onChange={(e) => setForm({ ...form, ageValue: e.target.value })}
                 placeholder="62"

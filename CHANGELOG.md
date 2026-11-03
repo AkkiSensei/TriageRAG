@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - Decision Credibility Ledger, Deterministic Confidence Scoring & Data Quality Audit
 
 ### Added & Hardened
+- **Persistent "Try Demo" Action & Synthetic Clinical Scenario Flow (`web/src/components/layout/TryDemoButton.tsx`, `web/src/pages/IntakePage.tsx`, `web/src/lib/demoPatient.ts`):**
+  - Added an accessible, responsive "Try Demo" button fixed to the bottom-left (`fixed z-40 left-4 bottom-4 sm:left-6 sm:bottom-6`) with mobile safe-area insets (`env(safe-area-inset-left/bottom)`).
+  - Clicking navigates to `/intake` and pre-fills the form with the canonical synthetic reference patient (`BLOCK` 58yo male with acute ischemic chest pain who took Silagra / Sildenafil 50mg 12 hours ago).
+  - Strictly preserves unknown values (capillary blood glucose and GCS remain `source: 'unknown'` and `value: null`) under Rules R2 and R4 fail-closed principles, never assuming safety or normal baselines.
+  - Quarantines untrusted chief complaint text with `include_complaint_in_llm: false` (Rule R7).
+  - Added an informative callout banner on `IntakePage` presenting a plain-language explanation of the contraindication, Rule R11 non-overridable BLOCK alert against Nitroglycerin, the core principle "Code decides; the LLM explains" (Rule R1), and the exact disclaimer: *"Research prototype. Synthetic data only. Not a medical device. Not for clinical use."*
+  - Added one-click reset action ("Clear Demo / Reset") to restore blank form state.
+  - Added dedicated Vitest test suite (`web/src/components/layout/TryDemoButton.test.tsx`) covering button visibility, accessibility attributes, navigation, synthetic data integrity, and banner lifecycle.
 - **Withhold Steps Excluded from Medication Instructions (`src/triagerag/action_plan.py`, `tests/unit/test_action_plan.py`):**
   - Restricted `MedicationInstruction` generation in `_build_medications` strictly to approved, cited `ActionType.administer` steps.
   - Handled approved `withhold` steps exclusively as non-administration actions in `immediate_actions` (`WITHHOLD -- <drug_id>`), eliminating the possibility of a withhold directive rendering in the medication administration table.

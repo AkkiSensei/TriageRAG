@@ -59,8 +59,8 @@ Prioritized engineering and clinical verification backlog (ordered by safety pri
   - >=150 Indian brand/FDC aliases, Fahrenheit conversion, and localized LASA lookups.
 - **WP-11: Security/Ops Hardening & Docs-as-Code**:
   - API rate-limiting, audit head cryptographic anchoring, dependency cleanup, and automated doc sync.
-- **WP-12: Interactive Demo & Portfolio Showcase**:
-  - 5-minute automated walkthrough, architecture diagrams, and published reliability plots.
+- **[COMPLETED in Web Console] WP-12: Interactive Demo & Portfolio Showcase**:
+  - Added persistent, accessible "Try Demo" button fixed to bottom-left across the web application with mobile safe-area insets. Pre-fills canonical synthetic reference case (Rule R11 Sildenafil + Nitroglycerin BLOCK contraindication) into `PatientIntakeForm`, preserves unknown vitals (glucose/GCS), and displays clear plain-language explanation of deterministic decision vs LLM boundary.
 
 ### Prioritized Backlog Items
 

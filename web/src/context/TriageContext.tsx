@@ -6,16 +6,20 @@ import {
   type OverrideRecord,
   type ScenarioDetail,
 } from '@/lib/api'
+import { createSyntheticDemoRequest, DEMO_SCENARIO_METADATA } from '@/lib/demoPatient'
 
 interface TriageContextType {
   patientRequest: TriageApiRequest | null
   triageResult: TriageResponse | null
   activeOverrides: OverrideRecord[]
   selectedScenario: ScenarioDetail | null
+  isDemoActive: boolean
   isLoading: boolean
   error: string | null
   setPatientRequest: (req: TriageApiRequest | null) => void
   setSelectedScenario: (scenario: ScenarioDetail | null) => void
+  loadDemoPatient: () => void
+  clearDemo: () => void
   evaluatePatient: (req: TriageApiRequest) => Promise<TriageResponse>
   applyOverride: (override: OverrideRecord) => Promise<void>
   clearPatient: () => void
@@ -25,6 +29,7 @@ const TriageContext = createContext<TriageContextType | undefined>(undefined)
 
 const STORAGE_KEY_REQ = 'triagerag_patient_request'
 const STORAGE_KEY_RES = 'triagerag_triage_result'
+const STORAGE_KEY_DEMO = 'triagerag_demo_active'
 
 export const TriageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [patientRequest, setPatientRequest] = useState<TriageApiRequest | null>(() => {
@@ -47,10 +52,46 @@ export const TriageProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   })
 
+  const [isDemoActive, setIsDemoActive] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false
+    try {
+      return sessionStorage.getItem(STORAGE_KEY_DEMO) === 'true'
+    } catch {
+      return false
+    }
+  })
+
   const [activeOverrides, setActiveOverrides] = useState<OverrideRecord[]>([])
   const [selectedScenario, setSelectedScenario] = useState<ScenarioDetail | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+
+  const loadDemoPatient = () => {
+    const demoReq = createSyntheticDemoRequest()
+    setPatientRequest(demoReq)
+    setTriageResult(null)
+    setActiveOverrides([])
+    setSelectedScenario(DEMO_SCENARIO_METADATA)
+    setIsDemoActive(true)
+    setError(null)
+    try {
+      sessionStorage.setItem(STORAGE_KEY_REQ, JSON.stringify(demoReq))
+      sessionStorage.removeItem(STORAGE_KEY_RES)
+      sessionStorage.setItem(STORAGE_KEY_DEMO, 'true')
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  const clearDemo = () => {
+    setIsDemoActive(false)
+    try {
+      sessionStorage.removeItem(STORAGE_KEY_DEMO)
+    } catch {
+      // ignore storage errors
+    }
+    clearPatient()
+  }
 
   const evaluatePatient = async (req: TriageApiRequest): Promise<TriageResponse> => {
     setIsLoading(true)
@@ -116,10 +157,12 @@ export const TriageProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setTriageResult(null)
     setActiveOverrides([])
     setSelectedScenario(null)
+    setIsDemoActive(false)
     setError(null)
     try {
       sessionStorage.removeItem(STORAGE_KEY_REQ)
       sessionStorage.removeItem(STORAGE_KEY_RES)
+      sessionStorage.removeItem(STORAGE_KEY_DEMO)
     } catch {
       // ignore storage errors
     }
@@ -132,10 +175,13 @@ export const TriageProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         triageResult,
         activeOverrides,
         selectedScenario,
+        isDemoActive,
         isLoading,
         error,
         setPatientRequest,
         setSelectedScenario,
+        loadDemoPatient,
+        clearDemo,
         evaluatePatient,
         applyOverride,
         clearPatient,

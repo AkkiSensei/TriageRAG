@@ -45,7 +45,7 @@
 | **Scale Latency** | 10,000-chunk lexical search | p95 < 50 ms | p95 = 6.69 ms | PASS |
 | **Frontend Linters** | ESLint with strict safety rules | 0 warnings | Clean | PASS |
 | **Frontend Typing** | TypeScript (`tsc --noEmit`) | 0 errors | Clean | PASS |
-| **Frontend Tests** | Vitest unit & component specs | 100% | 8/8 passed | PASS |
+| **Frontend Tests** | Vitest unit & component specs | 100% | 8/8 files, 52/52 tests passed | PASS |
 | **Production Build** | Vite production bundle | < 2 MB | ~293 KB | PASS |
 <!-- AUTOGEN:end:verification-metrics -->
 
@@ -57,7 +57,7 @@
   - `tests/unit/test_aub_phase7_diagnostics_and_mmr.py` (6 tests)
   - `tests/unit/test_aub_phase7_provider_cassettes.py` (4 tests)
   - `tests/integration/test_aub_phase7_cross_phase_integration.py` (6 tests)
-- **100% pass rate** across full frontend suite (`vitest run` 36/36 tests passed, TypeScript clean, Vite production bundle clean).
+- **100% pass rate** across full frontend suite (`vitest run` 52/52 tests passed across 8 test suites, TypeScript clean, Vite production bundle clean).
 - **0 lint / format errors** (Python ruff check & format across codebase).
 - **0 type errors** (Python mypy strict in `src/`, `tools/`, `eval/`, `tests/` & TypeScript `tsc --noEmit`).
 - **0 import isolation contract violations** (import-linter).
