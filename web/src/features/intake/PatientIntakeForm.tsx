@@ -91,6 +91,7 @@ export interface FormState {
 
   // Clinical context
   suspectedSyndrome: string
+  chiefComplaintUntrusted: string
   renalImpairment: Impairment
   hepaticImpairment: Impairment
   llmProfile: LLMProfile
@@ -130,6 +131,7 @@ export const INITIAL_FORM_STATE: FormState = {
   allergies: [],
 
   suspectedSyndrome: '',
+  chiefComplaintUntrusted: '',
   renalImpairment: 'no',
   hepaticImpairment: 'no',
   llmProfile: 'COMPLIANT',
@@ -183,12 +185,16 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
     }))
   }
 
-  // Populate from existing request or scenario
+  // Populate from existing request or scenario, or reset when cleared
   useEffect(() => {
     if (existingRequest) {
       loadRequestState(existingRequest)
     } else if (initialScenario) {
       loadScenarioState(initialScenario)
+    } else {
+      setForm(INITIAL_FORM_STATE)
+      setNewMedName('')
+      setNewAllergySubstance('')
     }
   }, [initialScenario, existingRequest])
 
@@ -265,6 +271,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       })),
 
       suspectedSyndrome: p.suspected_syndrome || 'chest_pain',
+      chiefComplaintUntrusted: p.chief_complaint_untrusted || '',
       renalImpairment: (p.renal_impairment as Impairment) || 'no',
       hepaticImpairment: (p.hepatic_impairment as Impairment) || 'no',
       llmProfile: 'COMPLIANT',
@@ -344,6 +351,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
       })),
 
       suspectedSyndrome: p.suspected_syndrome || 'chest_pain',
+      chiefComplaintUntrusted: p.chief_complaint_untrusted || '',
       renalImpairment: (p.renal_impairment as Impairment) || 'no',
       hepaticImpairment: (p.hepatic_impairment as Impairment) || 'no',
       llmProfile: (req.llm_profile as LLMProfile) || 'COMPLIANT',
@@ -489,7 +497,7 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
         suspected_syndrome: form.suspectedSyndrome?.trim() || null,
         renal_impairment: form.renalImpairment || 'no',
         hepatic_impairment: form.hepaticImpairment || 'no',
-        chief_complaint_untrusted: '',
+        chief_complaint_untrusted: form.chiefComplaintUntrusted || '',
       },
       llm_profile: form.llmProfile || 'COMPLIANT',
       include_complaint_in_llm: false,
@@ -621,6 +629,34 @@ export const PatientIntakeForm: React.FC<PatientIntakeFormProps> = ({
               <option value="paediatric_sepsis">Severe Infection / Sepsis (High Fever / Child Very Sick)</option>
               <option value="altered_mental_status">Confusion or Drowsiness (Not fully awake)</option>
             </select>
+          </div>
+
+          {/* Quarantined Chief Complaint (Rule R7) */}
+          <div className="rounded-xl border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/20 p-3.5 space-y-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <label
+                htmlFor="chief-complaint-input"
+                className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5"
+              >
+                <AlertCircle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span>Reported Chief Complaint</span>
+              </label>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                Quarantined by Default (Rule R7)
+              </span>
+            </div>
+            <input
+              id="chief-complaint-input"
+              type="text"
+              aria-label="Reported Chief Complaint"
+              value={form.chiefComplaintUntrusted}
+              onChange={(e) => setForm({ ...form, chiefComplaintUntrusted: e.target.value })}
+              placeholder="e.g. Patient reports sudden onset chest tightness radiating to arm..."
+              className="h-10 w-full rounded-xl border border-amber-200 dark:border-amber-900/80 bg-white dark:bg-slate-800 px-3 text-xs sm:text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            />
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+              Displayed to clinician only. Quarantined from clinical decision rules, dosage math, and LLM by default to prevent prompt injection.
+            </p>
           </div>
         </div>
       </div>

@@ -246,6 +246,19 @@ export const ReportPage: React.FC = () => {
                 {patient.allergies?.length ?? 0} Allergies
               </span>
             </div>
+
+            {patient.chief_complaint_untrusted && (
+              <div className="w-full mt-2 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-[10px] uppercase tracking-wider text-amber-800 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                    Untrusted Chief Complaint (Quarantined &bull; Rule R7)
+                  </span>
+                  <span className="text-slate-700 dark:text-slate-300 italic">
+                    &ldquo;{patient.chief_complaint_untrusted}&rdquo;
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

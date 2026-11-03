@@ -1,11 +1,13 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Sparkles, ArrowRight } from 'lucide-react'
 import { useTriage } from '@/context/TriageContext'
 
 export const TryDemoButton: React.FC = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { loadDemoPatient, isDemoActive } = useTriage()
+  const isIntake = location.pathname === '/intake'
 
   const handleTryDemo = () => {
     loadDemoPatient()
@@ -17,10 +19,11 @@ export const TryDemoButton: React.FC = () => {
       type="button"
       onClick={handleTryDemo}
       aria-label="Try Demo - Synthetic Patient Scenario"
-      className="fixed z-40 left-4 bottom-4 sm:left-6 sm:bottom-6 print:hidden pointer-events-auto group flex items-center gap-2.5 rounded-full bg-gradient-to-r from-teal-700 via-teal-800 to-teal-900 hover:from-teal-600 hover:to-teal-800 dark:from-teal-600 dark:via-teal-700 dark:to-teal-800 dark:hover:from-teal-500 dark:hover:to-teal-700 text-white pl-3.5 pr-4 py-2.5 shadow-soft-lg hover:shadow-glow transition-all duration-200 border border-teal-400/30 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2 dark:focus:ring-offset-slate-900 active:scale-95"
+      className={`fixed z-40 left-4 ${
+        isIntake ? 'bottom-28 sm:bottom-6' : 'bottom-4 sm:bottom-6'
+      } sm:left-6 print:hidden pointer-events-auto group flex items-center gap-2.5 rounded-full bg-gradient-to-r from-teal-700 via-teal-800 to-teal-900 hover:from-teal-600 hover:to-teal-800 dark:from-teal-600 dark:via-teal-700 dark:to-teal-800 dark:hover:from-teal-500 dark:hover:to-teal-700 text-white pl-3.5 pr-4 py-2.5 shadow-soft-lg hover:shadow-glow transition-all duration-200 border border-teal-400/30 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2 dark:focus:ring-offset-slate-900 active:scale-95`}
       style={{
         left: 'max(1rem, env(safe-area-inset-left, 1rem))',
-        bottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))',
       }}
     >
       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur-xs group-hover:bg-white/30 transition-colors">

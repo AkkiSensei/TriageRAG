@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added an informative callout banner on `IntakePage` presenting a plain-language explanation of the contraindication, Rule R11 non-overridable BLOCK alert against Nitroglycerin, the core principle "Code decides; the LLM explains" (Rule R1), and the exact disclaimer: *"Research prototype. Synthetic data only. Not a medical device. Not for clinical use."*
   - Added one-click reset action ("Clear Demo / Reset") to restore blank form state.
   - Added dedicated Vitest test suite (`web/src/components/layout/TryDemoButton.test.tsx`) covering button visibility, accessibility attributes, navigation, synthetic data integrity, and banner lifecycle.
+  - Hardened mobile screen layout (`bottom-28 sm:bottom-6` on `/intake`) preventing the floating demo button from obstructing the sticky primary submit CTA.
+  - Hardened form reset lifecycle in `PatientIntakeForm.tsx` to restore baseline form state when demo is cleared, and preserved quarantined chief complaint text without HTML injection.
 - **Withhold Steps Excluded from Medication Instructions (`src/triagerag/action_plan.py`, `tests/unit/test_action_plan.py`):**
   - Restricted `MedicationInstruction` generation in `_build_medications` strictly to approved, cited `ActionType.administer` steps.
   - Handled approved `withhold` steps exclusively as non-administration actions in `immediate_actions` (`WITHHOLD -- <drug_id>`), eliminating the possibility of a withhold directive rendering in the medication administration table.

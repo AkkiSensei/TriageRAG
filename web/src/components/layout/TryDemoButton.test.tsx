@@ -3,10 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TryDemoButton } from './TryDemoButton'
 import { IntakePage } from '@/pages/IntakePage'
+import { PatientIntakeForm } from '@/features/intake/PatientIntakeForm'
 import { TriageProvider, useTriage } from '@/context/TriageContext'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '@/lib/api'
 import { createSyntheticDemoRequest, DEMO_DISCLAIMER } from '@/lib/demoPatient'
+import type { TriageApiRequest } from '@/lib/api'
 
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -45,8 +47,8 @@ describe('TryDemoButton Component', () => {
     expect(button.className).toContain('z-40')
     expect(button.className).toContain('left-4')
     expect(button.className).toContain('bottom-4')
+    expect(button.className).toContain('sm:bottom-6')
     expect(button.style.left).toContain('env(safe-area-inset-left')
-    expect(button.style.bottom).toContain('env(safe-area-inset-bottom')
   })
 
   it('navigates to /intake and sets demo active when clicked', () => {
@@ -81,6 +83,22 @@ describe('TryDemoButton Component', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/intake')
     expect(screen.getByTestId('is-demo').textContent).toBe('yes')
     expect(screen.getByTestId('patient-age').textContent).toBe('58')
+  })
+
+  it('applies mobile clearance on /intake to avoid obscuring sticky primary CTA controls', () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <TriageProvider>
+          <MemoryRouter initialEntries={['/intake']}>
+            <TryDemoButton />
+          </MemoryRouter>
+        </TriageProvider>
+      </QueryClientProvider>
+    )
+
+    const button = screen.getByRole('button', { name: /try demo/i })
+    expect(button.className).toContain('bottom-28')
+    expect(button.className).toContain('sm:bottom-6')
   })
 })
 
@@ -162,5 +180,36 @@ describe('Demo Patient Banner on IntakePage', () => {
     fireEvent.click(clearBtn)
 
     expect(screen.queryByTestId('demo-patient-banner')).toBeNull()
+    // Age should be restored to initial baseline, not remain stuck at 58
+    expect(ageInput.value).toBe('45')
+  })
+
+  it('preserves synthetic demo chief complaint in submitted payload without HTML injection', () => {
+    let capturedPayload: TriageApiRequest | null = null
+    const handleSubmit = vi.fn((payload: TriageApiRequest) => {
+      capturedPayload = payload
+    })
+
+    const demoReq = createSyntheticDemoRequest()
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <PatientIntakeForm
+          onSubmit={handleSubmit}
+          existingRequest={demoReq}
+        />
+      </QueryClientProvider>
+    )
+
+    // Form inputs should reflect demo patient
+    const submitBtn = screen.getByRole('button', { name: /Check Safety & View Care Steps/i })
+    fireEvent.click(submitBtn)
+
+    expect(handleSubmit).toHaveBeenCalledOnce()
+    expect(capturedPayload).not.toBeNull()
+    expect(capturedPayload!.patient.chief_complaint_untrusted).toBe(
+      'Substernal chest pressure for 2 hours radiating to left jaw'
+    )
+    expect(capturedPayload!.include_complaint_in_llm).toBe(false)
   })
 })
