@@ -1,6 +1,6 @@
 === TRIAGERAG FAST VERIFICATION RUN RECORD ===
-TIMESTAMP: 2026-11-03T06:46:38.637884+00:00
-GIT_COMMIT: db65556978afd9c85035f546dca423d8267ec1cd
+TIMESTAMP: 2026-11-03T07:07:32.229747+00:00
+GIT_COMMIT: f3dfcc02eab8b39baa96247ee5f467cae00cb543
 PYTHON: 3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]
 PLATFORM: win32
 
@@ -133,7 +133,7 @@ tests\unit\test_audit_regressions.py ...x....                            [ 50%]
 tests\unit\test_block_and_citations_fixes.py ........                    [ 52%]
 tests\unit\test_contracts.py ..................                          [ 55%]
 tests\unit\test_defaults.py ......                                       [ 56%]
-tests\unit\test_docs_drift.py ..                                         [ 57%]
+tests\unit\test_docs_drift.py F.                                         [ 57%]
 tests\unit\test_docs_honesty.py ...                                      [ 57%]
 tests\unit\test_engine.py ......                                         [ 58%]
 tests\unit\test_explainability_and_intake_hardening.py .......           [ 59%]
@@ -169,6 +169,27 @@ tests\unit\test_verifier_edge_cases.py .....                             [ 98%]
 tests\unit\test_verify_fast_contract.py .                                [ 98%]
 tests\unit\test_workflow_telemetry.py .......                            [100%]
 
+================================== FAILURES ===================================
+___________________ test_docs_metrics_in_sync_with_reports ____________________
+
+    def test_docs_metrics_in_sync_with_reports() -> None:
+        """T0.6 / AUB-DOC-01 / AUB-DOC-02: Documentation numbers must match eval/reports/*.json exactly."""
+        script = REPO_ROOT / "tools" / "gen_docs_metrics.py"
+        res = subprocess.run(
+            [sys.executable, str(script), "--check"], cwd=REPO_ROOT, capture_output=True, text=True
+        )
+>       assert res.returncode == 0, (
+            f"Drift detected in documentation metrics:\n{res.stdout}\n{res.stderr}"
+        )
+E       AssertionError: Drift detected in documentation metrics:
+E         DRIFT DETECTED in HANDOFF.md section 'verification-metrics'!
+E
+E         ERROR: Documentation metrics drift detected! Run 'python tools/gen_docs_metrics.py' to update.
+E
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Users\\Ritunjay Deo\\OneDrive\\Desktop\\TriageRAG\\.venv\\Scripts\\python.exe', 'C:\\Users...etrics'!\n", stderr="ERROR: Documentation metrics drift detected! Run 'python tools/gen_docs_metrics.py' to update.\n").returncode
+
+tests\unit\test_docs_drift.py:23: AssertionError
 ============================== warnings summary ===============================
 tests/unit/test_fg5_retrieval_hardening.py::test_char_ngram_and_lexical_reranker_naming
   C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG\tests\unit\test_fg5_retrieval_hardening.py:194: DeprecationWarning: Retriever backend 'dense' is deprecated; use 'char_ngram' instead.
@@ -183,8 +204,8 @@ tests/unit/test_rag_wp7_hybrid.py::test_dense_and_hybrid_retrievers_conform_to_p
     r_dense = build_retriever_backend("dense", chunks)
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-=========== 541 passed, 1 xfailed, 3 warnings in 313.31s (0:05:13) ============
-============================================================
-[OK] FAST VERIFICATION GATES GREEN (Static, Types, Architecture, Data, Unit)
-============================================================
-EXIT_CODE: 0
+=========================== short test summary info ===========================
+FAILED tests/unit/test_docs_drift.py::test_docs_metrics_in_sync_with_reports
+====== 1 failed, 540 passed, 1 xfailed, 3 warnings in 319.12s (0:05:19) =======
+FAILED (code 1): C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG\.venv\Scripts\python.exe -m pytest tests/unit
+EXIT_CODE: 1

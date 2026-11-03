@@ -9,7 +9,7 @@ describe('LiveProcessPanel', () => {
 
     expect(screen.getByTestId('live-process-panel')).toBeInTheDocument()
     expect(screen.getByText('Standby')).toBeInTheDocument()
-    expect(screen.getByText('0 of 9')).toBeInTheDocument()
+    expect(screen.getByText('0 of 11')).toBeInTheDocument()
 
     // Validation stage starts in Pending
     const valCard = screen.getByTestId('stage-card-validation')
@@ -61,7 +61,7 @@ describe('LiveProcessPanel', () => {
 
     render(<LiveProcessPanel events={completedEvents} isLoading={false} />)
 
-    expect(screen.getByText('2 of 9')).toBeInTheDocument()
+    expect(screen.getByText('2 of 11')).toBeInTheDocument()
     const valCard = screen.getByTestId('stage-card-validation')
     expect(valCard).toHaveTextContent('Done')
     expect(valCard).toHaveTextContent('Schema valid')

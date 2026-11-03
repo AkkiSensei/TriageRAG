@@ -45,7 +45,7 @@
 | **Scale Latency** | 10,000-chunk lexical search | p95 < 50 ms | p95 = 16.28 ms | PASS |
 | **Frontend Linters** | ESLint with strict safety rules | 0 warnings | Clean | PASS |
 | **Frontend Typing** | TypeScript (`tsc --noEmit`) | 0 errors | Clean | PASS |
-| **Frontend Tests** | Vitest unit & component specs | 100% | 10/10 files, 63/63 tests passed | PASS |
+| **Frontend Tests** | Vitest unit & component specs | 100% | 8/8 passed | PASS |
 | **Production Build** | Vite production bundle | < 2 MB | ~293 KB | PASS |
 <!-- AUTOGEN:end:verification-metrics -->
 
