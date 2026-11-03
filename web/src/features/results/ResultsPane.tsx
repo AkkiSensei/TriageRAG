@@ -1,10 +1,12 @@
 import React from 'react'
 import { SafetyBanner } from './SafetyBanner'
+import { ExplanationSection } from './ExplanationSection'
 import { ScoreCard } from './ScoreCard'
 import { AlertsList } from './AlertsList'
 import { SkippedChecksList } from './SkippedChecksList'
 import { VerifiedPlanView } from './VerifiedPlanView'
 import { RetrievalView } from './RetrievalView'
+import { AskCorpusSection } from './AskCorpusSection'
 import type { TriageResponse, Alert } from '@/lib/api'
 import { Hash, Info, Loader2 } from 'lucide-react'
 
@@ -21,7 +23,7 @@ export const ResultsPane: React.FC<ResultsPaneProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-8 text-center shadow-soft">
+      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-8 text-center shadow-soft">
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 mb-4 shadow-soft-sm">
           <Loader2 className="h-7 w-7 animate-spin text-teal-600 dark:text-teal-400" />
         </div>
@@ -35,8 +37,8 @@ export const ResultsPane: React.FC<ResultsPaneProps> = ({
 
   if (!triage) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-8 text-center shadow-soft">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 dark:bg-[#0c1618] text-slate-400 dark:text-slate-500 mb-4">
+      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-8 text-center shadow-soft">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 dark:bg-slate-900 text-slate-400 dark:text-slate-500 mb-4">
           <Info className="h-7 w-7" />
         </div>
         <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Awaiting Clinical Intake</h3>
@@ -58,28 +60,34 @@ export const ResultsPane: React.FC<ResultsPaneProps> = ({
       {/* 1. Top-Level Safety Banner (NEVER animated) */}
       <SafetyBanner report={engine} />
 
-      {/* 2. Physiological Score */}
+      {/* 2. Canonical Decision Ledger & Clinical Explanation */}
+      <ExplanationSection triage={triage} />
+
+      {/* 3. Physiological Score */}
       {engine.score && <ScoreCard score={engine.score} />}
 
-      {/* 3. Safety Alerts & Blocked Contraindications */}
+      {/* 4. Safety Alerts & Blocked Contraindications */}
       <AlertsList alerts={allAlerts} onOverrideHighAlert={onOverrideHighAlert} />
 
-      {/* 4. Skipped Checks / Fail Closed */}
+      {/* 5. Skipped Checks / Fail Closed */}
       {engine.checks_skipped && engine.checks_skipped.length > 0 && (
         <SkippedChecksList skippedChecks={engine.checks_skipped} />
       )}
 
-      {/* 5. Verified Plan Steps */}
+      {/* 6. Verified Plan Steps */}
       {triage.verified_steps && triage.verified_steps.length > 0 && (
         <VerifiedPlanView steps={triage.verified_steps} />
       )}
 
-      {/* 6. Retrieval Context & Chunks */}
+      {/* 7. Retrieval Context & Chunks */}
       <RetrievalView triage={triage} />
 
-      {/* 7. Cryptographic Audit Hash Bar */}
+      {/* 8. Ask-the-Corpus Extractive Q&A */}
+      <AskCorpusSection />
+
+      {/* 9. Cryptographic Audit Hash Bar */}
       {triage.audit_hash && (
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-[#1e3840] bg-white dark:bg-[#132226] p-4 text-xs font-mono text-slate-500 dark:text-slate-400 shadow-soft">
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 text-xs font-mono text-slate-500 dark:text-slate-400 shadow-soft">
           <div className="flex items-center gap-2">
             <Hash className="h-4 w-4 text-teal-700 dark:text-teal-400" />
             <span className="text-slate-900 dark:text-slate-100 font-semibold">Record Audit SHA-256:</span>

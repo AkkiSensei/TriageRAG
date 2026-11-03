@@ -1,108 +1,1071 @@
-manifest_version: "1.0.0"
-
+manifest_version: 1.0.0
+generator_seed: 42
 controlled_syndromes:
-  - "altered_mental_status"
-  - "anaphylaxis"
-  - "chest_pain"
-  - "hypoglycemia"
-  - "paediatric_sepsis"
-  - "severe_asthma"
-
+- acute_abdomen
+- acute_coronary_syndrome
+- acute_limb_ischemia
+- acute_meningitis
+- acute_pulmonary_oedema
+- altered_mental_status
+- anaphylaxis
+- arrhythmia
+- burns
+- cardiac_arrest
+- chest_pain
+- copd_exacerbation
+- dengue_warning_signs
+- dka_hhs
+- febrile_infant
+- head_injury
+- heat_stroke
+- hypertensive_emergency
+- hypoglycemia
+- neonatal_sepsis
+- opioid_overdose
+- organophosphate_poisoning
+- paediatric_dehydration
+- paediatric_sepsis
+- paediatric_shock
+- paracetamol_overdose
+- renal_colic
+- seizure_status_epilepticus
+- septic_shock_adult
+- severe_asthma
+- severe_malaria
+- severe_pneumonia
+- snakebite
+- stroke_tia
+- trauma_primary_survey
+- upper_gi_bleed
 syndrome_aliases:
-  "paediatric_sepsis_screen": "paediatric_sepsis"
-  "acs": "chest_pain"
-  "acute_coronary_syndrome": "chest_pain"
-  "asthma": "severe_asthma"
-  "encephalopathy": "altered_mental_status"
-
+  paediatric_sepsis_screen: paediatric_sepsis
+  acs: chest_pain
+  acute_coronary_syndrome: chest_pain
+  asthma: severe_asthma
+  encephalopathy: altered_mental_status
+  stemi: acute_coronary_syndrome
+  stemi_nstemi: acute_coronary_syndrome
+  ams: altered_mental_status
+  septic_shock: septic_shock_adult
+  shock_adult: septic_shock_adult
+  pulmonary_edema: acute_pulmonary_oedema
+  pulmonary_oedema: acute_pulmonary_oedema
+  apo: acute_pulmonary_oedema
+  status_epilepticus: seizure_status_epilepticus
+  seizure: seizure_status_epilepticus
+  dka: dka_hhs
+  hhs: dka_hhs
+  gi_bleed: upper_gi_bleed
+  colic: renal_colic
+  trauma: trauma_primary_survey
+  tbi: head_injury
+  copd: copd_exacerbation
+  pneumonia: severe_pneumonia
+  meningitis: acute_meningitis
+  heat_stroke: heat_stroke
+  compartment_syndrome: acute_limb_ischemia
+  limb_ischemia: acute_limb_ischemia
 documents:
-  - doc_id: "EMERG_ALTERED_MENTAL_STATUS"
-    title: "Emergency Protocol: Altered Mental Status & Encephalopathy (SYNTHETIC)"
-    path: "protocols_synthetic/altered_mental_status.md"
-    population: "adult"
-    syndrome: "altered_mental_status"
-    synthetic: true
-    license: null
-    attribution: "TriageRAG Synthetic Research Corpus"
-    source_url: null
-    version: "1.0.0"
-    retrieved_at: null
-    content_hash: "df0f8e63445d5e18a7d048be093e5b85e21b9b0141bf00358e6668bab89b9a6a"
-    reviewed_by: null
-    status: "PLACEHOLDER_UNRETRIEVED"
-
-  - doc_id: "EMERG_ANAPHYLAXIS"
-    title: "Emergency Protocol: Severe Anaphylaxis Management (SYNTHETIC)"
-    path: "protocols_synthetic/anaphylaxis.md"
-    population: "adult"
-    syndrome: "anaphylaxis"
-    synthetic: true
-    license: null
-    attribution: "TriageRAG Synthetic Research Corpus"
-    source_url: null
-    version: "1.0.0"
-    retrieved_at: null
-    content_hash: "d716cf45361994d0e0c3773633892e3e282da65c5183538c74f97332592f59eb"
-    reviewed_by: null
-    status: "PLACEHOLDER_UNRETRIEVED"
-
-  - doc_id: "EMERG_CHEST_PAIN"
-    title: "Emergency Protocol: Acute Chest Pain & Suspected Coronary Syndrome (SYNTHETIC)"
-    path: "protocols_synthetic/chest_pain.md"
-    population: "adult"
-    syndrome: "chest_pain"
-    synthetic: true
-    license: null
-    attribution: "TriageRAG Synthetic Research Corpus"
-    source_url: null
-    version: "1.0.0"
-    retrieved_at: null
-    content_hash: "567914fccec150dd2f6b53816190ddbec89b7e80e8e0092c1b4c65e47835d4c3"
-    reviewed_by: null
-    status: "PLACEHOLDER_UNRETRIEVED"
-
-  - doc_id: "EMERG_HYPOGLYCEMIA"
-    title: "Emergency Protocol: Severe Symptomatic Hypoglycemia (SYNTHETIC)"
-    path: "protocols_synthetic/hypoglycemia.md"
-    population: "adult"
-    syndrome: "hypoglycemia"
-    synthetic: true
-    license: null
-    attribution: "TriageRAG Synthetic Research Corpus"
-    source_url: null
-    version: "1.0.0"
-    retrieved_at: null
-    content_hash: "a95825b79230fad6a08ad72d26565bb434434c51d399a6398d0400114bc12b9b"
-    reviewed_by: null
-    status: "PLACEHOLDER_UNRETRIEVED"
-
-  - doc_id: "EMERG_PAED_SEPSIS"
-    title: "Emergency Protocol: Paediatric Sepsis Screening & Antibiotic Initiation (SYNTHETIC)"
-    path: "protocols_synthetic/paediatric_sepsis_screen.md"
-    population: "paediatric"
-    syndrome: "paediatric_sepsis"
-    synthetic: true
-    license: null
-    attribution: "TriageRAG Synthetic Research Corpus"
-    source_url: null
-    version: "1.0.0"
-    retrieved_at: null
-    content_hash: "dd4233e5ef6e33f28c8d03ddbdbb8bd40861657e39e795f4e62695e41bb58357"
-    reviewed_by: null
-    status: "PLACEHOLDER_UNRETRIEVED"
-
-  - doc_id: "EMERG_SEVERE_ASTHMA"
-    title: "Emergency Protocol: Severe Acute Asthma Exacerbation (SYNTHETIC)"
-    path: "protocols_synthetic/severe_asthma.md"
-    population: "adult"
-    syndrome: "severe_asthma"
-    synthetic: true
-    license: null
-    attribution: "TriageRAG Synthetic Research Corpus"
-    source_url: null
-    version: "1.0.0"
-    retrieved_at: null
-    content_hash: "64392acd28476cb48df9c91aa3ae1792cd01516c64a31e5e49e32a59148a36ef"
-    reviewed_by: null
-    status: "PLACEHOLDER_UNRETRIEVED"
-
+- doc_id: EMERG_ACS
+  title: 'Emergency Protocol: Acute Coronary Syndrome & STEMI Escalation (SYNTHETIC)'
+  path: protocols_synthetic/acute_coronary_syndrome.md
+  population: adult
+  syndrome: acute_coronary_syndrome
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 0abc378a5a0c3731105b1bca649125907c42d8223b2638a6a401bb52331a5b29
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_ACUTE_ABDOMEN
+  title: 'Emergency Protocol: Acute Abdomen & Peritoneal Irritation (SYNTHETIC)'
+  path: protocols_synthetic/acute_abdomen.md
+  population: adult
+  syndrome: acute_abdomen
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 3f335bdca0e5420ed5d4d096d2c173193f3875715df4fd5da15248ce64c999d1
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_ACUTE_LIMB_ISCHEMIA
+  title: 'Emergency Protocol: Acute Limb Ischemia & Compartment Syndrome (SYNTHETIC)'
+  path: protocols_synthetic/acute_limb_ischemia.md
+  population: adult
+  syndrome: acute_limb_ischemia
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: cab01f364ffe1561fd0c0fa318262bcf5c5852402f5c6c312a1f90417ef15814
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_ACUTE_MENINGITIS
+  title: 'Emergency Protocol: Acute Bacterial Meningitis & Encephalitis (SYNTHETIC)'
+  path: protocols_synthetic/acute_meningitis.md
+  population: adult
+  syndrome: acute_meningitis
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 233d7c2bcdbe383293cf2dcdf7d62da6f8cb5b55ebf0150c1b4419f198faf4b3
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_ALTERED_MENTAL_STATUS
+  title: 'Emergency Protocol: Altered Mental Status & Encephalopathy (SYNTHETIC)'
+  path: protocols_synthetic/altered_mental_status.md
+  population: adult
+  syndrome: altered_mental_status
+  synthetic: true
+  license: null
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: df0f8e63445d5e18a7d048be093e5b85e21b9b0141bf00358e6668bab89b9a6a
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_ANAPHYLAXIS
+  title: 'Emergency Protocol: Severe Anaphylaxis Management (SYNTHETIC)'
+  path: protocols_synthetic/anaphylaxis.md
+  population: adult
+  syndrome: anaphylaxis
+  synthetic: true
+  license: null
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 81dced98c4ca0afb252cbfbc2783d382d3d63f380726aa4cea93fe045b0415d2
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_APO
+  title: 'Emergency Protocol: Acute Cardiogenic Pulmonary Oedema (SYNTHETIC)'
+  path: protocols_synthetic/acute_pulmonary_oedema.md
+  population: adult
+  syndrome: acute_pulmonary_oedema
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: df808ac0ae61bf76412c2a93181ff6ddced3db6c3b2750c10c2d35e8feedf0cd
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_ARRHYTHMIA
+  title: 'Emergency Protocol: Acute Tachyarrhythmia & Bradyarrhythmia (SYNTHETIC)'
+  path: protocols_synthetic/arrhythmia.md
+  population: adult
+  syndrome: arrhythmia
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 072ff0df5b83cafab72710dd1c402e5f02e388d0d1707002c4dff6bb86863d93
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_BURNS
+  title: 'Emergency Protocol: Major Thermal Burns & Inhalation Injury (SYNTHETIC)'
+  path: protocols_synthetic/burns.md
+  population: adult
+  syndrome: burns
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 20c528139853ebd237fe82b0a0905798eb4be7a5193aa4f392604a3827ab0ad2
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_CARDIAC_ARREST
+  title: 'Emergency Protocol: Adult Cardiac Arrest Resuscitation (SYNTHETIC)'
+  path: protocols_synthetic/cardiac_arrest.md
+  population: adult
+  syndrome: cardiac_arrest
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 8e400638ffa125569ca60bbccdbca16fdb94112abdbf36f0af162eddc9632569
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_CHEST_PAIN
+  title: 'Emergency Protocol: Acute Chest Pain & Suspected Coronary Syndrome (SYNTHETIC)'
+  path: protocols_synthetic/chest_pain.md
+  population: adult
+  syndrome: chest_pain
+  synthetic: true
+  license: null
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 567914fccec150dd2f6b53816190ddbec89b7e80e8e0092c1b4c65e47835d4c3
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_COPD
+  title: 'Emergency Protocol: Acute Chronic Obstructive Pulmonary Disease Exacerbation
+    (SYNTHETIC)'
+  path: protocols_synthetic/copd_exacerbation.md
+  population: adult
+  syndrome: copd_exacerbation
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 82e62b576c83d8fc7dfbca51f261fd5cceca521b15f4f3f4bd88214c4a45b9b4
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_DENGUE
+  title: 'Emergency Protocol: Dengue with Warning Signs & Severe Dengue Screening
+    (SYNTHETIC)'
+  path: protocols_synthetic/dengue_warning_signs.md
+  population: adult
+  syndrome: dengue_warning_signs
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 541f4407cc5b5d7bf11a0c49bc79a18ab20604328d30f3039d19144ec9380a0c
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_DKA_HHS
+  title: 'Emergency Protocol: Diabetic Ketoacidosis & Hyperglycemic Hyperosmolar State
+    (SYNTHETIC)'
+  path: protocols_synthetic/dka_hhs.md
+  population: adult
+  syndrome: dka_hhs
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 529d76074cf17d9ac4033c10a790b3bd8c6418fd045a96a2cc61a7725be12f50
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_FEBRILE_INF
+  title: 'Emergency Protocol: Febrile Young Infant Risk Stratification (SYNTHETIC)'
+  path: protocols_synthetic/febrile_infant.md
+  population: paediatric
+  syndrome: febrile_infant
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 9aa3d0e9d1a4d1d50a4ae00dc220db03d9079f4578059adbb0ecd8a78b7c026a
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_GI_BLEED
+  title: 'Emergency Protocol: Acute Upper Gastrointestinal Hemorrhage (SYNTHETIC)'
+  path: protocols_synthetic/upper_gi_bleed.md
+  population: adult
+  syndrome: upper_gi_bleed
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 49cbb82b0796c9b45a748c736379dca6c967f5273666b7fa9a579ee96644a5c5
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_HEAD_INJURY
+  title: 'Emergency Protocol: Acute Severe Traumatic Brain Injury (SYNTHETIC)'
+  path: protocols_synthetic/head_injury.md
+  population: adult
+  syndrome: head_injury
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 2077220fb73a71437f80053dd3a6fde22044de46daac233ea6cb181a158aca9d
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_HEAT_STROKE
+  title: 'Emergency Protocol: Exertional & Non-Exertional Heat Stroke (SYNTHETIC)'
+  path: protocols_synthetic/heat_stroke.md
+  population: adult
+  syndrome: heat_stroke
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: a20ffd651da5565fd4246593c2070258e77bb90c43dbb51aee813fcd637469d0
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_HYPERTENSIVE
+  title: 'Emergency Protocol: Acute Hypertensive Emergency with End-Organ Damage (SYNTHETIC)'
+  path: protocols_synthetic/hypertensive_emergency.md
+  population: adult
+  syndrome: hypertensive_emergency
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 74065188d6ee49ad8b8e9c822cadc1c450270c9edcf35859e0e195281f52c301
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_HYPOGLYCEMIA
+  title: 'Emergency Protocol: Severe Symptomatic Hypoglycemia (SYNTHETIC)'
+  path: protocols_synthetic/hypoglycemia.md
+  population: adult
+  syndrome: hypoglycemia
+  synthetic: true
+  license: null
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: cae6d29cf5d9491345117b39e3325617874522e82c58d92a757c096149e59876
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_MALARIA
+  title: 'Emergency Protocol: Severe Falciparum Malaria Management (SYNTHETIC)'
+  path: protocols_synthetic/severe_malaria.md
+  population: adult
+  syndrome: severe_malaria
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 47a6cbb92d965b38e0f72ea8a19414cda6671a36b5f2541746d5e01ef5c3af12
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_NEO_SEPSIS
+  title: 'Emergency Protocol: Neonatal Sepsis & Systemic Infection Screening (SYNTHETIC)'
+  path: protocols_synthetic/neonatal_sepsis.md
+  population: neonate
+  syndrome: neonatal_sepsis
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: cb58023032412b1abff88dd6606e65599e8d14cb05721a0f8fa1f841ab42a7fb
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_OPIOID
+  title: 'Emergency Protocol: Acute Opioid Overdose & Naloxone Titration (SYNTHETIC)'
+  path: protocols_synthetic/opioid_overdose.md
+  population: adult
+  syndrome: opioid_overdose
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: b545271431af6e77234f4111c6c12a5e676be1a688088f5cb0f9e905e65fcbeb
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_ORGANOPHOSPHATE
+  title: 'Emergency Protocol: Acute Organophosphate & Carbamate Toxicity (SYNTHETIC)'
+  path: protocols_synthetic/organophosphate_poisoning.md
+  population: adult
+  syndrome: organophosphate_poisoning
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 2f6ad4d28e7f2e557cdb917b3831775dc7bfd9a4b26e18c5e1f269c1f468b5d1
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_PAED_DEHYD
+  title: 'Emergency Protocol: Acute Paediatric Dehydration & Gastroenteritis (SYNTHETIC)'
+  path: protocols_synthetic/paediatric_dehydration.md
+  population: paediatric
+  syndrome: paediatric_dehydration
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: e956683ae044380913845fc814bc8d6af70b4f0ca79c368bffe01243183bd529
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_PAED_SEPSIS
+  title: 'Emergency Protocol: Paediatric Sepsis Screening & Antibiotic Initiation
+    (SYNTHETIC)'
+  path: protocols_synthetic/paediatric_sepsis_screen.md
+  population: paediatric
+  syndrome: paediatric_sepsis
+  synthetic: true
+  license: null
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: c44a6549c119000c4f4cafdca73afe7314bff79b595531841ced93981689ed95
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_PAED_SHOCK
+  title: 'Emergency Protocol: Paediatric Shock Initial Resuscitation (SYNTHETIC)'
+  path: protocols_synthetic/paediatric_shock.md
+  population: paediatric
+  syndrome: paediatric_shock
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 89911ea8d55f48a40cd8f489213fc5bf5e8ee337688b4b749f61cb9382fd209c
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_PARACETAMOL
+  title: 'Emergency Protocol: Acute Paracetamol Overdose & Acetylcysteine Protocol
+    (SYNTHETIC)'
+  path: protocols_synthetic/paracetamol_overdose.md
+  population: adult
+  syndrome: paracetamol_overdose
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 0169a399443fda17734c2cde5ee6aa645e2252a9a84f1aa9b1f2234801b95048
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_PNEUMONIA
+  title: 'Emergency Protocol: Severe Community-Acquired Pneumonia (SYNTHETIC)'
+  path: protocols_synthetic/severe_pneumonia.md
+  population: adult
+  syndrome: severe_pneumonia
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 419800a1a4a2be7226a1cb6f7504f2d5346642289ed4964f9a962209270922a2
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_RENAL_COLIC
+  title: 'Emergency Protocol: Acute Renal Colic & Urolithiasis (SYNTHETIC)'
+  path: protocols_synthetic/renal_colic.md
+  population: adult
+  syndrome: renal_colic
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 68f590b7715f4b1ac0b6b7a3d8edac6f43318e02c426a9a6ebc80d9539f2ff0b
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_SEIZURE
+  title: 'Emergency Protocol: Generalized Convulsive Status Epilepticus (SYNTHETIC)'
+  path: protocols_synthetic/seizure_status_epilepticus.md
+  population: adult
+  syndrome: seizure_status_epilepticus
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 4fb9c86119e43be91979161260ef61e7943e3a8d56d5130cb1da64348f844ee0
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_SEPSIS_ADULT
+  title: 'Emergency Protocol: Adult Sepsis & Septic Shock Resuscitation (SYNTHETIC)'
+  path: protocols_synthetic/septic_shock_adult.md
+  population: adult
+  syndrome: septic_shock_adult
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 95dd2fd55ff6075bc341d82f6e8997b08faea42f95473fae7e42c032842d033e
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_SEVERE_ASTHMA
+  title: 'Emergency Protocol: Severe Acute Asthma Exacerbation (SYNTHETIC)'
+  path: protocols_synthetic/severe_asthma.md
+  population: adult
+  syndrome: severe_asthma
+  synthetic: true
+  license: null
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 42229387cc32b2b862b0f8b31be98a03c0fdf1225e395e8667d52a38119c398e
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_SNAKEBITE
+  title: 'Emergency Protocol: Snake Envenomation & Antivenom Administration (SYNTHETIC)'
+  path: protocols_synthetic/snakebite.md
+  population: adult
+  syndrome: snakebite
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 636c8ff6ff606e833f09cf386e740ec422541556c29772127263f971a0a6d419
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_STROKE
+  title: 'Emergency Protocol: Acute Ischemic Stroke & Transient Ischemic Attack (SYNTHETIC)'
+  path: protocols_synthetic/stroke_tia.md
+  population: adult
+  syndrome: stroke_tia
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: bd2808c6fa87f29406787de7d07cb341802fec343b85abd2f3e54784a4af8dea
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: EMERG_TRAUMA
+  title: 'Emergency Protocol: Major Trauma Primary Survey & Resuscitation (SYNTHETIC)'
+  path: protocols_synthetic/trauma_primary_survey.md
+  population: adult
+  syndrome: trauma_primary_survey
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 831e49d71e30d7ecced276318e240736117d06847e37305e2bf285f721800f7e
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_ACUTE_ABDOMEN
+  title: 'Emergency Protocol: Peritonitis & Intra-Abdominal Sepsis Escalation (SYNTHETIC)'
+  path: protocols_synthetic/peritonitis_septic_abdomen.md
+  population: adult
+  syndrome: acute_abdomen
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: bf2071aaa15b587df55eb604f95a904b651727404a167a1803719e11b96b1f24
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_ACUTE_LIMB_ISCHEMIA
+  title: 'Emergency Protocol: Compartment Syndrome & Reperfusion Injury Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/compartment_syndrome_escalation.md
+  population: adult
+  syndrome: acute_limb_ischemia
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 9879cb676d56d1a8dd257050688981fe383023edd10e928d185655d755d7f061
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_ACUTE_MENINGITIS
+  title: 'Emergency Protocol: Refractory Bacterial Meningitis & Raised ICP Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/bacterial_meningitis_escalation.md
+  population: adult
+  syndrome: acute_meningitis
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: a5a990b38c6ec96fa06fa8b43a8b31bf08b83883c9976f3bb6b2f6ce5d3fb32a
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_APO
+  title: 'Emergency Protocol: Refractory Pulmonary Oedema & Vasodilator Titration
+    (SYNTHETIC)'
+  path: protocols_synthetic/refractory_pulmonary_oedema.md
+  population: adult
+  syndrome: acute_pulmonary_oedema
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 2840d6bd279a904ae0ede71b514b3ba9945dea2ee98056f07135a12f88394a39
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_ARRHYTHMIA
+  title: 'Emergency Protocol: Unstable Arrhythmia & Refractory Rate Control (SYNTHETIC)'
+  path: protocols_synthetic/unstable_arrhythmia.md
+  population: adult
+  syndrome: arrhythmia
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: b169a89324a71d4d07da9ed86bf3dbd1ba51ad7183c1d6a25d3e930780084299
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_BURNS
+  title: 'Emergency Protocol: Burn Shock & Inhalation Trauma Escalation (SYNTHETIC)'
+  path: protocols_synthetic/major_inhalation_burns.md
+  population: adult
+  syndrome: burns
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 9294906ea28c0f8b9b7099271d82a3aec15a1662e7e13f9ee2359511c5eacd90
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_CARDIAC_ARREST
+  title: 'Emergency Protocol: Post-Cardiac Arrest Care & Refractory Resuscitation
+    (SYNTHETIC)'
+  path: protocols_synthetic/resuscitation_cardiac_arrest.md
+  population: adult
+  syndrome: cardiac_arrest
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 73fb813372c148fc108bfe1fb99379abc934ee1ce3702c76ab914ae81b12481f
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_COPD
+  title: 'Emergency Protocol: Hypercapnic Respiratory Failure & Non-Invasive Ventilation
+    Escalation (SYNTHETIC)'
+  path: protocols_synthetic/hypercapnic_respiratory_failure.md
+  population: adult
+  syndrome: copd_exacerbation
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 897eea86b8eae996468830c166232bf42b3c6817bbfa6f188bedc7725eea1616
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_DENGUE
+  title: 'Emergency Protocol: Severe Dengue Shock & Refractory Plasma Leakage Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/severe_dengue_plasma_leakage.md
+  population: adult
+  syndrome: dengue_warning_signs
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: b203cd5d6fc7d5fd3f121352b39d4c87d89de6360af9b9767e79ed5899d0ee1b
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_DKA_HHS
+  title: 'Emergency Protocol: Hyperglycemic Hyperosmolar Coma & Electrolyte Shift
+    Management (SYNTHETIC)'
+  path: protocols_synthetic/hyperosmolar_hyperglycemic_state.md
+  population: adult
+  syndrome: dka_hhs
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: bd439be0e7043dffa3f9ab585659e2495023bdfbce69fc4dd0aa449ff394748a
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_FEBRILE_INF
+  title: 'Emergency Protocol: Toxic Febrile Infant & Invasive Bacterial Infection
+    Escalation (SYNTHETIC)'
+  path: protocols_synthetic/toxic_febrile_infant_evaluation.md
+  population: paediatric
+  syndrome: febrile_infant
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: f106c95902480a82eb0a3ca1b98f6d09886b75f39bb5c7bd8ef36e1b74f26fcc
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_GI_BLEED
+  title: 'Emergency Protocol: Massive Variceal Hemorrhage & Balloon Tamponade Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/massive_variceal_gi_bleed.md
+  population: adult
+  syndrome: upper_gi_bleed
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 16fe0d8820bb9f4bd1afb471c65d024135a738b86c83ce30714cfb61adc3b98b
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_HEAD_INJURY
+  title: 'Emergency Protocol: Intracranial Hypertension & Cerebral Perfusion Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/elevated_icp_head_trauma.md
+  population: adult
+  syndrome: head_injury
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 63c1c2bee765e9466f54b59274ebf11aad9c96bb2b73a099a0ada10697243961
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_HEAT_STROKE
+  title: 'Emergency Protocol: Severe Heat Hyperpyrexia & Multi-Organ Failure Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/severe_heat_hyperpyrexia.md
+  population: adult
+  syndrome: heat_stroke
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: ee144aa84568dcedf436039a9e4ed8d2a78329102342f09edc4a3cb28aa599f4
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_HYPERTENSIVE
+  title: 'Emergency Protocol: End-Organ Hypertensive Crisis & Continuous Vasodilator
+    Titration (SYNTHETIC)'
+  path: protocols_synthetic/end_organ_hypertensive_crisis.md
+  population: adult
+  syndrome: hypertensive_emergency
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 84e994eabd4c12a582c2e1240045432c52e55de3c82be5c5f7753f61a636d65e
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_MALARIA
+  title: 'Emergency Protocol: Cerebral Malaria & Complicated Parasitemia Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/cerebral_malaria_escalation.md
+  population: adult
+  syndrome: severe_malaria
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 5ab2b731f7993fe1723508e83c8e1e3080d011c764964b741111cae0450b8443
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_NEO_SEPSIS
+  title: 'Emergency Protocol: Refractory Neonatal Septic Shock & Meningitis Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/early_onset_neonatal_sepsis.md
+  population: neonate
+  syndrome: neonatal_sepsis
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 3f20843e9df3eb039aca274760b40142cef75d2751ea8da3de60aead125a5259
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_OPIOID
+  title: 'Emergency Protocol: Recurrent Opioid Toxicity & Potent Synthetic Opioid
+    Escalation (SYNTHETIC)'
+  path: protocols_synthetic/recurrent_opioid_toxicity.md
+  population: adult
+  syndrome: opioid_overdose
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 8d31444b7e18b772956c3ec7bbc3a210fea7b83b11c000e748ce040f69e9f05e
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_ORGANOPHOSPHATE
+  title: 'Emergency Protocol: Cholinergic Crisis & Intermediate Syndrome Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/cholinergic_crisis_escalation.md
+  population: adult
+  syndrome: organophosphate_poisoning
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: de3e8a481b8301a5912f12d3340aa85e348465008c8cdf96803cb0ac6a8015f7
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_PAED_DEHYD
+  title: 'Emergency Protocol: Refractory Paediatric Dehydration & Electrolyte Disturbance
+    (SYNTHETIC)'
+  path: protocols_synthetic/severe_paediatric_dehydration.md
+  population: paediatric
+  syndrome: paediatric_dehydration
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 70e7a81011ce196a3df5376ce33e5efbc45c892c5132621de5e96d934ed031b5
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_PAED_SHOCK
+  title: 'Emergency Protocol: Decompensated Paediatric Shock & Inotrope Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/decompensated_paediatric_shock.md
+  population: paediatric
+  syndrome: paediatric_shock
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 62adf379c0df4b02b43a357ae2801a726e5f153dfe8034745e6df1791c1faa56
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_PARACETAMOL
+  title: 'Emergency Protocol: Acute Liver Failure & Paracetamol Toxicity Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/delayed_paracetamol_toxicity.md
+  population: adult
+  syndrome: paracetamol_overdose
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 7e081280d3a823e17ed441cf03e6b7908626a1b104c9cf91f909e35380cf23aa
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_PNEUMONIA
+  title: 'Emergency Protocol: Pneumonia with Acute Respiratory Distress Syndrome Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/hypoxemic_ards_pneumonia.md
+  population: adult
+  syndrome: severe_pneumonia
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 0680f7fdf385931c2159d6f9a50a42efb7d5813ae6cb33fd3d152c072de2c841
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_RENAL_COLIC
+  title: 'Emergency Protocol: Obstructive Pyelonephritis & Uroseptic Shock Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/obstructive_pyelonephritis_colic.md
+  population: adult
+  syndrome: renal_colic
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 7b624292cd781f2f9eb9c499160242ce4ba78e0e453f86c48349ace544736086
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_SEIZURE
+  title: 'Emergency Protocol: Refractory & Super-Refractory Status Epilepticus (SYNTHETIC)'
+  path: protocols_synthetic/refractory_status_epilepticus.md
+  population: adult
+  syndrome: seizure_status_epilepticus
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 57b7485d524e6da1ac53e5f5aee480cd80e3b7611c226de2b15eb84e2ff56b58
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_SEPSIS_ADULT
+  title: 'Emergency Protocol: Refractory Septic Shock & Multi-Organ Failure Escalation
+    (SYNTHETIC)'
+  path: protocols_synthetic/refractory_septic_shock.md
+  population: adult
+  syndrome: septic_shock_adult
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: f9db8bc6aae2347b39b7aa3ce63f660b74ca786962a6c1a3449c16ac4bbfeaa8
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_SNAKEBITE
+  title: 'Emergency Protocol: Refractory Envenomation & Coagulopathy Escalation (SYNTHETIC)'
+  path: protocols_synthetic/envenomation_neurotoxic_escalation.md
+  population: adult
+  syndrome: snakebite
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: e91d3801c430518d68c7ac022183a3de411ebb0aaedfae7c4b2963da89df7936
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_STROKE
+  title: 'Emergency Protocol: Acute Stroke Complications & Neurological Deterioration
+    (SYNTHETIC)'
+  path: protocols_synthetic/acute_ischemic_stroke_evaluation.md
+  population: adult
+  syndrome: stroke_tia
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 87434153562e7f5f05e0dd1aeb1a00e78a03e9295a2a4d0406f032a0dc5d6a5f
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic
+- doc_id: ESCAL_TRAUMA
+  title: 'Emergency Protocol: Hemorrhagic Shock & Damage Control Resuscitation (SYNTHETIC)'
+  path: protocols_synthetic/hemorrhagic_shock_trauma.md
+  population: adult
+  syndrome: trauma_primary_survey
+  synthetic: true
+  license: synthetic
+  attribution: TriageRAG Synthetic Research Corpus
+  source_url: null
+  version: 1.0.0
+  retrieved_at: null
+  content_hash: 700466a4c0d6c8271ca44833b83353400de3d2d6b3bbd51dfb84d287abcb7acc
+  reviewed_by: null
+  status: PLACEHOLDER_UNRETRIEVED
+  license_tag: synthetic

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from triagerag.config import get_data_dir
 from triagerag.contracts.schemas import (
@@ -46,7 +46,7 @@ from triagerag.rag.retrieve import (
 )
 
 _SERVICE_LOCK = threading.RLock()
-_SERVICE_CACHE: dict[tuple[str, str], RetrievalService] = {}
+_SERVICE_CACHE: dict[tuple[str, str, bool | None, bool | None], RetrievalService] = {}
 
 
 class RetrievalService:
@@ -60,6 +60,9 @@ class RetrievalService:
         config: RetrievalConfig,
         index: Retriever,
         context: RetrievalContext | None = None,
+        expansion_mode: Literal[
+            "baseline_bm25", "predicate_aware_bm25", "controlled_expansion"
+        ] = "predicate_aware_bm25",
     ) -> None:
         self.data_dir: Path = data_dir
         self.ingest_report: IngestReport = ingest_report
@@ -70,20 +73,98 @@ class RetrievalService:
             context if context is not None else build_retrieval_context(data_dir)
         )
         self.index.retrieval_context = self.context
+        self.expansion_mode: Literal[
+            "baseline_bm25", "predicate_aware_bm25", "controlled_expansion"
+        ] = expansion_mode
         self.corpus_hash: str = ingest_report.corpus_hash
         self.index_version: str = index.index_version
         self.config_hash: str = config.config_hash
 
     @classmethod
-    def build(cls, data_dir: Path | None = None, backend: str = "bm25") -> RetrievalService:
+    def build(
+        cls,
+        data_dir: Path | None = None,
+        backend: str = "bm25",
+        contextual_chunking: bool | None = None,
+        enable_predicate_scoring: bool | None = None,
+    ) -> RetrievalService:
         """Construct a fresh RetrievalService instance from disk."""
         target_dir = (data_dir or get_data_dir()).resolve()
-        ingest_report = ingest_protocols_with_report(target_dir, strict_unparsed=True)
+        norm_backend = backend.lower().strip()
+        is_ctx = contextual_chunking
+        is_pred = enable_predicate_scoring
+
+        exp_mode: Literal["baseline_bm25", "predicate_aware_bm25", "controlled_expansion"] = (
+            "predicate_aware_bm25"
+        )
+        if norm_backend == "controlled_expansion":
+            norm_backend = "bm25"
+            exp_mode = "controlled_expansion"
+        elif norm_backend in ("bm25_pure_lexical", "bm25_baseline"):
+            exp_mode = "baseline_bm25"
+
+        if norm_backend in ("bm25_baseline", "bm25_pure_lexical"):
+            norm_backend = "bm25"
+            if is_pred is None:
+                is_pred = False
+            if is_ctx is None:
+                is_ctx = False
+        elif norm_backend == "bm25_predicate":
+            norm_backend = "bm25"
+            if is_pred is None:
+                is_pred = True
+            if is_ctx is None:
+                is_ctx = False
+        elif norm_backend == "bm25_contextual":
+            norm_backend = "bm25"
+            if is_ctx is None:
+                is_ctx = True
+            if is_pred is None:
+                is_pred = False
+        elif norm_backend in ("contextual_predicate", "hybrid_contextual_predicate"):
+            norm_backend = "bm25"
+            if is_ctx is None:
+                is_ctx = True
+            if is_pred is None:
+                is_pred = True
+        elif norm_backend in (
+            "char_ngram",
+            "dense",
+            "hybrid_rrf",
+            "hybrid_rrf_rerank",
+            "hybrid_rerank",
+        ):
+            if is_pred is None:
+                is_pred = False
+            if is_ctx is None:
+                is_ctx = False
+
         context = build_retrieval_context(target_dir)
+        if is_ctx is None:
+            is_ctx = bool(context.config.contextual_chunking)
+
+        # Apply predicate scoring toggle to config if explicitly configured
+        active_config = context.config
+        if is_pred is False:
+            active_config = active_config.model_copy(
+                update={"predicate_match_weight": 0.0, "predicate_conflict_weight": 0.0}
+            )
+        elif is_pred is True and active_config.predicate_match_weight == 0.0:
+            active_config = active_config.model_copy(
+                update={"predicate_match_weight": 1.0, "predicate_conflict_weight": 2.0}
+            )
+
+        context = context.model_copy(update={"config": active_config})
+
+        ingest_report = ingest_protocols_with_report(
+            target_dir,
+            strict_unparsed=True,
+            contextual_chunking=is_ctx,
+        )
         acronyms = load_default_acronyms(target_dir)
         synonyms = load_synonyms_config(target_dir).synonyms
 
-        if backend == "bm25":
+        if norm_backend == "bm25":
             index: Retriever = BM25ClinicalIndex(
                 ingest_report.chunks,
                 acronyms=acronyms,
@@ -95,9 +176,13 @@ class RetrievalService:
             from triagerag.rag.hybrid import build_retriever_backend
 
             index = build_retriever_backend(
-                backend=backend,
+                backend=norm_backend,
                 chunks=ingest_report.chunks,
                 acronyms=acronyms,
+                synonyms=synonyms,
+                config=context.config,
+                retrieval_context=context,
+                data_dir=target_dir,
             )
             index.retrieval_context = context
 
@@ -108,6 +193,7 @@ class RetrievalService:
             config=context.config,
             index=index,
             context=context,
+            expansion_mode=exp_mode,
         )
 
     @classmethod
@@ -115,13 +201,60 @@ class RetrievalService:
         cls,
         data_dir: Path | None = None,
         backend: str = "bm25",
+        contextual_chunking: bool | None = None,
+        enable_predicate_scoring: bool | None = None,
     ) -> RetrievalService:
-        """Return a thread-safe cached RetrievalService for the given data_dir and backend."""
+        """Return a thread-safe cached RetrievalService for the given backend."""
         target_dir = (data_dir or get_data_dir()).resolve()
-        key = (str(target_dir), backend.lower().strip())
+        norm_backend = backend.lower().strip()
+        is_ctx = contextual_chunking
+        is_pred = enable_predicate_scoring
+
+        if norm_backend in ("bm25_baseline", "bm25_pure_lexical"):
+            norm_backend = "bm25"
+            if is_pred is None:
+                is_pred = False
+            if is_ctx is None:
+                is_ctx = False
+        elif norm_backend == "bm25_predicate":
+            norm_backend = "bm25"
+            if is_pred is None:
+                is_pred = True
+            if is_ctx is None:
+                is_ctx = False
+        elif norm_backend == "bm25_contextual":
+            norm_backend = "bm25"
+            if is_ctx is None:
+                is_ctx = True
+            if is_pred is None:
+                is_pred = False
+        elif norm_backend in ("contextual_predicate", "hybrid_contextual_predicate"):
+            norm_backend = "bm25"
+            if is_ctx is None:
+                is_ctx = True
+            if is_pred is None:
+                is_pred = True
+        elif norm_backend in (
+            "char_ngram",
+            "dense",
+            "hybrid_rrf",
+            "hybrid_rrf_rerank",
+            "hybrid_rerank",
+        ):
+            if is_pred is None:
+                is_pred = False
+            if is_ctx is None:
+                is_ctx = False
+
+        key = (str(target_dir), norm_backend, is_ctx, is_pred)
         with _SERVICE_LOCK:
             if key not in _SERVICE_CACHE:
-                _SERVICE_CACHE[key] = cls.build(target_dir, backend=backend)
+                _SERVICE_CACHE[key] = cls.build(
+                    target_dir,
+                    backend=norm_backend,
+                    contextual_chunking=is_ctx,
+                    enable_predicate_scoring=is_pred,
+                )
             return _SERVICE_CACHE[key]
 
     @classmethod
@@ -129,10 +262,52 @@ class RetrievalService:
         cls,
         data_dir: Path | None = None,
         backend: str = "bm25",
+        contextual_chunking: bool | None = None,
+        enable_predicate_scoring: bool | None = None,
     ) -> RetrievalService:
         """Explicitly clear config/lexicon caches, rebuild, and replace cached RetrievalService."""
         target_dir = (data_dir or get_data_dir()).resolve()
-        key = (str(target_dir), backend.lower().strip())
+        norm_backend = backend.lower().strip()
+        is_ctx = contextual_chunking
+        is_pred = enable_predicate_scoring
+
+        if norm_backend in ("bm25_baseline", "bm25_pure_lexical"):
+            norm_backend = "bm25"
+            if is_pred is None:
+                is_pred = False
+            if is_ctx is None:
+                is_ctx = False
+        elif norm_backend == "bm25_predicate":
+            norm_backend = "bm25"
+            if is_pred is None:
+                is_pred = True
+            if is_ctx is None:
+                is_ctx = False
+        elif norm_backend == "bm25_contextual":
+            norm_backend = "bm25"
+            if is_ctx is None:
+                is_ctx = True
+            if is_pred is None:
+                is_pred = False
+        elif norm_backend in ("contextual_predicate", "hybrid_contextual_predicate"):
+            norm_backend = "bm25"
+            if is_ctx is None:
+                is_ctx = True
+            if is_pred is None:
+                is_pred = True
+        elif norm_backend in (
+            "char_ngram",
+            "dense",
+            "hybrid_rrf",
+            "hybrid_rrf_rerank",
+            "hybrid_rerank",
+        ):
+            if is_pred is None:
+                is_pred = False
+            if is_ctx is None:
+                is_ctx = False
+
+        key = (str(target_dir), norm_backend, is_ctx, is_pred)
         with _SERVICE_LOCK:
             load_retrieval_config.cache_clear()
             load_vitals_flags_config.cache_clear()
@@ -142,7 +317,7 @@ class RetrievalService:
             load_action_cues.cache_clear()
             load_default_drug_term_map.cache_clear()
             _load_age_classification_bounds.cache_clear()
-            fresh = cls.build(target_dir, backend=backend)
+            fresh = cls.build(target_dir, backend=norm_backend, contextual_chunking=is_ctx)
             _SERVICE_CACHE[key] = fresh
             return fresh
 
@@ -164,6 +339,7 @@ class RetrievalService:
             threshold=threshold,
             top_k=eff_top_k,
             context=self.context,
+            expansion_mode=self.expansion_mode,
         )
 
     def explain(self, patient: Patient, top_k: int | None = None) -> dict[str, Any]:
@@ -183,6 +359,7 @@ class RetrievalService:
             )
 
         return {
+            "backend": self.index.backend,
             "query": query_str,
             "vitals_derived_flags": flags,
             "population": pop,

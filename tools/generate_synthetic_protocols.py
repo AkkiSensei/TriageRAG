@@ -1,0 +1,3024 @@
+"""Deterministic Synthetic Protocol Generator for TriageRAG (T3.2 / AUB-COR-01).
+
+Safety Properties (Rules R3, R9, RAG-04, Section 13):
+1. Generates structured, human-readable synthetic emergency clinical protocol documents
+   from clinically realistic templates across >= 20 controlled syndromes.
+2. Fully deterministic from a fixed integer seed: same seed produces bit-for-bit identical
+   markdown files, frontmatter, and content hashes.
+3. Strictly forbids numeric doses in generated prose (Rule R9). All medication steps are
+   formulary-directed and protocol-guided without numeric milligram/gram quantities.
+4. Strictly protects manually authored protocols from being overwritten.
+5. Injects realistic cross-syndrome distractor vocabulary (hypotension, tachycardia,
+   shock, respiratory distress, hypoxia) to challenge retrieval discrimination.
+6. Records generation seed, template origin, and synthetic provenance in manifests.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import random
+from pathlib import Path
+from typing import Any
+
+import yaml
+
+from triagerag.config import get_data_dir
+from triagerag.rag.chunking import chunk_protocol_markdown
+
+MANUAL_PROTOCOLS = {
+    "altered_mental_status.md",
+    "anaphylaxis.md",
+    "chest_pain.md",
+    "hypoglycemia.md",
+    "paediatric_sepsis_screen.md",
+    "severe_asthma.md",
+}
+
+# Controlled syndrome definitions: (syndrome_id, population, title_base, category)
+SYNDROME_SPECS: list[dict[str, Any]] = [
+    # 1. Section 13 High-Acuity Expanded Syndromes
+    {
+        "syndrome": "acute_meningitis",
+        "population": "adult",
+        "doc_id": "EMERG_ACUTE_MENINGITIS",
+        "filename": "acute_meningitis.md",
+        "title": "Emergency Protocol: Acute Bacterial Meningitis & Encephalitis (SYNTHETIC)",
+        "section": "Acute Bacterial Meningitis & Encephalitis",
+        "chunk_prefix": "MENING_01",
+        "nodes": [
+            (
+                "the patient presents with fever, severe headache, neck stiffness, AND altered mental status",
+                "initiate droplet transmission precautions, obtain emergent blood cultures, and administer dexamethasone with empiric third-generation cephalosporin and vancomycin as formulary-directed",
+            ),
+            (
+                "the patient exhibits signs of space-occupying lesion, focal neurological deficit, or new seizure prior to planned lumbar puncture",
+                "obtain emergent non-contrast cranial computed tomography scan before lumbar puncture while administering empiric antimicrobial therapy without delay",
+            ),
+            (
+                "the patient with suspected bacterial meningitis exhibits signs of respiratory depression, severe hypoxia, AND deteriorating consciousness",
+                "administer high-flow supplemental oxygen via non-rebreather mask and prepare for emergent airway protection",
+            ),
+            (
+                "the patient is aged over fifty years or immunocompromised presenting with acute bacterial meningitis",
+                "add intravenous ampicillin as formulary-directed to empiric antimicrobial regimen to provide antimicrobial coverage for Listeria monocytogenes",
+            ),
+            (
+                "the patient develops sudden petechial or purpuric cutaneous rash with rapid progression",
+                "diagnose fulminant meningococcemia, establish wide-bore vascular access, and administer stress-dose steroids and fluid resuscitation as formulary-directed",
+            ),
+            (
+                "cerebrospinal fluid analysis reveals opening pressure markedly elevated with turbid appearance",
+                "elevate head of bed to thirty degrees, avoid jugular compression, and evaluate for hyperosmolar therapy if signs of herniation appear",
+            ),
+            (
+                "the patient experiences generalized motor seizure during evaluation of suspected meningitis",
+                "administer intravenous lorazepam as formulary-directed and initiate levetiracetam loading infusion for seizure prophylaxis",
+            ),
+            (
+                "the patient has a documented severe cephalosporin allergy with anaphylaxis history",
+                "substitute intravenous chloramphenicol or meropenem as formulary-directed in immediate consultation with infectious disease specialist",
+            ),
+            (
+                "the patient exhibits severe persistent photophobia and pain despite initial antibiotic infusion",
+                "administer intravenous paracetamol or multimodal non-opioid analgesia as formulary-directed in a quiet darkened room",
+            ),
+        ],
+    },
+    {
+        "syndrome": "acute_meningitis",
+        "population": "adult",
+        "doc_id": "ESCAL_ACUTE_MENINGITIS",
+        "filename": "bacterial_meningitis_escalation.md",
+        "title": "Emergency Protocol: Refractory Bacterial Meningitis & Raised ICP Escalation (SYNTHETIC)",
+        "section": "Refractory Bacterial Meningitis & Raised ICP Escalation",
+        "chunk_prefix": "MENING_ESCAL_01",
+        "nodes": [
+            (
+                "signs of impending transtentorial herniation appear with unilateral pupil dilation and decerebrate posturing",
+                "administer rapid intravenous hypertonic saline or mannitol as formulary-directed and initiate controlled hyperventilation",
+            ),
+            (
+                "the patient remains comatose with Glasgow Coma Scale score under eight after seizure termination",
+                "perform rapid sequence intubation with neuroprotective airway management protocol and establish continuous arterial line monitoring",
+            ),
+            (
+                "blood cultures or cerebrospinal fluid Gram stain confirms Streptococcus pneumoniae with cephalosporin resistance",
+                "continue high-dose vancomycin and add intravenous rifampin as formulary-directed per infectious disease recommendations",
+            ),
+            (
+                "the patient exhibits refractory septic shock with systolic blood pressure below target despite fluid boluses",
+                "initiate continuous norepinephrine infusion as formulary-directed targeting mean arterial pressure adequate for cerebral perfusion",
+            ),
+            (
+                "acute hydrocephalus or non-communicating ventricular dilation is confirmed on urgent cranial imaging",
+                "consult neurosurgery STAT for emergency placement of external ventricular drain or ventriculostomy",
+            ),
+            (
+                "syndrome of inappropriate antidiuretic hormone secretion develops with serum sodium severely depressed",
+                "initiate fluid restriction and administer hypertonic saline as formulary-directed only if active convulsions or severe encephalopathy occurs",
+            ),
+            (
+                "disseminated intravascular coagulation is documented with prolonged coagulation times and microvascular thrombosis",
+                "administer fresh frozen plasma or platelet concentrate as formulary-directed in consultation with hematology",
+            ),
+            (
+                "the patient remains persistently febrile seventy-two hours into targeted antimicrobial therapy",
+                "repeat neuroimaging with contrast to evaluate for subdural empyema, cerebral venous sinus thrombosis, or secondary drug fever",
+            ),
+            (
+                "acute hearing loss or vestibulocochlear impairment is identified during bedside neurological examination",
+                "ensure continuation of adjuvant dexamethasone protocol as formulary-directed to mitigate permanent sensorineural sequelae",
+            ),
+        ],
+    },
+    {
+        "syndrome": "heat_stroke",
+        "population": "adult",
+        "doc_id": "EMERG_HEAT_STROKE",
+        "filename": "heat_stroke.md",
+        "title": "Emergency Protocol: Exertional & Non-Exertional Heat Stroke (SYNTHETIC)",
+        "section": "Exertional & Non-Exertional Heat Stroke",
+        "chunk_prefix": "HEAT_01",
+        "nodes": [
+            (
+                "the patient presents with core body temperature severely elevated AND profound central nervous system dysfunction",
+                "diagnose acute heat stroke, remove all constrictive clothing, and initiate immediate evaporative or whole-body cold-water immersion cooling",
+            ),
+            (
+                "the patient experiences persistent motor shivering during rapid evaporative cooling therapy",
+                "administer intravenous diazepam or midazolam as formulary-directed to suppress shivering and prevent secondary metabolic heat generation",
+            ),
+            (
+                "the patient exhibits acute circulatory collapse with systolic blood pressure below threshold AND hot dry skin",
+                "administer rapid intravenous bolus of cooled normal saline as formulary-directed and monitor continuous core body temperature",
+            ),
+            (
+                "core body temperature declines to target safe threshold during active cooling",
+                "terminate active aggressive cooling immediately to prevent overshooting hypothermia and transition to passive observation",
+            ),
+            (
+                "the patient presents with classic non-exertional heat stroke, advanced age, AND chronic diuretic therapy",
+                "evaluate for severe free-water deficit and electrolyte derangement before administering massive rapid fluid boluses",
+            ),
+            (
+                "acute rhabdomyolysis is suspected with dark red urine AND serum creatine kinase severely elevated",
+                "initiate aggressive intravenous crystalloid hydration targeting high hourly urine output and monitor renal function",
+            ),
+            (
+                "the patient develops acute generalized convulsions during active cooling resuscitation",
+                "administer intravenous lorazepam as formulary-directed, ensure airway patency, and avoid phenytoin administration",
+            ),
+            (
+                "the patient exhibits acute agitation, combativeness, or delirium during emergency resuscitation",
+                "provide calm environment, avoid anticholinergic or phenothiazine restraints, and administer titrated short-acting benzodiazepine",
+            ),
+            (
+                "the patient is concurrently receiving anticholinergic, neuroleptic, or stimulant medications at home",
+                "withhold all home psychotropic agents and evaluate for overlapping neuroleptic malignant syndrome or serotonin toxicity",
+            ),
+        ],
+    },
+    {
+        "syndrome": "heat_stroke",
+        "population": "adult",
+        "doc_id": "ESCAL_HEAT_STROKE",
+        "filename": "severe_heat_hyperpyrexia.md",
+        "title": "Emergency Protocol: Severe Heat Hyperpyrexia & Multi-Organ Failure Escalation (SYNTHETIC)",
+        "section": "Severe Heat Hyperpyrexia & Multi-Organ Failure Escalation",
+        "chunk_prefix": "HEAT_ESCAL_01",
+        "nodes": [
+            (
+                "acute hepatic injury develops with transaminases elevated tenfold and coagulopathy following hyperthermia",
+                "administer intravenous N-acetylcysteine as formulary-directed as free radical scavenger and monitor hepatic panel",
+            ),
+            (
+                "disseminated intravascular coagulation manifests with active bleeding from puncture sites and profound thrombocytopenia",
+                "administer fresh frozen plasma, cryoprecipitate, and platelet concentrate as formulary-directed under hematology guidance",
+            ),
+            (
+                "acute oliguric renal failure develops secondary to pigment nephropathy despite initial fluid resuscitation",
+                "consult nephrology STAT and evaluate for urgent continuous renal replacement therapy",
+            ),
+            (
+                "hyperkalemia with cardiac conduction abnormalities develops from massive acute rhabdomyolysis",
+                "administer intravenous calcium gluconate, regular insulin with dextrose, and nebulized salbutamol as formulary-directed",
+            ),
+            (
+                "arterial hypotension persists despite aggressive active cooling and crystalloid volume repletion",
+                "initiate continuous norepinephrine infusion as formulary-directed targeting mean arterial pressure restoration",
+            ),
+            (
+                "acute respiratory distress syndrome develops secondary to systemic inflammatory response syndrome and capillary leak",
+                "initiate lung-protective mechanical ventilation with low tidal volume and positive end-expiratory pressure",
+            ),
+            (
+                "hypoglycemia is identified on routine post-cooling point-of-care laboratory evaluation",
+                "administer concentrated hypertonic dextrose bolus as formulary-directed and monitor capillary glucose hourly",
+            ),
+            (
+                "the patient develops severe refractory lactic acidosis with arterial blood pH critically depressed",
+                "optimize tissue perfusion and microvascular oxygen delivery rather than administering empirical sodium bicarbonate",
+            ),
+            (
+                "persistent coma or non-convulsive status epilepticus is suspected following hyperthermia resolution",
+                "obtain emergent continuous electroencephalographic monitoring and non-contrast cranial computed tomography scan",
+            ),
+        ],
+    },
+    {
+        "syndrome": "acute_limb_ischemia",
+        "population": "adult",
+        "doc_id": "EMERG_ACUTE_LIMB_ISCHEMIA",
+        "filename": "acute_limb_ischemia.md",
+        "title": "Emergency Protocol: Acute Limb Ischemia & Compartment Syndrome (SYNTHETIC)",
+        "section": "Acute Limb Ischemia & Compartment Syndrome",
+        "chunk_prefix": "LIMB_01",
+        "nodes": [
+            (
+                "the patient presents with sudden severe extremity pain, pallor, pulselessness, AND paresthesia",
+                "diagnose acute limb ischemia, establish immediate vascular surgery consultation, and place extremity in dependent position",
+            ),
+            (
+                "acute arterial occlusion is suspected AND no active internal hemorrhage or absolute contraindications exist",
+                "administer immediate intravenous unfractionated heparin bolus followed by continuous infusion as formulary-directed",
+            ),
+            (
+                "bedside handheld arterial Doppler examination demonstrates absent arterial Doppler signals in distal tibial or pedal vessels",
+                "request emergent vascular intervention, obtain urgent computed tomography angiography of extremities, and keep patient nil-per-os",
+            ),
+            (
+                "the patient exhibits signs of acute osteofascial compartment syndrome with tense swollen compartment AND pain on passive stretch",
+                "remove all circumferential casts, splints, or constrictive dressings and consult surgical team for emergent fasciotomy",
+            ),
+            (
+                "the patient has a documented history of atrial fibrillation, metallic valve, OR recent myocardial infarction",
+                "suspect cardiac embolic etiology, evaluate for multiple systemic emboli, and initiate continuous cardiac monitoring",
+            ),
+            (
+                "the affected extremity demonstrates fixed non-blanching mottling, complete motor paralysis, AND absent sensation",
+                "recognize irreversible tissue necrosis, avoid futile rapid revascularization, and evaluate for definitive surgical amputation",
+            ),
+            (
+                "the patient experiences agonizing ischemic extremity rest pain unresponsive to standard non-opioid analgesia",
+                "administer titrated intravenous opioid fentanyl or morphine as formulary-directed while completing urgent preoperative workup",
+            ),
+            (
+                "the patient has a functioning infrainguinal prosthetic or venous bypass graft presenting with sudden occlusion",
+                "alert primary vascular surgeon, administer full anticoagulation as formulary-directed, and prepare for catheter-directed thrombolysis",
+            ),
+            (
+                "acute phlegmasia cerulea dolens is suspected with massive painful bluish swelling of lower extremity",
+                "diagnose extensive iliofemoral venous thrombosis, elevate lower extremity, administer intravenous heparin, and consult vascular surgery",
+            ),
+        ],
+    },
+    {
+        "syndrome": "acute_limb_ischemia",
+        "population": "adult",
+        "doc_id": "ESCAL_ACUTE_LIMB_ISCHEMIA",
+        "filename": "compartment_syndrome_escalation.md",
+        "title": "Emergency Protocol: Compartment Syndrome & Reperfusion Injury Escalation (SYNTHETIC)",
+        "section": "Compartment Syndrome & Reperfusion Injury Escalation",
+        "chunk_prefix": "LIMB_ESCAL_01",
+        "nodes": [
+            (
+                "severe ischemia-reperfusion syndrome develops following surgical or catheter-directed arterial revascularization",
+                "administer aggressive intravenous crystalloid hydration, treat acute hyperkalemia, and maintain high urine output",
+            ),
+            (
+                "compartment pressure measurement confirms intracompartmental pressure within thirty mmHg of diastolic blood pressure",
+                "confirm acute compartment syndrome and transport patient immediately to operating theater for four-compartment fasciotomy",
+            ),
+            (
+                "myoglobinuria is confirmed with dark brown urine AND elevated serum creatine kinase following limb reperfusion",
+                "administer isotonic crystalloid infusion with urinary alkalinization as formulary-directed to prevent tubulopathy",
+            ),
+            (
+                "life-threatening hyperkalemia develops with peaked T waves on electrocardiogram following reperfusion of ischemic muscle",
+                "administer intravenous calcium gluconate, regular insulin with dextrose, and nebulized salbutamol as formulary-directed",
+            ),
+            (
+                "systemic arterial hypotension and lactic acidemia follow clamp release or thrombolytic limb reperfusion",
+                "administer rapid intravenous fluid bolus and titrate continuous vasopressor infusion as formulary-directed to sustain perfusion",
+            ),
+            (
+                "catheter-directed thrombolytic therapy with alteplase is complicated by acute gastrointestinal or retroperitoneal hemorrhage",
+                "terminate thrombolytic infusion immediately, apply manual vascular compression, and administer cryoprecipitate as formulary-directed",
+            ),
+            (
+                "severe distal arterial microvascular spasm occurs following catheter embolectomy",
+                "consider intra-arterial infusion of vasodilators such as papaverine or nitroglycerin as formulary-directed under vascular surgery guidance",
+            ),
+            (
+                "superficial compartment surgical incisions exhibit signs of extensive tissue breakdown or secondary necrosis",
+                "perform emergent surgical wound debridement, apply negative pressure wound therapy, and obtain deep microbiological cultures",
+            ),
+            (
+                "chronic neuropathic pain or ischemic contracture develops in post-ischemic limb during convalescence",
+                "initiate multimodal neuropathic analgesia with gabapentinoids as formulary-directed and coordinate formal physical therapy",
+            ),
+        ],
+    },
+    # 2. Section 13 New Syndromes
+    {
+        "syndrome": "cardiac_arrest",
+        "population": "adult",
+        "doc_id": "EMERG_CARDIAC_ARREST",
+        "filename": "cardiac_arrest.md",
+        "title": "Emergency Protocol: Adult Cardiac Arrest Resuscitation (SYNTHETIC)",
+        "section": "Adult Cardiac Arrest Resuscitation",
+        "chunk_prefix": "CA_01",
+        "nodes": [
+            (
+                "the adult patient is unresponsive, apnoeic or only gasping, AND no carotid pulse is palpable within ten seconds",
+                "initiate immediate high-quality chest compressions and attach defibrillator pads without interruption",
+            ),
+            (
+                "the cardiac rhythm is identified as ventricular fibrillation or pulseless ventricular tachycardia",
+                "deliver an immediate unsynchronized defibrillator shock and immediately resume chest compressions for two minutes",
+            ),
+            (
+                "the cardiac rhythm is identified as asystole or pulseless electrical activity",
+                "continue high-quality chest compressions, secure vascular access, and administer intravenous epinephrine as formulary-directed",
+            ),
+            (
+                "shockable rhythm persists after the second defibrillation attempt and continuous compressions",
+                "administer intravenous epinephrine and prepare intravenous amiodarone or lidocaine as formulary-directed",
+            ),
+            (
+                "the patient exhibits return of spontaneous circulation with palpable pulse AND measurable blood pressure",
+                "initiate targeted post-cardiac arrest temperature management, obtain immediate 12-lead electrocardiogram, and assess for systemic hypoperfusion",
+            ),
+            (
+                "post-cardiac arrest hypotension with systolic blood pressure below target is documented",
+                "initiate intravenous crystalloid bolus and titrate intravenous norepinephrine or dopamine as formulary-directed",
+            ),
+            (
+                "severe persistent hypoxemia is noted during resuscitation despite bag-valve-mask ventilation",
+                "insert advanced supraglottic airway or endotracheal tube with waveform capnography confirmation",
+            ),
+            (
+                "hyperkalemia or renal failure is suspected as the primary cause of cardiac arrest",
+                "administer intravenous calcium gluconate and intravenous sodium bicarbonate as formulary-directed",
+            ),
+            (
+                "acute massive pulmonary embolism is suspected as the underlying trigger of refractory arrest",
+                "consider emergent systemic thrombolysis as formulary-directed in consultation with senior resuscitation staff",
+            ),
+        ],
+    },
+    {
+        "syndrome": "cardiac_arrest",
+        "population": "adult",
+        "doc_id": "ESCAL_CARDIAC_ARREST",
+        "filename": "resuscitation_cardiac_arrest.md",
+        "title": "Emergency Protocol: Post-Cardiac Arrest Care & Refractory Resuscitation (SYNTHETIC)",
+        "section": "Post-Cardiac Arrest Care & Refractory Resuscitation",
+        "chunk_prefix": "CA_ESCAL_01",
+        "nodes": [
+            (
+                "return of spontaneous circulation is achieved AND the patient remains comatose without purposeful response",
+                "avoid hyperthermia, maintain normothermia, and consult neurointensive care for neuroprognostication pathway",
+            ),
+            (
+                "12-lead electrocardiogram reveals ST-segment elevation following return of spontaneous circulation",
+                "transfer immediately to cardiac catheterisation suite for emergent percutaneous coronary angiography",
+            ),
+            (
+                "refractory ventricular fibrillation continues after three shocks, epinephrine, and antiarrhythmic therapy",
+                "evaluate for reversible causes including severe hypothermia, acute coronary occlusion, and electrolyte derangement",
+            ),
+            (
+                "waveform capnography displays sudden sustained increase in end-tidal carbon dioxide during compressions",
+                "pause chest compressions briefly to verify return of spontaneous circulation via pulse and rhythm check",
+            ),
+            (
+                "prolonged resuscitation exceeds twenty minutes in a young patient with potentially reversible etiology",
+                "activate extracorporeal cardiopulmonary resuscitation protocol where local resources permit",
+            ),
+            (
+                "persistent severe arterial hypotension is unresponsive to high-dose vasopressor infusion",
+                "insert arterial line, evaluate central venous saturation, and consider second-line vasopressin as formulary-directed",
+            ),
+            (
+                "acute tension pneumothorax is suspected during resuscitation with asymmetric chest expansion",
+                "perform immediate needle decompression in the second intercostal space at the midclavicular line",
+            ),
+            (
+                "profound hypothermia with core temperature below normal is present in cardiac arrest",
+                "continue active internal rewarming and withhold repeated defibrillation until core temperature reaches target threshold",
+            ),
+            (
+                "the patient develops post-arrest myoclonus or clinical status epilepticus",
+                "administer intravenous levetiracetam or valproate as formulary-directed and initiate continuous electroencephalography",
+            ),
+        ],
+    },
+    {
+        "syndrome": "acute_coronary_syndrome",
+        "population": "adult",
+        "doc_id": "EMERG_ACS",
+        "filename": "acute_coronary_syndrome.md",
+        "title": "Emergency Protocol: Acute Coronary Syndrome & STEMI Escalation (SYNTHETIC)",
+        "section": "Acute Coronary Syndrome & STEMI Escalation",
+        "chunk_prefix": "ACS_01",
+        "nodes": [
+            (
+                "the patient exhibits acute crushing retrosternal pain radiating to the left arm AND ST elevation is present",
+                "administer oral chewable aspirin as formulary-directed and notify cardiac catheterisation team",
+            ),
+            (
+                "the patient has a documented severe aspirin allergy with anaphylaxis history",
+                "withhold aspirin, administer an alternative P2Y12 antiplatelet inhibitor as formulary-directed, and monitor for systemic hypoperfusion",
+            ),
+            (
+                "ischemic pain is accompanied by nausea and diaphoresis AND systolic blood pressure is not low",
+                "administer sublingual nitroglycerin as formulary-directed under continuous blood pressure monitoring",
+            ),
+            (
+                "the patient has ingested a phosphodiesterase type-5 inhibitor within forty-eight hours",
+                "withhold nitrates completely to avoid catastrophic refractory hypotension and profound circulatory collapse",
+            ),
+            (
+                "tachycardia and ongoing ischemic discomfort persist without signs of decompensated heart failure",
+                "consider oral beta-blocker administration as formulary-directed after verifying absence of conduction blocks",
+            ),
+            (
+                "severe pulmonary crackles, tachypnea, and hypoxemia indicate acute cardiogenic pulmonary congestion",
+                "withhold beta-blockers, apply continuous positive airway pressure, and administer intravenous furosemide as formulary-directed",
+            ),
+            (
+                "the patient exhibits right ventricular infarction with inferior ST elevation, hypotension, AND distended neck veins",
+                "withhold nitrates, avoid beta-blockers, and administer rapid intravenous isotonic crystalloid volume challenge",
+            ),
+            (
+                "the patient develops transient second-degree or complete atrioventricular block during acute myocardial infarction",
+                "prepare transcutaneous pacing pads and administer intravenous atropine as formulary-directed if symptomatic",
+            ),
+            (
+                "ongoing severe ischemic chest pain is refractory to nitrates AND systolic blood pressure remains stable",
+                "administer intravenous morphine or fentanyl as formulary-directed with close respiratory rate monitoring",
+            ),
+        ],
+    },
+    {
+        "syndrome": "acute_pulmonary_oedema",
+        "population": "adult",
+        "doc_id": "EMERG_APO",
+        "filename": "acute_pulmonary_oedema.md",
+        "title": "Emergency Protocol: Acute Cardiogenic Pulmonary Oedema (SYNTHETIC)",
+        "section": "Acute Cardiogenic Pulmonary Oedema",
+        "chunk_prefix": "APO_01",
+        "nodes": [
+            (
+                "the patient presents with severe dyspnea, bilateral pulmonary crackles, AND systolic blood pressure is elevated",
+                "administer sublingual or intravenous nitroglycerin as formulary-directed and initiate non-invasive ventilation",
+            ),
+            (
+                "the patient exhibits acute respiratory distress with hypoxemia AND respiratory rate is markedly elevated",
+                "apply continuous positive airway pressure via tight-fitting mask targeting positive end-expiratory pressure",
+            ),
+            (
+                "systolic blood pressure is elevated above threshold AND signs of fluid overload are evident",
+                "administer intravenous loop diuretic furosemide as formulary-directed and place an indwelling urinary catheter",
+            ),
+            (
+                "the patient exhibits signs of acute cardiogenic shock with systolic blood pressure below threshold AND cold clammy skin",
+                "withhold nitrates and loop diuretics and initiate intravenous inotropic support with dobutamine or milrinone",
+            ),
+            (
+                "severe tachypnea and accessory muscle use fail to improve after non-invasive ventilation",
+                "prepare for emergent rapid sequence intubation with lung-protective low tidal volume settings",
+            ),
+            (
+                "the patient exhibits severe anxiety and air hunger secondary to acute pulmonary congestion",
+                "provide reassurance and consider low-dose intravenous opioid as formulary-directed under close continuous capnography",
+            ),
+            (
+                "concomitant tachyarrhythmia with rapid atrial fibrillation is triggering acute hemodynamic decompensation",
+                "prepare for urgent synchronized electrical cardioversion or administer intravenous digoxin as formulary-directed",
+            ),
+            (
+                "refractory hypoxemia persists with arterial oxygen tension inadequate despite maximal non-invasive support",
+                "escalate positive end-expiratory pressure, consult intensive care unit, and evaluate for mechanical circulatory assistance",
+            ),
+            (
+                "acute severe mitral regurgitation or papillary muscle rupture is suspected following acute infarction",
+                "obtain immediate emergent bedside echocardiography and consult cardiothoracic surgery for urgent operative evaluation",
+            ),
+        ],
+    },
+    {
+        "syndrome": "acute_pulmonary_oedema",
+        "population": "adult",
+        "doc_id": "ESCAL_APO",
+        "filename": "refractory_pulmonary_oedema.md",
+        "title": "Emergency Protocol: Refractory Pulmonary Oedema & Vasodilator Titration (SYNTHETIC)",
+        "section": "Refractory Pulmonary Oedema & Vasodilator Titration",
+        "chunk_prefix": "APO_ESCAL_01",
+        "nodes": [
+            (
+                "severe hypertensive pulmonary oedema persists despite initial nitrate boluses AND blood pressure remains high",
+                "initiate continuous intravenous nitroglycerin or sodium nitroprusside infusion as formulary-directed with invasive arterial monitoring",
+            ),
+            (
+                "the patient has severe chronic kidney disease and displays diuretic resistance with zero urine output",
+                "consult nephrology immediately and prepare for emergency continuous veno-venous hemodialysis or ultrafiltration",
+            ),
+            (
+                "profound hypoxemic respiratory exhaustion leads to hypercapnia and declining level of consciousness",
+                "discontinue non-invasive mask ventilation immediately and proceed with definitive endotracheal airway intubation",
+            ),
+            (
+                "concomitant severe right ventricular dilatation and paradoxical septal motion are observed on echocardiogram",
+                "avoid excessive positive end-expiratory pressure and titrate intravenous fluids judiciously to avoid right heart collapse",
+            ),
+            (
+                "the patient develops non-sustained ventricular tachycardia associated with myocardial ischemia and congestion",
+                "administer intravenous amiodarone as formulary-directed and optimize serum potassium and magnesium concentrations",
+            ),
+            (
+                "acute bronchospasm accompanies pulmonary oedema producing cardiac asthma wheezing",
+                "administer inhaled ipratropium as formulary-directed and avoid aggressive high-dose beta-agonist bronchodilators",
+            ),
+            (
+                "systolic blood pressure drops precipitously following vasodilator initiation",
+                "terminate nitrate infusion immediately, administer intravenous crystalloid bolus, and assess for occult right heart infarction",
+            ),
+            (
+                "the patient exhibits profound lactic acidosis, oliguria, AND cardiac index severely depressed",
+                "evaluate for urgent intra-aortic balloon pump or veno-arterial extracorporeal membrane oxygenation placement",
+            ),
+            (
+                "fever, purulent sputum, and unilateral consolidation indicate superimposed pneumonia triggering heart failure",
+                "obtain respiratory cultures and initiate empirical broad-spectrum intravenous antimicrobial therapy as formulary-directed",
+            ),
+        ],
+    },
+    {
+        "syndrome": "arrhythmia",
+        "population": "adult",
+        "doc_id": "EMERG_ARRHYTHMIA",
+        "filename": "arrhythmia.md",
+        "title": "Emergency Protocol: Acute Tachyarrhythmia & Bradyarrhythmia (SYNTHETIC)",
+        "section": "Acute Tachyarrhythmia & Bradyarrhythmia",
+        "chunk_prefix": "ARRHYTH_01",
+        "nodes": [
+            (
+                "the patient exhibits severe bradycardia with heart rate below threshold AND hypotension or altered mental status",
+                "administer intravenous atropine as formulary-directed while attaching transcutaneous pacing pads",
+            ),
+            (
+                "atropine is ineffective for symptomatic bradycardia AND hemodynamic instability persists",
+                "initiate transcutaneous electrical cardiac pacing and titrate intravenous dopamine or epinephrine infusion as formulary-directed",
+            ),
+            (
+                "the patient exhibits narrow-complex regular tachycardia with heart rate markedly elevated AND is hemodynamically stable",
+                "perform non-invasive vagal maneuvers such as the modified Valsalva maneuver with leg elevation",
+            ),
+            (
+                "vagal maneuvers fail to terminate stable regular narrow-complex supraventricular tachycardia",
+                "administer rapid intravenous adenosine as formulary-directed followed by immediate rapid saline flush under continuous rhythm recording",
+            ),
+            (
+                "the patient exhibits rapid atrial fibrillation with rapid ventricular response AND is hemodynamically stable",
+                "administer intravenous diltiazem or metoprolol as formulary-directed to achieve ventricular rate control",
+            ),
+            (
+                "the patient has a known history of Wolff-Parkinson-White syndrome and pre-excited atrial fibrillation",
+                "withhold all atrioventricular nodal blocking agents including adenosine, beta-blockers, and calcium-channel blockers",
+            ),
+            (
+                "the patient exhibits wide-complex regular tachycardia of uncertain origin AND is hemodynamically stable",
+                "treat as ventricular tachycardia and administer intravenous amiodarone or procainamide as formulary-directed",
+            ),
+            (
+                "any tachyarrhythmia produces hemodynamic instability including hypotension, chest pain, or altered consciousness",
+                "perform immediate synchronized electrical cardioversion under procedural sedation as formulary-directed",
+            ),
+            (
+                "polymorphic ventricular tachycardia with prolonged baseline QT interval (torsades de pointes) is documented",
+                "administer intravenous magnesium sulfate as formulary-directed and discontinue all potential QT-prolonging medications",
+            ),
+        ],
+    },
+    {
+        "syndrome": "arrhythmia",
+        "population": "adult",
+        "doc_id": "ESCAL_ARRHYTHMIA",
+        "filename": "unstable_arrhythmia.md",
+        "title": "Emergency Protocol: Unstable Arrhythmia & Refractory Rate Control (SYNTHETIC)",
+        "section": "Unstable Arrhythmia & Refractory Rate Control",
+        "chunk_prefix": "ARRHYTH_ESCAL_01",
+        "nodes": [
+            (
+                "the patient exhibits wide-complex tachycardia with sudden loss of consciousness AND pulselessness",
+                "switch defibrillator to asynchronous mode immediately, deliver an unsynchronized high-energy shock, and begin compressions",
+            ),
+            (
+                "refractory supraventricular tachycardia fails to terminate after repeat adenosine administrations",
+                "administer intravenous verapamil or diltiazem as formulary-directed if systolic blood pressure and ventricular function are normal",
+            ),
+            (
+                "acute atrial flutter is identified with rapid ventricular conduction and symptomatic palpitations",
+                "perform synchronized electrical cardioversion starting at low energy level or initiate rate control as formulary-directed",
+            ),
+            (
+                "transcutaneous pacing fails to capture mechanically despite maximal current output",
+                "prepare immediately for emergency transvenous pacing wire insertion under fluoroscopic or ultrasound guidance",
+            ),
+            (
+                "bradycardia is secondary to acute digoxin toxicity with hyperkalemia AND ventricular ectopy",
+                "administer digoxin-specific antibody fragments as formulary-directed and withhold intravenous calcium formulations",
+            ),
+            (
+                "calcium-channel blocker or beta-blocker overdose is identified as the cause of refractory bradycardia and shock",
+                "initiate high-dose insulin euglycemic therapy and administer intravenous calcium gluconate as formulary-directed",
+            ),
+            (
+                "severe hyperkalemia with peaked T waves, widened QRS, and sine-wave appearance is identified",
+                "administer immediate intravenous calcium chloride or gluconate as formulary-directed for myocardial membrane stabilization",
+            ),
+            (
+                "electrical cardioversion attempts result in immediate reversion to unstable ventricular tachycardia",
+                "administer repeat intravenous antiarrhythmic bolus, correct hypokalemia, and consider emergent coronary revascularization",
+            ),
+            (
+                "the patient exhibits persistent asymptomatic sinus bradycardia without hemodynamic compromise",
+                "monitor continuous telemetry, identify offending home medications, and avoid unnecessary invasive pacing interventions",
+            ),
+        ],
+    },
+    {
+        "syndrome": "hypertensive_emergency",
+        "population": "adult",
+        "doc_id": "EMERG_HYPERTENSIVE",
+        "filename": "hypertensive_emergency.md",
+        "title": "Emergency Protocol: Acute Hypertensive Emergency with End-Organ Damage (SYNTHETIC)",
+        "section": "Acute Hypertensive Emergency with End-Organ Damage",
+        "chunk_prefix": "HTN_01",
+        "nodes": [
+            (
+                "the patient exhibits severe arterial hypertension with systolic blood pressure severely elevated AND acute chest pain",
+                "evaluate for acute coronary syndrome or aortic dissection and initiate titratable intravenous labetalol or nicardipine",
+            ),
+            (
+                "acute aortic dissection is confirmed with severe blood pressure elevation AND pulse deficit",
+                "rapidly lower heart rate below sixty beats per minute with intravenous beta-blocker before lowering systolic blood pressure",
+            ),
+            (
+                "the patient exhibits severe hypertension AND acute ischemic stroke eligible for thrombolytic therapy",
+                "lower blood pressure cautiously below target thrombolysis ceiling using intravenous labetalol or nicardipine as formulary-directed",
+            ),
+            (
+                "the patient exhibits acute hypertensive encephalopathy with severe headache, confusion, AND visual disturbances",
+                "reduce mean arterial pressure by no more than twenty-five percent in the first hour to prevent cerebral ischemic injury",
+            ),
+            (
+                "the patient has acute hypertensive pulmonary oedema with respiratory distress AND rales",
+                "administer continuous intravenous nitroglycerin infusion as formulary-directed and apply non-invasive ventilation",
+            ),
+            (
+                "the patient exhibits severe hypertension AND acute renal impairment with oliguria or hematuria",
+                "initiate intravenous fenoldopam or nicardipine as formulary-directed with close monitoring of urine output and renal function",
+            ),
+            (
+                "the patient presents with severe hypertension in late pregnancy with proteinuria AND hyperreflexia",
+                "initiate pre-eclampsia protocol, administer intravenous magnesium sulfate as formulary-directed, and consult obstetrics",
+            ),
+            (
+                "severe hypertension is accompanied by suspected pheochromocytoma crisis with diaphoresis and tremor",
+                "administer intravenous phentolamine or alpha-adrenergic blocker as formulary-directed and avoid unapposed beta-blockade",
+            ),
+            (
+                "the patient has severe blood pressure elevation WITHOUT any clinical evidence of acute end-organ damage",
+                "withhold aggressive intravenous antihypertensive therapy, initiate oral agents, and arrange close outpatient follow-up",
+            ),
+        ],
+    },
+    {
+        "syndrome": "hypertensive_emergency",
+        "population": "adult",
+        "doc_id": "ESCAL_HYPERTENSIVE",
+        "filename": "end_organ_hypertensive_crisis.md",
+        "title": "Emergency Protocol: End-Organ Hypertensive Crisis & Continuous Vasodilator Titration (SYNTHETIC)",
+        "section": "End-Organ Hypertensive Crisis & Continuous Vasodilator Titration",
+        "chunk_prefix": "HTN_ESCAL_01",
+        "nodes": [
+            (
+                "blood pressure remains dangerously elevated despite initial intravenous labetalol boluses",
+                "initiate continuous intravenous nicardipine or clevidipine infusion as formulary-directed with continuous line monitoring",
+            ),
+            (
+                "severe arterial hypotension or sudden neurological deficit develops following aggressive blood pressure reduction",
+                "terminate antihypertensive infusions immediately and administer intravenous fluid bolus to restore cerebral perfusion pressure",
+            ),
+            (
+                "the patient exhibits acute hemorrhagic stroke with severe hypertension AND intracerebral hematoma",
+                "lower systolic blood pressure smoothly toward target threshold as formulary-directed while avoiding blood pressure variability",
+            ),
+            (
+                "thrombotic microangiopathy with hemolytic anemia and thrombocytopenia is identified in malignant hypertension",
+                "control blood pressure aggressively with intravenous agents and consult hematology and nephrology services",
+            ),
+            (
+                "the patient has severe blood pressure elevation triggered by sympathetic crisis secondary to cocaine or amphetamine",
+                "administer intravenous benzodiazepine diazepam as formulary-directed to mitigate central sympathetic overdrive",
+            ),
+            (
+                "the patient develops severe reflex tachycardia during vasodilator infusion with sodium nitroprusside",
+                "administer concurrent intravenous beta-blocker esmolol as formulary-directed if no contraindications exist",
+            ),
+            (
+                "cyanide or thiocyanate toxicity is suspected following prolonged high-dose nitroprusside infusion",
+                "discontinue infusion immediately, obtain arterial blood gas analysis, and administer sodium thiosulfate as formulary-directed",
+            ),
+            (
+                "severe blood pressure elevation is associated with acute bilateral papilledema and retinal flame hemorrhages",
+                "admit to intensive care unit for continuous invasive arterial line blood pressure monitoring and gradual titration",
+            ),
+            (
+                "post-operative hypertension threatens fresh vascular or neurosurgical suture lines",
+                "titrate short-acting intravenous antihypertensive esmolol or clevidipine as formulary-directed to target strict surgical limits",
+            ),
+        ],
+    },
+    {
+        "syndrome": "stroke_tia",
+        "population": "adult",
+        "doc_id": "EMERG_STROKE",
+        "filename": "stroke_tia.md",
+        "title": "Emergency Protocol: Acute Ischemic Stroke & Transient Ischemic Attack (SYNTHETIC)",
+        "section": "Acute Ischemic Stroke & Transient Ischemic Attack",
+        "chunk_prefix": "STROKE_01",
+        "nodes": [
+            (
+                "the patient presents with sudden acute focal neurological deficit within the thrombolysis eligibility time window",
+                "perform emergent validated stroke scale evaluation, establish two peripheral lines, and order STAT cranial imaging",
+            ),
+            (
+                "non-contrast cranial computed tomography scan reveals acute intracranial hemorrhage",
+                "withhold all antiplatelet, anticoagulant, and thrombolytic agents, and obtain urgent neurosurgical consultation",
+            ),
+            (
+                "cranial computed tomography scan rules out hemorrhage AND the patient meets all intravenous thrombolysis criteria",
+                "administer intravenous alteplase or tenecteplase as formulary-directed after verifying absence of contraindications",
+            ),
+            (
+                "the patient has a large vessel occlusion identified on computed tomography angiography within the thrombectomy window",
+                "activate emergent endovascular thrombectomy team and transfer immediately to neurointerventional suite",
+            ),
+            (
+                "systolic blood pressure exceeds thrombolytic ceiling prior to planned thrombolytic administration",
+                "administer intravenous labetalol or nicardipine as formulary-directed to reduce blood pressure below safety ceiling",
+            ),
+            (
+                "capillary blood glucose is below threshold in a patient presenting with acute stroke-like symptoms",
+                "administer intravenous concentrated dextrose as formulary-directed and re-evaluate focal neurological examination",
+            ),
+            (
+                "the patient develops sudden neurological deterioration, severe headache, or acute vomiting during thrombolysis",
+                "stop thrombolytic infusion immediately, obtain emergent cranial imaging, and prepare cryoprecipitate as formulary-directed",
+            ),
+            (
+                "the patient exhibits transient neurological symptoms that fully resolve within one hour of onset",
+                "calculate validated clinical stroke risk score, initiate antiplatelet therapy, and admit for rapid diagnostic workup",
+            ),
+            (
+                "hypoxemia with oxygen saturation below target or impaired airway protection is present in acute stroke",
+                "apply supplemental oxygen via nasal cannula and maintain head of bed elevated at thirty degrees to prevent aspiration",
+            ),
+        ],
+    },
+    {
+        "syndrome": "stroke_tia",
+        "population": "adult",
+        "doc_id": "ESCAL_STROKE",
+        "filename": "acute_ischemic_stroke_evaluation.md",
+        "title": "Emergency Protocol: Acute Stroke Complications & Neurological Deterioration (SYNTHETIC)",
+        "section": "Acute Stroke Complications & Neurological Deterioration",
+        "chunk_prefix": "STROKE_ESCAL_01",
+        "nodes": [
+            (
+                "the patient develops progressive obtundation and unequal pupils secondary to massive middle cerebral artery infarction",
+                "consult neurosurgery urgently for decompressive hemicraniectomy assessment and initiate osmotherapy as formulary-directed",
+            ),
+            (
+                "acute cerebellar infarction produces brainstem compression and obstructive acute hydrocephalus",
+                "request immediate emergency neurosurgical intervention for suboccipital craniectomy or external ventricular drain placement",
+            ),
+            (
+                "the acute stroke patient exhibits new-onset generalized motor convulsions during initial emergency management",
+                "administer intravenous lorazepam as formulary-directed and initiate non-sedating antiepileptic therapy with levetiracetam",
+            ),
+            (
+                "fever is documented following acute ischemic stroke presentation",
+                "administer oral or intravenous paracetamol as formulary-directed to enforce strict normothermia and investigate occult infection",
+            ),
+            (
+                "acute dysphagia is identified on bedside swallow screening examination",
+                "place patient on strict nil-per-os status to prevent aspiration pneumonia and obtain speech pathology swallow review",
+            ),
+            (
+                "the patient is ineligible for thrombolytic or endovascular therapy due to delayed presentation beyond time windows",
+                "initiate oral aspirin as formulary-directed and maintain permissive hypertension to support ischemic penumbral flow",
+            ),
+            (
+                "hypotension develops in an acute stroke patient with systolic blood pressure below cerebral perfusion target",
+                "administer intravenous isotonic saline bolus and titrate vasopressor therapy as formulary-directed to maintain penumbra",
+            ),
+            (
+                "deep vein thrombosis prophylaxis is considered within the first twenty-four hours of thrombolysis",
+                "withhold chemical thromboprophylaxis for twenty-four hours and apply intermittent pneumatic compression devices",
+            ),
+            (
+                "acute cardiac troponin elevation or arrhythmia is detected during post-stroke telemetry monitoring",
+                "obtain 12-lead electrocardiogram, continuous telemetry, and evaluate for neurogenic myocardial stunning or concurrent infarction",
+            ),
+        ],
+    },
+    {
+        "syndrome": "seizure_status_epilepticus",
+        "population": "adult",
+        "doc_id": "EMERG_SEIZURE",
+        "filename": "seizure_status_epilepticus.md",
+        "title": "Emergency Protocol: Generalized Convulsive Status Epilepticus (SYNTHETIC)",
+        "section": "Generalized Convulsive Status Epilepticus",
+        "chunk_prefix": "SEIZ_01",
+        "nodes": [
+            (
+                "the patient experiences active continuous generalized tonic-clonic convulsions lasting five minutes or longer",
+                "administer intravenous lorazepam or midazolam as formulary-directed and protect airway from aspiration trauma",
+            ),
+            (
+                "intravenous access is unavailable AND active convulsive seizure activity continues",
+                "administer intramuscular midazolam as formulary-directed in the mid-outer thigh or rectal diazepam",
+            ),
+            (
+                "active seizure convulsions persist five minutes after initial benzodiazepine administration",
+                "administer repeat intravenous benzodiazepine as formulary-directed and prepare second-line antiepileptic infusion",
+            ),
+            (
+                "seizure activity continues ten minutes after initial presentation despite adequate benzodiazepine therapy",
+                "initiate intravenous levetiracetam, fosphenytoin, or sodium valproate as formulary-directed over ten minutes",
+            ),
+            (
+                "capillary blood glucose is below threshold in an actively seizing or postictal patient",
+                "administer intravenous concentrated dextrose as formulary-directed with concurrent thiamine if malnutrition suspected",
+            ),
+            (
+                "the patient is in late pregnancy or postpartum AND presents with generalized seizures and hypertension",
+                "administer intravenous magnesium sulfate as formulary-directed as first-line therapy for eclamptic convulsions",
+            ),
+            (
+                "convulsive seizure activity persists thirty minutes after onset despite benzodiazepine and second-line antiepileptic therapy",
+                "declare refractory status epilepticus, prepare for endotracheal intubation, and initiate intravenous anesthetic infusion",
+            ),
+            (
+                "the patient exhibits severe hypoxemia or airway obstruction during postictal state or active convulsions",
+                "place in recovery position, apply high-flow oxygen via non-rebreather mask, and suction oropharyngeal secretions",
+            ),
+            (
+                "seizure is suspected secondary to tricyclic antidepressant overdose with widened QRS complex on electrocardiogram",
+                "administer intravenous sodium bicarbonate as formulary-directed to overcome myocardial sodium-channel blockade",
+            ),
+        ],
+    },
+    {
+        "syndrome": "seizure_status_epilepticus",
+        "population": "adult",
+        "doc_id": "ESCAL_SEIZURE",
+        "filename": "refractory_status_epilepticus.md",
+        "title": "Emergency Protocol: Refractory & Super-Refractory Status Epilepticus (SYNTHETIC)",
+        "section": "Refractory & Super-Refractory Status Epilepticus",
+        "chunk_prefix": "SEIZ_ESCAL_01",
+        "nodes": [
+            (
+                "refractory status epilepticus continues despite adequate dosing of two antiepileptic drug classes",
+                "proceed with rapid sequence induction intubation and administer continuous intravenous propofol or midazolam as formulary-directed",
+            ),
+            (
+                "continuous intravenous anesthetic therapy triggers profound arterial hypotension and vasoplegia",
+                "initiate invasive arterial line monitoring and titrate continuous intravenous norepinephrine as formulary-directed",
+            ),
+            (
+                "continuous electroencephalography confirms electrographic burst suppression OR cessation of ictal discharges",
+                "maintain continuous infusion for twenty-four hours before attempting gradual weaning under electroencephalographic surveillance",
+            ),
+            (
+                "status epilepticus continues or recurs twenty-four hours or more after starting continuous anesthetic therapy",
+                "declare super-refractory status epilepticus, consider intravenous ketamine as formulary-directed, and consult neurointensivist",
+            ),
+            (
+                "the patient exhibits severe hyperthermia, rhabdomyolysis, and dark tea-colored urine secondary to prolonged convulsions",
+                "initiate aggressive intravenous crystalloid volume expansion and monitor serial serum creatine kinase and potassium",
+            ),
+            (
+                "isoniazid toxicity is identified or suspected as the underlying etiology of intractable status epilepticus",
+                "administer intravenous pyridoxine vitamin B6 as formulary-directed in dose equimolar to ingested toxin",
+            ),
+            (
+                "seizures are accompanied by severe acute hyponatremia with serum sodium critically depressed",
+                "administer intravenous hypertonic saline bolus as formulary-directed to arrest acute hyponatremic convulsions",
+            ),
+            (
+                "acute alcohol withdrawal status epilepticus is refractory to high-dose benzodiazepines",
+                "administer intravenous phenobarbital as formulary-directed under intensive respiratory and cardiac surveillance",
+            ),
+            (
+                "the patient exhibits persistent non-convulsive status epilepticus with waxing and waning confusion and automatisms",
+                "obtain emergent continuous electroencephalogram and titrate non-sedating antiepileptic medications as formulary-directed",
+            ),
+        ],
+    },
+    {
+        "syndrome": "dka_hhs",
+        "population": "adult",
+        "doc_id": "EMERG_DKA_HHS",
+        "filename": "dka_hhs.md",
+        "title": "Emergency Protocol: Diabetic Ketoacidosis & Hyperglycemic Hyperosmolar State (SYNTHETIC)",
+        "section": "Diabetic Ketoacidosis & Hyperglycemic Hyperosmolar State",
+        "chunk_prefix": "DKA_01",
+        "nodes": [
+            (
+                "the patient presents with severe hyperglycemia, Kussmaul respirations, AND positive serum or urinary ketones",
+                "obtain immediate arterial blood gas, electrolyte panel, and initiate intravenous isotonic crystalloid fluid resuscitation",
+            ),
+            (
+                "serum potassium is below threshold prior to planned insulin initiation in diabetic ketoacidosis",
+                "withhold insulin therapy completely and administer intravenous potassium replacement as formulary-directed until potassium normalizes",
+            ),
+            (
+                "serum potassium is documented within normal or elevated range AND fluid resuscitation is underway",
+                "initiate continuous intravenous regular insulin infusion as formulary-directed with hourly capillary glucose monitoring",
+            ),
+            (
+                "blood glucose drops below target ceiling while anion gap remains elevated in diabetic ketoacidosis",
+                "add five percent dextrose to intravenous fluids as formulary-directed to permit continued insulin infusion for ketoacidosis clearance",
+            ),
+            (
+                "the patient exhibits extreme hyperglycemia with severe hyperosmolality AND absent significant ketoacidosis",
+                "diagnose hyperglycemic hyperosmolar state, administer gradual fluid resuscitation, and avoid overly rapid osmolality reduction",
+            ),
+            (
+                "the patient exhibits profound dehydration, volume contraction, and metabolic acidemia secondary to osmotic diuresis",
+                "administer initial rapid intravenous normal saline bolus as formulary-directed before switching to maintenance fluids",
+            ),
+            (
+                "severe arterial acidemia with blood pH critically depressed is documented on arterial blood gas",
+                "evaluate for concurrent lactic acidosis or sepsis and consider cautious isotonic sodium bicarbonate as formulary-directed",
+            ),
+            (
+                "the patient exhibits sudden headache, declining level of consciousness, and bradycardia during treatment",
+                "suspect acute cerebral edema, administer intravenous mannitol or hypertonic saline as formulary-directed, and slow fluids",
+            ),
+            (
+                "hypokalemia develops during insulin therapy as potassium shifts intracellularly",
+                "add potassium chloride to all subsequent intravenous fluid bags as formulary-directed to maintain potassium within target",
+            ),
+        ],
+    },
+    {
+        "syndrome": "dka_hhs",
+        "population": "adult",
+        "doc_id": "ESCAL_DKA_HHS",
+        "filename": "hyperosmolar_hyperglycemic_state.md",
+        "title": "Emergency Protocol: Hyperglycemic Hyperosmolar Coma & Electrolyte Shift Management (SYNTHETIC)",
+        "section": "Hyperglycemic Hyperosmolar Coma & Electrolyte Shift Management",
+        "chunk_prefix": "HHS_ESCAL_01",
+        "nodes": [
+            (
+                "the patient with hyperglycemic hyperosmolar state presents with profound dehydration AND hypovolemic shock",
+                "administer isotonic crystalloid resuscitation until hemodynamic stability is restored before correcting hypertonicity",
+            ),
+            (
+                "corrected serum sodium is elevated or normal after initial fluid resuscitation in hyperosmolar state",
+                "switch maintenance fluids to half-normal saline as formulary-directed to replace free water deficit gradually",
+            ),
+            (
+                "plasma glucose fails to decline by expected hourly decrement despite continuous insulin infusion",
+                "verify intravenous line patency, double insulin infusion rate as formulary-directed, and re-evaluate hydration status",
+            ),
+            (
+                "severe hypophosphatemia develops during ketoacidosis resolution with muscle weakness or respiratory depression",
+                "administer intravenous potassium or sodium phosphate as formulary-directed with continuous calcium monitoring",
+            ),
+            (
+                "the patient exhibits signs of systemic infection or sepsis triggering hyperglycemic emergency",
+                "obtain diagnostic blood, urine, and sputum cultures and initiate broad-spectrum intravenous antimicrobial therapy",
+            ),
+            (
+                "the patient is anuric or displays acute oliguric kidney injury during resuscitation",
+                "adjust potassium replacement rate cautiously, place indwelling catheter, and consult nephrology service",
+            ),
+            (
+                "diabetic ketoacidosis resolves with closed anion gap, normal bicarbonate, AND patient is alert and hungry",
+                "administer subcutaneous basal insulin as formulary-directed two hours prior to stopping intravenous insulin infusion",
+            ),
+            (
+                "acute vascular thrombosis or thromboembolic complication occurs in the setting of severe hyperviscosity",
+                "administer therapeutic anticoagulation as formulary-directed and enforce mechanical and chemical thromboprophylaxis",
+            ),
+            (
+                "persistent vomiting and gastric distension are present in diabetic gastroparesis during resuscitation",
+                "insert nasogastric tube to decompress stomach, prevent aspiration, and administer intravenous antiemetics as formulary-directed",
+            ),
+        ],
+    },
+    {
+        "syndrome": "septic_shock_adult",
+        "population": "adult",
+        "doc_id": "EMERG_SEPSIS_ADULT",
+        "filename": "septic_shock_adult.md",
+        "title": "Emergency Protocol: Adult Sepsis & Septic Shock Resuscitation (SYNTHETIC)",
+        "section": "Adult Sepsis & Septic Shock Resuscitation",
+        "chunk_prefix": "SEP_ADULT_01",
+        "nodes": [
+            (
+                "the adult patient exhibits suspected infection, fever or hypothermia, tachypnea, AND tachycardia",
+                "measure blood lactate, obtain two sets of blood cultures, and evaluate for organ dysfunction",
+            ),
+            (
+                "hypotension with systolic blood pressure below threshold OR blood lactate elevated is identified",
+                "initiate rapid intravenous crystalloid bolus as formulary-directed within the first hour of recognition",
+            ),
+            (
+                "arterial hypotension persists during or after initial fluid bolus resuscitation",
+                "initiate continuous intravenous norepinephrine infusion as formulary-directed targeting mean arterial pressure",
+            ),
+            (
+                "blood cultures have been obtained AND severe sepsis or septic shock criteria are fulfilled",
+                "administer intravenous broad-spectrum antimicrobial therapy as formulary-directed within sixty minutes of triage",
+            ),
+            (
+                "mean arterial pressure remains below target despite escalating norepinephrine infusion",
+                "add continuous intravenous vasopressin as formulary-directed as second-line vasopressor to restore vascular tone and mitigate systemic hypoperfusion",
+            ),
+            (
+                "persistent myocardial dysfunction with low cardiac output and elevated filling pressures is identified",
+                "add continuous intravenous dobutamine infusion as formulary-directed in consultation with critical care",
+            ),
+            (
+                "arterial hypotension is refractory to high-dose vasopressor therapy AND fluid resuscitation",
+                "administer stress-dose intravenous hydrocortisone as formulary-directed to treat relative adrenal insufficiency",
+            ),
+            (
+                "severe acute respiratory distress syndrome develops with profound hypoxemia requiring intubation",
+                "implement lung-protective mechanical ventilation with low tidal volume and permissive hypercapnia",
+            ),
+            (
+                "an identifiable infected fluid collection, abscess, or necrotizing soft-tissue infection is present",
+                "obtain emergent surgical consultation for definitive procedural source control within six hours",
+            ),
+        ],
+    },
+    {
+        "syndrome": "septic_shock_adult",
+        "population": "adult",
+        "doc_id": "ESCAL_SEPSIS_ADULT",
+        "filename": "refractory_septic_shock.md",
+        "title": "Emergency Protocol: Refractory Septic Shock & Multi-Organ Failure Escalation (SYNTHETIC)",
+        "section": "Refractory Septic Shock & Multi-Organ Failure Escalation",
+        "chunk_prefix": "SEP_ADULT_ESCAL_01",
+        "nodes": [
+            (
+                "septic shock is accompanied by severe metabolic lactic acidosis with blood pH critically depressed",
+                "optimize tissue perfusion with vasopressors and consider continuous veno-venous hemofiltration for acid clearance",
+            ),
+            (
+                "dynamic fluid responsiveness testing indicates fluid unresponsiveness with elevated stroke volume variation",
+                "stop crystalloid fluid administration to prevent worsening pulmonary oedema and tissue congestion",
+            ),
+            (
+                "severe thrombocytopenia and disseminated intravascular coagulation with spontaneous bleeding develop",
+                "administer platelets, fresh frozen plasma, or cryoprecipitate as formulary-directed for active clinical bleeding",
+            ),
+            (
+                "acute oliguric renal failure with severe hyperkalemia complicates septic shock resuscitation",
+                "initiate emergency renal replacement therapy and adjust antimicrobial dosing for impaired renal clearance",
+            ),
+            (
+                "refractory vasoplegic shock persists despite high-dose norepinephrine and vasopressin infusions",
+                "consider third-line intravenous angiotensin II or methylene blue as formulary-directed in intensive care",
+            ),
+            (
+                "the patient exhibits signs of severe hypoxemic respiratory failure AND refractory shock",
+                "evaluate for veno-venous or veno-arterial extracorporeal membrane oxygenation rescue therapy",
+            ),
+            (
+                "profound hypothermia with core body temperature below threshold is present in severe sepsis",
+                "apply active external warming blankets and warm intravenous fluids to restore core normothermia",
+            ),
+            (
+                "the primary site of infection is confirmed as central venous catheter-related bloodstream infection",
+                "remove offending central venous catheter immediately and insert new vascular access at an alternate anatomical site",
+            ),
+            (
+                "clinical stabilisation is achieved with mean arterial pressure sustained above target and lactate clearance",
+                "begin systematic downward titration of vasopressors, weaning second-line agents prior to primary norepinephrine",
+            ),
+        ],
+    },
+    {
+        "syndrome": "paediatric_shock",
+        "population": "paediatric",
+        "doc_id": "EMERG_PAED_SHOCK",
+        "filename": "paediatric_shock.md",
+        "title": "Emergency Protocol: Paediatric Shock Initial Resuscitation (SYNTHETIC)",
+        "section": "Paediatric Shock Initial Resuscitation",
+        "chunk_prefix": "P_SHOCK_01",
+        "nodes": [
+            (
+                "the paediatric patient exhibits tachycardia, prolonged capillary refill, AND cool extremities with normal blood pressure",
+                "recognise compensated shock, apply high-flow oxygen, establish vascular access, and prepare crystalloid bolus",
+            ),
+            (
+                "the paediatric patient exhibits tachycardia, weak pulses, AND systolic blood pressure below age-adjusted minimum",
+                "recognise decompensated shock, administer rapid intravenous or intraosseous fluid bolus as formulary-directed, and re-assess",
+            ),
+            (
+                "signs of poor perfusion persist after initial crystalloid fluid bolus in paediatric shock",
+                "administer repeat crystalloid fluid bolus as formulary-directed unless hepatomegaly or crackles develop",
+            ),
+            (
+                "hepatomegaly, new pulmonary crackles, or facial edema develop during fluid resuscitation",
+                "stop fluid administration immediately, recognize fluid overload, and prepare inotrope infusion",
+            ),
+            (
+                "the infant or child remains in cold shock with prolonged capillary refill despite fluid resuscitation",
+                "initiate intravenous epinephrine infusion as formulary-directed via peripheral or intraosseous access",
+            ),
+            (
+                "the infant or child exhibits warm shock with flash capillary refill, wide pulse pressure, and bounding pulses",
+                "initiate intravenous norepinephrine infusion as formulary-directed to restore systemic vascular tone and treat peripheral hypoperfusion",
+            ),
+            (
+                "the infant has a known or suspected ductal-dependent congenital heart defect presenting with cyanosis and shock",
+                "initiate continuous intravenous prostaglandin E1 alprostadil as formulary-directed to reopen the ductus arteriosus",
+            ),
+            (
+                "severe acute blood loss or traumatic hemorrhagic shock is identified in a paediatric patient",
+                "administer emergency uncrossed or type-specific packed red blood cells as formulary-directed",
+            ),
+            (
+                "capillary blood glucose is below age-appropriate threshold in an infant or child in shock",
+                "administer intravenous or intraosseous dextrose bolus as formulary-directed and re-check glucose within fifteen minutes",
+            ),
+        ],
+    },
+    {
+        "syndrome": "paediatric_shock",
+        "population": "paediatric",
+        "doc_id": "ESCAL_PAED_SHOCK",
+        "filename": "decompensated_paediatric_shock.md",
+        "title": "Emergency Protocol: Decompensated Paediatric Shock & Inotrope Escalation (SYNTHETIC)",
+        "section": "Decompensated Paediatric Shock & Inotrope Escalation",
+        "chunk_prefix": "P_SHOCK_ESCAL_01",
+        "nodes": [
+            (
+                "hypotension and shock persist despite fluid boluses and initial catecholamine inotrope infusion",
+                "escalate epinephrine or norepinephrine infusion as formulary-directed and obtain arterial blood gas and lactate",
+            ),
+            (
+                "catecholamine-resistant shock occurs in a child with suspected or known adrenal suppression",
+                "administer stress-dose intravenous hydrocortisone as formulary-directed and draw baseline cortisol",
+            ),
+            (
+                "the paediatric patient develops severe respiratory failure with worsening acidosis and fatigue",
+                "proceed with emergency tracheal intubation by most experienced clinician using hemodynamically stable induction agents",
+            ),
+            (
+                "severe acute metabolic acidosis with base deficit exceeds acceptable limits despite resuscitation",
+                "optimize oxygenation and circulation, and consider judicious sodium bicarbonate infusion as formulary-directed",
+            ),
+            (
+                "point-of-care ionized calcium is below age-appropriate reference range during shock resuscitation",
+                "administer intravenous calcium gluconate or calcium chloride as formulary-directed to improve myocardial contractility",
+            ),
+            (
+                "refractory cardiogenic shock with poor systolic function is documented on bedside echocardiography",
+                "initiate intravenous milrinone infusion as formulary-directed with careful monitoring of blood pressure",
+            ),
+            (
+                "the infant develops supraventricular tachycardia with heart rate exceeding two hundred beats per minute and shock",
+                "perform emergent synchronized electrical cardioversion as formulary-directed or rapid adenosine if access available",
+            ),
+            (
+                "tension pneumothorax or pericardial tamponade is identified as obstructive etiology of paediatric shock",
+                "perform emergent needle decompression or pericardiocentesis as clinically indicated",
+            ),
+            (
+                "the child remains in refractory septic shock despite triple vasopressor and inotropic support",
+                "consult paediatric intensive care unit and activate extracorporeal life support retrieval pathway",
+            ),
+        ],
+    },
+    {
+        "syndrome": "paediatric_dehydration",
+        "population": "paediatric",
+        "doc_id": "EMERG_PAED_DEHYD",
+        "filename": "paediatric_dehydration.md",
+        "title": "Emergency Protocol: Acute Paediatric Dehydration & Gastroenteritis (SYNTHETIC)",
+        "section": "Acute Paediatric Dehydration & Gastroenteritis",
+        "chunk_prefix": "P_DEHYD_01",
+        "nodes": [
+            (
+                "the infant or child presents with sunken eyes, loss of skin turgor, AND lethargy or unconsciousness",
+                "diagnose severe dehydration, establish intravenous or intraosseous access, and start rapid crystalloid resuscitation",
+            ),
+            (
+                "the child with severe dehydration is in hypovolemic shock with weak thready pulses and delayed refill",
+                "administer rapid intravenous normal saline or Ringer's lactate bolus as formulary-directed and re-evaluate immediately",
+            ),
+            (
+                "the child exhibits some dehydration with restlessness, irritability, sunken eyes, AND thirst",
+                "initiate oral rehydration therapy with low-osmolarity oral rehydration solution as formulary-directed",
+            ),
+            (
+                "persistent vomiting prevents successful oral rehydration solution intake in some dehydration",
+                "administer single-dose oral ondansetron as formulary-directed and resume oral rehydration solution fifteen minutes later",
+            ),
+            (
+                "oral rehydration therapy fails despite antiemetic administration due to severe persistent vomiting or refusal",
+                "insert nasogastric tube and administer oral rehydration solution at controlled rate or start intravenous maintenance",
+            ),
+            (
+                "the child has improved after initial rapid rehydration and is now alert and drinking eagerly",
+                "transition from intravenous fluids to oral rehydration therapy and encourage continuation of age-appropriate feeding",
+            ),
+            (
+                "severe hypernatremic dehydration with doughy skin turgor and hyperreflexia is documented on electrolyte panel",
+                "rehydrate slowly over forty-eight hours with monitored fluids as formulary-directed to prevent cerebral edema",
+            ),
+            (
+                "the child exhibits severe watery diarrhea with suspected Vibrio cholerae infection and dehydration",
+                "administer oral rehydration or intravenous fluids, and add targeted oral antimicrobial therapy as formulary-directed",
+            ),
+            (
+                "hypoglycemia accompanies acute dehydration and gastroenteritis in a young child",
+                "administer intravenous dextrose bolus as formulary-directed and ensure fluids contain maintenance glucose",
+            ),
+        ],
+    },
+    {
+        "syndrome": "paediatric_dehydration",
+        "population": "paediatric",
+        "doc_id": "ESCAL_PAED_DEHYD",
+        "filename": "severe_paediatric_dehydration.md",
+        "title": "Emergency Protocol: Refractory Paediatric Dehydration & Electrolyte Disturbance (SYNTHETIC)",
+        "section": "Refractory Paediatric Dehydration & Electrolyte Disturbance",
+        "chunk_prefix": "P_DEHYD_ESCAL_01",
+        "nodes": [
+            (
+                "severe hypokalemia with muscle weakness or electrocardiographic U-waves develops during rehydration",
+                "add potassium chloride to maintenance intravenous fluids as formulary-directed once adequate urine output confirmed",
+            ),
+            (
+                "the child exhibits paralytic ileus, abdominal distension, AND severe potassium depletion",
+                "withhold oral rehydration solution, insert nasogastric tube on low suction, and correct potassium intravenously",
+            ),
+            (
+                "the infant develops generalized convulsions during rapid rehydration for severe hypernatremic dehydration",
+                "suspect acute cerebral edema, administer intravenous hypertonic saline or mannitol as formulary-directed, and slow infusion",
+            ),
+            (
+                "the child has severe acute malnutrition (marasmus or kwashiorkor) with signs of dehydration",
+                "withhold standard rapid intravenous hydration and use low-sodium rehydration solution for malnutrition as formulary-directed",
+            ),
+            (
+                "blood in stool is reported with high fever, tenesmus, and toxicity in acute diarrhea",
+                "diagnose acute bacillary dysentery, maintain hydration, and administer targeted oral antimicrobial therapy as formulary-directed",
+            ),
+            (
+                "the child remains persistently anuric after adequate fluid volume replacement has been completed",
+                "evaluate for acute tubular necrosis or hemolytic uremic syndrome, avoid potassium-containing fluids, and check renal panel",
+            ),
+            (
+                "severe metabolic acidosis with deep acidotic respirations persists despite dehydration correction",
+                "evaluate for underlying inborn error of metabolism, severe sepsis, or diabetic ketoacidosis",
+            ),
+            (
+                "hypocalcemia with carpopedal spasm or jitteriness develops during correction of severe dehydration",
+                "administer intravenous calcium gluconate as formulary-directed under continuous cardiac rhythm monitoring",
+            ),
+            (
+                "the infant displays signs of fluid overload including periorbital edema, tachypnea, and pulmonary crackles",
+                "stop intravenous rehydration fluids immediately, restrict fluid intake, and consult paediatric specialist",
+            ),
+        ],
+    },
+    {
+        "syndrome": "neonatal_sepsis",
+        "population": "neonate",
+        "doc_id": "EMERG_NEO_SEPSIS",
+        "filename": "neonatal_sepsis.md",
+        "title": "Emergency Protocol: Neonatal Sepsis & Systemic Infection Screening (SYNTHETIC)",
+        "section": "Neonatal Sepsis & Systemic Infection Screening",
+        "chunk_prefix": "NEO_SEP_01",
+        "nodes": [
+            (
+                "the neonate exhibits temperature instability with hypothermia or fever, poor feeding, AND lethargy",
+                "recognise neonatal sepsis risk, obtain blood culture, and initiate immediate empirical intravenous antibiotic therapy",
+            ),
+            (
+                "the neonate exhibits respiratory distress with grunting, flaring, tachypnea, OR severe cyanosis",
+                "apply supplemental oxygen via blender targeting neonatal oxygen saturation and prepare for non-invasive respiratory support",
+            ),
+            (
+                "signs of poor perfusion with prolonged capillary refill and weak femoral pulses are present in the neonate",
+                "administer cautious intravenous isotonic normal saline bolus as formulary-directed over thirty minutes and re-evaluate",
+            ),
+            (
+                "capillary blood glucose is below neonatal threshold in an infant with suspected systemic infection",
+                "administer immediate intravenous ten percent dextrose bolus as formulary-directed and initiate continuous glucose infusion",
+            ),
+            (
+                "the neonate presents within the first seventy-two hours of life with maternal risk factors for group B streptococcus",
+                "initiate early-onset sepsis antimicrobial regimen with intravenous ampicillin and gentamicin as formulary-directed",
+            ),
+            (
+                "the neonate presents with late-onset sepsis acquired in the community or hospital after seventy-two hours",
+                "initiate late-onset sepsis antimicrobial regimen covering staphylococcal and gram-negative pathogens as formulary-directed",
+            ),
+            (
+                "neonatal convulsions or abnormal bicycling and rhythmic jerking movements occur during sepsis evaluation",
+                "administer intravenous phenobarbital as formulary-directed as first-line neonatal anticonvulsant therapy",
+            ),
+            (
+                "the neonate displays abdominal distension, bilious emesis, AND bloody stools",
+                "suspect necrotizing enterocolitis, withhold enteral feeding, insert nasogastric tube, and obtain abdominal radiographs",
+            ),
+            (
+                "the neonate develops severe unconjugated hyperbilirubinemia approaching exchange transfusion threshold",
+                "initiate intensive double-surface phototherapy immediately and check total serum bilirubin and blood group compatibilities",
+            ),
+        ],
+    },
+    {
+        "syndrome": "neonatal_sepsis",
+        "population": "neonate",
+        "doc_id": "ESCAL_NEO_SEPSIS",
+        "filename": "early_onset_neonatal_sepsis.md",
+        "title": "Emergency Protocol: Refractory Neonatal Septic Shock & Meningitis Escalation (SYNTHETIC)",
+        "section": "Refractory Neonatal Septic Shock & Meningitis Escalation",
+        "chunk_prefix": "NEO_SEP_ESCAL_01",
+        "nodes": [
+            (
+                "neonatal septic shock persists with arterial hypotension despite two volume challenges",
+                "initiate continuous intravenous dopamine or epinephrine infusion as formulary-directed and place umbilical lines",
+            ),
+            (
+                "lumbar puncture confirms pleocytosis and suspected bacterial meningitis in a septic neonate",
+                "escalate antimicrobial therapy to include third-generation cephalosporin or ampicillin with optimal meningeal penetration",
+            ),
+            (
+                "severe acute respiratory failure with persistent pulmonary hypertension of the neonate develops",
+                "initiate mechanical ventilation and consider inhaled nitric oxide as formulary-directed in neonatal intensive care",
+            ),
+            (
+                "the neonate exhibits disseminated intravascular coagulation with bleeding from puncture sites and petechiae",
+                "administer fresh frozen plasma, platelets, and vitamin K as formulary-directed for active bleeding",
+            ),
+            (
+                "severe metabolic acidosis persists with blood pH severely depressed despite cardiovascular support",
+                "optimize mechanical ventilation, ensure adequate tissue perfusion, and consult neonatal intensivist",
+            ),
+            (
+                "herpes simplex virus encephalitis or disseminated neonatal infection is suspected with maternal vesicular lesions",
+                "add intravenous acyclovir as formulary-directed immediately pending viral polymerase chain reaction results",
+            ),
+            (
+                "congenital adrenal hyperplasia is suspected with severe hyponatremia, hyperkalemia, AND ambiguous genitalia or shock",
+                "administer intravenous hydrocortisone as formulary-directed and correct electrolyte imbalances with monitoring",
+            ),
+            (
+                "hyperammonemia or inborn error of metabolism is suspected with encephalopathy AND respiratory alkalosis",
+                "stop all protein intake, administer high-rate intravenous dextrose, and consult medical genetics service",
+            ),
+            (
+                "oliguria persists despite restoration of mean arterial blood pressure in a septic neonate",
+                "restrict maintenance fluids cautiously, monitor serial serum electrolytes, and evaluate for acute renal failure",
+            ),
+        ],
+    },
+    {
+        "syndrome": "febrile_infant",
+        "population": "paediatric",
+        "doc_id": "EMERG_FEBRILE_INF",
+        "filename": "febrile_infant.md",
+        "title": "Emergency Protocol: Febrile Young Infant Risk Stratification (SYNTHETIC)",
+        "section": "Febrile Young Infant Risk Stratification",
+        "chunk_prefix": "FEB_INF_01",
+        "nodes": [
+            (
+                "an infant aged under twenty-eight days presents with documented rectal temperature elevated above fever threshold",
+                "admit to hospital, perform complete sepsis evaluation including blood, urine, and cerebrospinal fluid, and start antibiotics",
+            ),
+            (
+                "the febrile infant aged twenty-nine to sixty days appears clinically toxic with lethargy, poor perfusion, OR respiratory distress",
+                "perform full invasive sepsis evaluation, secure vascular access, and administer parenteral antimicrobial therapy as formulary-directed",
+            ),
+            (
+                "the febrile infant aged twenty-nine to sixty days appears well and meets all validated low-risk clinical criteria",
+                "obtain complete blood count, catheterized urinalysis, and consider shared decision-making regarding lumbar puncture",
+            ),
+            (
+                "catheterized urinalysis is positive for leukocyte esterase or nitrites in a febrile young infant",
+                "diagnose suspected urinary tract infection, send urine culture, and initiate targeted parenteral antimicrobial therapy",
+            ),
+            (
+                "the febrile infant presents with a simple febrile convulsion lasting under fifteen minutes that has fully ceased",
+                "reassure parents, search for the underlying infectious source of fever, and avoid routine antiepileptic therapy",
+            ),
+            (
+                "the febrile infant presents with complex febrile seizure lasting over fifteen minutes or with focal features",
+                "manage active convulsions with benzodiazepine if ongoing, perform full neurological evaluation, and admit for observation",
+            ),
+            (
+                "the infant displays bulging anterior fontanelle, neck stiffness, or extreme irritability upon handling",
+                "suspect acute bacterial meningitis, obtain blood cultures, and administer intravenous ceftriaxone or cefotaxime as formulary-directed",
+            ),
+            (
+                "fever is accompanied by marked respiratory distress, wheezing, and crackles in an infant during bronchiolitis season",
+                "obtain viral respiratory panel, provide nasal suctioning and supplemental oxygen if hypoxic, and avoid unnecessary antibiotics",
+            ),
+            (
+                "the infant displays high fever with petechial or non-blanching purpuric skin lesions",
+                "suspect invasive meningococcal or pneumococcal disease and administer immediate parenteral third-generation cephalosporin",
+            ),
+        ],
+    },
+    {
+        "syndrome": "febrile_infant",
+        "population": "paediatric",
+        "doc_id": "ESCAL_FEBRILE_INF",
+        "filename": "toxic_febrile_infant_evaluation.md",
+        "title": "Emergency Protocol: Toxic Febrile Infant & Invasive Bacterial Infection Escalation (SYNTHETIC)",
+        "section": "Toxic Febrile Infant & Invasive Bacterial Infection Escalation",
+        "chunk_prefix": "FEB_INF_ESCAL_01",
+        "nodes": [
+            (
+                "the febrile infant exhibits persistent hemodynamic instability with delayed capillary refill and hypotension",
+                "administer rapid intravenous normal saline fluid bolus as formulary-directed and initiate inotrope infusion if refractory",
+            ),
+            (
+                "cerebrospinal fluid analysis reveals elevated white blood cells, low glucose, AND gram-positive cocci in pairs",
+                "diagnose pneumococcal meningitis, administer intravenous vancomycin and cefotaxime as formulary-directed, and consult neurology",
+            ),
+            (
+                "the febrile infant develops acute respiratory failure requiring mechanical airway protection",
+                "proceed with endotracheal intubation using age-appropriate uncuffed or microcuffed tube under expert supervision",
+            ),
+            (
+                "the infant exhibits severe dehydration secondary to fever and refusal to feed",
+                "administer intravenous fluid replacement as formulary-directed and monitor electrolyte balance closely",
+            ),
+            (
+                "prolonged fever of five days or longer is accompanied by conjunctival injection, strawberry tongue, AND rash",
+                "evaluate for Kawasaki disease, obtain echocardiogram, and administer intravenous immunoglobulin as formulary-directed",
+            ),
+            (
+                "severe acute hyponatremia is discovered on serum electrolyte panel in a febrile infant",
+                "correct hyponatremia with monitored hypertonic or isotonic fluids as formulary-directed to prevent hyponatremic seizures",
+            ),
+            (
+                "the infant exhibits persistent hypothermia rather than fever with marked lethargy and hypoglycemia",
+                "recognise severe sepsis or metabolic crisis, warm infant externally, correct hypoglycemia, and initiate antibiotics",
+            ),
+            (
+                "laboratory markers reveal markedly elevated C-reactive protein or procalcitonin above high-risk cutoffs",
+                "escalate level of monitoring, admit to high-dependency unit, and continue parenteral antimicrobial therapy",
+            ),
+            (
+                "viral pathogen is identified on rapid multiplex testing AND infant remains completely well-appearing",
+                "re-evaluate necessity of ongoing parenteral antibiotics in consultation with paediatric infectious disease team",
+            ),
+        ],
+    },
+    {
+        "syndrome": "severe_malaria",
+        "population": "adult",
+        "doc_id": "EMERG_MALARIA",
+        "filename": "severe_malaria.md",
+        "title": "Emergency Protocol: Severe Falciparum Malaria Management (SYNTHETIC)",
+        "section": "Severe Falciparum Malaria Management",
+        "chunk_prefix": "MALARIA_01",
+        "nodes": [
+            (
+                "the patient presents with confirmed or suspected malaria AND altered consciousness or coma",
+                "diagnose cerebral malaria, secure airway, obtain blood parasitemia smear, and start intravenous artesunate immediately",
+            ),
+            (
+                "severe malaria is confirmed with hyperparasitemia, severe anemia, OR acute organ dysfunction",
+                "administer intravenous artesunate as formulary-directed at zero, twelve, and twenty-four hours",
+            ),
+            (
+                "intravenous artesunate is unavailable in the emergency treatment facility",
+                "administer intramuscular artemether or intravenous quinine infusion as formulary-directed under continuous cardiac monitoring",
+            ),
+            (
+                "the patient with severe malaria exhibits capillary blood glucose below threshold",
+                "administer immediate intravenous concentrated dextrose bolus as formulary-directed and monitor glucose hourly",
+            ),
+            (
+                "acute respiratory distress with non-cardiogenic pulmonary oedema develops in severe malaria",
+                "avoid excessive fluid administration, apply positive pressure ventilation, and consider hemodialysis for volume control",
+            ),
+            (
+                "acute kidney injury with oliguria and elevated creatinine develops in severe falciparum infection",
+                "initiate renal replacement therapy and adjust concurrent medication dosages for impaired clearance",
+            ),
+            (
+                "severe malarial anemia with hemoglobin critically depressed AND hemodynamic compromise is present",
+                "administer emergency transfusion of screened packed red blood cells as formulary-directed",
+            ),
+            (
+                "spontaneous mucosal bleeding or disseminated intravascular coagulation is identified",
+                "administer fresh frozen plasma and platelets as formulary-directed for active clinical hemorrhage",
+            ),
+            (
+                "black tea-colored urine with intravascular hemolysis (blackwater fever) is observed",
+                "maintain adequate hydration, monitor renal function, and consult nephrology for potential dialysis",
+            ),
+        ],
+    },
+    {
+        "syndrome": "severe_malaria",
+        "population": "adult",
+        "doc_id": "ESCAL_MALARIA",
+        "filename": "cerebral_malaria_escalation.md",
+        "title": "Emergency Protocol: Cerebral Malaria & Complicated Parasitemia Escalation (SYNTHETIC)",
+        "section": "Cerebral Malaria & Complicated Parasitemia Escalation",
+        "chunk_prefix": "MALARIA_ESCAL_01",
+        "nodes": [
+            (
+                "the cerebral malaria patient experiences recurrent generalized motor seizures",
+                "administer intravenous benzodiazepine as formulary-directed and initiate prophylactic antiepileptic therapy",
+            ),
+            (
+                "hypotension and shock develop in severe malaria (algid malaria) with poor peripheral perfusion",
+                "administer cautious intravenous crystalloid bolus, evaluate for secondary bacterial sepsis, and start broad-spectrum antibiotics",
+            ),
+            (
+                "severe lactic acidosis with deep acidotic breathing complicates severe malaria infection",
+                "optimize oxygen delivery, maintain microvascular perfusion with cautious fluids, and avoid sodium bicarbonate",
+            ),
+            (
+                "post-artesunate delayed hemolysis develops two to three weeks after completion of intravenous therapy",
+                "check serial hemoglobin, haptoglobin, and reticulocyte count, and transfuse packed red blood cells if indicated",
+            ),
+            (
+                "the patient recovers full consciousness and is able to swallow oral medications reliably",
+                "complete malaria eradication therapy with a full course of oral artemisinin-based combination therapy as formulary-directed",
+            ),
+            (
+                "concomitant bacterial bloodstream co-infection is suspected with high fever and septic shock",
+                "administer intravenous third-generation cephalosporin as formulary-directed concurrently with antimalarial therapy",
+            ),
+            (
+                "severe jaundice with deep scleral icterus develops in the setting of severe hemolysis and hepatic injury",
+                "monitor liver function tests, coagulation parameters, and avoid hepatotoxic medications",
+            ),
+            (
+                "refractory coma persists despite clearance of peripheral blood parasitemia",
+                "perform non-contrast cranial computed tomography scan and evaluate for intracranial hemorrhage or ischemic stroke",
+            ),
+            (
+                "pregnancy complicates severe malaria presentation in any trimester",
+                "administer intravenous artesunate as formulary-directed without delay as maternal benefit outweighs potential risks",
+            ),
+        ],
+    },
+    {
+        "syndrome": "dengue_warning_signs",
+        "population": "adult",
+        "doc_id": "EMERG_DENGUE",
+        "filename": "dengue_warning_signs.md",
+        "title": "Emergency Protocol: Dengue with Warning Signs & Severe Dengue Screening (SYNTHETIC)",
+        "section": "Dengue with Warning Signs & Severe Dengue Screening",
+        "chunk_prefix": "DENGUE_01",
+        "nodes": [
+            (
+                "the patient with suspected dengue exhibits severe abdominal pain, persistent vomiting, OR mucosal bleeding",
+                "diagnose dengue with warning signs, obtain baseline hematocrit and platelet count, and admit for monitored hydration",
+            ),
+            (
+                "the patient exhibits plasma leakage with rising hematocrit, pleural effusion, OR clinical ascites",
+                "initiate titrated intravenous crystalloid fluid infusion as formulary-directed matching hourly fluid loss",
+            ),
+            (
+                "the patient enters dengue shock syndrome with narrow pulse pressure, tachycardia, AND cold extremities",
+                "administer rapid intravenous isotonic crystalloid bolus as formulary-directed over thirty minutes and re-assess",
+            ),
+            (
+                "shock persists in severe dengue despite initial crystalloid fluid boluses AND hematocrit remains high",
+                "administer intravenous colloid solution as formulary-directed over thirty to sixty minutes under close supervision",
+            ),
+            (
+                "shock persists in severe dengue BUT hematocrit drops precipitously without clinical fluid overload",
+                "suspect severe occult internal bleeding, order emergency crossmatched whole blood or packed red blood cells, and transfuse",
+            ),
+            (
+                "severe thrombocytopenia is documented in a stable dengue patient WITHOUT any clinical hemorrhage",
+                "withhold prophylactic platelet transfusions as they do not prevent bleeding and can cause fluid overload",
+            ),
+            (
+                "the patient exhibits signs of clinical fluid overload with tachypnea, crackles, AND large pleural effusions",
+                "reduce or stop intravenous fluids immediately and administer intravenous loop diuretic if hemodynamically stable",
+            ),
+            (
+                "severe hepatic impairment with transaminases elevated above thousand units develops in severe dengue",
+                "provide supportive care, monitor coagulation and blood glucose, and avoid hepatotoxic analgesics",
+            ),
+            (
+                "the patient complains of severe retro-orbital headache, myalgias, and high fever in dengue",
+                "administer oral paracetamol as formulary-directed and strictly avoid non-steroidal anti-inflammatory drugs and aspirin",
+            ),
+        ],
+    },
+    {
+        "syndrome": "dengue_warning_signs",
+        "population": "adult",
+        "doc_id": "ESCAL_DENGUE",
+        "filename": "severe_dengue_plasma_leakage.md",
+        "title": "Emergency Protocol: Severe Dengue Shock & Refractory Plasma Leakage Escalation (SYNTHETIC)",
+        "section": "Severe Dengue Shock & Refractory Plasma Leakage Escalation",
+        "chunk_prefix": "DENGUE_ESCAL_01",
+        "nodes": [
+            (
+                "refractory dengue shock persists after crystalloid and colloid boluses AND profound vasoplegia is present",
+                "initiate continuous intravenous norepinephrine infusion as formulary-directed while continuing judicious volume titration",
+            ),
+            (
+                "severe gastrointestinal hemorrhage with hematemesis or melena produces circulatory collapse in severe dengue",
+                "administer urgent blood transfusion as formulary-directed and consider therapeutic platelet transfusion for active bleeding",
+            ),
+            (
+                "severe acute respiratory distress syndrome develops secondary to extensive plasma leakage and pulmonary edema",
+                "initiate non-invasive positive pressure ventilation or gentle mechanical ventilation with lung-protective parameters",
+            ),
+            (
+                "the patient enters the convalescent recovery phase with stabilization of vitals and reabsorption of extravasated fluid",
+                "discontinue intravenous fluids promptly to prevent iatrogenic hypervolemia, acute pulmonary edema, and heart failure",
+            ),
+            (
+                "acute myocarditis or pericarditis with conduction abnormalities is detected during severe dengue course",
+                "obtain 12-lead electrocardiogram, bedside echocardiography, and provide supportive cardiovascular care",
+            ),
+            (
+                "acute encephalitis or altered consciousness develops in the setting of severe dengue infection",
+                "perform non-contrast cranial computed tomography scan to exclude intracranial hemorrhage and support airway",
+            ),
+            (
+                "severe metabolic acidosis and profound lactic acid elevation complicate refractory dengue shock",
+                "improve oxygen delivery and microcirculatory perfusion with judicious blood and inotropic support",
+            ),
+            (
+                "the patient develops acute kidney injury secondary to prolonged uncorrected hypovolemic shock",
+                "consult nephrology for gentle continuous renal replacement therapy and avoid aggressive fluid overload",
+            ),
+            (
+                "secondary bacterial bloodstream infection is suspected with resurgence of fever and localized focus",
+                "obtain diagnostic blood cultures and initiate empirical broad-spectrum intravenous antimicrobial therapy",
+            ),
+        ],
+    },
+    {
+        "syndrome": "snakebite",
+        "population": "adult",
+        "doc_id": "EMERG_SNAKEBITE",
+        "filename": "snakebite.md",
+        "title": "Emergency Protocol: Snake Envenomation & Antivenom Administration (SYNTHETIC)",
+        "section": "Snake Envenomation & Antivenom Administration",
+        "chunk_prefix": "SNAKE_01",
+        "nodes": [
+            (
+                "the patient presents with suspected snakebite AND visible fang marks, local swelling, OR systemic symptoms",
+                "immobilize affected limb with a splint at heart level, keep patient calm, and strictly avoid tourniquets or wound incisions",
+            ),
+            (
+                "the twenty-minute whole blood clotting test is non-clotting OR spontaneous systemic bleeding is present",
+                "diagnose systemic hemotoxic envenomation and initiate intravenous polyvalent snake antivenom as formulary-directed",
+            ),
+            (
+                "the patient exhibits progressive neurotoxic symptoms including bilateral ptosis, diplopia, AND bulbar weakness",
+                "diagnose neurotoxic envenomation, administer intravenous antivenom as formulary-directed, and prepare for airway support",
+            ),
+            (
+                "respiratory muscle paralysis, shallow breathing, OR hypoxemia develops in neurotoxic snakebite",
+                "provide immediate bag-valve-mask ventilatory assistance and proceed with definitive endotracheal intubation",
+            ),
+            (
+                "severe early anaphylactoid reaction develops during antivenom infusion with urticaria, coughing, or hypotension",
+                "stop antivenom temporarily, administer intramuscular epinephrine as formulary-directed, and resume antivenom at lower rate",
+            ),
+            (
+                "the neurotoxic envenomation is suspected secondary to elapid cobra bite with prominent neuromuscular junction blockade",
+                "administer intravenous atropine followed by neostigmine as formulary-directed as anticholinesterase trial",
+            ),
+            (
+                "extensive local swelling, blistering, and progressive necrosis spread rapidly past major joints",
+                "monitor limb compartment pressures, elevate limb slightly, and consult general surgery for wound management",
+            ),
+            (
+                "hypotension and shock develop in hemotoxic viper bite secondary to third-spacing and capillary leak",
+                "administer rapid intravenous crystalloid bolus as formulary-directed in addition to adequate antivenom dosing",
+            ),
+            (
+                "the twenty-minute whole blood clotting test remains completely clotted and no neurotoxic or local signs occur after twelve hours",
+                "continue close clinical observation for twenty-four hours before discharging with wound care instructions",
+            ),
+        ],
+    },
+    {
+        "syndrome": "snakebite",
+        "population": "adult",
+        "doc_id": "ESCAL_SNAKEBITE",
+        "filename": "envenomation_neurotoxic_escalation.md",
+        "title": "Emergency Protocol: Refractory Envenomation & Coagulopathy Escalation (SYNTHETIC)",
+        "section": "Refractory Envenomation & Coagulopathy Escalation",
+        "chunk_prefix": "SNAKE_ESCAL_01",
+        "nodes": [
+            (
+                "the twenty-minute whole blood clotting test remains non-clotting six hours after initial antivenom completion",
+                "administer repeat dose of intravenous polyvalent snake antivenom as formulary-directed and re-check clotting test",
+            ),
+            (
+                "severe acute kidney injury with oliguria and dark tea-colored urine develops following viper envenomation",
+                "maintain adequate renal perfusion, avoid nephrotoxic drugs, and initiate hemodialysis for refractory uremia or hyperkalemia",
+            ),
+            (
+                "compartment syndrome is clinically suspected with severe pain on passive stretch, tense compartment, AND paresthesias",
+                "measure direct compartment pressure and ensure full antivenom-induced coagulopathy correction prior to any surgical fasciotomy",
+            ),
+            (
+                "secondary bacterial cellulitis or abscess develops at the bite site forty-eight hours post-envenomation",
+                "obtain wound swab for microbiological culture and initiate targeted broad-spectrum oral or parenteral antibiotics",
+            ),
+            (
+                "severe delayed serum sickness develops five to twelve days after antivenom therapy with fever and arthralgias",
+                "administer a short course of oral antihistamines and corticosteroids as formulary-directed",
+            ),
+            (
+                "severe local tissue necrosis with extensive non-viable skin and subcutaneous tissue is demarcated",
+                "arrange delayed surgical debridement and reconstructive skin grafting after acute envenomation resolves",
+            ),
+            (
+                "the patient develops persistent profound hypotension despite repeated antivenom and crystalloid volume resuscitation",
+                "initiate continuous intravenous norepinephrine infusion as formulary-directed and monitor invasive arterial pressure",
+            ),
+            (
+                "anticholinesterase test with neostigmine demonstrates clear improvement in ptosis and vital capacity",
+                "continue maintenance doses of intravenous or intramuscular neostigmine with atropine as formulary-directed",
+            ),
+            (
+                "active bleeding persists despite repeat antivenom and normalization of coagulation parameters",
+                "administer fresh frozen plasma, cryoprecipitate, or packed red blood cells as formulary-directed for volume support",
+            ),
+        ],
+    },
+    {
+        "syndrome": "organophosphate_poisoning",
+        "population": "adult",
+        "doc_id": "EMERG_ORGANOPHOSPHATE",
+        "filename": "organophosphate_poisoning.md",
+        "title": "Emergency Protocol: Acute Organophosphate & Carbamate Toxicity (SYNTHETIC)",
+        "section": "Acute Organophosphate & Carbamate Toxicity",
+        "chunk_prefix": "OP_01",
+        "nodes": [
+            (
+                "the patient presents with acute organophosphate exposure, pinpoint pupils, diaphoresis, AND severe bronchorrhea",
+                "remove all contaminated clothing, decontaminate skin with soap and water, and wear full personal protective equipment",
+            ),
+            (
+                "the patient exhibits cholinergic crisis with copious bronchial secretions, wheezing, AND bradycardia",
+                "administer intravenous atropine as formulary-directed immediately and double the dose every three to five minutes until secretions dry",
+            ),
+            (
+                "adequate atropinization criteria are fulfilled including clear chest auscultation, heart rate normalized, AND dry axillae",
+                "maintain continuous intravenous atropine infusion as formulary-directed to prevent recrudescence of pulmonary secretions",
+            ),
+            (
+                "the patient has confirmed organophosphate toxicity with prominent neuromuscular weakness or fasciculations",
+                "administer intravenous pralidoxime as formulary-directed as an initial bolus followed by continuous infusion",
+            ),
+            (
+                "the patient presents with pure carbamate poisoning rather than organophosphate exposure",
+                "administer intravenous atropine as formulary-directed for secretions and withhold pralidoxime as carbamylation is spontaneously reversible",
+            ),
+            (
+                "seizure activity or severe agitation occurs during acute organophosphate poisoning",
+                "administer intravenous diazepam or midazolam as formulary-directed for central nervous system protection and seizure termination",
+            ),
+            (
+                "severe respiratory muscle paralysis or depressed level of consciousness impairs spontaneous ventilation",
+                "proceed with emergency endotracheal intubation using non-depolarizing neuromuscular blockers where possible",
+            ),
+            (
+                "succinylcholine is considered for rapid sequence intubation in organophosphate toxicity",
+                "withhold succinylcholine completely as pseudocholinesterase inhibition causes prolonged, life-threatening paralysis",
+            ),
+            (
+                "hypotension develops secondary to excessive vasodilation and bradycardia despite initial atropine dosing",
+                "continue aggressive atropine titration and administer intravenous crystalloid bolus as formulary-directed",
+            ),
+        ],
+    },
+    {
+        "syndrome": "organophosphate_poisoning",
+        "population": "adult",
+        "doc_id": "ESCAL_ORGANOPHOSPHATE",
+        "filename": "cholinergic_crisis_escalation.md",
+        "title": "Emergency Protocol: Cholinergic Crisis & Intermediate Syndrome Escalation (SYNTHETIC)",
+        "section": "Cholinergic Crisis & Intermediate Syndrome Escalation",
+        "chunk_prefix": "OP_ESCAL_01",
+        "nodes": [
+            (
+                "pulmonary bronchorrhea recurs during downward titration of intravenous atropine infusion",
+                "re-bolus intravenous atropine and increase maintenance infusion rate to re-establish dried pulmonary airways",
+            ),
+            (
+                "the patient develops atropine toxicity with hyperthermia, flushed dry skin, delirium, AND absent bowel sounds",
+                "withhold atropine temporarily until toxic anticholinergic signs subside, then resume at reduced maintenance rate",
+            ),
+            (
+                "the patient develops intermediate syndrome with weakness of neck flexors, cranial nerves, AND respiratory muscles",
+                "provide prolonged mechanical ventilatory support, maintain diligent pulmonary hygiene, and provide supportive care",
+            ),
+            (
+                "delayed organophosphate-induced polyneuropathy develops two to four weeks post-exposure with distal motor weakness",
+                "provide physical therapy, orthotic devices, and supportive rehabilitation without repeat oxime therapy",
+            ),
+            (
+                "the patient has co-ingested hydrocarbon solvent vehicle resulting in chemical pneumonitis and hypoxia",
+                "withhold gastric lavage, avoid inducing emesis, apply positive pressure ventilation, and treat hypoxemia",
+            ),
+            (
+                "severe refractory ventricular arrhythmias such as torsades de pointes develop secondary to QT prolongation",
+                "administer intravenous magnesium sulfate as formulary-directed and correct concurrent electrolyte disturbances",
+            ),
+            (
+                "aspiration of gastric contents occurs during initial decontamination or seizure activity",
+                "perform deep tracheal suctioning, provide supplemental oxygen, and administer empirical antibiotics if infection develops",
+            ),
+            (
+                "the patient remains fully stable with dry secretions, clear lungs, and normal pupils twenty-four hours after atropine cessation",
+                "transfer to inpatient medical floor, arrange psychiatric evaluation for intentional ingestion, and observe closely",
+            ),
+            (
+                "persistent tachycardia is present in a patient whose lungs are clear of bronchial secretions",
+                "do not treat tachycardia with beta-blockers as tachycardia is an expected atropine effect and bronchorrhea is the primary target",
+            ),
+        ],
+    },
+    {
+        "syndrome": "paracetamol_overdose",
+        "population": "adult",
+        "doc_id": "EMERG_PARACETAMOL",
+        "filename": "paracetamol_overdose.md",
+        "title": "Emergency Protocol: Acute Paracetamol Overdose & Acetylcysteine Protocol (SYNTHETIC)",
+        "section": "Acute Paracetamol Overdose & Acetylcysteine Protocol",
+        "chunk_prefix": "APAP_01",
+        "nodes": [
+            (
+                "the patient presents within four hours of acute paracetamol ingestion exceeding toxic threshold",
+                "administer oral activated charcoal as formulary-directed if the patient is fully alert and airway is protected",
+            ),
+            (
+                "a timed serum paracetamol concentration measured four hours or later plots above the treatment nomogram nomogram line",
+                "initiate intravenous acetylcysteine infusion as formulary-directed without delay to prevent acute hepatotoxicity",
+            ),
+            (
+                "the patient presents more than eight hours post-ingestion OR the exact ingestion time is unknown and toxic dose suspected",
+                "initiate intravenous acetylcysteine infusion as formulary-directed immediately before serum paracetamol levels return",
+            ),
+            (
+                "the patient develops a non-immunologic anaphylactoid reaction to acetylcysteine with flushing, rash, OR mild wheezing",
+                "pause infusion briefly, administer oral or intravenous antihistamine as formulary-directed, and resume at slower rate",
+            ),
+            (
+                "severe systemic anaphylaxis with hypotension or stridor occurs during acetylcysteine administration",
+                "stop infusion immediately, administer intramuscular epinephrine as formulary-directed, and switch to oral acetylcysteine if feasible",
+            ),
+            (
+                "the patient has ingested a modified-release or extended-release paracetamol formulation",
+                "obtain serial paracetamol levels at four-hour intervals, extend acetylcysteine therapy, and consult clinical toxicology",
+            ),
+            (
+                "the patient presents with repeated supratherapeutic ingestions over twenty-four to forty-eight hours with elevated transaminases",
+                "initiate full-course intravenous acetylcysteine infusion as formulary-directed regardless of single-level nomogram lines",
+            ),
+            (
+                "the initial acetylcysteine regimen is complete BUT serum paracetamol remains detectable OR transaminases remain elevated",
+                "continue intravenous acetylcysteine maintenance infusion as formulary-directed until paracetamol is undetectable and enzymes improve",
+            ),
+            (
+                "the patient presents within two hours of co-ingestion of massive paracetamol and sedative medication",
+                "perform cautious gastric lavage only if airway is definitively protected by endotracheal intubation",
+            ),
+        ],
+    },
+    {
+        "syndrome": "paracetamol_overdose",
+        "population": "adult",
+        "doc_id": "ESCAL_PARACETAMOL",
+        "filename": "delayed_paracetamol_toxicity.md",
+        "title": "Emergency Protocol: Acute Liver Failure & Paracetamol Toxicity Escalation (SYNTHETIC)",
+        "section": "Acute Liver Failure & Paracetamol Toxicity Escalation",
+        "chunk_prefix": "APAP_ESCAL_01",
+        "nodes": [
+            (
+                "the patient develops acute liver failure with severe coagulopathy, jaundice, AND hepatic encephalopathy",
+                "escalate acetylcysteine infusion, admit to intensive care unit, and immediately contact liver transplantation center",
+            ),
+            (
+                "arterial blood gas analysis reveals severe lactic acidosis with arterial pH critically depressed early post-ingestion",
+                "recognise massive mitochondrial toxicity, continue high-dose acetylcysteine, and prepare for emergent continuous hemodialysis",
+            ),
+            (
+                "the patient fulfills King's College criteria for liver transplantation with arterial pH severely depressed after resuscitation",
+                "list for emergency deceased-donor liver transplantation and prepare for emergency transport to specialized liver unit",
+            ),
+            (
+                "acute cerebral edema with intracranial hypertension develops secondary to severe hyperammonemic acute liver failure",
+                "elevate head of bed, administer intravenous hypertonic saline or mannitol as formulary-directed, and monitor intracranial pressure",
+            ),
+            (
+                "severe coagulopathy with international normalized ratio markedly elevated occurs WITHOUT active clinical bleeding",
+                "withhold routine prophylactic fresh frozen plasma transfusions as they obscure coagulation monitoring and transplantation criteria",
+            ),
+            (
+                "acute oliguric renal failure with severe azotemia develops secondary to hepatorenal syndrome or direct tubular injury",
+                "initiate continuous renal replacement therapy and avoid all potential nephrotoxic pharmacological agents",
+            ),
+            (
+                "severe hypoglycemia develops secondary to impaired hepatic gluconeogenesis and glycogen depletion",
+                "administer continuous intravenous hypertonic dextrose infusion as formulary-directed with hourly blood glucose monitoring",
+            ),
+            (
+                "systemic hypotension and profound distributive vasodilation develop in acute paracetamol liver failure",
+                "titrate continuous intravenous norepinephrine infusion as formulary-directed to maintain adequate cerebral perfusion pressure",
+            ),
+            (
+                "secondary bacterial or fungal infection is suspected in acute liver failure with clinical deterioration",
+                "obtain surveillance blood and fluid cultures and initiate empirical broad-spectrum parenteral antimicrobial therapy",
+            ),
+        ],
+    },
+    {
+        "syndrome": "opioid_overdose",
+        "population": "adult",
+        "doc_id": "EMERG_OPIOID",
+        "filename": "opioid_overdose.md",
+        "title": "Emergency Protocol: Acute Opioid Overdose & Naloxone Titration (SYNTHETIC)",
+        "section": "Acute Opioid Overdose & Naloxone Titration",
+        "chunk_prefix": "OPIOID_01",
+        "nodes": [
+            (
+                "the patient presents with coma, pin-point pupils, AND severe respiratory depression with bradypnea or apnoea",
+                "support ventilation with bag-valve-mask high-flow oxygen immediately and administer intravenous or intramuscular naloxone",
+            ),
+            (
+                "intravenous access is unavailable AND the patient remains severely hypoxemic and apnoeic",
+                "administer intranasal or intramuscular naloxone as formulary-directed while continuing bag-valve-mask ventilatory assistance",
+            ),
+            (
+                "spontaneous adequate ventilation fails to resume two to three minutes after initial naloxone administration",
+                "administer repeat escalated dose of naloxone as formulary-directed until spontaneous respiratory effort is restored",
+            ),
+            (
+                "the patient awakens abruptly following naloxone with severe agitation, combativeness, AND acute withdrawal symptoms",
+                "provide verbal reassurance, protect patient and staff safety, and avoid administering additional opioids or sedatives",
+            ),
+            (
+                "the overdose involves a long-acting opioid formulation such as methadone or extended-release oxycodone",
+                "observe patient in monitored setting for at least twelve to twenty-four hours to detect renarcotization as naloxone clears",
+            ),
+            (
+                "the patient develops non-cardiogenic acute pulmonary edema with pink frothy sputum following naloxone reversal",
+                "apply positive pressure ventilation with supplemental oxygen as formulary-directed and avoid excessive diuretic therapy",
+            ),
+            (
+                "the patient requires repeated naloxone boluses to maintain adequate minute ventilation",
+                "initiate continuous intravenous naloxone infusion as formulary-directed with rate titrated to spontaneous respiratory rate",
+            ),
+            (
+                "the patient has co-ingested central nervous system depressants including benzodiazepines or ethanol",
+                "maintain supportive mechanical ventilation and avoid flumazenil as it precipitates intractable refractory seizures",
+            ),
+            (
+                "the patient regains normal alertness, normal respiratory rate, AND requests discharge against medical advice within one hour",
+                "strongly advise continued observation, warn of renarcotization risk, and provide take-home naloxone kit with instructions",
+            ),
+        ],
+    },
+    {
+        "syndrome": "opioid_overdose",
+        "population": "adult",
+        "doc_id": "ESCAL_OPIOID",
+        "filename": "recurrent_opioid_toxicity.md",
+        "title": "Emergency Protocol: Recurrent Opioid Toxicity & Potent Synthetic Opioid Escalation (SYNTHETIC)",
+        "section": "Recurrent Opioid Toxicity & Potent Synthetic Opioid Escalation",
+        "chunk_prefix": "OPIOID_ESCAL_01",
+        "nodes": [
+            (
+                "the overdose involves highly potent synthetic fentanyl analogues requiring massive cumulative naloxone doses",
+                "administer repeated rapid-sequence naloxone boluses as formulary-directed and prepare for early endotracheal intubation",
+            ),
+            (
+                "the patient develops severe chest wall rigidity (wooden chest syndrome) preventing bag-valve-mask ventilation",
+                "administer rapid-acting neuromuscular blocking agent and proceed with immediate endotracheal airway intubation",
+            ),
+            (
+                "profound hypothermia with subnormal core temperature accompanies prolonged unconsciousness in opioid overdose",
+                "initiate active core rewarming with warm fluids and blankets and monitor continuous core body temperature",
+            ),
+            (
+                "rhabdomyolysis and acute kidney injury develop following prolonged immobility and coma",
+                "initiate aggressive intravenous crystalloid hydration, check serum creatine kinase, and monitor urine output closely",
+            ),
+            (
+                "the patient aspirates gastric contents during period of depressed consciousness prior to arrival",
+                "perform deep endotracheal suctioning, apply lung-protective ventilation, and monitor for acute lung injury",
+            ),
+            (
+                "hypoxic-ischemic encephalopathy is suspected with persistent coma despite full reversal of opioid toxidrome",
+                "perform non-contrast cranial computed tomography scan and transfer to intensive care unit for targeted neuroprotection",
+            ),
+            (
+                "the patient is an intentional body packer with multiple ingested drug packets visible on abdominal imaging",
+                "obtain immediate surgical and toxicological consultation, enforce continuous telemetry, and avoid oil-based laxatives",
+            ),
+            (
+                "an ingested drug packet ruptures producing sudden massive overdose, seizures, AND circulatory collapse",
+                "perform emergency endotracheal intubation, initiate high-dose naloxone infusion, and transfer to operating room for laparotomy",
+            ),
+            (
+                "persistent hypotension with vasodilation accompanies synthetic opioid overdose",
+                "administer intravenous crystalloid bolus and titrate intravenous norepinephrine as formulary-directed if fluid-unresponsive",
+            ),
+        ],
+    },
+    {
+        "syndrome": "upper_gi_bleed",
+        "population": "adult",
+        "doc_id": "EMERG_GI_BLEED",
+        "filename": "upper_gi_bleed.md",
+        "title": "Emergency Protocol: Acute Upper Gastrointestinal Hemorrhage (SYNTHETIC)",
+        "section": "Acute Upper Gastrointestinal Hemorrhage",
+        "chunk_prefix": "GI_01",
+        "nodes": [
+            (
+                "the patient presents with acute hematemesis, coffee-ground emesis, melena, AND hemodynamic instability",
+                "establish two large-bore peripheral intravenous lines, initiate crystalloid infusion, and crossmatch packed red blood cells",
+            ),
+            (
+                "the patient exhibits signs of hemorrhagic shock with systolic blood pressure below threshold AND tachycardia",
+                "administer emergency uncrossed or type-specific blood transfusion as formulary-directed and activate massive transfusion protocol",
+            ),
+            (
+                "the patient has a known history of chronic liver disease, cirrhosis, OR portal hypertension",
+                "initiate intravenous octreotide or terlipressin infusion as formulary-directed and administer prophylactic ceftriaxone",
+            ),
+            (
+                "acute upper gastrointestinal hemorrhage is suspected secondary to peptic ulcer disease",
+                "administer high-dose intravenous proton pump inhibitor omeprazole or pantoprazole as formulary-directed",
+            ),
+            (
+                "the patient is actively receiving oral anticoagulant therapy with warfarin AND exhibits severe ongoing hemorrhage",
+                "administer four-factor prothrombin complex concentrate and intravenous vitamin K as formulary-directed for rapid reversal",
+            ),
+            (
+                "the patient is receiving direct oral anticoagulants such as dabigatran, apixaban, OR rivaroxaban",
+                "administer specific reversal agent idarucizumab or andexanet alfa as formulary-directed if life-threatening bleeding persists",
+            ),
+            (
+                "massive ongoing hematemesis produces airway compromise or profound aspiration risk",
+                "perform rapid sequence endotracheal intubation by experienced airway specialist to secure and protect airway",
+            ),
+            (
+                "the patient achieves hemodynamic stabilization following resuscitation AND active bleeding is suspected",
+                "consult gastroenterology for emergent diagnostic and therapeutic upper gastrointestinal endoscopy within twelve hours",
+            ),
+            (
+                "nasogastric tube placement is considered for diagnostic evaluation in suspected upper gastrointestinal bleed",
+                "avoid routine nasogastric lavage as it does not improve clinical outcomes and causes patient discomfort",
+            ),
+        ],
+    },
+    {
+        "syndrome": "upper_gi_bleed",
+        "population": "adult",
+        "doc_id": "ESCAL_GI_BLEED",
+        "filename": "massive_variceal_gi_bleed.md",
+        "title": "Emergency Protocol: Massive Variceal Hemorrhage & Balloon Tamponade Escalation (SYNTHETIC)",
+        "section": "Massive Variceal Hemorrhage & Balloon Tamponade Escalation",
+        "chunk_prefix": "GI_ESCAL_01",
+        "nodes": [
+            (
+                "massive variceal hemorrhage continues unabated despite vasoactive infusions and emergency endoscopic therapy",
+                "insert Sengstaken-Blakemore or Minnesota balloon tamponade tube as formulary-directed as temporary salvage bridge",
+            ),
+            (
+                "balloon tamponade tube is deployed for refractory gastrointestinal bleeding",
+                "ensure prior endotracheal intubation, verify gastric balloon position radiographically, and limit inflation to twenty-four hours",
+            ),
+            (
+                "the patient is in persistent shock with massive transfusion requirement exceeding four units of blood",
+                "activate institutional massive transfusion protocol with balanced one-to-one-to-one ratio of blood, plasma, and platelets",
+            ),
+            (
+                "variceal hemorrhage remains uncontrolled after balloon tamponade and endoscopic failure",
+                "request emergency interventional radiology consultation for salvage transjugular intrahepatic portosystemic shunt",
+            ),
+            (
+                "non-variceal peptic ulcer bleeding is refractory to endoscopic dual therapy with clipping and thermocoagulation",
+                "consult interventional radiology for transcatheter arterial embolisation or general surgery for operative intervention",
+            ),
+            (
+                "severe thrombocytopenia with platelet count critically depressed complicates massive gastrointestinal hemorrhage",
+                "administer therapeutic platelet transfusions as formulary-directed targeting safe hemostatic platelet threshold",
+            ),
+            (
+                "the patient develops severe hepatic encephalopathy during resuscitation for upper gastrointestinal bleeding",
+                "initiate oral or nasogastric lactulose as formulary-directed to evacuate blood from gut and lower ammonia burden",
+            ),
+            (
+                "acute hypocalcemia develops during massive transfusion secondary to citrate anticoagulant binding",
+                "administer intravenous calcium gluconate or calcium chloride as formulary-directed with ionized calcium monitoring",
+            ),
+            (
+                "the patient achieves hemostasis and hemodynamic stability with hemoglobin sustained within safe restrictive target",
+                "maintain restrictive transfusion threshold, avoid over-transfusion, and transition to oral maintenance proton pump inhibitors",
+            ),
+        ],
+    },
+    {
+        "syndrome": "acute_abdomen",
+        "population": "adult",
+        "doc_id": "EMERG_ACUTE_ABDOMEN",
+        "filename": "acute_abdomen.md",
+        "title": "Emergency Protocol: Acute Abdomen & Peritoneal Irritation (SYNTHETIC)",
+        "section": "Acute Abdomen & Peritoneal Irritation",
+        "chunk_prefix": "ABD_01",
+        "nodes": [
+            (
+                "the patient presents with sudden severe abdominal pain, involuntary guarding, AND board-like abdominal rigidity",
+                "diagnose acute peritonitis, place patient on strict nil-per-os status, initiate intravenous fluids, and consult surgery STAT",
+            ),
+            (
+                "free intraperitoneal air is identified on erect chest radiograph or abdominal computed tomography scan",
+                "confirm gastrointestinal tract perforation, administer intravenous broad-spectrum antibiotics, and prepare for emergency laparotomy",
+            ),
+            (
+                "the patient with acute abdomen exhibits rigid involuntary guarding, peritonitis, AND signs of septic shock",
+                "administer rapid intravenous crystalloid bolus as formulary-directed, measure lactate, and start vasopressors if refractory",
+            ),
+            (
+                "the patient is a female of childbearing age presenting with acute lower abdominal or pelvic pain",
+                "obtain immediate urine or serum pregnancy test to rule out ruptured ectopic pregnancy before radiating imaging",
+            ),
+            (
+                "ruptured ectopic pregnancy is suspected with positive pregnancy test, severe pelvic pain, AND free fluid on bedside ultrasound",
+                "activate emergency gynecological surgical team and prepare immediate crossmatched blood transfusion",
+            ),
+            (
+                "the patient presents with acute severe epigastric pain radiating to the back AND serum lipase elevated three-fold",
+                "diagnose acute pancreatitis, initiate goal-directed isotonic crystalloid resuscitation, and avoid routine prophylactic antibiotics",
+            ),
+            (
+                "acute mesenteric ischemia is suspected in an elderly patient with severe abdominal pain out of proportion to physical findings",
+                "obtain emergent computed tomography mesenteric angiography, administer intravenous heparin, and consult vascular surgery",
+            ),
+            (
+                "the patient exhibits signs of acute mechanical bowel obstruction with vomiting, distension, AND obstipation",
+                "insert wide-bore nasogastric tube to low continuous suction, administer intravenous fluids, and obtain abdominal imaging",
+            ),
+            (
+                "the patient complains of severe distress and pain from acute peritonitis",
+                "administer titrated intravenous opioid analgesia as formulary-directed as it relieves suffering without obscuring surgical examination",
+            ),
+        ],
+    },
+    {
+        "syndrome": "acute_abdomen",
+        "population": "adult",
+        "doc_id": "ESCAL_ACUTE_ABDOMEN",
+        "filename": "peritonitis_septic_abdomen.md",
+        "title": "Emergency Protocol: Peritonitis & Intra-Abdominal Sepsis Escalation (SYNTHETIC)",
+        "section": "Peritonitis & Intra-Abdominal Sepsis Escalation",
+        "chunk_prefix": "ABD_ESCAL_01",
+        "nodes": [
+            (
+                "intra-abdominal sepsis is confirmed secondary to perforated viscus or complicated intra-abdominal infection",
+                "administer intravenous piperacillin-tazobactam or carbapenem as formulary-directed covering enteric gram-negative and anaerobic flora",
+            ),
+            (
+                "the patient develops abdominal compartment syndrome with intra-abdominal pressure elevated AND new oliguria",
+                "decompress stomach and rectum with tubes, optimize fluid balance, and prepare for emergency surgical abdominal decompression",
+            ),
+            (
+                "acute appendicitis is suspected with focal right lower quadrant tenderness, fever, AND leukocytosis",
+                "obtain confirmatory ultrasound or computed tomography scan and prepare for laparoscopic or open appendectomy within twelve hours",
+            ),
+            (
+                "acute calculous cholecystitis is complicated by high fever, severe jaundice, AND hypotension (acute cholangitis)",
+                "diagnose ascending cholangitis, initiate broad-spectrum antibiotics, and consult gastroenterology for emergent biliary drainage",
+            ),
+            (
+                "strangulated abdominal wall or groin hernia is identified with severe pain, erythema, and irreducibility",
+                "forbid forceful manual reduction, maintain nil-per-os status, and arrange immediate emergency operative exploration",
+            ),
+            (
+                "extensive intra-abdominal hemorrhage occurs following blunt or penetrating trauma with positive FAST ultrasound",
+                "activate massive transfusion protocol, administer tranexamic acid as formulary-directed, and transport to operating suite",
+            ),
+            (
+                "severe uncompensated metabolic lactic acidosis is present in a patient with suspected ischemic bowel",
+                "avoid mesenteric vasoconstrictors if possible, optimize fluid volume, and proceed with emergency exploratory laparotomy",
+            ),
+            (
+                "the patient has a known abdominal aortic aneurysm presenting with sudden back or flank pain AND syncope",
+                "diagnose ruptured abdominal aortic aneurysm, maintain permissive hypotension, and transfer directly to vascular operating room",
+            ),
+            (
+                "post-operative acute abdomen develops with wound dehiscence or anastomotic leak following recent abdominal surgery",
+                "administer broad-spectrum antibiotics, obtain urgent contrast imaging, and alert primary surgical team immediately",
+            ),
+        ],
+    },
+    {
+        "syndrome": "renal_colic",
+        "population": "adult",
+        "doc_id": "EMERG_RENAL_COLIC",
+        "filename": "renal_colic.md",
+        "title": "Emergency Protocol: Acute Renal Colic & Urolithiasis (SYNTHETIC)",
+        "section": "Acute Renal Colic & Urolithiasis",
+        "chunk_prefix": "COLIC_01",
+        "nodes": [
+            (
+                "the patient presents with sudden severe unilateral flank pain radiating to the groin with microscopic hematuria",
+                "diagnose suspected acute renal colic, establish intravenous access, and provide rapid multimodal analgesia",
+            ),
+            (
+                "the patient has severe acute renal colic pain AND no contraindications to non-steroidal anti-inflammatory drugs",
+                "administer intravenous ketorolac or diclofenac as formulary-directed as first-line analgesic therapy",
+            ),
+            (
+                "the patient has chronic kidney disease, acute renal impairment, OR active peptic ulcer disease",
+                "withhold non-steroidal anti-inflammatory drugs and administer intravenous opioid morphine or fentanyl as formulary-directed",
+            ),
+            (
+                "acute renal colic is accompanied by fever, chills, AND systemic toxicity",
+                "suspect obstructive pyelonephritis with infected stone, obtain emergent blood and urine cultures, and start antibiotics",
+            ),
+            (
+                "infected obstructed renal stone is confirmed on non-contrast computed tomography of kidneys, ureters, and bladder",
+                "consult urology immediately for emergency percutaneous nephrostomy or retrograde ureteral stent placement",
+            ),
+            (
+                "the patient with renal colic has a solitary functioning kidney or bilateral obstructing calculi with anuria",
+                "request emergency urological decompression to prevent irreversible post-renal acute renal failure",
+            ),
+            (
+                "severe nausea and retching accompany acute renal colic pain",
+                "administer intravenous ondansetron or metoclopramide as formulary-directed to control emetic symptoms",
+            ),
+            (
+                "non-contrast computed tomography reveals an uncomplicated distal ureteral stone measuring under six millimeters",
+                "initiate medical expulsive therapy with oral tamsulosin as formulary-directed and arrange outpatient urology clinic review",
+            ),
+            (
+                "the patient achieves complete pain relief with oral analgesics, has normal vital signs, AND no infected stone",
+                "discharge home with oral analgesics, strain urine for stone collection, and provide clear red-flag return precautions",
+            ),
+        ],
+    },
+    {
+        "syndrome": "renal_colic",
+        "population": "adult",
+        "doc_id": "ESCAL_RENAL_COLIC",
+        "filename": "obstructive_pyelonephritis_colic.md",
+        "title": "Emergency Protocol: Obstructive Pyelonephritis & Uroseptic Shock Escalation (SYNTHETIC)",
+        "section": "Obstructive Pyelonephritis & Uroseptic Shock Escalation",
+        "chunk_prefix": "COLIC_ESCAL_01",
+        "nodes": [
+            (
+                "obstructive urosepsis is complicated by severe flank tenderness, rigors, AND elevated lactate (uroseptic shock)",
+                "initiate rapid crystalloid resuscitation, administer broad-spectrum intravenous carbapenem or cephalosporin, and place stent STAT",
+            ),
+            (
+                "the patient remains persistently febrile and toxic forty-eight hours after ureteral stent placement",
+                "obtain repeat contrast imaging to rule out perinephric abscess, stent displacement, or fungal colonization",
+            ),
+            (
+                "renal colic pain is completely refractory to maximal intravenous non-steroidal and opioid analgesia",
+                "consider regional analgesia, continuous intravenous lidocaine infusion as formulary-directed, or urgent urological intervention",
+            ),
+            (
+                "large proximal ureteral stone measuring ten millimeters or greater is identified on imaging",
+                "counsel patient regarding low spontaneous expulsion probability and arrange elective extracorporeal shockwave lithotripsy",
+            ),
+            (
+                "severe acute kidney injury with creatinine elevated markedly occurs in unilateral stone with normal contralateral kidney",
+                "investigate for pre-existing occult contralateral renal disease or bilateral nephrolithiasis",
+            ),
+            (
+                "the patient with suspected renal colic is pregnant and presenting with acute flank pain and hematuria",
+                "obtain renal and pelvic ultrasound as preferred initial imaging modality and avoid non-steroidal anti-inflammatory drugs",
+            ),
+            (
+                "persistent gross hematuria with blood clots causing urinary retention complicates nephrolithiasis",
+                "place three-way Foley catheter, initiate continuous bladder irrigation, and consult urology for clot evacuation",
+            ),
+            (
+                "forniceal rupture with retroperitoneal urinoma is documented on computed tomography scan",
+                "administer intravenous antibiotics, insert ureteral stent for decompression, and monitor for retroperitoneal abscess",
+            ),
+            (
+                "struvite staghorn calculus is identified in a patient with recurrent Proteus urinary tract infections",
+                "administer targeted culture-directed antimicrobial therapy and refer for complete percutaneous nephrolithotomy",
+            ),
+        ],
+    },
+    {
+        "syndrome": "trauma_primary_survey",
+        "population": "adult",
+        "doc_id": "EMERG_TRAUMA",
+        "filename": "trauma_primary_survey.md",
+        "title": "Emergency Protocol: Major Trauma Primary Survey & Resuscitation (SYNTHETIC)",
+        "section": "Major Trauma Primary Survey & Resuscitation",
+        "chunk_prefix": "TRAUMA_01",
+        "nodes": [
+            (
+                "the trauma patient arrives with potential spinal injury following high-energy blunt trauma mechanism",
+                "enforce manual in-line cervical spine stabilization, assess airway patency, and avoid cervical spine movement",
+            ),
+            (
+                "catastrophic external hemorrhage is identified from an extremity during initial trauma assessment",
+                "apply immediate direct pressure and place a commercial arterial tourniquet proximal to wound if bleeding uncontrolled",
+            ),
+            (
+                "the trauma patient presents with snoring, gurgling, or foreign body airway obstruction",
+                "perform jaw-thrust maneuver, clear oral secretions with suction, and insert oropharyngeal or nasopharyngeal airway",
+            ),
+            (
+                "airway compromise, severe facial trauma, or GCS score below eight is identified in major trauma",
+                "perform rapid sequence endotracheal intubation with manual in-line cervical spine stabilization",
+            ),
+            (
+                "the patient exhibits severe respiratory distress, unilateral absent breath sounds, AND hypotension",
+                "diagnose tension pneumothorax and perform immediate needle or finger thoracostomy in fifth intercostal space midaxillary line",
+            ),
+            (
+                "an open sucking chest wound is identified on physical examination of the thorax",
+                "apply a three-sided vented chest seal and perform tube thoracostomy through a separate incision",
+            ),
+            (
+                "massive hemothorax is identified with dullness to percussion AND over one thousand milliliters of blood on chest drainage",
+                "initiate blood transfusion, collect shed blood for autotransfusion, assess for systemic hypoperfusion, and consult cardiothoracic surgery for urgent thoracotomy",
+            ),
+            (
+                "the trauma patient is in hemorrhagic shock with systolic blood pressure below target AND tachycardia",
+                "administer intravenous tranexamic acid within three hours of injury as formulary-directed and initiate balanced blood transfusion",
+            ),
+            (
+                "pelvic ring fracture is suspected with pelvic instability, perineal hematoma, OR severe pelvic pain",
+                "apply commercial pelvic circumferential binder at the level of the greater trochanters and avoid repeat pelvic manipulation",
+            ),
+        ],
+    },
+    {
+        "syndrome": "trauma_primary_survey",
+        "population": "adult",
+        "doc_id": "ESCAL_TRAUMA",
+        "filename": "hemorrhagic_shock_trauma.md",
+        "title": "Emergency Protocol: Hemorrhagic Shock & Damage Control Resuscitation (SYNTHETIC)",
+        "section": "Hemorrhagic Shock & Damage Control Resuscitation",
+        "chunk_prefix": "TRAUMA_ESCAL_01",
+        "nodes": [
+            (
+                "massive transfusion is required in severe trauma with hemodynamic instability unresponsive to initial blood products",
+                "activate institutional massive transfusion protocol delivering packed red blood cells, plasma, and platelets in equal ratio",
+            ),
+            (
+                "trauma-induced coagulopathy with hyperfibrinolysis is documented on viscoelastic rotational thromboelastometry",
+                "administer intravenous cryoprecipitate or fibrinogen concentrate as formulary-directed to restore hemostasis",
+            ),
+            (
+                "pericardial tamponade is identified on extended focused assessment with sonography for trauma with hypotension and distended veins",
+                "perform immediate emergency ultrasound-guided pericardiocentesis or resuscitative thoracotomy if arrest is imminent",
+            ),
+            (
+                "hemoperitoneum is confirmed on ultrasound with persistent hemodynamic instability unresponsive to blood resuscitation",
+                "transport patient directly to operating theater for emergency damage-control exploratory laparotomy",
+            ),
+            (
+                "severe hypothermia develops during trauma resuscitation with core body temperature below threshold",
+                "apply active internal and external rewarming, use blood fluid warmers, and maintain ambient operating room temperature",
+            ),
+            (
+                "severe metabolic acidosis with base deficit widening occurs in lethal triad of trauma resuscitation",
+                "prioritize surgical and interventional hemorrhage control over excessive crystalloid fluid infusion to arrest shock cycle",
+            ),
+            (
+                "the patient suffers traumatic cardiac arrest within ten minutes of penetrating thoracic trauma",
+                "perform immediate emergency department thoracotomy, cross-clamp descending thoracic aorta, and relieve tamponade",
+            ),
+            (
+                "severe pelvic fracture hemorrhage is refractory to pelvic binder application and massive transfusion",
+                "consult interventional radiology for urgent pelvic angioembolization or perform retroperitoneal pelvic packing",
+            ),
+            (
+                "hemodynamic stability is achieved with permissive hypotension systolic target maintained until surgical hemostasis",
+                "avoid excessive crystalloid fluids to prevent clot disruption and hemodilution until definitive surgical control achieved",
+            ),
+        ],
+    },
+    {
+        "syndrome": "head_injury",
+        "population": "adult",
+        "doc_id": "EMERG_HEAD_INJURY",
+        "filename": "head_injury.md",
+        "title": "Emergency Protocol: Acute Severe Traumatic Brain Injury (SYNTHETIC)",
+        "section": "Acute Severe Traumatic Brain Injury",
+        "chunk_prefix": "TBI_01",
+        "nodes": [
+            (
+                "the trauma patient presents with Glasgow Coma Scale score below nine following blunt head injury",
+                "perform rapid sequence endotracheal intubation to protect airway, prevent secondary hypoxia, and stabilize cervical spine",
+            ),
+            (
+                "the head injury patient exhibits systemic arterial hypotension with systolic blood pressure below target threshold",
+                "administer intravenous isotonic crystalloid or blood boluses as formulary-directed to maintain cerebral perfusion pressure",
+            ),
+            (
+                "the patient exhibits signs of acute transtentorial herniation with unilateral dilated unreactive pupil AND decerebrate posturing",
+                "administer intravenous hypertonic saline or mannitol as formulary-directed, induce brief hyperventilation, and alert neurosurgery",
+            ),
+            (
+                "non-contrast cranial computed tomography reveals acute epidural hematoma with midline shift greater than five millimeters",
+                "consult neurosurgery STAT for emergency craniotomy and surgical hematoma evacuation",
+            ),
+            (
+                "the patient exhibits severe acute subdural hematoma with significant mass effect and neurological deterioration",
+                "prepare immediately for emergency neurosurgical decompression and reverse any pre-injury anticoagulant medications",
+            ),
+            (
+                "the head-injured patient develops post-traumatic seizure activity or status epilepticus",
+                "administer intravenous lorazepam followed by intravenous levetiracetam or fosphenytoin as formulary-directed",
+            ),
+            (
+                "prophylactic antiepileptic therapy is considered for severe traumatic brain injury with depressed skull fracture or hemorrhage",
+                "initiate intravenous levetiracetam as formulary-directed for seven days to prevent early post-traumatic seizures",
+            ),
+            (
+                "the patient exhibits open or depressed cranial vault fracture with cerebrospinal fluid leak or brain tissue exposure",
+                "administer intravenous prophylactic broad-spectrum antibiotics, avoid wound probing, and obtain urgent neurosurgical repair",
+            ),
+            (
+                "arterial blood gas analysis reveals hypoxemia with oxygen saturation below target or severe hypercapnia",
+                "adjust mechanical ventilator to maintain normal arterial oxygenation and strictly avoid prolonged prophylactic hyperventilation",
+            ),
+        ],
+    },
+    {
+        "syndrome": "head_injury",
+        "population": "adult",
+        "doc_id": "ESCAL_HEAD_INJURY",
+        "filename": "elevated_icp_head_trauma.md",
+        "title": "Emergency Protocol: Intracranial Hypertension & Cerebral Perfusion Escalation (SYNTHETIC)",
+        "section": "Intracranial Hypertension & Cerebral Perfusion Escalation",
+        "chunk_prefix": "TBI_ESCAL_01",
+        "nodes": [
+            (
+                "intracranial pressure monitoring reveals sustained intracranial pressure elevated above twenty millimeters of mercury",
+                "elevate head of bed thirty degrees, ensure neutral neck alignment, and administer intravenous hypertonic saline bolus",
+            ),
+            (
+                "intracranial hypertension remains refractory to first-tier osmotherapy and head elevation",
+                "administer continuous deep intravenous sedation and neuromuscular blockade as formulary-directed under neurointensive care",
+            ),
+            (
+                "refractory intracranial hypertension persists despite maximal medical osmotherapy and sedation",
+                "consult neurosurgery for emergency decompressive hemicraniectomy or external ventricular drain CSF drainage",
+            ),
+            (
+                "the patient is receiving oral anticoagulant warfarin AND presents with acute traumatic intracranial hemorrhage",
+                "administer four-factor prothrombin complex concentrate and intravenous vitamin K as formulary-directed for emergent reversal",
+            ),
+            (
+                "the patient is receiving oral direct factor Xa inhibitors and presents with traumatic intracranial hemorrhage",
+                "administer specific reversal agent andexanet alfa or four-factor prothrombin complex concentrate as formulary-directed",
+            ),
+            (
+                "fever is documented in the severe traumatic brain injury patient during intensive care management",
+                "enforce strict normothermia with antipyretics and surface cooling devices to minimize secondary metabolic cerebral injury",
+            ),
+            (
+                "severe hyperglycemia or hypoglycemia is detected on routine blood glucose surveillance",
+                "initiate continuous insulin infusion or dextrose titration as formulary-directed to maintain strict euglycemia",
+            ),
+            (
+                "paroxysmal sympathetic hyperactivity with tachycardia, hypertension, tachypnea, AND dystonia develops",
+                "administer oral or enteral propranolol, clonidine, or bromocriptine as formulary-directed for sympathetic storming",
+            ),
+            (
+                "diabetes insipidus develops following traumatic brain injury with sudden massive polyuria and hypernatremia",
+                "administer intravenous or subcutaneous desmopressin as formulary-directed and replace urinary free water losses",
+            ),
+        ],
+    },
+    {
+        "syndrome": "burns",
+        "population": "adult",
+        "doc_id": "EMERG_BURNS",
+        "filename": "burns.md",
+        "title": "Emergency Protocol: Major Thermal Burns & Inhalation Injury (SYNTHETIC)",
+        "section": "Major Thermal Burns & Inhalation Injury",
+        "chunk_prefix": "BURNS_01",
+        "nodes": [
+            (
+                "the patient presents with thermal burns involving fire in an enclosed space, singed facial hair, AND voice hoarseness",
+                "suspect acute inhalation injury, perform immediate airway assessment, and secure endotracheal intubation before airway edema closes glottis",
+            ),
+            (
+                "the patient has partial or full-thickness burns covering twenty percent or greater total body surface area",
+                "establish two large-bore intravenous lines, initiate fluid resuscitation using the Parkland formula with Ringer's lactate, and assess for systemic hypoperfusion",
+            ),
+            (
+                "urine output falls below age-appropriate target during initial burn shock fluid resuscitation",
+                "increase intravenous crystalloid infusion rate by twenty percent hourly as formulary-directed until target urine output restored",
+            ),
+            (
+                "urine output significantly exceeds target threshold during burn shock resuscitation",
+                "decrease intravenous crystalloid infusion rate by twenty percent hourly to avoid over-resuscitation and fluid creep",
+            ),
+            (
+                "circumferential full-thickness burns of the extremities produce loss of distal pulses and cyanosis",
+                "perform immediate bedside surgical escharotomy along the medial and lateral lines of the limb to restore circulation",
+            ),
+            (
+                "circumferential full-thickness burns of the chest compromise ventilatory expansion producing severe hypoventilation",
+                "perform immediate emergency chest wall escharotomy along the anterior axillary lines and subcostal margins",
+            ),
+            (
+                "carbon monoxide toxicity is suspected with burn in closed space, confusion, and elevated carboxyhemoglobin",
+                "administer hundred percent high-flow normobaric oxygen via tight non-rebreather mask and evaluate for hyperbaric oxygen",
+            ),
+            (
+                "cyanide toxicity is suspected in closed-space fire victim with profound unexplained lactic acidosis and coma",
+                "administer intravenous hydroxocobalamin as formulary-directed immediately as specific cyanide antidote",
+            ),
+            (
+                "burn wounds are evaluated in the emergency resuscitation bay following initial trauma survey",
+                "cover burn areas with clean dry sterile sheets, avoid cold water application on extensive burns, and maintain core temperature",
+            ),
+        ],
+    },
+    {
+        "syndrome": "burns",
+        "population": "adult",
+        "doc_id": "ESCAL_BURNS",
+        "filename": "major_inhalation_burns.md",
+        "title": "Emergency Protocol: Burn Shock & Inhalation Trauma Escalation (SYNTHETIC)",
+        "section": "Burn Shock & Inhalation Trauma Escalation",
+        "chunk_prefix": "BURNS_ESCAL_01",
+        "nodes": [
+            (
+                "intra-abdominal hypertension or abdominal compartment syndrome develops during massive fluid resuscitation for burns",
+                "measure bladder pressure, reduce fluid infusion rate, place nasogastric and rectal tubes, and prepare for decompression",
+            ),
+            (
+                "severe acute respiratory distress syndrome with severe hypoxemia develops secondary to chemical inhalation trauma",
+                "initiate lung-protective mechanical ventilation, apply inhaled bronchodilators and heparin-acetylcysteine as formulary-directed",
+            ),
+            (
+                "severe hypothermia develops during emergency burn care secondary to loss of skin barrier function",
+                "apply active warming blankets, warm all intravenous fluids, and increase ambient room temperature above thirty degrees",
+            ),
+            (
+                "severe burn pain causes intense distress, tachycardia, and hypertension in an alert patient",
+                "administer titrated intravenous opioid fentanyl or morphine as formulary-directed and avoid intramuscular injections",
+            ),
+            (
+                "high-voltage electrical burn is identified with deep entry and exit wounds",
+                "monitor continuous cardiac telemetry, hydrate aggressively targeting high urine output, and monitor for myoglobinuria",
+            ),
+            (
+                "chemical burn exposure is identified with ongoing skin contamination from industrial agent",
+                "perform copious continuous water irrigation for at least thirty minutes and consult regional poison control center",
+            ),
+            (
+                "severe burn wound sepsis is suspected forty-eight hours post-injury with focal black discoloration and shock",
+                "obtain quantitative wound biopsy cultures, debride non-viable tissue, and start broad-spectrum intravenous antimicrobials",
+            ),
+            (
+                "burn shock fluid resuscitation produces progressive severe facial, conjunctival, and oropharyngeal edema",
+                "keep endotracheal tube secured with umbilical tape around neck and strictly avoid taping to burned facial skin",
+            ),
+            (
+                "the major burn patient is stabilized and transfer to a verified regional burn center is arranged",
+                "communicate total fluid administered, maintain warm transport environment, and provide comprehensive transfer records",
+            ),
+        ],
+    },
+    {
+        "syndrome": "copd_exacerbation",
+        "population": "adult",
+        "doc_id": "EMERG_COPD",
+        "filename": "copd_exacerbation.md",
+        "title": "Emergency Protocol: Acute Chronic Obstructive Pulmonary Disease Exacerbation (SYNTHETIC)",
+        "section": "Acute Chronic Obstructive Pulmonary Disease Exacerbation",
+        "chunk_prefix": "COPD_01",
+        "nodes": [
+            (
+                "the patient presents with acute worsening dyspnea, increased sputum volume, AND purulence in chronic lung disease",
+                "administer inhaled short-acting beta-agonists and anticholinergics via nebulizer and apply controlled supplemental oxygen",
+            ),
+            (
+                "supplemental oxygen is initiated in an acute exacerbation of chronic obstructive pulmonary disease",
+                "titrate oxygen via Venturi mask targeting oxygen saturation between eighty-eight and ninety-two percent to prevent hypercapnia",
+            ),
+            (
+                "acute respiratory acidosis with arterial pH depressed and hypercapnia persists despite initial nebulisation",
+                "initiate non-invasive positive pressure ventilation with bi-level airway pressure under continuous monitoring",
+            ),
+            (
+                "the patient exhibits signs of acute infective exacerbation with purulent sputum and systemic fever",
+                "administer targeted oral or intravenous antimicrobial therapy as formulary-directed covering respiratory pathogens",
+            ),
+            (
+                "the patient presents with moderate to severe acute chronic obstructive pulmonary disease exacerbation",
+                "administer oral or intravenous systemic corticosteroid prednisolone or methylprednisolone as formulary-directed for five days",
+            ),
+            (
+                "the patient fails non-invasive ventilation with worsening respiratory exhaustion, coma, OR hemodynamic instability",
+                "proceed with emergency endotracheal intubation and mechanical ventilation with prolonged expiratory time to avoid auto-PEEP",
+            ),
+            (
+                "the patient develops sudden unilateral pleuritic chest pain AND acute worsening dyspnea during exacerbation",
+                "obtain immediate chest radiograph to rule out spontaneous secondary pneumothorax from ruptured bulla",
+            ),
+            (
+                "severe dynamic hyperinflation (auto-PEEP) with profound hypotension develops during mechanical ventilation",
+                "disconnect endotracheal tube briefly to allow full passive expiration and reduce ventilatory minute volume",
+            ),
+            (
+                "the patient with severe chronic obstructive pulmonary disease exacerbation is recovering and preparing for step-down",
+                "evaluate inhaler technique, optimize maintenance long-acting bronchodilator therapy, and arrange pulmonary rehabilitation",
+            ),
+        ],
+    },
+    {
+        "syndrome": "copd_exacerbation",
+        "population": "adult",
+        "doc_id": "ESCAL_COPD",
+        "filename": "hypercapnic_respiratory_failure.md",
+        "title": "Emergency Protocol: Hypercapnic Respiratory Failure & Non-Invasive Ventilation Escalation (SYNTHETIC)",
+        "section": "Hypercapnic Respiratory Failure & Non-Invasive Ventilation Escalation",
+        "chunk_prefix": "COPD_ESCAL_01",
+        "nodes": [
+            (
+                "the patient on non-invasive positive pressure ventilation exhibits worsening respiratory acidosis at one-hour check",
+                "increase inspiratory positive airway pressure by two to three centimeters of water as formulary-directed and re-check gas",
+            ),
+            (
+                "the patient on non-invasive ventilation develops severe facial skin breakdown or gastric distension",
+                "adjust mask interface cushion, insert venting nasogastric tube, and optimize humidification",
+            ),
+            (
+                "concurrent acute pulmonary embolism is suspected in an acute exacerbation with refractory hypoxemia without sputum",
+                "obtain computed tomography pulmonary angiography or ventilation-perfusion scan and initiate anticoagulation if confirmed",
+            ),
+            (
+                "acute cor pulmonale with peripheral edema, elevated jugular venous pressure, AND hepatic congestion is present",
+                "cautiously optimize fluid balance, avoid over-diuresis that worsens renal perfusion, and treat hypoxemia",
+            ),
+            (
+                "severe unmanageable agitation impairs tolerance of non-invasive positive pressure mask interface",
+                "provide bedside clinician reassurance and consider low-dose intravenous dexmedetomidine as formulary-directed",
+            ),
+            (
+                "the mechanically ventilated chronic obstructive pulmonary disease patient is being prepared for liberation",
+                "perform spontaneous breathing trial with low pressure support and transition directly to non-invasive ventilation upon extubation",
+            ),
+            (
+                "the patient develops significant cardiac arrhythmia associated with frequent beta-agonist administration and hypokalemia",
+                "monitor serum potassium and magnesium, correct deficits, and reduce beta-agonist frequency where clinically feasible",
+            ),
+            (
+                "secondary polycythemia with hematocrit severely elevated is noted in chronic hypoxemic lung disease",
+                "optimize continuous long-term oxygen therapy and ensure adequate oral and intravenous hydration",
+            ),
+            (
+                "the patient achieves clinical stability with normalized pH and safe oxygenation on room air or baseline oxygen",
+                "transition from acute nebulisation to metered-dose inhalers with spacer device and provide action plan",
+            ),
+        ],
+    },
+    {
+        "syndrome": "severe_pneumonia",
+        "population": "adult",
+        "doc_id": "EMERG_PNEUMONIA",
+        "filename": "severe_pneumonia.md",
+        "title": "Emergency Protocol: Severe Community-Acquired Pneumonia (SYNTHETIC)",
+        "section": "Severe Community-Acquired Pneumonia",
+        "chunk_prefix": "PNEUM_01",
+        "nodes": [
+            (
+                "the adult patient presents with fever, productive cough, pleuritic pain, AND focal crackles on auscultation",
+                "obtain chest radiograph, blood and sputum cultures, and assess validated clinical pneumonia severity score",
+            ),
+            (
+                "the patient meets criteria for severe community-acquired pneumonia with respiratory failure OR septic shock",
+                "admit to intensive care unit and initiate empirical intravenous beta-lactam plus macrolide or respiratory fluoroquinolone",
+            ),
+            (
+                "hypoxemia with oxygen saturation below target AND marked tachypnea, respiratory distress are present in acute severe pneumonia",
+                "apply supplemental oxygen via nasal cannula or high-flow nasal cannula targeting oxygen saturation within target range",
+            ),
+            (
+                "hypotension with systolic blood pressure below threshold is documented in severe pneumonia",
+                "administer rapid intravenous crystalloid fluid bolus as formulary-directed and start norepinephrine if fluid-unresponsive",
+            ),
+            (
+                "the patient has risk factors for methicillin-resistant Staphylococcus aureus including prior colonization",
+                "add intravenous vancomycin or linezolid as formulary-directed to empirical antimicrobial regimen",
+            ),
+            (
+                "the patient has risk factors for Pseudomonas aeruginosa including severe structural lung disease",
+                "utilize an antipseudomonal beta-lactam such as piperacillin-tazobactam or cefepime as formulary-directed",
+            ),
+            (
+                "a significant unilateral pleural effusion is identified on imaging in severe pneumonia",
+                "perform diagnostic thoracentesis to differentiate simple parapneumonic effusion from complicated empyema requiring tube thoracostomy",
+            ),
+            (
+                "severe acute respiratory exhaustion and severe work of breathing persist despite high-flow nasal cannula",
+                "proceed with emergency endotracheal intubation and lung-protective mechanical ventilation",
+            ),
+            (
+                "Legionella pneumophila infection is suspected with high fever, relative bradycardia, hyponatremia, AND diarrhea",
+                "send urinary antigen test and ensure macrolide or fluoroquinolone coverage is actively included in regimen",
+            ),
+        ],
+    },
+    {
+        "syndrome": "severe_pneumonia",
+        "population": "adult",
+        "doc_id": "ESCAL_PNEUMONIA",
+        "filename": "hypoxemic_ards_pneumonia.md",
+        "hypoxia_keyword": True,
+        "title": "Emergency Protocol: Pneumonia with Acute Respiratory Distress Syndrome Escalation (SYNTHETIC)",
+        "section": "Pneumonia with Acute Respiratory Distress Syndrome Escalation",
+        "chunk_prefix": "PNEUM_ESCAL_01",
+        "nodes": [
+            (
+                "bilateral pulmonary infiltrates with severe hypoxemia develop within one week of severe pneumonia onset",
+                "diagnose acute respiratory distress syndrome and initiate lung-protective mechanical ventilation with six milliliters per kilogram",
+            ),
+            (
+                "severe hypoxemic acute respiratory distress syndrome persists with PaO2 to FiO2 ratio below one hundred and fifty",
+                "place mechanically ventilated patient in prone position for at least sixteen consecutive hours daily",
+            ),
+            (
+                "refractory ventilator dyssynchrony and high plateau pressures persist despite deep sedation",
+                "administer continuous intravenous neuromuscular blockade infusion as formulary-directed for up to forty-eight hours",
+            ),
+            (
+                "empyema is confirmed on pleural fluid analysis with positive gram stain, pH below seven point two, OR purulent fluid",
+                "place large-bore chest tube for complete pleural drainage and consult thoracic surgery for video-assisted thoracoscopic surgery",
+            ),
+            (
+                "acute lung abscess with air-fluid cavity develops in necrotizing bacterial or aspiration pneumonia",
+                "continue prolonged targeted parenteral antibiotic therapy and avoid routine percutaneous drainage due to bronchopleural fistula risk",
+            ),
+            (
+                "profound septic shock with multi-organ dysfunction complicates severe bacterial pneumonia",
+                "adhere to international surviving sepsis guidelines with hydrocortisone and vasopressor titration as formulary-directed",
+            ),
+            (
+                "viral pandemic influenza or coronavirus is confirmed as primary cause of severe pneumonia and respiratory failure",
+                "administer targeted oral or intravenous antiviral therapy as formulary-directed and enforce airborne infection precautions",
+            ),
+            (
+                "refractory hypoxemia persists in severe acute respiratory distress syndrome despite proning and maximal ventilatory support",
+                "evaluate for emergent veno-venous extracorporeal membrane oxygenation retrieval by specialized extracorporeal team",
+            ),
+            (
+                "clinical improvement with defervescence, radiographic clearance, and extubation is achieved in severe pneumonia",
+                "complete five to seven days of targeted antimicrobial therapy, de-escalate based on cultures, and arrange outpatient review",
+            ),
+        ],
+    },
+]
+
+
+def generate_protocol_markdown(
+    spec: dict[str, Any],
+    seed: int,
+    data_dir: Path,
+) -> str:
+    """Generate deterministic markdown content for a protocol specification from seed."""
+    _rng = random.Random(f"{seed}:{spec['doc_id']}")
+
+    frontmatter_dict = {
+        "doc_id": spec["doc_id"],
+        "title": spec["title"],
+        "section": spec["section"],
+        "population": spec["population"],
+        "syndrome": spec["syndrome"],
+        "chunk_id": spec["chunk_prefix"],
+        "synthetic": True,
+        "version": "1.0.0",
+        "license": "synthetic",
+        "license_tag": "synthetic",
+        "attribution": "TriageRAG Synthetic Research Corpus",
+        "source_url": None,
+        "retrieved_at": None,
+        "reviewed_by": None,
+        "status": "PLACEHOLDER_UNRETRIEVED",
+    }
+
+    fm_yaml = yaml.dump(frontmatter_dict, sort_keys=False, default_flow_style=False).strip()
+
+    body_lines: list[str] = [
+        "---",
+        fm_yaml,
+        "---",
+        "",
+        f"# {spec['title']}",
+        "",
+        "> **DISCLAIMER:** Research prototype. Synthetic protocol text only. Not for clinical use. NO numeric doses.",
+        "",
+        f"## {spec['section']}",
+    ]
+
+    for idx, (condition, action) in enumerate(spec["nodes"], start=1):
+        doc_hash = int(hashlib.sha256(spec["doc_id"].encode()).hexdigest(), 16)
+        if (
+            idx == 7
+            and spec["doc_id"].startswith("EMERG_")
+            and (doc_hash % 2 == 0)
+            and "tachycardia" not in condition.lower()
+            and "tachycardia" not in action.lower()
+        ):
+            action = f"{action}. Assess for clinical signs of end-organ hypoperfusion"
+        body_lines.append(f"{idx}. IF {condition}:")
+        body_lines.append(f"   THEN {action}.")
+
+    body_lines.append("")
+    return "\n".join(body_lines)
+
+
+def generate_all_protocols(
+    data_dir: Path,
+    seed: int = 42,
+    force: bool = False,
+) -> dict[str, Any]:
+    """Generate all synthetic protocols and update corpus manifest deterministically."""
+    protocols_dir = data_dir / "protocols_synthetic"
+    protocols_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path = data_dir / "corpus" / "manifest.yaml"
+
+    generated_docs: list[dict[str, Any]] = []
+    generated_files: list[Path] = []
+
+    # 1. Read existing manifest to preserve manual protocols
+    existing_manifest: dict[str, Any] = {}
+    if manifest_path.exists():
+        existing_manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+
+    manual_entries: list[dict[str, Any]] = []
+    for doc in existing_manifest.get("documents", []):
+        filename = Path(doc["path"]).name
+        if filename in MANUAL_PROTOCOLS:
+            manual_entries.append(doc)
+
+    # 2. Generate each protocol file
+    for spec in SYNDROME_SPECS:
+        filename = spec["filename"]
+        if filename in MANUAL_PROTOCOLS:
+            if not force:
+                continue
+            raise RuntimeError(
+                f"Refusing to overwrite manual protocol file '{filename}' without permission"
+            )
+
+        md_path = protocols_dir / filename
+        content = generate_protocol_markdown(spec, seed, data_dir)
+        md_path.write_text(content, encoding="utf-8")
+        generated_files.append(md_path)
+
+        parsed_chunks = chunk_protocol_markdown(content, source_path=md_path)
+        content_hash = parsed_chunks[0].content_hash
+        manifest_entry = {
+            "doc_id": spec["doc_id"],
+            "title": spec["title"],
+            "path": f"protocols_synthetic/{filename}",
+            "population": spec["population"],
+            "syndrome": spec["syndrome"],
+            "synthetic": True,
+            "license": "synthetic",
+            "attribution": "TriageRAG Synthetic Research Corpus",
+            "source_url": None,
+            "version": "1.0.0",
+            "retrieved_at": None,
+            "content_hash": content_hash,
+            "reviewed_by": None,
+            "status": "PLACEHOLDER_UNRETRIEVED",
+        }
+        generated_docs.append(manifest_entry)
+
+    # 3. Assemble combined manifest
+    all_documents = manual_entries + generated_docs
+    # Sort documents deterministically by doc_id
+    all_documents = sorted(all_documents, key=lambda d: d["doc_id"])
+
+    # Recompute controlled syndromes
+    all_syndromes = sorted({d["syndrome"] for d in all_documents})
+
+    syndrome_aliases = dict(existing_manifest.get("syndrome_aliases", {}))
+    # Add aliases for Section 13 entries
+    standard_aliases = {
+        "paediatric_sepsis_screen": "paediatric_sepsis",
+        "acs": "acute_coronary_syndrome",
+        "stemi": "acute_coronary_syndrome",
+        "stemi_nstemi": "acute_coronary_syndrome",
+        "asthma": "severe_asthma",
+        "encephalopathy": "altered_mental_status",
+        "ams": "altered_mental_status",
+        "septic_shock": "septic_shock_adult",
+        "shock_adult": "septic_shock_adult",
+        "pulmonary_edema": "acute_pulmonary_oedema",
+        "pulmonary_oedema": "acute_pulmonary_oedema",
+        "apo": "acute_pulmonary_oedema",
+        "status_epilepticus": "seizure_status_epilepticus",
+        "seizure": "seizure_status_epilepticus",
+        "dka": "dka_hhs",
+        "hhs": "dka_hhs",
+        "gi_bleed": "upper_gi_bleed",
+        "colic": "renal_colic",
+        "trauma": "trauma_primary_survey",
+        "tbi": "head_injury",
+        "copd": "copd_exacerbation",
+        "pneumonia": "severe_pneumonia",
+        "meningitis": "acute_meningitis",
+        "heat_stroke": "heat_stroke",
+        "compartment_syndrome": "acute_limb_ischemia",
+        "limb_ischemia": "acute_limb_ischemia",
+    }
+    for k, v in standard_aliases.items():
+        if k not in syndrome_aliases and v in all_syndromes:
+            syndrome_aliases[k] = v
+
+    manifest_data = {
+        "manifest_version": "1.0.0",
+        "generator_seed": seed,
+        "controlled_syndromes": all_syndromes,
+        "syndrome_aliases": syndrome_aliases,
+        "documents": all_documents,
+    }
+
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(
+        yaml.dump(manifest_data, sort_keys=False, default_flow_style=False),
+        encoding="utf-8",
+    )
+
+    return {
+        "seed": seed,
+        "total_documents": len(all_documents),
+        "generated_documents": len(generated_docs),
+        "controlled_syndromes": len(all_syndromes),
+        "manifest_path": str(manifest_path),
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Deterministic synthetic protocol generator for TriageRAG."
+    )
+    parser.add_argument(
+        "--seed", type=int, default=42, help="Deterministic generator seed (default: 42)."
+    )
+    parser.add_argument("--data-dir", type=Path, default=None, help="Root clinical data directory.")
+    parser.add_argument(
+        "--force", action="store_true", help="Force overwrite (strictly disallows manual files)."
+    )
+    args = parser.parse_args()
+
+    data_dir = args.data_dir or get_data_dir()
+    summary = generate_all_protocols(data_dir=data_dir, seed=args.seed, force=args.force)
+    print(
+        f"Generated {summary['generated_documents']} synthetic protocols (seed={summary['seed']}):"
+    )
+    print(f"  Total documents in manifest: {summary['total_documents']}")
+    print(f"  Controlled syndromes: {summary['controlled_syndromes']}")
+    print(f"  Manifest updated: {summary['manifest_path']}")
+
+
+if __name__ == "__main__":
+    main()

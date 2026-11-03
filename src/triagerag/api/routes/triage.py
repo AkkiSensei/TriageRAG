@@ -3,18 +3,25 @@
 from __future__ import annotations
 
 import logging
-import os
 import threading
 from typing import Any
 
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 from triagerag.api.schemas import ExplainApiRequest, TriageApiRequest
-from triagerag.config import get_data_dir
-from triagerag.contracts.schemas import OrchestratorConfig, TriageResponse
+from triagerag.config import get_data_dir, get_retrieval_backend
+from triagerag.contracts.schemas import (
+    Alert,
+    OrchestratorConfig,
+    Patient,
+    ProviderMetadata,
+    TriageResponse,
+)
 from triagerag.engine.registry import ClinicalRegistry, load_registry
 from triagerag.llm.fake import FakeLLM
 from triagerag.orchestrator import run_triage
+from triagerag.rag.alert_why import AlertWhyExplanation, explain_alert
 from triagerag.rag.service import RetrievalService
 
 logger = logging.getLogger(__name__)
@@ -34,49 +41,45 @@ def get_cached_registry() -> ClinicalRegistry:
         return _REGISTRY
 
 
-def get_retrieval_service() -> RetrievalService:
+def get_retrieval_service(backend: str | None = None) -> RetrievalService:
     """Return unified thread-safe RetrievalService instance."""
-    return RetrievalService.create_default(get_data_dir())
+    eff_backend = backend or get_retrieval_backend()
+    return RetrievalService.create_default(get_data_dir(), backend=eff_backend)
 
 
 @router.post("", response_model=TriageResponse)
 def execute_triage(request: TriageApiRequest) -> TriageResponse:
     registry = get_cached_registry()
-    retrieval_service = get_retrieval_service()
+    raw_backend = (
+        request.retrieval_backend.value
+        if request.retrieval_backend is not None
+        else get_retrieval_backend()
+    )
+    eff_backend = raw_backend.strip().lower()
+    retrieval_service = get_retrieval_service(eff_backend)
 
-    llm: Any
-    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    if gemini_key and request.llm_profile == "COMPLIANT":
-        try:
-            from triagerag.llm.gemini import GeminiProvider
-
-            llm = GeminiProvider(api_key=gemini_key)
-        except Exception as e:
-            logger.warning("GeminiProvider initialization failed, falling back to FakeLLM: %s", e)
-            llm = FakeLLM(profile=request.llm_profile)
-    else:
-        llm = FakeLLM(profile=request.llm_profile)
+    llm = FakeLLM(profile=request.llm_profile)
+    req_profile = (
+        request.llm_profile.value
+        if hasattr(request.llm_profile, "value")
+        else str(request.llm_profile)
+    )
+    prov_meta = ProviderMetadata(
+        generation_mode="deterministic_mock",
+        requested_profile=req_profile,
+        retrieval_backend=eff_backend,
+    )
 
     patient = request.patient
-    # If suspected_syndrome is missing, infer from clinical narrative if available
-    if not patient.suspected_syndrome and patient.chief_complaint_untrusted:
-        complaint_lower = patient.chief_complaint_untrusted.lower()
-        if any(w in complaint_lower for w in ["chest", "angina", "retrosternal", "substernal"]):
-            patient = patient.model_copy(update={"suspected_syndrome": "chest_pain"})
-        elif any(
-            w in complaint_lower for w in ["anaphyl", "allergic", "urticaria", "hives", "stridor"]
-        ):
-            patient = patient.model_copy(update={"suspected_syndrome": "anaphylaxis"})
-        elif any(w in complaint_lower for w in ["asthma", "wheez", "bronchospasm", "dyspnea"]):
-            patient = patient.model_copy(update={"suspected_syndrome": "severe_asthma"})
-        elif any(w in complaint_lower for w in ["sepsis", "septic", "fever", "rigor"]):
-            patient = patient.model_copy(update={"suspected_syndrome": "paediatric_sepsis"})
-        elif any(w in complaint_lower for w in ["hypoglyc", "blood sugar", "glucose"]):
-            patient = patient.model_copy(update={"suspected_syndrome": "hypoglycemia"})
+    # Explicit clinician syndrome takes precedence. If empty or "unspecified", normalize to None.
+    # Untrusted complaints NEVER silently infer or mutate patient.suspected_syndrome
+    # (Rule R7, Finding A). Omitted syndromes proceed to vitals candidate inference (ADR-0007).
+    if patient.suspected_syndrome in ("", "unspecified", "None"):
+        patient = patient.model_copy(update={"suspected_syndrome": None})
 
-    include_complaint = request.include_complaint_in_llm or bool(
-        patient.chief_complaint_untrusted and patient.chief_complaint_untrusted.strip()
-    )
+    # Finding B & Rule R7: include_complaint_in_llm is strictly opt-in (default False).
+    # Presence of untrusted complaint text alone does NOT enable inclusion.
+    include_complaint = bool(request.include_complaint_in_llm)
     config = OrchestratorConfig(
         include_complaint_in_llm=include_complaint,
     )
@@ -88,12 +91,53 @@ def execute_triage(request: TriageApiRequest) -> TriageResponse:
         index=retrieval_service.index,
         overrides=request.overrides or [],
         config=config,
+        provider_info=prov_meta,
     )
     return response
+
+
+@router.get("/workflow")
+def get_workflow_graph_metadata() -> dict[str, Any]:
+    """Return LangGraph workflow structure, node inventory, and Mermaid definition."""
+    from triagerag.orchestration.langgraph_workflow import get_compiled_triage_graph
+
+    graph = get_compiled_triage_graph()
+    mermaid_code = graph.get_graph().draw_mermaid()
+    return {
+        "framework": "LangGraph",
+        "compiled": True,
+        "nodes": list(graph.get_graph().nodes.keys()),
+        "mermaid": mermaid_code,
+    }
 
 
 @router.post("/explain")
 def explain_triage_retrieval(request: ExplainApiRequest) -> dict[str, Any]:
     """Return full Retrieval Inspector diagnostic trace for a patient presentation."""
-    retrieval_service = get_retrieval_service()
+    raw_backend = (
+        request.retrieval_backend.value
+        if request.retrieval_backend is not None
+        else get_retrieval_backend()
+    )
+    eff_backend = raw_backend.strip().lower()
+    retrieval_service = get_retrieval_service(eff_backend)
     return retrieval_service.explain(request.to_patient())
+
+
+class AlertWhyRequest(BaseModel):
+    alert: Alert
+    patient: Patient
+
+
+@router.post("/alert-why", response_model=AlertWhyExplanation)
+def explain_alert_endpoint(request: AlertWhyRequest) -> AlertWhyExplanation:
+    """Return structured provenance, matched facts, and severity rationale for an alert."""
+    registry = get_cached_registry()
+    retrieval_service = get_retrieval_service()
+    chunks = retrieval_service.list_chunks()
+    return explain_alert(
+        alert=request.alert,
+        patient=request.patient,
+        registry=registry,
+        supporting_chunks=chunks,
+    )

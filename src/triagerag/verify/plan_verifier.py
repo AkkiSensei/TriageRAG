@@ -24,8 +24,10 @@ from triagerag.contracts.schemas import (
     VerifiedStep,
 )
 from triagerag.engine.rule_engine import evaluate_plan
+from triagerag.verify.applicability import ApplicabilityStatus, verify_node_applicability
 from triagerag.verify.citations import verify_citation, verify_step_support
 from triagerag.verify.drug_scan import scan_narrative_for_drug_leaks
+from triagerag.verify.qualifiers import verify_step_qualifiers
 
 if TYPE_CHECKING:
     from triagerag.contracts.schemas import Patient
@@ -175,7 +177,38 @@ def verify_plan(
                 elif cit.chunk_id in chunk_map:
                     resolved_cited_chunks.append(chunk_map[cit.chunk_id])
 
-        if citations_ok and status != StepStatus.BLOCKED_STRUCK_THROUGH:
+                # T5.2: THEN-clause qualifier verification
+                matched_chunk = chunk_map.get(cit.chunk_id)
+                if matched_chunk is not None:
+                    qual_ok, qual_err = verify_step_qualifiers(
+                        narrative_instruction=step.narrative_instruction,
+                        chunk_text=matched_chunk.text,
+                    )
+                    if not qual_ok:
+                        citations_ok = False
+                        if qual_err:
+                            rejection_reasons.append(qual_err)
+
+                # T5.1: Patient applicability check (AUB-GRD-01)
+                app_res = verify_node_applicability(cit.chunk_id, patient)
+                if app_res.status == ApplicabilityStatus.NOT_MET:
+                    if status != StepStatus.BLOCKED_STRUCK_THROUGH:
+                        status = StepStatus.NOT_APPLICABLE
+                    rejection_reasons.append(
+                        f"Node '{cit.chunk_id}' not applicable to patient: {app_res.reason}"
+                    )
+                elif app_res.status == ApplicabilityStatus.UNKNOWN:
+                    if status not in (
+                        StepStatus.BLOCKED_STRUCK_THROUGH,
+                        StepStatus.FLAGGED_HIGH,
+                        StepStatus.NOT_APPLICABLE,
+                    ):
+                        status = StepStatus.REQUIRES_CLINICIAN_CONFIRMATION
+                    rejection_reasons.append(
+                        f"Node '{cit.chunk_id}' applicability unconfirmed: {app_res.reason}"
+                    )
+
+        if resolved_cited_chunks and status != StepStatus.BLOCKED_STRUCK_THROUGH:
             is_supported, support_msg = verify_step_support(
                 step=step,
                 cited_chunks=resolved_cited_chunks,

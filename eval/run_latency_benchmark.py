@@ -84,6 +84,8 @@ def _generate_synthetic_10k_corpus(target_chunks: int = 10000) -> list[ProtocolC
 def run_scale_benchmark(
     target_chunks: int = 10000,
     num_queries: int = 100,
+    output_path: Path | None = None,
+    write_report: bool = False,
 ) -> dict[str, Any]:
     """Run lexical retrieval latency benchmark on a 10,000-chunk synthetic corpus."""
     chunks = _generate_synthetic_10k_corpus(target_chunks=target_chunks)
@@ -132,17 +134,26 @@ def run_scale_benchmark(
         "passed": latencies_sorted[p95_idx] < 50.0,
     }
 
-    out_dir = REPO_ROOT / "eval" / "reports"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "latency_benchmark.json").write_text(
-        json.dumps(report, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    if write_report or output_path is not None:
+        dest = output_path or (REPO_ROOT / "eval" / "reports" / "latency_benchmark.json")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(
+            json.dumps(report, indent=2) + "\n",
+            encoding="utf-8",
+        )
     return report
 
 
 if __name__ == "__main__":
-    res = run_scale_benchmark()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run 10k-chunk scale latency benchmark.")
+    parser.add_argument("--write", action="store_true", help="Write report to eval/reports/")
+    parser.add_argument("--output-path", type=str, default=None, help="Output path for JSON report")
+    args = parser.parse_args()
+
+    out_p = Path(args.output_path) if args.output_path else None
+    res = run_scale_benchmark(output_path=out_p, write_report=args.write)
     print(
         f"10k-Chunk Scale Benchmark: build={res['index_build_ms']}ms, "
         f"p50={res['p50_latency_ms']}ms, p95={res['p95_latency_ms']}ms "

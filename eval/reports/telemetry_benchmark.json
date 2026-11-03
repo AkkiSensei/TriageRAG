@@ -1,0 +1,35 @@
+[
+  {
+    "config": "Config 1: Telemetry Disabled",
+    "iterations": 100,
+    "mean_ms": 11.057,
+    "median_p50_ms": 9.776,
+    "p95_ms": 18.307,
+    "p99_ms": 33.585,
+    "max_ms": 33.585,
+    "min_ms": 5.885,
+    "stdev_ms": 4.273
+  },
+  {
+    "config": "Config 2: In-Memory Tracing",
+    "iterations": 100,
+    "mean_ms": 14.901,
+    "median_p50_ms": 12.732,
+    "p95_ms": 29.277,
+    "p99_ms": 54.998,
+    "max_ms": 54.998,
+    "min_ms": 8.939,
+    "stdev_ms": 6.77
+  },
+  {
+    "config": "Config 3: Console Exporter",
+    "iterations": 100,
+    "mean_ms": 24.284,
+    "median_p50_ms": 15.265,
+    "p95_ms": 75.219,
+    "p99_ms": 174.732,
+    "max_ms": 174.732,
+    "min_ms": 10.652,
+    "stdev_ms": 27.509
+  }
+]

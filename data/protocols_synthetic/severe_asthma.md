@@ -12,7 +12,7 @@ synthetic: true
 > **DISCLAIMER:** Research prototype. Synthetic protocol text only. Not for clinical use. NO numeric doses.
 
 ## Bronchodilator Escalation Strategy
-1. IF the adult patient demonstrates severe tachypnea, accessory muscle use, or low oxygen saturation:
+1. IF the adult patient demonstrates acute bronchospasm, audible wheezing, severe tachypnea, accessory muscle use, or low oxygen saturation:
    THEN administer nebulized salbutamol continuous bronchodilator therapy with high-flow oxygen.
 2. IF patient exhibits impending respiratory fatigue, silent chest, or severe refractory obstruction:
    THEN administer intramuscular epinephrine to relieve critical bronchoconstriction.

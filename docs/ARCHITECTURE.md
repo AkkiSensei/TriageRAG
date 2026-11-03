@@ -31,7 +31,7 @@ TriageRAG separates clinical decision authority from generative text generation:
           ▼                                          │
  [ Retriever Protocol (RetrievalService) ]           │
    - Default: BM25ClinicalIndex (Smoothed IDF)       │
-   - Optional: DenseRetriever / HybridRRFRetriever   │
+   - Optional: CharNgramRetriever (DenseRetriever)   │
           │                                          │
           ▼                                          │
  [ LLM Plan Draft ]                                  │
@@ -66,7 +66,7 @@ TriageRAG separates clinical decision authority from generative text generation:
 ## Retrieval & Grounding Architecture (`src/triagerag/rag/` & `src/triagerag/verify/`)
 
 1. **`@runtime_checkable class Retriever(Protocol)`:**
-   - Implemented by `BM25ClinicalIndex` (`bm25`, default), `CharNgramRetriever` (`char_ngram` / `dense`), and `HybridRRFRetriever` (`hybrid_rrf` and `hybrid_rrf_rerank` with `LexicalOverlapReranker`).
+   - Implemented by `BM25ClinicalIndex` (`bm25`, default), `CharNgramRetriever` (`char_ngram`, deprecated alias `dense`), and `HybridRRFRetriever` (`hybrid_rrf` and `hybrid_rrf_rerank` with `LexicalOverlapReranker`).
    - Managed through a single thread-safe factory `RetrievalService.create_default(data_dir, backend=...)` shared across FastAPI, CLI, Streamlit, Orchestrator, and Evaluation suites.
 2. **Query-Time Hard Safety Gates:**
    - **Hard Population Filter:** `adult`, `paediatric`, and `neonate` slices are strictly isolated; `neonate` abstains (`NO_POPULATION_COVERAGE`) when no neonate protocol exists.

@@ -17,6 +17,14 @@ export type EngineReport = components['schemas']['EngineReport']
 export type PlanStepDraft = components['schemas']['PlanStepDraft']
 export type VerifiedStep = components['schemas']['VerifiedStep']
 export type OverrideRecord = components['schemas']['OverrideRecord']
+export type TriageExplanation = components['schemas']['TriageExplanation']
+export type ActionPlan = components['schemas']['ActionPlan']
+export type ActionStep = components['schemas']['ActionStep']
+export type MedicationInstruction = components['schemas']['MedicationInstruction']
+export type MonitoringStep = components['schemas']['MonitoringStep']
+export type EscalationStep = components['schemas']['EscalationStep']
+export type ConfidenceReport = components['schemas']['ConfidenceReport']
+export type DataQualityReport = components['schemas']['DataQualityReport']
 export type { components }
 
 export const queryClient = new QueryClient({
@@ -100,4 +108,36 @@ export const api = {
 
   // Eval
   getEvalSummary: () => request<EvalSummaryResponse>('/eval/summary'),
+
+  // Ask the Corpus (T7.4)
+  askCorpus: (payload: { question: string; population?: string; syndrome?: string; top_k?: number }) =>
+    request<{
+      question: string
+      answer: string
+      abstained: boolean
+      abstain_reason?: string
+      citations: Array<{ chunk_id: string; doc_id: string; section: string; license: string; exact_quote: string }>
+      generator_badge: string
+    }>('/corpus/ask', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  // Alert Why (T7.4)
+  explainAlert: (payload: { alert: Alert; patient: unknown }) =>
+    request<{
+      rule_id: string
+      rule_type: string
+      severity: string
+      consequence: string
+      action: string
+      matched_facts: string[]
+      unknown_facts: string[]
+      severity_rationale: string
+      unestablished_scope: string[]
+      provenance: Record<string, unknown>
+    }>('/triage/alert-why', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 }

@@ -31,6 +31,10 @@ class PopulationDoseLimit(BaseModel):
     per_dose_min: Decimal | None = None
     per_dose_max: Decimal | None = None
     daily_max: Decimal | None = None
+    daily_max_unit: DoseUnit | None = None
+    min_interval_hours: Decimal | None = None
+    max_rate_mg_per_min: Decimal | None = None
+    max_single_dose: Decimal | None = None
     unit: DoseUnit = DoseUnit.mg
     status: RuleStatus = RuleStatus.ACTIVE
     provenance: Provenance
@@ -55,6 +59,7 @@ class ConcentrationEntry(BaseModel):
     amount: Decimal
     unit: DoseUnit
     volume_ml: Decimal
+    route: Route | None = None
 
 
 class FormularyDrug(BaseModel):

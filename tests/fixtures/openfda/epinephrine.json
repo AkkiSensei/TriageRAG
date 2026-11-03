@@ -1,0 +1,47 @@
+{
+  "id": "openfda-label-epinephrine-testfixture",
+  "set_id": "SPL-EPINEPHRINE-FIXTURE-001",
+  "effective_time": "20240115",
+  "openfda": {
+    "generic_name": ["Epinephrine"],
+    "brand_name": ["EpiPen"],
+    "product_type": ["HUMAN PRESCRIPTION DRUG"],
+    "route": ["INTRAMUSCULAR", "SUBCUTANEOUS"],
+    "substance_name": ["EPINEPHRINE"],
+    "is_original_packager": [true]
+  },
+  "indications_and_usage": [
+    "Epinephrine is indicated in the emergency treatment of allergic reactions (Type I) including anaphylaxis to stinging and biting insects, foods, drugs, and other allergens."
+  ],
+  "dosage_and_administration": [
+    "Inject intramuscularly or subcutaneously into the anterolateral aspect of the thigh. Do not inject into digits, hands, or feet."
+  ],
+  "contraindications": [
+    "There are no absolute contraindications to the use of epinephrine in a life-threatening situation."
+  ],
+  "warnings_and_precautions": [
+    "Epinephrine should be administered with caution in patients who have heart disease, including arrhythmias, coronary artery or organic heart disease, or hypertension."
+  ],
+  "drug_interactions": [
+    "Patients receiving cardiac glycosides, diuretics, or antiarrhythmics should be observed carefully for the development of cardiac arrhythmias if given epinephrine.",
+    "The effects of epinephrine may be potentiated by tricyclic antidepressants and monoamine oxidase inhibitors."
+  ],
+  "use_in_specific_populations": [
+    "Epinephrine should be used during pregnancy only if the potential benefit justifies the potential risk to the fetus."
+  ],
+  "pregnancy": [
+    "Teratogenic Effects: Epinephrine has been shown to have teratogenic effects when given to animals in doses several times human doses."
+  ],
+  "pediatric_use": [
+    "Epinephrine may be administered to pediatric patients at a dosage appropriate to body weight."
+  ],
+  "geriatric_use": [
+    "Clinical studies did not include sufficient numbers of subjects aged 65 and over. Older patients may be more sensitive to the effects of sympathomimetic agents."
+  ],
+  "overdosage": [
+    "Overdosage may cause sharp rise in blood pressure, cerebrovascular hemorrhage, pulmonary edema, ventricular arrhythmias, and renal failure."
+  ],
+  "adverse_reactions": [
+    "Common adverse reactions include anxiety, apprehensiveness, restlessness, tremor, weakness, dizziness, sweating, palpitations, and pallor."
+  ]
+}

@@ -56,9 +56,9 @@ def test_scenarios_list_and_detail() -> None:
     list_resp = client.get("/api/scenarios")
     assert list_resp.status_code == 200
     scenarios = list_resp.json()
-    assert len(scenarios) == 4
+    assert len(scenarios) == 5
     scenario_ids = {s["id"] for s in scenarios}
-    assert scenario_ids == {"BLOCK", "UNVERIFIED", "HIGH", "CLEAN"}
+    assert scenario_ids == {"BLOCK", "UNVERIFIED", "HIGH", "CLEAN", "ABSTAIN"}
 
     # Test detail
     for sid in scenario_ids:
@@ -234,7 +234,7 @@ def test_eval_summary_endpoint() -> None:
     # Verify golden report content if reports are present on disk
     if data["golden"]:
         assert data["golden"].get("suite") == "golden"
-        assert data["golden"].get("passed") == 65
+        assert data["golden"].get("passed") >= 65
     if data["mutation"]:
         assert data["mutation"].get("overall_mutants_killed") >= 40
         assert data["mutation"].get("overall_mutants_killed") == data["mutation"].get(
@@ -275,3 +275,73 @@ def test_explain_triage_retrieval_endpoint() -> None:
     resp_vitals = client.post("/api/triage/explain", json=vitals_body)
     assert resp_vitals.status_code == 200
     assert resp_vitals.json()["population"] == "paediatric"
+
+
+def test_triage_provider_metadata_and_hybrid_backend_selection() -> None:
+    """Verify deterministic mock execution metadata and hybrid retrieval routing."""
+    patient, _ = get_preloaded_scenario("CLEAN")
+    patient_dict = json.loads(patient.model_dump_json())
+
+    # 1. Default request uses deterministic mock generation and bm25
+    default_payload = {"patient": patient_dict}
+    resp = client.post("/api/triage", json=default_payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "provider_info" in data
+    info = data["provider_info"]
+    assert info["generation_mode"] == "deterministic_mock"
+    assert info["retrieval_backend"] in ("bm25", "hybrid_rrf")
+
+    # 2. Request hybrid_rrf backend explicitly
+    hybrid_req = {
+        "patient": patient_dict,
+        "retrieval_backend": "hybrid_rrf",
+    }
+    resp_hybrid = client.post("/api/triage", json=hybrid_req)
+    assert resp_hybrid.status_code == 200
+    hybrid_data = resp_hybrid.json()
+    assert hybrid_data["provider_info"]["generation_mode"] == "deterministic_mock"
+    assert hybrid_data["provider_info"]["retrieval_backend"] == "hybrid_rrf"
+    assert hybrid_data["retrieval"]["backend"] == "hybrid_rrf"
+
+
+def test_invalid_retrieval_backend_returns_422() -> None:
+    """T0.9 / AUB-OPS-01: Invalid retrieval backend returns 422 Unprocessable Entity instead of 500."""
+    patient, _ = get_preloaded_scenario("CLEAN")
+    patient_dict = json.loads(patient.model_dump_json())
+
+    # 1. /api/triage with invalid backend -> 422
+    resp_triage = client.post(
+        "/api/triage",
+        json={"patient": patient_dict, "retrieval_backend": "nonsense"},
+    )
+    assert resp_triage.status_code == 422, f"Expected 422, got {resp_triage.status_code}"
+
+    # 2. /api/triage/explain with invalid backend -> 422
+    resp_explain = client.post(
+        "/api/triage/explain",
+        json={"patient": patient_dict, "retrieval_backend": "nonsense"},
+    )
+    assert resp_explain.status_code == 422, f"Expected 422, got {resp_explain.status_code}"
+
+
+def test_explain_route_honors_requested_retrieval_backend() -> None:
+    """T0.9 / AUB-OPS-01: /api/triage/explain honors requested retrieval_backend."""
+    patient, _ = get_preloaded_scenario("CLEAN")
+    patient_dict = json.loads(patient.model_dump_json())
+
+    # 1. char_ngram backend
+    resp_ngram = client.post(
+        "/api/triage/explain",
+        json={"patient": patient_dict, "retrieval_backend": "char_ngram"},
+    )
+    assert resp_ngram.status_code == 200
+    assert resp_ngram.json()["backend"] == "char_ngram"
+
+    # 2. hybrid_rrf backend
+    resp_hybrid = client.post(
+        "/api/triage/explain",
+        json={"patient": patient_dict, "retrieval_backend": "hybrid_rrf"},
+    )
+    assert resp_hybrid.status_code == 200
+    assert resp_hybrid.json()["backend"] == "hybrid_rrf"

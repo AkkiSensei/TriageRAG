@@ -1,0 +1,75 @@
+version: "1.0.0"
+source_status: "SYNTHETIC_AUTHORED"
+
+# HUMAN DECISION HD-16 / AUB Task T7.1:
+# Controlled query expansion terms mapping satisfied patient predicates to protocol vocabulary.
+# These terms are retrieval research bridges ONLY and are NOT clinical facts or thresholds.
+provenance:
+  source_doc: "SYNTHETIC_QUERY_EXPANSION_VOCABULARY"
+  section_ref: "AUB_T7_1"
+  version_or_date: "2026-DRAFT"
+  source_status: "SYNTHETIC_AUTHORED"
+  content_origin: "AGENT_DRAFT_SYNTHETIC"
+  verified: false
+  reviewer: null
+
+expansions:
+  low_systolic_bp:
+    terms:
+      - "fluid_resuscitation"
+      - "vasopressors"
+      - "inotropic_support"
+
+  severe_tachypnea:
+    terms:
+      - "bronchodilator"
+      - "nebulized_salbutamol"
+      - "airway_escalation"
+
+  respiratory_depression:
+    terms:
+      - "naloxone"
+      - "bag_valve_mask"
+      - "ventilation_support"
+
+  hypoxemia:
+    terms:
+      - "supplemental_oxygen"
+      - "high_flow_nasal_cannula"
+      - "spo2_monitoring"
+
+  hypoglycemia:
+    terms:
+      - "iv_dextrose"
+      - "hypoglycemia_protocol"
+      - "glucometry"
+
+  altered_consciousness:
+    terms:
+      - "gcs_monitoring"
+      - "airway_patency"
+      - "neurological_check"
+
+  tachycardia:
+    terms:
+      - "antiarrhythmic"
+      - "cardioversion"
+      - "ecg_rhythm"
+
+  bradycardia:
+    terms:
+      - "atropine"
+      - "transcutaneous_pacing"
+      - "chronotropic_support"
+
+  fever:
+    terms:
+      - "antipyretic"
+      - "blood_cultures"
+      - "sepsis_workup"
+
+  hypothermia:
+    terms:
+      - "active_rewarming"
+      - "core_temperature"
+      - "warm_iv_fluids"

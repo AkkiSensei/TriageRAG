@@ -1,0 +1,37 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	normalise(normalise)
+	intake_safety_checks(intake_safety_checks)
+	retrieve(retrieve)
+	draft_plan(draft_plan)
+	abstain_fallback(abstain_fallback)
+	verify(verify)
+	block_seal(block_seal)
+	unverified_seal(unverified_seal)
+	verified_seal(verified_seal)
+	audit(audit)
+	explain(explain)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> normalise;
+	abstain_fallback --> verify;
+	audit --> explain;
+	block_seal --> audit;
+	draft_plan --> verify;
+	intake_safety_checks --> retrieve;
+	normalise --> intake_safety_checks;
+	retrieve -.-> abstain_fallback;
+	retrieve -.-> draft_plan;
+	unverified_seal --> audit;
+	verified_seal --> audit;
+	verify -.-> block_seal;
+	verify -.-> unverified_seal;
+	verify -.-> verified_seal;
+	explain --> __end__;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

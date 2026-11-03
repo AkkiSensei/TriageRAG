@@ -1,0 +1,59 @@
+{
+  "dataset_version": "2.0.0",
+  "dataset_hash": "b138d81c4a33b9b0bdda554a130932933855c81b152194cca931e8832a1be2e7",
+  "corpus_hash": "274f34eb478e97835d35bf8b420aed747ce3e4ab6f2a7378e6c87f9f6d5d567c",
+  "seed": 42,
+  "split_algorithm": "stratified_template_group_split",
+  "grouping_key": "template_id",
+  "total_cases": 224,
+  "dev_cases": 143,
+  "test_cases": 81,
+  "total_groups": 55,
+  "dev_groups": 40,
+  "test_groups": 15,
+  "group_leakage_count": 0,
+  "target_nodeset_leakage_count": 0,
+  "candidate_pool_min_size": 617,
+  "strata": {
+    "acronym_morphology_variants": {
+      "dev": 8,
+      "test": 4
+    },
+    "conflicting_syndrome_vitals": {
+      "dev": 18,
+      "test": 6
+    },
+    "corpus_poisoned_chunk": {
+      "dev": 4,
+      "test": 2
+    },
+    "hard_negatives": {
+      "dev": 38,
+      "test": 10
+    },
+    "near_duplicate_versions": {
+      "dev": 6,
+      "test": 0
+    },
+    "population_boundaries": {
+      "dev": 11,
+      "test": 5
+    },
+    "scale_latency": {
+      "dev": 6,
+      "test": 0
+    },
+    "syndrome_positives": {
+      "dev": 18,
+      "test": 18
+    },
+    "unknown_missing_vitals": {
+      "dev": 4,
+      "test": 10
+    },
+    "vitals_only": {
+      "dev": 30,
+      "test": 26
+    }
+  }
+}

@@ -16,6 +16,8 @@ class SourceStatus(StrEnum):
     PLACEHOLDER_UNRETRIEVED = "PLACEHOLDER_UNRETRIEVED"
     RETRIEVED_UNREVIEWED = "RETRIEVED_UNREVIEWED"
     REVIEWED = "REVIEWED"
+    REJECTED = "REJECTED"
+    SYNTHETIC_AUTHORED = "SYNTHETIC_AUTHORED"
 
 
 class ContentOrigin(StrEnum):
@@ -24,6 +26,7 @@ class ContentOrigin(StrEnum):
     AGENT_DRAFT_UNSOURCED = "AGENT_DRAFT_UNSOURCED"
     HUMAN_AUTHORED = "HUMAN_AUTHORED"
     SOURCE_EXTRACT = "SOURCE_EXTRACT"
+    AGENT_DRAFT_SYNTHETIC = "AGENT_DRAFT_SYNTHETIC"
 
 
 class Verdict(StrEnum):
@@ -33,6 +36,19 @@ class Verdict(StrEnum):
     UNVERIFIED = "UNVERIFIED"
     CHECKED_ALERTS = "CHECKED_ALERTS"
     CHECKED_CLEAR = "CHECKED_CLEAR"
+
+
+class TrustMode(StrEnum):
+    """Operational trust policy mode for deterministic clinical rules (T6.0 / AUB-ENG-04 / HD-7).
+
+    STRICT: Only clinically reviewed rules with verified: true can yield authoritative clearance.
+            Under HD-7, unverified draft rules cause clearance checks to fail closed to UNVERIFIED.
+    DEMO: Research prototype demonstration mode allowing unverified draft rules to execute
+          with explicit 'UNSOURCED DRAFT' status and verified rule counts reported.
+    """
+
+    STRICT = "strict"
+    DEMO = "demo"
 
 
 class Severity(StrEnum):
@@ -52,6 +68,17 @@ class ScoreBand(StrEnum):
     YELLOW = "YELLOW"
     GREEN = "GREEN"
     UNSCORED = "UNSCORED"
+
+
+class RetrievalBackend(StrEnum):
+    """Supported protocol retrieval backends (T0.9 / AUB-OPS-01)."""
+
+    BM25 = "bm25"
+    CHAR_NGRAM = "char_ngram"
+    DENSE = "dense"  # Deprecated alias for char_ngram
+    HYBRID_RRF = "hybrid_rrf"
+    HYBRID_RRF_RERANK = "hybrid_rrf_rerank"
+    HYBRID_RERANK = "hybrid_rerank"  # Deprecated alias for hybrid_rrf_rerank
 
 
 class AgeUnit(StrEnum):
@@ -120,6 +147,7 @@ class StepStatus(StrEnum):
     UNVERIFIED_MISSING_DATA = "UNVERIFIED_MISSING_DATA"
     CITATION_UNVERIFIED = "CITATION_UNVERIFIED"
     BLOCKED_STRUCK_THROUGH = "BLOCKED_STRUCK_THROUGH"
+    NOT_APPLICABLE = "NOT_APPLICABLE"
 
 
 class ActionType(StrEnum):
@@ -145,6 +173,7 @@ class AbstainCode(StrEnum):
 
     NONE = "NONE"
     NO_POPULATION_COVERAGE = "NO_POPULATION_COVERAGE"
+    NO_RESULTS = "NO_RESULTS"
     UNKNOWN_SYNDROME = "UNKNOWN_SYNDROME"
     LOW_CONFIDENCE = "LOW_CONFIDENCE"
     AMBIGUOUS_MARGIN = "AMBIGUOUS_MARGIN"

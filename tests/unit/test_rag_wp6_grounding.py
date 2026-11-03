@@ -23,7 +23,9 @@ from triagerag.contracts.enums import (
 )
 from triagerag.contracts.schemas import (
     Age,
+    IngredientStrength,
     Measured,
+    MedicationEntry,
     Patient,
     PlanContext,
     PlanDraft,
@@ -63,6 +65,14 @@ def test_withhold_step_requires_withhold_cue() -> None:
     """RAG-02: A 'withhold' step citing an 'administer' node without a withhold cue is rejected."""
     registry = ClinicalRegistry.load_from_directory(get_data_dir())
     patient = _make_adult_patient()
+    patient.medications = [
+        MedicationEntry(
+            raw_text="sildenafil 50mg",
+            resolved=True,
+            ingredients=[IngredientStrength(ingredient_id="sildenafil")],
+        )
+    ]
+    patient.medication_history_status = "confirmed_list"
 
     administer_node = RetrievedChunk(
         doc_id="EMERG_CHEST_PAIN",

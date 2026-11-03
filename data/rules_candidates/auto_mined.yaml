@@ -1,0 +1,186 @@
+# TRIAGERAG — AUTO-MINED REGULATORY CANDIDATE RULES (AUB T6.6)
+# Research prototype. Synthetic data only. Not a medical device. Not for clinical use.
+# Status: RETRIEVED_UNREVIEWED | Origin: SOURCE_EXTRACT | Verified: false
+
+rules:
+- id: AUTO_MINED_CNS_01
+  type: condition_contraindication
+  drug_id: morphine
+  condition: acute_respiratory_depression
+  prohibited_status: 'yes'
+  severity: BLOCK
+  status: ACTIVE
+  consequence: Morphine worsens respiratory depression and precipitates fatal respiratory
+    arrest.
+  action: 'Contraindicated: do not administer morphine in respiratory depression without
+    airway control.'
+  requires_fields:
+  - conditions
+  provenance:
+    source_doc: OPENFDA_SPL_openfda-label-morphine-26fdca
+    section_ref: Contraindications
+    version_or_date: '20240115'
+    source_status: RETRIEVED_UNREVIEWED
+    content_origin: SOURCE_EXTRACT
+    verified: false
+    reviewer: null
+- id: AUTO_MINED_CV_01
+  type: condition_contraindication
+  drug_id: adenosine
+  condition: asthma
+  prohibited_status: 'yes'
+  severity: BLOCK
+  status: ACTIVE
+  consequence: Adenosine triggers severe bronchospasm in asthma and reactive airway
+    disease.
+  action: 'Absolute contraindication: do not administer adenosine to patients with
+    active asthma.'
+  requires_fields:
+  - conditions
+  provenance:
+    source_doc: OPENFDA_SPL_openfda-label-adenosine-68613d
+    section_ref: Contraindications
+    version_or_date: '20240115'
+    source_status: RETRIEVED_UNREVIEWED
+    content_origin: SOURCE_EXTRACT
+    verified: false
+    reviewer: null
+- id: AUTO_MINED_AC_01
+  type: condition_contraindication
+  drug_id: warfarin
+  condition: active_pathological_bleeding
+  prohibited_status: 'yes'
+  severity: BLOCK
+  status: ACTIVE
+  consequence: Warfarin causes catastrophic ongoing hemorrhage in active pathological
+    bleeding.
+  action: 'Absolute contraindication: withhold warfarin in active bleeding.'
+  requires_fields:
+  - conditions
+  provenance:
+    source_doc: OPENFDA_SPL_openfda-label-warfarin-41ff21
+    section_ref: Contraindications
+    version_or_date: '20240115'
+    source_status: RETRIEVED_UNREVIEWED
+    content_origin: SOURCE_EXTRACT
+    verified: false
+    reviewer: null
+- id: AUTO_MINED_AC_02
+  type: route_concentration
+  drug_id: heparin
+  prohibited_routes:
+  - im
+  severity: BLOCK
+  status: ACTIVE
+  consequence: Intramuscular heparin produces extensive muscle hematomas, compartment
+    syndrome, and bleeding.
+  action: 'Route prohibited: never administer heparin intramuscularly.'
+  requires_fields:
+  - plan_step.route
+  provenance:
+    source_doc: OPENFDA_SPL_openfda-label-heparin-d62908
+    section_ref: Contraindications
+    version_or_date: '20240115'
+    source_status: RETRIEVED_UNREVIEWED
+    content_origin: SOURCE_EXTRACT
+    verified: false
+    reviewer: null
+- id: AUTO_MINED_CV_03
+  type: route_concentration
+  drug_id: verapamil
+  prohibited_routes:
+  - iv
+  severity: BLOCK
+  status: ACTIVE
+  consequence: Concomitant IV verapamil and IV beta-blockers causes severe bradycardia
+    and asystole.
+  action: Do not administer IV verapamil with concurrent IV beta-blockers.
+  requires_fields:
+  - plan_step.route
+  provenance:
+    source_doc: OPENFDA_SPL_openfda-label-verapamil-6db832
+    section_ref: Contraindications
+    version_or_date: '20240115'
+    source_status: RETRIEVED_UNREVIEWED
+    content_origin: SOURCE_EXTRACT
+    verified: false
+    reviewer: null
+- id: AUTO_MINED_CV_04
+  type: pair
+  drug_a: amiodarone
+  drug_b: digoxin
+  severity: HIGH
+  status: ACTIVE
+  consequence: Amiodarone inhibits P-glycoprotein, doubling serum digoxin concentrations
+    and precipitating arrhythmias.
+  action: 'High alert: reduce digoxin dose by 50% and monitor ECG/digoxin levels.'
+  requires_fields:
+  - medications
+  provenance:
+    source_doc: OPENFDA_SPL_openfda-label-amiodarone-f7a5d8
+    section_ref: Drug Interactions
+    version_or_date: '20240115'
+    source_status: RETRIEVED_UNREVIEWED
+    content_origin: SOURCE_EXTRACT
+    verified: false
+    reviewer: null
+- id: AUTO_MINED_CNS_02
+  type: pair
+  drug_a: tramadol
+  drug_b: ondansetron
+  severity: HIGH
+  status: ACTIVE
+  consequence: Concurrent tramadol and ondansetron increases serotonin syndrome risk
+    and reduces analgesia.
+  action: 'Caution: Monitor for signs of serotonin toxicity; consider non-serotonergic
+    antiemetic.'
+  requires_fields:
+  - medications
+  provenance:
+    source_doc: OPENFDA_SPL_openfda-label-tramadol-f58878
+    section_ref: Drug Interactions
+    version_or_date: '20240115'
+    source_status: RETRIEVED_UNREVIEWED
+    content_origin: SOURCE_EXTRACT
+    verified: false
+    reviewer: null
+- id: AUTO_MINED_CNS_03
+  type: pair
+  drug_a: morphine
+  drug_b: diazepam
+  severity: BLOCK
+  status: ACTIVE
+  consequence: Concurrent opioid and benzodiazepine causes profound respiratory collapse
+    and death.
+  action: 'Absolute contraindication: avoid concurrent IV boluses unless under invasive
+    mechanical ventilation.'
+  requires_fields:
+  - medications
+  provenance:
+    source_doc: OPENFDA_SPL_openfda-label-morphine-26fdca
+    section_ref: Drug Interactions
+    version_or_date: '20240115'
+    source_status: RETRIEVED_UNREVIEWED
+    content_origin: SOURCE_EXTRACT
+    verified: false
+    reviewer: null
+- id: AUTO_MINED_CNS_04
+  type: class_interaction
+  class_a: BENZODIAZEPINES
+  class_b: OPIOIDS
+  severity: BLOCK
+  status: ACTIVE
+  consequence: Concomitant benzodiazepine and opioid administration causes profound
+    sedation and respiratory arrest.
+  action: Avoid concurrent use unless patient is intubated or under continuous airway
+    monitoring.
+  requires_fields:
+  - medications
+  provenance:
+    source_doc: OPENFDA_SPL_openfda-label-diazepam-b3e0f6
+    section_ref: Drug Interactions
+    version_or_date: '20240115'
+    source_status: RETRIEVED_UNREVIEWED
+    content_origin: SOURCE_EXTRACT
+    verified: false
+    reviewer: null

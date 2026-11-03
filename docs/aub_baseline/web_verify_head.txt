@@ -1,0 +1,42 @@
+=== Running Frontend Verification ===
+--> Running: npm run lint
+
+> triagerag-web@0.1.0 lint
+> eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0
+
+--> Running: npm run typecheck
+
+> triagerag-web@0.1.0 typecheck
+> tsc --noEmit
+
+--> Running: npm run test
+
+> triagerag-web@0.1.0 test
+> vitest run
+
+
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.1[39m [90mC:/Users/Ritunjay Deo/OneDrive/Desktop/TriageRAG/web[39m
+
+ [32mΓ£ô[39m src/lib/wording.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 2[2mms[22m[39m
+ [32mΓ£ô[39m src/features/results/SafetyBanner.test.tsx [2m ([22m[2m3 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m8 passed[39m[22m[90m (8)[39m
+[2m   Start at [22m 13:45:36
+[2m   Duration [22m 5.86s[2m (transform 68ms, setup 978ms, collect 827ms, tests 27ms, environment 4.13s, prepare 1.25s)[22m
+
+--> Running: npm run build
+
+> triagerag-web@0.1.0 build
+> tsc -b && vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 1568 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  1.83 kB[22m[1m[22m[2m Γöé gzip:  0.90 kB[22m
+[2mdist/[22m[35massets/index-VVj-dSJQ.css  [39m[1m[2m 64.50 kB[22m[1m[22m[2m Γöé gzip: 10.24 kB[22m
+[2mdist/[22m[36massets/index-onX2KzNR.js   [39m[1m[2m359.63 kB[22m[1m[22m[2m Γöé gzip: 96.03 kB[22m
+[32mΓ£ô built in 2.68s[39m
+[OK] Frontend verification green

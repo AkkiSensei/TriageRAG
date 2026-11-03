@@ -21,16 +21,22 @@
 
 ## 2. STACK & DECISIONS (final; do not re-litigate)
 
-Python 3.11+, src layout `src/triagerag/`. Core deps: pydantic>=2.7, pyyaml, pint (boundary parsing only), rapidfuzz, typer, rich, rank-bm25, streamlit. Optional extras: `llm` (google-genai), `dense` (sentence-transformers). Dev: pytest, hypothesis, ruff, mypy, import-linter, pre-commit. Everything must run offline with no API keys by default.
+Python 3.11+, src layout `src/triagerag/`. Core deps: pydantic>=2.7, pyyaml, pint (boundary parsing only), rapidfuzz, typer, rich, rank-bm25, streamlit. Optional extras: `dense` (sentence-transformers). Dev: pytest, hypothesis, ruff, mypy, import-linter, pre-commit. Everything must run offline with no API keys by default.
 Data (`data/`) stays at repo root; `triagerag/config.py` resolves it via env `TRIAGERAG_DATA_DIR` or repo-root discovery. `config.py` imports nothing from triagerag.
 Cross-platform: `tools/tasks.py` (Typer) implements `verify, lint, test, eval, ui, validate-data`. The Makefile only delegates to it (do not assume `make` exists). Use `pathlib` everywhere.
 
 ## 16. CODING STANDARDS (also in AGENTS.md)
 
-Pure functions in engine; no global mutable state; deterministic ordering; no network outside `llm/gemini.py`; no secrets in repo (`.env.example` only); small modules with docstrings stating the safety property each upholds; new rules only via `tools/add_rule.py` (enforces provenance, `verified: false`, `content_origin`); never edit golden expectations to match behavior without an ADR giving the clinical reason.
+Pure functions in engine; no global mutable state; deterministic ordering; pure offline execution with zero network calls; no secrets in repo (`.env.example` only); small modules with docstrings stating the safety property each upholds; new rules only via `tools/add_rule.py` (enforces provenance, `verified: false`, `content_origin`); never edit golden expectations to match behavior without an ADR giving the clinical reason.
 
 ## 17. ITERATION PROTOCOL
 
 - `BACKLOG.md`: seed ≥20 prioritized items: clinician review and sourcing of every rule; real guideline ingestion with license review; golden-set growth to 150+; ESI-based triage category; Hinglish queries; local-LLM mode; FHIR-style input; renal/hepatic dosing; DDI dataset evaluation (check license before bundling); structured flowchart parser; retrieval-threshold calibration; real-model ablation.
 - **Change workflow for every future run:** read AGENTS.md, HANDOFF.md and BACKLOG.md → write or extend a failing test first → implement → `verify` → update CHANGELOG/BACKLOG/docs → commit. Add an ADR for any architectural or clinical-semantics change.
 - `docs/LIMITATIONS.md` must state: unsourced draft ruleset; circular golden recall; score band ≠ triage decision; synthetic-only corpus; not a medical device; coverage gaps.
+
+## 18. GIT RULES
+- **Never create pull requests (PRs) for this project.**
+- **Simply push directly to the remote repository (`git push`).**
+- Never suggest or generate PR links. All code and branches are committed and pushed directly.
+

@@ -42,3 +42,39 @@ def get_audit_path() -> Path:
     if env_path:
         return Path(env_path).resolve()
     return get_repo_root() / "var" / "audit_log.jsonl"
+
+
+def get_retrieval_backend() -> str:
+    """Resolve default retrieval backend.
+
+    Allowed: 'bm25', 'char_ngram', 'hybrid_rrf', 'hybrid_rrf_rerank'.
+    """
+    val = os.environ.get("TRIAGERAG_RETRIEVAL_BACKEND", "bm25").strip().lower()
+    if val in ("bm25", "char_ngram", "dense", "hybrid_rrf", "hybrid_rrf_rerank", "hybrid_rerank"):
+        return "hybrid_rrf" if val == "hybrid_rrf" else val
+    return "bm25"
+
+
+def get_generation_mode() -> str:
+    """Return deterministic mock generation mode identifier."""
+    return "deterministic_mock"
+
+
+def is_telemetry_enabled() -> bool:
+    """Return whether OpenTelemetry distributed tracing is enabled (default False)."""
+    return os.environ.get("TRIAGERAG_TELEMETRY_ENABLED", "false").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def get_telemetry_exporter() -> str:
+    """Return telemetry exporter: 'none', 'in_memory', 'console', or 'otlp_http' (default 'none')."""
+    return os.environ.get("TRIAGERAG_TELEMETRY_EXPORTER", "none").strip().lower()
+
+
+def get_otlp_endpoint() -> str:
+    """Return local OTLP collector endpoint (default 'http://localhost:4318/v1/traces')."""
+    return os.environ.get("TRIAGERAG_OTLP_ENDPOINT", "http://localhost:4318/v1/traces").strip()

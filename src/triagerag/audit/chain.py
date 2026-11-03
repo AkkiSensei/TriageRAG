@@ -1,16 +1,20 @@
-"""Cryptographic append-only audit chain with file locking.
+"""Cryptographic append-only audit chain with file locking and head-hash anchoring (T0.10 / AUB-OPS-03).
 
-Safety Property (Section 11):
-1. Tamper-evident SHA-256 hash chaining starting from a fixed genesis hash.
+Safety Properties (Section 11, Rule R18):
+1. Tamper-evident sequential SHA-256 linear hash chaining starting from a fixed genesis hash.
+   (Note: This is a linear hash chain, not a Merkle tree).
 2. Canonical JSON serialization (sorted keys, compact separators, ISO UTC timestamps).
 3. Stores one-way patient_hash (never raw patient PII or unhashed identifiers).
-4. Verifiable offline via verify_audit_chain; any tamper immediately fails verification.
+4. Verifiable offline via verify_audit_chain; intermediate tampering immediately fails verification.
+5. Head-hash anchoring defends against tail-truncation and history rewrites. Without an external
+   head-hash anchor or ledger, a truncated chain prefix remains internally valid from genesis.
 """
 
 from __future__ import annotations
 
 import contextlib
 import hashlib
+import hmac
 import json
 import sys
 from collections.abc import Iterator
@@ -49,8 +53,12 @@ def file_lock(filepath: Path) -> Iterator[None]:
                 fcntl.flock(f.fileno(), fcntl.LOCK_UN)
 
 
-def compute_canonical_hash(record_data: dict[str, Any]) -> str:
-    """Compute SHA-256 hash over canonical JSON representation excluding 'hash'."""
+def compute_canonical_hash(
+    record_data: dict[str, Any],
+    *,
+    hmac_key: str | bytes | None = None,
+) -> str:
+    """Compute SHA-256 or HMAC-SHA-256 hash over canonical JSON representation excluding 'hash'."""
     data_copy = {k: v for k, v in record_data.items() if k != "hash"}
     canonical_json = json.dumps(
         data_copy,
@@ -58,7 +66,11 @@ def compute_canonical_hash(record_data: dict[str, Any]) -> str:
         separators=(",", ":"),
         default=str,
     )
-    return hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
+    canonical_bytes = canonical_json.encode("utf-8")
+    if hmac_key:
+        key_bytes = hmac_key.encode("utf-8") if isinstance(hmac_key, str) else hmac_key
+        return hmac.new(key_bytes, canonical_bytes, hashlib.sha256).hexdigest()
+    return hashlib.sha256(canonical_bytes).hexdigest()
 
 
 class AuditRecord(BaseModel):
@@ -128,6 +140,7 @@ def append_audit_entry(
     index_version: str = "",
     config_hash: str = "",
     abstain_code: str = "NONE",
+    hmac_key: str | bytes | None = None,
 ) -> str:
     """Append a cryptographically chained audit record under an exclusive file lock.
 
@@ -165,7 +178,7 @@ def append_audit_entry(
             "override_records": override_records or [],
         }
 
-        record_hash = compute_canonical_hash(record_dict)
+        record_hash = compute_canonical_hash(record_dict, hmac_key=hmac_key)
         record_dict["hash"] = record_hash
 
         with open(audit_path, "a", encoding="utf-8") as f:
@@ -174,12 +187,33 @@ def append_audit_entry(
     return record_hash
 
 
-def verify_audit_chain(audit_path: Path) -> tuple[bool, str | None]:
+def write_head_anchor(audit_path: Path, anchor_path: Path | None = None) -> str:
+    """Write the current head hash of the audit chain to an anchor file (T0.10).
+
+    Returns the head hash written to the anchor.
+    """
+    last_seq, head_hash = get_last_audit_hash(audit_path)
+    target_anchor = anchor_path or audit_path.with_suffix(audit_path.suffix + ".head")
+    target_anchor.parent.mkdir(parents=True, exist_ok=True)
+    target_anchor.write_text(f"{head_hash}\n", encoding="utf-8")
+    return head_hash
+
+
+def verify_audit_chain(
+    audit_path: Path,
+    *,
+    expected_head_hash: str | None = None,
+    anchor_path: Path | None = None,
+    hmac_key: str | bytes | None = None,
+) -> tuple[bool, str | None]:
     """Verify cryptographic integrity of an entire audit log file.
+
+    If expected_head_hash or anchor_path is provided, verifies that the final
+    record's hash matches the anchor (defending against tail truncation).
 
     Returns:
         (True, None) if completely valid.
-        (False, error_details) on any tamper or hash mismatch.
+        (False, error_details) on any tamper, hash mismatch, or truncation.
     """
     if not audit_path.exists():
         return True, None
@@ -215,7 +249,7 @@ def verify_audit_chain(audit_path: Path) -> tuple[bool, str | None]:
                     f"{expected_prev_hash}, got {prev_h})",
                 )
 
-            computed_h = compute_canonical_hash(record)
+            computed_h = compute_canonical_hash(record, hmac_key=hmac_key)
             if computed_h != rec_h:
                 return (
                     False,
@@ -225,5 +259,16 @@ def verify_audit_chain(audit_path: Path) -> tuple[bool, str | None]:
 
             expected_prev_hash = rec_h
             expected_seq += 1
+
+    # Check anchor against final head hash to detect tail truncation
+    anchor_hash = expected_head_hash
+    if anchor_hash is None and anchor_path is not None and anchor_path.exists():
+        anchor_hash = anchor_path.read_text(encoding="utf-8").strip()
+
+    if anchor_hash is not None and expected_prev_hash != anchor_hash:
+        return (
+            False,
+            f"Truncation detected: chain head {expected_prev_hash} != expected anchor {anchor_hash}",
+        )
 
     return True, None

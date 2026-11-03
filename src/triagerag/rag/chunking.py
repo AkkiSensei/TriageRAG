@@ -51,6 +51,55 @@ def compute_content_hash(text: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
+def canonicalize_node_text(text: str) -> str:
+    """Canonicalize clinical node text for deterministic content-addressing (AUB-COR-02).
+
+    1. NFKC unicode normalization.
+    2. Strips leading list/enumeration markers (e.g. '1. IF ...' or '4. IF ...')
+       to guarantee node reordering and insertion invariance.
+    3. Normalizes all line endings (CRLF/CR) to LF.
+    4. Strips leading and trailing whitespace per line and drops empty lines.
+    """
+    import unicodedata
+
+    normalized = unicodedata.normalize("NFKC", text)
+    normalized = re.sub(r"^\s*\d+\.\s*", "", normalized)
+    normalized = normalized.replace("\r\n", "\n").replace("\r", "\n")
+    lines = [line.strip() for line in normalized.split("\n") if line.strip()]
+    return "\n".join(lines)
+
+
+def compute_node_hash(node_text: str) -> str:
+    """Compute 8-character hex SHA-256 hash of canonicalized node text (AUB-COR-02)."""
+    canonical = canonicalize_node_text(node_text)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:8]
+
+
+def extract_if_condition(node_text: str) -> str | None:
+    """Extract condition part from an IF...THEN decision node (AUB-COR-03)."""
+    m = re.search(
+        r"^\s*(?:\d+\.\s*)?IF\s+(.*?)(?::\s*THEN|\s+THEN)\b",
+        node_text,
+        re.DOTALL | re.IGNORECASE,
+    )
+    if m:
+        return " ".join(m.group(1).strip().split())
+    return None
+
+
+def build_display_header(
+    *,
+    title: str,
+    doc_id: str,
+    section: str,
+    syndrome: str,
+    chunk_id: str,
+) -> str:
+    """Build full display header for citations and UI inspection."""
+    display_title = title.strip() if title and title.strip() else doc_id
+    return f"{display_title} › {section} › {syndrome} › {chunk_id}"
+
+
 def build_contextual_header(
     *,
     title: str,
@@ -59,15 +108,32 @@ def build_contextual_header(
     syndrome: str,
     chunk_id: str,
     text: str,
+    governing_context: str | None = None,
 ) -> str:
-    """Build contextualized text for indexing while keeping raw text separate for citations."""
+    """Build contextualized text for indexing while keeping raw text separate for citations.
+
+    T2.5 (AUB-RET-06): Strips non-discriminative fragments (positional node digits and redundant
+    syndrome tokens) so they do not leak into BM25 indexed_text or distort document length.
+    Full header is preserved on chunk.display_header.
+    T3.5 (AUB-COR-03): If governing_context is supplied, prepends it to provide cross-node
+    condition context without modifying verbatim node text.
+    """
     display_title = title.strip() if title and title.strip() else doc_id
-    header = f"{display_title} › {section} › {syndrome} › {chunk_id}"
+    clean_section = section.strip()
+    parts = [display_title]
+    if clean_section and clean_section.lower() != display_title.lower():
+        parts.append(clean_section)
+    if governing_context and governing_context.strip():
+        parts.append(f"Governing Context: {governing_context.strip()}")
+    header = " › ".join(parts)
     return f"{header}\n{text}"
 
 
+LicenseTag = Literal["synthetic", "public_domain", "cc_by_nc_sa", "restricted"]
+
+
 class ProtocolFrontmatter(BaseModel):
-    """Strict schema for protocol markdown YAML frontmatter (RAG-04)."""
+    """Strict schema for protocol markdown YAML frontmatter (RAG-04 / T3.4)."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -80,6 +146,7 @@ class ProtocolFrontmatter(BaseModel):
     synthetic: StrictBool
     version: str = "1.0.0"
     license: str | None = None
+    license_tag: LicenseTag = "synthetic"
     attribution: str | None = None
     source_url: str | None = None
     retrieved_at: str | None = None
@@ -134,14 +201,18 @@ class ProtocolChunk(BaseModel):
     section: str
     chunk_id: str
     parent_id: str | None = None
+    legacy_id: str | None = None
+    aliases: tuple[str, ...] = ()
     text: str
     indexed_text: str = ""
+    display_header: str = ""
     population: str
     syndrome: str
     synthetic: bool = True
     version: str = "1.0.0"
     content_hash: str = ""
     license: str | None = None
+    license_tag: LicenseTag = "synthetic"
     attribution: str | None = None
     source_url: str | None = None
     retrieved_at: str | None = None
@@ -151,6 +222,11 @@ class ProtocolChunk(BaseModel):
     parse_warnings: tuple[str, ...] = ()
     suspicious_patterns: tuple[str, ...] = ()
     drug_actions: tuple[DrugAction, ...] = ()
+    requires_predicates: tuple[str, ...] = ()
+    contraindicated_by: tuple[str, ...] = ()
+    always_applicable: bool = False
+    predicate_review_required: bool = False
+    contextual_chunking_applied: bool = False
 
     @model_validator(mode="before")
     @classmethod
@@ -165,6 +241,14 @@ class ProtocolChunk(BaseModel):
 
             if not data.get("content_hash"):
                 data["content_hash"] = compute_content_hash(text)
+            if not data.get("display_header"):
+                data["display_header"] = build_display_header(
+                    title=title,
+                    doc_id=doc_id,
+                    section=section,
+                    syndrome=syndrome,
+                    chunk_id=chunk_id,
+                )
             if not data.get("indexed_text"):
                 data["indexed_text"] = build_contextual_header(
                     title=title,
@@ -212,7 +296,11 @@ def _parse_frontmatter(
     return fm, body_raw
 
 
-def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> list[ProtocolChunk]:
+def chunk_protocol_markdown(
+    content: str,
+    source_path: Path | None = None,
+    contextual_chunking: bool = False,
+) -> list[ProtocolChunk]:
     """Parse protocol markdown file with YAML frontmatter into structured parent/child chunks.
 
     Enforces a grammar-based state machine over body lines:
@@ -326,6 +414,7 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
         synthetic=fm.synthetic,
         version=fm.version,
         license=fm.license,
+        license_tag=fm.license_tag,
         attribution=fm.attribution,
         source_url=fm.source_url,
         retrieved_at=fm.retrieved_at,
@@ -337,9 +426,32 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
 
     chunks: list[ProtocolChunk] = [parent_chunk]
 
+    governing_condition: str | None = None
+    if contextual_chunking and valid_nodes:
+        governing_condition = extract_if_condition(valid_nodes[0])
+
     for idx, node_text in enumerate(valid_nodes, start=1):
-        child_chunk_id = f"{fm.chunk_id}_NODE_{idx}"
+        node_hash = compute_node_hash(node_text)
+        child_chunk_id = f"{fm.chunk_id}_{node_hash}"
+        legacy_id = f"{fm.chunk_id}_NODE_{idx}"
         node_drug_actions = parse_clause_drug_actions(node_text)
+
+        node_gov_context: str | None = None
+        applied = False
+        if contextual_chunking and idx > 1 and governing_condition:
+            node_gov_context = governing_condition
+            applied = True
+
+        indexed_text = build_contextual_header(
+            title=doc_title,
+            doc_id=fm.doc_id,
+            section=fm.section,
+            syndrome=fm.syndrome,
+            chunk_id=child_chunk_id,
+            text=node_text,
+            governing_context=node_gov_context,
+        )
+
         chunks.append(
             ProtocolChunk(
                 doc_id=fm.doc_id,
@@ -347,18 +459,23 @@ def chunk_protocol_markdown(content: str, source_path: Path | None = None) -> li
                 section=fm.section,
                 chunk_id=child_chunk_id,
                 parent_id=fm.chunk_id,
+                legacy_id=legacy_id,
+                aliases=(legacy_id,),
                 text=node_text,
+                indexed_text=indexed_text,
                 population=fm.population,
                 syndrome=fm.syndrome,
                 synthetic=fm.synthetic,
                 version=fm.version,
                 license=fm.license,
+                license_tag=fm.license_tag,
                 attribution=fm.attribution,
                 source_url=fm.source_url,
                 retrieved_at=fm.retrieved_at,
                 reviewed_by=fm.reviewed_by,
                 source_status=fm.status,
                 drug_actions=node_drug_actions,
+                contextual_chunking_applied=applied,
             )
         )
 
@@ -405,7 +522,10 @@ def verify_round_trip_invariant(content: str, chunks: list[ProtocolChunk]) -> bo
     return True
 
 
-def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]:
+def chunk_decision_graph_json(
+    graph_data: dict[str, Any],
+    contextual_chunking: bool = False,
+) -> list[ProtocolChunk]:
     """Convert a structured JSON decision graph (flowchart adapter) into ProtocolChunks.
 
     Supports converting structured clinical flowcharts (nodes + edges) into
@@ -445,6 +565,7 @@ def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]
         synthetic=fm.synthetic,
         version=fm.version,
         license=fm.license,
+        license_tag=fm.license_tag,
         attribution=fm.attribution,
         source_url=fm.source_url,
         retrieved_at=fm.retrieved_at,
@@ -452,27 +573,57 @@ def chunk_decision_graph_json(graph_data: dict[str, Any]) -> list[ProtocolChunk]
         source_status=fm.status,
     )
     result = [parent]
+    gov_cond: str | None = None
+    if contextual_chunking and nodes_raw:
+        first_cond = str(nodes_raw[0].get("if_condition", "")).strip()
+        if first_cond:
+            gov_cond = first_cond
+
     for idx, node_text in enumerate(rendered_nodes, start=1):
+        node_hash = compute_node_hash(node_text)
+        child_chunk_id = f"{fm.chunk_id}_{node_hash}"
+        legacy_id = f"{fm.chunk_id}_NODE_{idx}"
         node_drug_actions = parse_clause_drug_actions(node_text)
+        node_gov_context: str | None = None
+        applied = False
+        if contextual_chunking and idx > 1 and gov_cond:
+            node_gov_context = gov_cond
+            applied = True
+
+        indexed_text = build_contextual_header(
+            title=doc_title,
+            doc_id=fm.doc_id,
+            section=fm.section,
+            syndrome=fm.syndrome,
+            chunk_id=child_chunk_id,
+            text=node_text,
+            governing_context=node_gov_context,
+        )
+
         result.append(
             ProtocolChunk(
                 doc_id=fm.doc_id,
                 title=doc_title,
                 section=fm.section,
-                chunk_id=f"{fm.chunk_id}_NODE_{idx}",
+                chunk_id=child_chunk_id,
                 parent_id=fm.chunk_id,
+                legacy_id=legacy_id,
+                aliases=(legacy_id,),
                 text=node_text,
+                indexed_text=indexed_text,
                 population=fm.population,
                 syndrome=fm.syndrome,
                 synthetic=fm.synthetic,
                 version=fm.version,
                 license=fm.license,
+                license_tag=fm.license_tag,
                 attribution=fm.attribution,
                 source_url=fm.source_url,
                 retrieved_at=fm.retrieved_at,
                 reviewed_by=fm.reviewed_by,
                 source_status=fm.status,
                 drug_actions=node_drug_actions,
+                contextual_chunking_applied=applied,
             )
         )
     return result

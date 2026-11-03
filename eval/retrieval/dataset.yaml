@@ -4,11 +4,12 @@ dataset_version: 2.0.0
 provenance_status: AGENT_AUTHORED_UNREVIEWED
 seed: 42
 total_cases: 224
-dev_cases: 136
-test_cases: 88
+dev_cases: 143
+test_cases: 81
 cases:
 - id: RET_001_POS_CP
   family: syndrome_positives
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '58'
@@ -30,6 +31,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_002_POS_CP
   family: syndrome_positives
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '58'
@@ -51,7 +53,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_003_POS_CP
   family: syndrome_positives
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_87f7f753
+  split: dev
   age:
     value: '58'
     unit: years
@@ -72,7 +75,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_004_POS_CP
   family: syndrome_positives
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_87f7f753
+  split: dev
   age:
     value: '58'
     unit: years
@@ -93,7 +97,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_005_POS_CP
   family: syndrome_positives
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_bd314399
+  split: dev
   age:
     value: '58'
     unit: years
@@ -114,7 +119,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_006_POS_CP
   family: syndrome_positives
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
+  split: dev
   age:
     value: '58'
     unit: years
@@ -135,7 +141,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_007_POS_ANA
   family: syndrome_positives
-  split: dev
+  template_id: TMPL_POS_ANAPHYLAXIS_ac0b6c28
+  split: test
   age:
     value: '34'
     unit: years
@@ -156,6 +163,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_008_POS_ANA
   family: syndrome_positives
+  template_id: TMPL_POS_ANAPHYLAXIS_ac0b6c28
   split: test
   age:
     value: '34'
@@ -177,7 +185,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_009_POS_ANA
   family: syndrome_positives
-  split: dev
+  template_id: TMPL_POS_ANAPHYLAXIS_ac0b6c28
+  split: test
   age:
     value: '34'
     unit: years
@@ -198,7 +207,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_010_POS_ANA
   family: syndrome_positives
-  split: dev
+  template_id: TMPL_POS_ANAPHYLAXIS_df641f4e
+  split: test
   age:
     value: '34'
     unit: years
@@ -219,7 +229,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_011_POS_ANA
   family: syndrome_positives
-  split: dev
+  template_id: TMPL_POS_ANAPHYLAXIS_ac0b6c28
+  split: test
   age:
     value: '34'
     unit: years
@@ -240,7 +251,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_012_POS_ANA
   family: syndrome_positives
-  split: dev
+  template_id: TMPL_POS_ANAPHYLAXIS_df641f4e
+  split: test
   age:
     value: '34'
     unit: years
@@ -261,7 +273,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_013_POS_ASTHMA
   family: syndrome_positives
-  split: test
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
+  split: dev
   age:
     value: '29'
     unit: years
@@ -282,7 +295,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_014_POS_ASTHMA
   family: syndrome_positives
-  split: test
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
+  split: dev
   age:
     value: '29'
     unit: years
@@ -303,6 +317,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_015_POS_ASTHMA
   family: syndrome_positives
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '29'
@@ -324,6 +339,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_016_POS_ASTHMA
   family: syndrome_positives
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '29'
@@ -345,6 +361,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_017_POS_ASTHMA
   family: syndrome_positives
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '29'
@@ -366,6 +383,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_018_POS_ASTHMA
   family: syndrome_positives
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '29'
@@ -387,7 +405,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_019_POS_HYPO
   family: syndrome_positives
-  split: dev
+  template_id: TMPL_POS_HYPOGLYCEMIA_98cf7793
+  split: test
   age:
     value: '64'
     unit: years
@@ -408,6 +427,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_020_POS_HYPO
   family: syndrome_positives
+  template_id: TMPL_POS_HYPOGLYCEMIA_98cf7793
   split: test
   age:
     value: '64'
@@ -429,6 +449,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_021_POS_HYPO
   family: syndrome_positives
+  template_id: TMPL_POS_HYPOGLYCEMIA_98cf7793
   split: test
   age:
     value: '64'
@@ -450,6 +471,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_022_POS_HYPO
   family: syndrome_positives
+  template_id: TMPL_POS_HYPOGLYCEMIA_98cf7793
   split: test
   age:
     value: '64'
@@ -471,7 +493,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_023_POS_HYPO
   family: syndrome_positives
-  split: dev
+  template_id: TMPL_POS_HYPOGLYCEMIA_98cf7793
+  split: test
   age:
     value: '64'
     unit: years
@@ -492,7 +515,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_024_POS_HYPO
   family: syndrome_positives
-  split: dev
+  template_id: TMPL_POS_HYPOGLYCEMIA_98cf7793
+  split: test
   age:
     value: '64'
     unit: years
@@ -513,6 +537,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_025_POS_AMS
   family: syndrome_positives
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_b7ef0cfb
   split: dev
   age:
     value: '71'
@@ -533,7 +558,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_026_POS_AMS
   family: syndrome_positives
-  split: test
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_b7ef0cfb
+  split: dev
   age:
     value: '71'
     unit: years
@@ -553,6 +579,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_027_POS_AMS
   family: syndrome_positives
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_b7ef0cfb
   split: dev
   age:
     value: '71'
@@ -573,6 +600,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_028_POS_AMS
   family: syndrome_positives
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_b7ef0cfb
   split: dev
   age:
     value: '71'
@@ -593,6 +621,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_029_POS_AMS
   family: syndrome_positives
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_b7ef0cfb
   split: dev
   age:
     value: '71'
@@ -613,6 +642,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_030_POS_AMS
   family: syndrome_positives
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_b7ef0cfb
   split: dev
   age:
     value: '71'
@@ -633,7 +663,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_031_POS_PAED
   family: syndrome_positives
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '5'
     unit: years
@@ -654,6 +685,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_032_POS_PAED
   family: syndrome_positives
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
   split: test
   age:
     value: '5'
@@ -675,6 +707,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_033_POS_PAED
   family: syndrome_positives
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
   split: test
   age:
     value: '5'
@@ -696,6 +729,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_034_POS_PAED
   family: syndrome_positives
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
   split: test
   age:
     value: '5'
@@ -717,7 +751,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_035_POS_PAED
   family: syndrome_positives
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '5'
     unit: years
@@ -738,7 +773,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_036_POS_PAED
   family: syndrome_positives
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '5'
     unit: years
@@ -759,6 +795,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_037_HN_ADULT
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_KIDNEY_STONE
   split: dev
   age:
     value: '45'
@@ -778,6 +815,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_038_HN_PAED
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_KIDNEY_STONE
   split: dev
   age:
     value: '6'
@@ -796,7 +834,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_039_HN_ADULT
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_APPENDICITIS
+  split: dev
   age:
     value: '45'
     unit: years
@@ -815,6 +854,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_040_HN_PAED
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_APPENDICITIS
   split: dev
   age:
     value: '6'
@@ -833,7 +873,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_041_HN_ADULT
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_MIGRAINE
+  split: dev
   age:
     value: '45'
     unit: years
@@ -851,7 +892,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_042_HN_PAED
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_MIGRAINE
+  split: dev
   age:
     value: '6'
     unit: years
@@ -869,6 +911,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_043_HN_ADULT
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_GI_BLEED
   split: dev
   age:
     value: '45'
@@ -887,7 +930,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_044_HN_PAED
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_GI_BLEED
+  split: dev
   age:
     value: '6'
     unit: years
@@ -905,6 +949,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_045_HN_ADULT
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_PULMONARY_EMBOLISM
   split: dev
   age:
     value: '45'
@@ -924,6 +969,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_046_HN_PAED
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_PULMONARY_EMBOLISM
   split: dev
   age:
     value: '6'
@@ -943,7 +989,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_047_HN_ADULT
   family: hard_negatives
-  split: dev
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_ACUTE_STROKE
+  split: test
   age:
     value: '45'
     unit: years
@@ -962,7 +1009,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_048_HN_PAED
   family: hard_negatives
-  split: dev
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_ACUTE_STROKE
+  split: test
   age:
     value: '6'
     unit: years
@@ -980,7 +1028,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_049_HN_ADULT
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_CELLULITIS
+  split: dev
   age:
     value: '45'
     unit: years
@@ -998,6 +1047,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_050_HN_PAED
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_CELLULITIS
   split: dev
   age:
     value: '6'
@@ -1016,7 +1066,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_051_HN_ADULT
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_FEMUR_FRACTURE
+  split: dev
   age:
     value: '45'
     unit: years
@@ -1035,6 +1086,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_052_HN_PAED
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_FEMUR_FRACTURE
   split: dev
   age:
     value: '6'
@@ -1054,7 +1106,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_053_HN_ADULT
   family: hard_negatives
-  split: dev
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_URINARY_TRACT_INFECTION
+  split: test
   age:
     value: '45'
     unit: years
@@ -1073,7 +1126,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_054_HN_PAED
   family: hard_negatives
-  split: dev
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_URINARY_TRACT_INFECTION
+  split: test
   age:
     value: '6'
     unit: years
@@ -1092,7 +1146,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_055_HN_ADULT
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_LOBAR_PNEUMONIA
+  split: dev
   age:
     value: '45'
     unit: years
@@ -1111,6 +1166,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_056_HN_PAED
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_LOBAR_PNEUMONIA
   split: dev
   age:
     value: '6'
@@ -1130,7 +1186,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_057_HN_ADULT
   family: hard_negatives
-  split: dev
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_ACUTE_PANCREATITIS
+  split: test
   age:
     value: '45'
     unit: years
@@ -1149,7 +1206,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_058_HN_PAED
   family: hard_negatives
-  split: dev
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_ACUTE_PANCREATITIS
+  split: test
   age:
     value: '6'
     unit: years
@@ -1168,6 +1226,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_059_HN_ADULT
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_STATUS_EPILEPTICUS
   split: dev
   age:
     value: '45'
@@ -1187,7 +1246,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_060_HN_PAED
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_STATUS_EPILEPTICUS
+  split: dev
   age:
     value: '6'
     unit: years
@@ -1206,7 +1266,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_061_HN_ADULT
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_VASOVAGAL_SYNCOPE
+  split: dev
   age:
     value: '45'
     unit: years
@@ -1225,6 +1286,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_062_HN_PAED
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_VASOVAGAL_SYNCOPE
   split: dev
   age:
     value: '6'
@@ -1244,6 +1306,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_063_HN_ADULT
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_HEAT_STROKE
   split: dev
   age:
     value: '45'
@@ -1263,7 +1326,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_064_HN_PAED
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_HEAT_STROKE
+  split: dev
   age:
     value: '6'
     unit: years
@@ -1281,6 +1345,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_065_HN_NEARDUP
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_CHRONIC_STABLE_ANGINA
   split: dev
   age:
     value: '65'
@@ -1298,7 +1363,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_066_HN_NEARDUP
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_MILD_SEASONAL_BRONCHOSPASM
+  split: dev
   age:
     value: '28'
     unit: years
@@ -1316,7 +1382,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_067_HN_NEARDUP
   family: hard_negatives
-  split: dev
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_FOOD_INTOLERANCE_ISOLATED
+  split: test
   age:
     value: '32'
     unit: years
@@ -1334,6 +1401,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_068_HN_NEARDUP
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_CHRONIC_TENSION_HEADACHE
   split: dev
   age:
     value: '45'
@@ -1352,7 +1420,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_069_HN_NEARDUP
   family: hard_negatives
-  split: dev
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_COSTOCHONDRITIS_CHEST_WALL_PAIN
+  split: test
   age:
     value: '38'
     unit: years
@@ -1370,6 +1439,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_070_HN_NEARDUP
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_LOCALIZED_DERMATITIS
   split: dev
   age:
     value: '50'
@@ -1387,7 +1457,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_071_HN_NEARDUP
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_BENIGN_PALPITATIONS
+  split: dev
   age:
     value: '25'
     unit: years
@@ -1404,7 +1475,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_072_HN_NEARDUP
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_REACTIVE_HYPERGLYCEMIA
+  split: dev
   age:
     value: '58'
     unit: years
@@ -1421,7 +1493,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_073_HN_NEARDUP
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_PAEDIATRIC_COMMON_COLD
+  split: dev
   age:
     value: '3'
     unit: years
@@ -1438,6 +1511,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_074_HN_NEARDUP
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_PAEDIATRIC_TEETHING_IRRITABILITY
   split: dev
   age:
     value: '8'
@@ -1456,7 +1530,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_075_HN_NEARDUP
   family: hard_negatives
-  split: dev
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_ACUTE_BRONCHITIS_AFEBRILE
+  split: test
   age:
     value: '42'
     unit: years
@@ -1474,7 +1549,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_076_HN_NEARDUP
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_POST_EXERCISE_TACHYCARDIA
+  split: dev
   age:
     value: '22'
     unit: years
@@ -1492,6 +1568,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_077_HN_NEARDUP
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_MILD_GASTROENTERITIS
   split: dev
   age:
     value: '35'
@@ -1509,7 +1586,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_078_HN_NEARDUP
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_PAEDIATRIC_MILD_OTITIS
+  split: dev
   age:
     value: '4'
     unit: years
@@ -1526,6 +1604,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_079_HN_NEARDUP
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_NON_CARDIAC_DYSPEPSIA
   split: dev
   age:
     value: '49'
@@ -1543,6 +1622,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_080_HN_NEARDUP
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_FATIGUE_SYNDROME
   split: test
   age:
     value: '53'
@@ -1560,6 +1640,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_081_HN_NEARDUP
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_PAEDIATRIC_HEAT_RASH
   split: dev
   age:
     value: '2'
@@ -1577,6 +1658,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_082_HN_NEARDUP
   family: hard_negatives
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_MILD_ALLERGIC_RHINITIS
   split: dev
   age:
     value: '31'
@@ -1594,7 +1676,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_083_HN_NEARDUP
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_HYPERVENTILATION_ANXIETY
+  split: dev
   age:
     value: '27'
     unit: years
@@ -1612,7 +1695,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_084_HN_NEARDUP
   family: hard_negatives
-  split: test
+  template_id: TMPL_ABS_UNKNOWN_SYNDROME_POSTPRANDIAL_SOMNOLENCE
+  split: dev
   age:
     value: '60'
     unit: years
@@ -1629,7 +1713,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_085_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
+  split: dev
   age:
     value: '52'
     unit: years
@@ -1650,7 +1735,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_086_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
+  split: dev
   age:
     value: '52'
     unit: years
@@ -1671,7 +1757,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_087_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  template_id: TMPL_POS_ANAPHYLAXIS_9fc90d21
+  split: dev
   age:
     value: '52'
     unit: years
@@ -1692,7 +1779,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_088_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  template_id: TMPL_POS_ANAPHYLAXIS_9fc90d21
+  split: dev
   age:
     value: '52'
     unit: years
@@ -1713,6 +1801,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_089_CONF
   family: conflicting_syndrome_vitals
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '52'
@@ -1734,6 +1823,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_090_CONF
   family: conflicting_syndrome_vitals
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '52'
@@ -1755,7 +1845,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_091_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_9a6cb4c5
+  split: dev
   age:
     value: '52'
     unit: years
@@ -1776,7 +1867,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_092_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_9a6cb4c5
+  split: dev
   age:
     value: '52'
     unit: years
@@ -1797,7 +1889,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_093_CONF
   family: conflicting_syndrome_vitals
-  split: dev
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_4399236e
+  split: test
   age:
     value: '52'
     unit: years
@@ -1818,7 +1911,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_094_CONF
   family: conflicting_syndrome_vitals
-  split: dev
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_4399236e
+  split: test
   age:
     value: '52'
     unit: years
@@ -1839,6 +1933,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_095_CONF
   family: conflicting_syndrome_vitals
+  template_id: TMPL_POS_ANAPHYLAXIS_5c73f92d
   split: dev
   age:
     value: '52'
@@ -1861,6 +1956,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_096_CONF
   family: conflicting_syndrome_vitals
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '52'
@@ -1883,6 +1979,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_097_CONF
   family: conflicting_syndrome_vitals
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '52'
@@ -1904,7 +2001,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_098_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
+  split: dev
   age:
     value: '52'
     unit: years
@@ -1925,7 +2023,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_099_CONF
   family: conflicting_syndrome_vitals
-  split: dev
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_4399236e
+  split: test
   age:
     value: '52'
     unit: years
@@ -1946,7 +2045,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_100_CONF
   family: conflicting_syndrome_vitals
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '7'
     unit: years
@@ -1967,7 +2067,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_101_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_9a6cb4c5
+  split: dev
   age:
     value: '52'
     unit: years
@@ -1988,6 +2089,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_102_CONF
   family: conflicting_syndrome_vitals
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '52'
@@ -2009,6 +2111,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_103_CONF
   family: conflicting_syndrome_vitals
+  template_id: TMPL_POS_ANAPHYLAXIS_9fc90d21
   split: dev
   age:
     value: '52'
@@ -2030,6 +2133,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_104_CONF
   family: conflicting_syndrome_vitals
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
   split: dev
   age:
     value: '52'
@@ -2051,6 +2155,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_105_CONF
   family: conflicting_syndrome_vitals
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_4399236e
   split: test
   age:
     value: '52'
@@ -2072,7 +2177,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_106_CONF
   family: conflicting_syndrome_vitals
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '7'
     unit: years
@@ -2093,7 +2199,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_107_CONF
   family: conflicting_syndrome_vitals
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_9a6cb4c5
+  split: dev
   age:
     value: '52'
     unit: years
@@ -2114,6 +2221,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_108_CONF
   family: conflicting_syndrome_vitals
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '52'
@@ -2135,7 +2243,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_109_VO_AMBIG_SBP
   family: vitals_only
-  split: dev
+  template_id: TMPL_ABS_AMBIGUOUS_MARGIN_NONE
+  split: test
   age:
     value: '50'
     unit: years
@@ -2151,6 +2260,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_110_VO_AMBIG_SBP
   family: vitals_only
+  template_id: TMPL_ABS_AMBIGUOUS_MARGIN_NONE
   split: test
   age:
     value: '50'
@@ -2167,7 +2277,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_111_VO_AMBIG_SBP
   family: vitals_only
-  split: dev
+  template_id: TMPL_ABS_AMBIGUOUS_MARGIN_NONE
+  split: test
   age:
     value: '50'
     unit: years
@@ -2183,6 +2294,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_112_VO_AMBIG_SBP
   family: vitals_only
+  template_id: TMPL_ABS_AMBIGUOUS_MARGIN_NONE
   split: test
   age:
     value: '50'
@@ -2199,6 +2311,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_113_VO_AMBIG_SBP
   family: vitals_only
+  template_id: TMPL_ABS_AMBIGUOUS_MARGIN_NONE
   split: test
   age:
     value: '50'
@@ -2215,6 +2328,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_114_VO_AMBIG_SBP
   family: vitals_only
+  template_id: TMPL_ABS_AMBIGUOUS_MARGIN_NONE
   split: test
   age:
     value: '50'
@@ -2231,7 +2345,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_115_VO_EMPTY
   family: vitals_only
-  split: dev
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
+  split: test
   age:
     value: '40'
     unit: years
@@ -2249,6 +2364,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_116_VO_EMPTY
   family: vitals_only
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
   split: test
   age:
     value: '40'
@@ -2267,6 +2383,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_117_VO_EMPTY
   family: vitals_only
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
   split: test
   age:
     value: '40'
@@ -2285,7 +2402,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_118_VO_EMPTY
   family: vitals_only
-  split: dev
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
+  split: test
   age:
     value: '40'
     unit: years
@@ -2303,6 +2421,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_119_VO_EMPTY
   family: vitals_only
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
   split: test
   age:
     value: '40'
@@ -2321,7 +2440,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_120_VO_EMPTY
   family: vitals_only
-  split: dev
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
+  split: test
   age:
     value: '40'
     unit: years
@@ -2339,7 +2459,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_121_VO_INF_PAED
   family: vitals_only
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '6'
     unit: months
@@ -2359,7 +2480,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_122_VO_INF_PAED
   family: vitals_only
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '9'
     unit: months
@@ -2379,7 +2501,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_123_VO_INF_PAED
   family: vitals_only
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '1'
     unit: years
@@ -2399,6 +2522,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_124_VO_INF_PAED
   family: vitals_only
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
   split: test
   age:
     value: '2'
@@ -2419,6 +2543,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_125_VO_INF_PAED
   family: vitals_only
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
   split: test
   age:
     value: '3'
@@ -2439,7 +2564,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_126_VO_INF_PAED
   family: vitals_only
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '4'
     unit: years
@@ -2459,7 +2585,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_127_VO_INF_PAED
   family: vitals_only
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '5'
     unit: years
@@ -2479,6 +2606,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_128_VO_INF_PAED
   family: vitals_only
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
   split: test
   age:
     value: '6'
@@ -2499,7 +2627,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_129_VO_INF_PAED
   family: vitals_only
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '8'
     unit: years
@@ -2519,7 +2648,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_130_VO_INF_PAED
   family: vitals_only
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '10'
     unit: years
@@ -2539,7 +2669,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_131_VO_INF_PAED
   family: vitals_only
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '12'
     unit: years
@@ -2559,6 +2690,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_132_VO_INF_PAED
   family: vitals_only
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
   split: test
   age:
     value: '14'
@@ -2579,7 +2711,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_133_VO_INF_PAED
   family: vitals_only
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '15'
     unit: years
@@ -2599,7 +2732,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_134_VO_INF_PAED
   family: vitals_only
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '16'
     unit: years
@@ -2619,6 +2753,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_135_VO_INF_ASTHMA
   family: vitals_only
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '30'
@@ -2639,6 +2774,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_136_VO_INF_ASTHMA
   family: vitals_only
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '30'
@@ -2659,6 +2795,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_137_VO_INF_ASTHMA
   family: vitals_only
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '30'
@@ -2679,6 +2816,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_138_VO_INF_ASTHMA
   family: vitals_only
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '30'
@@ -2699,7 +2837,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_139_VO_INF_ASTHMA
   family: vitals_only
-  split: test
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
+  split: dev
   age:
     value: '30'
     unit: years
@@ -2719,7 +2858,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_140_VO_INF_ASTHMA
   family: vitals_only
-  split: test
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
+  split: dev
   age:
     value: '30'
     unit: years
@@ -2739,6 +2879,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_141_VO_INF_ASTHMA
   family: vitals_only
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '30'
@@ -2759,7 +2900,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_142_VO_INF_ASTHMA
   family: vitals_only
-  split: test
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
+  split: dev
   age:
     value: '30'
     unit: years
@@ -2779,7 +2921,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_143_VO_INF_ASTHMA
   family: vitals_only
-  split: test
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
+  split: dev
   age:
     value: '30'
     unit: years
@@ -2799,7 +2942,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_144_VO_INF_ASTHMA
   family: vitals_only
-  split: test
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
+  split: dev
   age:
     value: '30'
     unit: years
@@ -2819,7 +2963,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_145_VO_INF_HYPO
   family: vitals_only
-  split: test
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
+  split: dev
   age:
     value: '58'
     unit: years
@@ -2839,6 +2984,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_146_VO_INF_HYPO
   family: vitals_only
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
   split: dev
   age:
     value: '58'
@@ -2859,6 +3005,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_147_VO_INF_HYPO
   family: vitals_only
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
   split: dev
   age:
     value: '58'
@@ -2879,6 +3026,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_148_VO_INF_HYPO
   family: vitals_only
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
   split: dev
   age:
     value: '58'
@@ -2899,7 +3047,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_149_VO_INF_HYPO
   family: vitals_only
-  split: test
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
+  split: dev
   age:
     value: '58'
     unit: years
@@ -2919,6 +3068,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_150_VO_INF_HYPO
   family: vitals_only
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
   split: dev
   age:
     value: '58'
@@ -2939,6 +3089,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_151_VO_INF_HYPO
   family: vitals_only
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
   split: dev
   age:
     value: '58'
@@ -2959,6 +3110,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_152_VO_INF_HYPO
   family: vitals_only
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
   split: dev
   age:
     value: '58'
@@ -2979,6 +3131,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_153_VO_INF_HYPO
   family: vitals_only
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
   split: dev
   age:
     value: '58'
@@ -2999,7 +3152,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_154_VO_INF_HYPO
   family: vitals_only
-  split: test
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
+  split: dev
   age:
     value: '58'
     unit: years
@@ -3019,6 +3173,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_155_VO_INF_CP
   family: vitals_only
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '62'
@@ -3039,6 +3194,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_156_VO_INF_CP
   family: vitals_only
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '62'
@@ -3059,6 +3215,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_157_VO_INF_CP
   family: vitals_only
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '62'
@@ -3079,7 +3236,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_158_VO_INF_CP
   family: vitals_only
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
+  split: dev
   age:
     value: '62'
     unit: years
@@ -3099,6 +3257,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_159_VO_INF_CP
   family: vitals_only
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '62'
@@ -3119,7 +3278,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_160_VO_INF_CP
   family: vitals_only
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
+  split: dev
   age:
     value: '62'
     unit: years
@@ -3139,6 +3299,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_161_VO_INF_CP
   family: vitals_only
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '62'
@@ -3159,6 +3320,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_162_VO_INF_CP
   family: vitals_only
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '62'
@@ -3179,6 +3341,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_163_VO_INF_CP
   family: vitals_only
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '62'
@@ -3199,7 +3362,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_164_VO_INF_CP
   family: vitals_only
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
+  split: dev
   age:
     value: '62'
     unit: years
@@ -3219,6 +3383,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_165_POP_NEO
   family: population_boundaries
+  template_id: TMPL_ABS_NO_POPULATION_COVERAGE_PAEDIATRIC_SEPSIS
   split: dev
   age:
     value: '1'
@@ -3236,6 +3401,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_166_POP_NEO
   family: population_boundaries
+  template_id: TMPL_ABS_NO_POPULATION_COVERAGE_PAEDIATRIC_SEPSIS
   split: dev
   age:
     value: '7'
@@ -3253,6 +3419,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_167_POP_NEO
   family: population_boundaries
+  template_id: TMPL_ABS_NO_POPULATION_COVERAGE_PAEDIATRIC_SEPSIS
   split: dev
   age:
     value: '14'
@@ -3270,6 +3437,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_168_POP_NEO
   family: population_boundaries
+  template_id: TMPL_ABS_NO_POPULATION_COVERAGE_PAEDIATRIC_SEPSIS
   split: dev
   age:
     value: '21'
@@ -3287,6 +3455,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_169_POP_NEO
   family: population_boundaries
+  template_id: TMPL_ABS_NO_POPULATION_COVERAGE_PAEDIATRIC_SEPSIS
   split: dev
   age:
     value: '28'
@@ -3304,7 +3473,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_170_POP_PAED_OK
   family: population_boundaries
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '29'
     unit: days
@@ -3324,6 +3494,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_171_POP_PAED_OK
   family: population_boundaries
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
   split: test
   age:
     value: '6'
@@ -3344,6 +3515,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_172_POP_PAED_OK
   family: population_boundaries
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
   split: test
   age:
     value: '2'
@@ -3364,7 +3536,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_173_POP_PAED_OK
   family: population_boundaries
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '17'
     unit: years
@@ -3384,6 +3557,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_174_POP_PAED_MISMATCH
   family: population_boundaries
+  template_id: TMPL_ABS_NO_POPULATION_COVERAGE_CHEST_PAIN
   split: dev
   age:
     value: '8'
@@ -3400,7 +3574,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_175_POP_PAED_MISMATCH
   family: population_boundaries
-  split: test
+  template_id: TMPL_ABS_NO_POPULATION_COVERAGE_ANAPHYLAXIS
+  split: dev
   age:
     value: '8'
     unit: years
@@ -3416,7 +3591,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_176_POP_PAED_MISMATCH
   family: population_boundaries
-  split: dev
+  template_id: TMPL_ABS_NO_POPULATION_COVERAGE_SEVERE_ASTHMA
+  split: test
   age:
     value: '8'
     unit: years
@@ -3432,6 +3608,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_177_POP_ADULT_OK
   family: population_boundaries
+  template_id: TMPL_POS_CHEST_PAIN_d8cae2c1
   split: dev
   age:
     value: '18'
@@ -3452,7 +3629,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_178_POP_ADULT_OK
   family: population_boundaries
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_d8cae2c1
+  split: dev
   age:
     value: '90'
     unit: years
@@ -3472,7 +3650,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_179_POP_ADULT_PAEDSYN
   family: population_boundaries
-  split: test
+  template_id: TMPL_ABS_NO_POPULATION_COVERAGE_PAEDIATRIC_SEPSIS
+  split: dev
   age:
     value: '18'
     unit: years
@@ -3489,7 +3668,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_180_POP_ADULT_PAEDSYN
   family: population_boundaries
-  split: test
+  template_id: TMPL_ABS_NO_POPULATION_COVERAGE_PAEDIATRIC_SEPSIS
+  split: dev
   age:
     value: '45'
     unit: years
@@ -3506,6 +3686,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_181_UNK_SYN_ONLY
   family: unknown_missing_vitals
+  template_id: TMPL_POS_CHEST_PAIN_9a6cb4c5
   split: dev
   age:
     value: '48'
@@ -3524,7 +3705,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_182_UNK_SYN_ONLY
   family: unknown_missing_vitals
-  split: test
+  template_id: TMPL_POS_ANAPHYLAXIS_9fc90d21
+  split: dev
   age:
     value: '48'
     unit: years
@@ -3542,7 +3724,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_183_UNK_SYN_ONLY
   family: unknown_missing_vitals
-  split: test
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
+  split: dev
   age:
     value: '48'
     unit: years
@@ -3560,6 +3743,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_184_UNK_SYN_ONLY
   family: unknown_missing_vitals
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
   split: dev
   age:
     value: '48'
@@ -3578,6 +3762,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_185_UNK_SYN_ONLY
   family: unknown_missing_vitals
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_4399236e
   split: test
   age:
     value: '48'
@@ -3596,7 +3781,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_186_UNK_SYN_ONLY
   family: unknown_missing_vitals
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '6'
     unit: years
@@ -3614,7 +3800,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_187_UNK_ALL
   family: unknown_missing_vitals
-  split: dev
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
+  split: test
   age:
     value: '30'
     unit: years
@@ -3629,7 +3816,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_188_UNK_ALL
   family: unknown_missing_vitals
-  split: dev
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
+  split: test
   age:
     value: '35'
     unit: years
@@ -3644,6 +3832,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_189_UNK_ALL
   family: unknown_missing_vitals
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
   split: test
   age:
     value: '40'
@@ -3659,7 +3848,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_190_UNK_ALL
   family: unknown_missing_vitals
-  split: dev
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
+  split: test
   age:
     value: '45'
     unit: years
@@ -3674,7 +3864,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_191_UNK_ALL
   family: unknown_missing_vitals
-  split: dev
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
+  split: test
   age:
     value: '50'
     unit: years
@@ -3689,7 +3880,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_192_UNK_ALL
   family: unknown_missing_vitals
-  split: dev
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
+  split: test
   age:
     value: '55'
     unit: years
@@ -3704,6 +3896,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_193_UNK_ALL
   family: unknown_missing_vitals
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
   split: test
   age:
     value: '60'
@@ -3719,6 +3912,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_194_UNK_ALL
   family: unknown_missing_vitals
+  template_id: TMPL_ABS_EMPTY_QUERY_NONE
   split: test
   age:
     value: '65'
@@ -3734,7 +3928,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_195_VAR
   family: acronym_morphology_variants
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_9a6cb4c5
+  split: dev
   age:
     value: '55'
     unit: years
@@ -3753,7 +3948,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_196_VAR
   family: acronym_morphology_variants
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_9a6cb4c5
+  split: dev
   age:
     value: '61'
     unit: years
@@ -3772,6 +3968,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_197_VAR
   family: acronym_morphology_variants
+  template_id: TMPL_POS_CHEST_PAIN_9a6cb4c5
   split: dev
   age:
     value: '52'
@@ -3791,7 +3988,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_198_VAR
   family: acronym_morphology_variants
-  split: test
+  template_id: TMPL_POS_ANAPHYLAXIS_9fc90d21
+  split: dev
   age:
     value: '28'
     unit: years
@@ -3810,7 +4008,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_199_VAR
   family: acronym_morphology_variants
-  split: test
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
+  split: dev
   age:
     value: '24'
     unit: years
@@ -3830,6 +4029,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_200_VAR
   family: acronym_morphology_variants
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '33'
@@ -3849,7 +4049,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_201_VAR
   family: acronym_morphology_variants
-  split: dev
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_4399236e
+  split: test
   age:
     value: '68'
     unit: years
@@ -3868,7 +4069,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_202_VAR
   family: acronym_morphology_variants
-  split: dev
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_4399236e
+  split: test
   age:
     value: '72'
     unit: years
@@ -3887,7 +4089,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_203_VAR
   family: acronym_morphology_variants
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '5'
     unit: years
@@ -3907,7 +4110,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_204_VAR
   family: acronym_morphology_variants
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '4'
     unit: years
@@ -3927,7 +4131,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_205_VAR
   family: acronym_morphology_variants
-  split: test
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
+  split: dev
   age:
     value: '59'
     unit: years
@@ -3946,6 +4151,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_206_VAR
   family: acronym_morphology_variants
+  template_id: TMPL_POS_ANAPHYLAXIS_9fc90d21
   split: dev
   age:
     value: '41'
@@ -3965,7 +4171,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_207_POISON
   family: corpus_poisoned_chunk
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_9a6cb4c5
+  split: dev
   age:
     value: '50'
     unit: years
@@ -3984,6 +4191,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_208_POISON
   family: corpus_poisoned_chunk
+  template_id: TMPL_POS_ANAPHYLAXIS_9fc90d21
   split: dev
   age:
     value: '50'
@@ -4003,6 +4211,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_209_POISON
   family: corpus_poisoned_chunk
+  template_id: TMPL_POS_SEVERE_ASTHMA_8e623f3f
   split: dev
   age:
     value: '50'
@@ -4022,7 +4231,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_210_POISON
   family: corpus_poisoned_chunk
-  split: test
+  template_id: TMPL_POS_HYPOGLYCEMIA_7741512c
+  split: dev
   age:
     value: '50'
     unit: years
@@ -4041,7 +4251,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_211_POISON
   family: corpus_poisoned_chunk
-  split: dev
+  template_id: TMPL_POS_ALTERED_MENTAL_STATUS_4399236e
+  split: test
   age:
     value: '50'
     unit: years
@@ -4060,7 +4271,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_212_POISON
   family: corpus_poisoned_chunk
-  split: dev
+  template_id: TMPL_POS_PAEDIATRIC_SEPSIS_563b08eb
+  split: test
   age:
     value: '5'
     unit: years
@@ -4079,6 +4291,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_213_DUP
   family: near_duplicate_versions
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '45'
@@ -4098,6 +4311,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_214_DUP
   family: near_duplicate_versions
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '46'
@@ -4117,7 +4331,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_215_DUP
   family: near_duplicate_versions
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
+  split: dev
   age:
     value: '47'
     unit: years
@@ -4136,7 +4351,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_216_DUP
   family: near_duplicate_versions
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
+  split: dev
   age:
     value: '48'
     unit: years
@@ -4155,6 +4371,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_217_DUP
   family: near_duplicate_versions
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '49'
@@ -4174,6 +4391,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_218_DUP
   family: near_duplicate_versions
+  template_id: TMPL_POS_CHEST_PAIN_5f41e652
   split: dev
   age:
     value: '50'
@@ -4193,6 +4411,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_219_SCALE
   family: scale_latency
+  template_id: TMPL_POS_CHEST_PAIN_d8cae2c1
   split: dev
   age:
     value: '55'
@@ -4218,6 +4437,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_220_SCALE
   family: scale_latency
+  template_id: TMPL_POS_CHEST_PAIN_d8cae2c1
   split: dev
   age:
     value: '56'
@@ -4243,6 +4463,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_221_SCALE
   family: scale_latency
+  template_id: TMPL_POS_CHEST_PAIN_d8cae2c1
   split: dev
   age:
     value: '57'
@@ -4268,7 +4489,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_222_SCALE
   family: scale_latency
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_d8cae2c1
+  split: dev
   age:
     value: '58'
     unit: years
@@ -4293,7 +4515,8 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_223_SCALE
   family: scale_latency
-  split: test
+  template_id: TMPL_POS_CHEST_PAIN_d8cae2c1
+  split: dev
   age:
     value: '59'
     unit: years
@@ -4318,6 +4541,7 @@ cases:
   reviewed_by: AGENT_AUTHORED_UNREVIEWED
 - id: RET_224_SCALE
   family: scale_latency
+  template_id: TMPL_POS_CHEST_PAIN_d8cae2c1
   split: dev
   age:
     value: '60'

@@ -25,8 +25,8 @@ from triagerag.config import get_repo_root
 
 @pytest.fixture(scope="module")
 def report_text() -> str:
-    """Generate Postmortem-Response.MD from current artefacts and return its content."""
-    return generate_gate_report()
+    """Generate Postmortem-Response.MD in memory from current artefacts without mutating disk."""
+    return generate_gate_report(write_file=False)
 
 
 def test_all_cited_tests_exist_in_pytest_collection() -> None:
@@ -139,13 +139,13 @@ def test_error_codes_and_ece_consistency_in_report(report_text: str) -> None:
 
 
 def test_four_distinct_ablation_arms_without_duplicates(report_text: str) -> None:
-    """N3: Exactly four distinct ablation arms appear in the report table."""
+    """N3 / T4.7: Seven factorial ablation arms appear in the report table."""
     repo_root = get_repo_root()
     ablation_data = json.loads(
         (repo_root / "eval" / "reports" / "retrieval_ablation.json").read_text(encoding="utf-8")
     )
     arms = ablation_data["arms"]
-    assert len(arms) == 4
+    assert len(arms) == 7
     for arm_id in ("bm25", "char_ngram", "hybrid_rrf", "hybrid_rrf_rerank"):
         assert f"| `{arm_id}` |" in report_text
     assert "| `dense` |" not in report_text
@@ -168,3 +168,55 @@ def test_finding_statuses_accurate_for_hd_and_container(report_text: str) -> Non
     assert expected_fg02 in report_text
     assert expected_fg07 in report_text
     assert expected_fg18 in report_text
+
+
+def test_telemetry_benchmark_artifact_integrity() -> None:
+    """Validate telemetry benchmark artifact values, delta calculations, and honest target status."""
+    repo_root = get_repo_root()
+    benchmark_file = repo_root / "eval" / "reports" / "telemetry_benchmark.json"
+    assert benchmark_file.exists(), "telemetry_benchmark.json missing from eval/reports"
+
+    data = json.loads(benchmark_file.read_text(encoding="utf-8"))
+    assert isinstance(data, list)
+    assert len(data) == 3
+
+    by_config = {item["config"]: item for item in data}
+    assert "Config 1: Telemetry Disabled" in by_config
+    assert "Config 2: In-Memory Tracing" in by_config
+    assert "Config 3: Console Exporter" in by_config
+
+    disabled = by_config["Config 1: Telemetry Disabled"]
+    in_mem = by_config["Config 2: In-Memory Tracing"]
+    console = by_config["Config 3: Console Exporter"]
+
+    # Verify measured values
+    assert disabled["iterations"] == 100
+    assert disabled["mean_ms"] == 11.057
+    assert disabled["p95_ms"] == 18.307
+    assert disabled["p99_ms"] == 33.585
+
+    assert in_mem["iterations"] == 100
+    assert in_mem["mean_ms"] == 14.901
+    assert in_mem["p95_ms"] == 29.277
+    assert in_mem["p99_ms"] == 54.998
+    assert in_mem["max_ms"] == 54.998
+
+    assert console["iterations"] == 100
+    assert console["mean_ms"] == 24.284
+    assert console["p95_ms"] == 75.219
+    assert console["p99_ms"] == 174.732
+
+    # Verify delta calculations matching benchmark code
+    in_mem_p95_delta = round(in_mem["p95_ms"] - disabled["p95_ms"], 3)
+    console_p95_delta = round(console["p95_ms"] - disabled["p95_ms"], 3)
+    in_mem_mean_delta = round(in_mem["mean_ms"] - disabled["mean_ms"], 3)
+
+    assert in_mem_p95_delta == 10.970
+    assert console_p95_delta == 56.912
+    assert in_mem_mean_delta == 3.844
+
+    # Assert 1.50 ms optimization ceiling target was NOT met
+    optimization_target_p95 = 1.50
+    assert in_mem_p95_delta > optimization_target_p95, (
+        f"In-memory p95 delta ({in_mem_p95_delta} ms) must be documented as exceeding target ({optimization_target_p95} ms)"
+    )

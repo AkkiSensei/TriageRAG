@@ -16,6 +16,7 @@ Safety Property (RAG-02, FG-01, FG-16, Rules R1, R2, R3, Section 10):
 
 from __future__ import annotations
 
+import logging
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -34,6 +35,8 @@ from triagerag.normalize.clause_parser import (
 if TYPE_CHECKING:
     from triagerag.contracts.schemas import PlanStepDraft, RetrievedChunk, SpanCitation
     from triagerag.engine.registry import ClinicalRegistry
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "ActionCuesConfig",
@@ -98,8 +101,16 @@ def verify_citation(
             f"{cfg.min_span_chars} characters)",
         )
 
-    # 2. Check chunk existence
-    chunk_map = {c.chunk_id: c for c in retrieved_chunks}
+    # 2. Check chunk existence (supporting content-addressed IDs and legacy aliases - AUB-COR-02)
+    chunk_map: dict[str, RetrievedChunk] = {}
+    for c in retrieved_chunks:
+        chunk_map[c.chunk_id] = c
+        legacy_id = getattr(c, "legacy_id", None)
+        if legacy_id:
+            chunk_map[legacy_id] = c
+        for alias in getattr(c, "aliases", ()):
+            chunk_map[alias] = c
+
     if citation.chunk_id not in chunk_map:
         return (
             False,
@@ -134,8 +145,18 @@ def verify_citation(
                     and (c.parent_id is not None or "_NODE_" in c.chunk_id)
                     for c in all_corpus_chunks
                 )
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.error(
+                    "Corpus ingestion failed while verifying child nodes for doc '%s': %s",
+                    matched_chunk.doc_id,
+                    exc,
+                )
+                return (
+                    False,
+                    0.0,
+                    f"Fail closed: corpus ingestion failed while verifying child nodes for "
+                    f"doc '{matched_chunk.doc_id}': {exc}",
+                )
 
         if has_child_for_doc:
             return (

@@ -1,6 +1,6 @@
 aliases:
-  Viagra:
-    brand_name: "Viagra"
+  Silagra:
+    brand_name: "Silagra"
     ingredient_ids: ["sildenafil"]
     strengths:
       - ingredient_id: "sildenafil"
@@ -219,6 +219,604 @@ aliases:
     brand_name: "penicillin"
     ingredient_ids: ["penicillin"]
     strengths: []
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  # Indian-context single-ingredient brands (A §12):
+  Dolo:
+    brand_name: "Dolo"
+    ingredient_ids: ["paracetamol"]
+    strengths:
+      - ingredient_id: "paracetamol"
+        strength_amount: 650
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Crocin:
+    brand_name: "Crocin"
+    ingredient_ids: ["paracetamol"]
+    strengths:
+      - ingredient_id: "paracetamol"
+        strength_amount: 500
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Calpol:
+    brand_name: "Calpol"
+    ingredient_ids: ["paracetamol"]
+    strengths:
+      - ingredient_id: "paracetamol"
+        strength_amount: 500
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Ecosprin:
+    brand_name: "Ecosprin"
+    ingredient_ids: ["aspirin"]
+    strengths:
+      - ingredient_id: "aspirin"
+        strength_amount: 75
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Asthalin:
+    brand_name: "Asthalin"
+    ingredient_ids: ["salbutamol"]
+    strengths:
+      - ingredient_id: "salbutamol"
+        strength_amount: 2
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Pan:
+    brand_name: "Pan"
+    ingredient_ids: ["pantoprazole"]
+    strengths:
+      - ingredient_id: "pantoprazole"
+        strength_amount: 40
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Eltroxin:
+    brand_name: "Eltroxin"
+    ingredient_ids: ["levothyroxine"]
+    strengths:
+      - ingredient_id: "levothyroxine"
+        strength_amount: 50
+        strength_unit: "mcg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Lasix:
+    brand_name: "Lasix"
+    ingredient_ids: ["furosemide"]
+    strengths:
+      - ingredient_id: "furosemide"
+        strength_amount: 40
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Betaloc:
+    brand_name: "Betaloc"
+    ingredient_ids: ["metoprolol"]
+    strengths:
+      - ingredient_id: "metoprolol"
+        strength_amount: 50
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Metolar:
+    brand_name: "Metolar"
+    ingredient_ids: ["metoprolol"]
+    strengths:
+      - ingredient_id: "metoprolol"
+        strength_amount: 50
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Amlong:
+    brand_name: "Amlong"
+    ingredient_ids: ["amlodipine"]
+    strengths:
+      - ingredient_id: "amlodipine"
+        strength_amount: 5
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Telma:
+    brand_name: "Telma"
+    ingredient_ids: ["telmisartan"]
+    strengths:
+      - ingredient_id: "telmisartan"
+        strength_amount: 40
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Losar:
+    brand_name: "Losar"
+    ingredient_ids: ["losartan"]
+    strengths:
+      - ingredient_id: "losartan"
+        strength_amount: 50
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Glycomet:
+    brand_name: "Glycomet"
+    ingredient_ids: ["metformin"]
+    strengths:
+      - ingredient_id: "metformin"
+        strength_amount: 500
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Amaryl:
+    brand_name: "Amaryl"
+    ingredient_ids: ["glimepiride"]
+    strengths:
+      - ingredient_id: "glimepiride"
+        strength_amount: 1
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Novorapid:
+    brand_name: "Novorapid"
+    ingredient_ids: ["insulin"]
+    strengths:
+      - ingredient_id: "insulin"
+        strength_amount: 100
+        strength_unit: "IU"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Huminsulin:
+    brand_name: "Huminsulin"
+    ingredient_ids: ["insulin"]
+    strengths:
+      - ingredient_id: "insulin"
+        strength_amount: 40
+        strength_unit: "IU"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Zifi:
+    brand_name: "Zifi"
+    ingredient_ids: ["cefixime"]
+    strengths:
+      - ingredient_id: "cefixime"
+        strength_amount: 200
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Taxim:
+    brand_name: "Taxim"
+    ingredient_ids: ["cefotaxime"]
+    strengths:
+      - ingredient_id: "cefotaxime"
+        strength_amount: 1000
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Monocef:
+    brand_name: "Monocef"
+    ingredient_ids: ["ceftriaxone"]
+    strengths:
+      - ingredient_id: "ceftriaxone"
+        strength_amount: 1000
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Azithral:
+    brand_name: "Azithral"
+    ingredient_ids: ["azithromycin"]
+    strengths:
+      - ingredient_id: "azithromycin"
+        strength_amount: 500
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Cipro:
+    brand_name: "Cipro"
+    ingredient_ids: ["ciprofloxacin"]
+    strengths:
+      - ingredient_id: "ciprofloxacin"
+        strength_amount: 500
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Flagyl:
+    brand_name: "Flagyl"
+    ingredient_ids: ["metronidazole"]
+    strengths:
+      - ingredient_id: "metronidazole"
+        strength_amount: 400
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Wysolone:
+    brand_name: "Wysolone"
+    ingredient_ids: ["prednisolone"]
+    strengths:
+      - ingredient_id: "prednisolone"
+        strength_amount: 5
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  # Indian-context FDC brands (A §12):
+  Combiflam:
+    brand_name: "Combiflam"
+    ingredient_ids: ["ibuprofen", "paracetamol"]
+    dose_basis_ingredient_id: "ibuprofen"
+    strengths:
+      - ingredient_id: "ibuprofen"
+        strength_amount: 400
+        strength_unit: "mg"
+      - ingredient_id: "paracetamol"
+        strength_amount: 325
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Deriphyllin:
+    brand_name: "Deriphyllin"
+    ingredient_ids: ["theophylline", "etofylline"]
+    dose_basis_ingredient_id: "theophylline"
+    strengths:
+      - ingredient_id: "theophylline"
+        strength_amount: 77
+        strength_unit: "mg"
+      - ingredient_id: "etofylline"
+        strength_amount: 23
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Sumo:
+    brand_name: "Sumo"
+    ingredient_ids: ["nimesulide", "paracetamol"]
+    dose_basis_ingredient_id: "paracetamol"
+    strengths:
+      - ingredient_id: "nimesulide"
+        strength_amount: 100
+        strength_unit: "mg"
+      - ingredient_id: "paracetamol"
+        strength_amount: 325
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Zerodol-SP:
+    brand_name: "Zerodol-SP"
+    ingredient_ids: ["aceclofenac", "paracetamol", "serratiopeptidase"]
+    dose_basis_ingredient_id: "aceclofenac"
+    strengths:
+      - ingredient_id: "aceclofenac"
+        strength_amount: 100
+        strength_unit: "mg"
+      - ingredient_id: "paracetamol"
+        strength_amount: 325
+        strength_unit: "mg"
+      - ingredient_id: "serratiopeptidase"
+        strength_amount: 15
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Ultracet:
+    brand_name: "Ultracet"
+    ingredient_ids: ["tramadol", "paracetamol"]
+    dose_basis_ingredient_id: "tramadol"
+    strengths:
+      - ingredient_id: "tramadol"
+        strength_amount: 37.5
+        strength_unit: "mg"
+      - ingredient_id: "paracetamol"
+        strength_amount: 325
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Meftal-Spas:
+    brand_name: "Meftal-Spas"
+    ingredient_ids: ["mefenamic_acid", "dicyclomine"]
+    dose_basis_ingredient_id: "mefenamic_acid"
+    strengths:
+      - ingredient_id: "mefenamic_acid"
+        strength_amount: 250
+        strength_unit: "mg"
+      - ingredient_id: "dicyclomine"
+        strength_amount: 10
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Pan-D:
+    brand_name: "Pan-D"
+    ingredient_ids: ["pantoprazole", "domperidone"]
+    dose_basis_ingredient_id: "pantoprazole"
+    strengths:
+      - ingredient_id: "pantoprazole"
+        strength_amount: 40
+        strength_unit: "mg"
+      - ingredient_id: "domperidone"
+        strength_amount: 30
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Cheston-Cold:
+    brand_name: "Cheston-Cold"
+    ingredient_ids: ["cetirizine", "paracetamol", "phenylephrine"]
+    dose_basis_ingredient_id: "paracetamol"
+    strengths:
+      - ingredient_id: "cetirizine"
+        strength_amount: 5
+        strength_unit: "mg"
+      - ingredient_id: "paracetamol"
+        strength_amount: 325
+        strength_unit: "mg"
+      - ingredient_id: "phenylephrine"
+        strength_amount: 10
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Sinarest:
+    brand_name: "Sinarest"
+    ingredient_ids: ["paracetamol", "phenylephrine", "chlorpheniramine"]
+    dose_basis_ingredient_id: "paracetamol"
+    strengths:
+      - ingredient_id: "paracetamol"
+        strength_amount: 500
+        strength_unit: "mg"
+      - ingredient_id: "phenylephrine"
+        strength_amount: 10
+        strength_unit: "mg"
+      - ingredient_id: "chlorpheniramine"
+        strength_amount: 2
+        strength_unit: "mg"
+    provenance:
+      source_doc: "BRAND_ALIAS_DIRECTORY"
+      section_ref: "TO_BE_RESOLVED"
+      version_or_date: "2026-DRAFT"
+      source_status: "PLACEHOLDER_UNRETRIEVED"
+      content_origin: "AGENT_DRAFT_UNSOURCED"
+      verified: false
+      reviewer: null
+
+  Vicks-Action-500:
+    brand_name: "Vicks-Action-500"
+    ingredient_ids: ["paracetamol", "phenylephrine", "caffeine"]
+    dose_basis_ingredient_id: "paracetamol"
+    strengths:
+      - ingredient_id: "paracetamol"
+        strength_amount: 500
+        strength_unit: "mg"
+      - ingredient_id: "phenylephrine"
+        strength_amount: 5
+        strength_unit: "mg"
+      - ingredient_id: "caffeine"
+        strength_amount: 32
+        strength_unit: "mg"
     provenance:
       source_doc: "BRAND_ALIAS_DIRECTORY"
       section_ref: "TO_BE_RESOLVED"

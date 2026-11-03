@@ -11,7 +11,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -28,11 +28,31 @@ app = typer.Typer(help="TriageRAG tasks runner and verification gateway")
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
+_LOG_FILE: Path | None = None
+_original_secho = typer.secho
+
+
+def _log_write(text: str) -> None:
+    if _LOG_FILE:
+        with open(_LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
+
+
+def _echo(message: Any = None, *args: Any, **kwargs: Any) -> None:
+    """Print with typer.secho and tee to _LOG_FILE if active."""
+    _original_secho(message, *args, **kwargs)
+    if message is not None:
+        _log_write(str(message))
+
+
+typer.secho = _echo
+
+
 def _run(cmd: list[str], cwd: Path | None = None, check: bool = True) -> int:
-    """Run a subprocess command with clear logging."""
+    """Run a subprocess command with clear logging and optional transcript recording."""
     cwd = cwd or REPO_ROOT
     cmd_str = " ".join(cmd)
-    typer.secho(f"--> Running: {cmd_str}", fg=typer.colors.CYAN)
+    _echo(f"--> Running: {cmd_str}", fg=typer.colors.CYAN)
     env = os.environ.copy()
     pythonpath = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = f"{REPO_ROOT}{os.pathsep}{pythonpath}" if pythonpath else str(REPO_ROOT)
@@ -43,15 +63,34 @@ def _run(cmd: list[str], cwd: Path | None = None, check: bool = True) -> int:
         found = shutil.which(resolved_cmd[0])
         if found:
             resolved_cmd[0] = found
-    result = subprocess.run(resolved_cmd, cwd=cwd, env=env)
-    if check and result.returncode != 0:
-        typer.secho(
-            f"FAILED (code {result.returncode}): {cmd_str}",
-            fg=typer.colors.RED,
-            err=True,
+
+    if _LOG_FILE:
+        process = subprocess.Popen(
+            resolved_cmd,
+            cwd=cwd,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
-        raise typer.Exit(code=result.returncode)
-    return result.returncode
+        assert process.stdout is not None
+        for line in iter(process.stdout.readline, ""):
+            sys.stdout.write(line)
+            sys.stdout.flush()
+            _log_write(line.rstrip())
+        process.stdout.close()
+        returncode = process.wait()
+    else:
+        result = subprocess.run(resolved_cmd, cwd=cwd, env=env)
+        returncode = result.returncode
+
+    if check and returncode != 0:
+        err_msg = f"FAILED (code {returncode}): {cmd_str}"
+        _echo(err_msg, fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=returncode)
+    return returncode
 
 
 @app.command()
@@ -91,6 +130,24 @@ def lint_imports() -> None:
     typer.secho("[OK] Layer isolation intact", fg=typer.colors.GREEN)
 
 
+@app.command("rule-coverage")
+def rule_coverage() -> None:
+    """Run rule-coverage matrix and alert fatigue gate (T6.5)."""
+    typer.secho(
+        "=== Running Rule Coverage Matrix & Alert Fatigue Gate ===", fg=typer.colors.BLUE, bold=True
+    )
+    _run([sys.executable, "tools/rule_coverage.py"])
+
+
+@app.command("mine-rules")
+def mine_rules() -> None:
+    """Run evidence-grounded rule mining pipeline (T6.6)."""
+    typer.secho(
+        "=== Running Evidence-Grounded Candidate Rule Mining ===", fg=typer.colors.BLUE, bold=True
+    )
+    _run([sys.executable, "tools/mine_rules.py"])
+
+
 @app.command("validate-data")
 def validate_data() -> None:
     """Validate all clinical data schemas."""
@@ -124,9 +181,17 @@ def eval(
             "mutation, retrieval, ablation"
         ),
     ] = "all",
+    write: Annotated[
+        bool,
+        typer.Option("--write", help="Write evaluation reports to disk"),
+    ] = False,
 ) -> None:
-    """Run evaluation suites."""
-    typer.secho(f"=== Running Evaluation Suite: {suite} ===", fg=typer.colors.BLUE, bold=True)
+    """Run evaluation suites (default: read-only, non-mutating; pass --write to update reports)."""
+    typer.secho(
+        f"=== Running Evaluation Suite: {suite} (write={write}) ===",
+        fg=typer.colors.BLUE,
+        bold=True,
+    )
     suites = {
         "golden": "eval/run_golden.py",
         "mechanics": "eval/run_mechanics.py",
@@ -150,10 +215,31 @@ def eval(
     for target in targets:
         target_path = REPO_ROOT / target
         if target_path.exists():
-            _run([sys.executable, target])
+            cmd = [sys.executable, target]
+            if write and target in (
+                "eval/run_retrieval.py",
+                "eval/run_retrieval_ablation.py",
+                "eval/run_latency_benchmark.py",
+            ):
+                cmd.append("--write")
+            _run(cmd)
         else:
             typer.secho(f"Skipping {target} (not yet implemented)", fg=typer.colors.YELLOW)
     typer.secho("[OK] Evaluation suite complete", fg=typer.colors.GREEN)
+
+
+@app.command("eval-write")
+def eval_write(
+    suite: Annotated[
+        str,
+        typer.Argument(
+            help="Suite to run with report writing enabled: all, golden, mechanics, metamorphic, adversarial, "
+            "mutation, retrieval, ablation"
+        ),
+    ] = "all",
+) -> None:
+    """Run evaluation suites with report writing enabled (--write)."""
+    eval(suite=suite, write=True)
 
 
 @app.command()
@@ -254,27 +340,67 @@ def web_verify() -> None:
 
 
 @app.command(name="verify-fast")
-def verify_fast() -> None:
+def verify_fast(
+    record: Annotated[
+        bool,
+        typer.Option(
+            "--record/--no-record",
+            help="Record execution transcript to eval/reports/verify_fast.log",
+        ),
+    ] = True,
+) -> None:
     """Fast developer gate: static analysis, type checking, architecture, and unit tests."""
-    typer.secho("=" * 60, fg=typer.colors.BLUE, bold=True)
-    typer.secho("   TRIAGERAG FAST VERIFICATION PROFILE", fg=typer.colors.BLUE, bold=True)
-    typer.secho("=" * 60, fg=typer.colors.BLUE, bold=True)
+    global _LOG_FILE
+    log_path: Path | None = None
+    if record:
+        log_path = REPO_ROOT / "eval" / "reports" / "verify_fast.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        import datetime
 
-    lint()
-    typecheck()
-    lint_imports()
-    validate_data()
+        now_utc = datetime.datetime.now(datetime.UTC).isoformat()
+        try:
+            head_sha = subprocess.check_output(
+                ["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True
+            ).strip()
+        except Exception:
+            head_sha = "unknown"
+        log_path.write_text(
+            f"=== TRIAGERAG FAST VERIFICATION RUN RECORD ===\n"
+            f"TIMESTAMP: {now_utc}\n"
+            f"GIT_COMMIT: {head_sha}\n"
+            f"PYTHON: {sys.version}\n"
+            f"PLATFORM: {sys.platform}\n\n",
+            encoding="utf-8",
+        )
+        _LOG_FILE = log_path
 
-    typer.secho("=== Running Unit Test Suite ===", fg=typer.colors.BLUE, bold=True)
-    _run([sys.executable, "-m", "pytest", "tests/unit"])
+    try:
+        _echo("=" * 60, fg=typer.colors.BLUE, bold=True)
+        _echo("   TRIAGERAG FAST VERIFICATION PROFILE", fg=typer.colors.BLUE, bold=True)
+        _echo("=" * 60, fg=typer.colors.BLUE, bold=True)
 
-    typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
-    typer.secho(
-        "[OK] FAST VERIFICATION GATES GREEN (Static, Types, Architecture, Data, Unit)",
-        fg=typer.colors.GREEN,
-        bold=True,
-    )
-    typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
+        lint()
+        typecheck()
+        lint_imports()
+        validate_data()
+        rule_coverage()
+
+        _echo("=== Running Unit Test Suite ===", fg=typer.colors.BLUE, bold=True)
+        _run([sys.executable, "-m", "pytest", "tests/unit"])
+
+        _echo("=" * 60, fg=typer.colors.GREEN, bold=True)
+        _echo(
+            "[OK] FAST VERIFICATION GATES GREEN (Static, Types, Architecture, Data, Unit)",
+            fg=typer.colors.GREEN,
+            bold=True,
+        )
+        _echo("=" * 60, fg=typer.colors.GREEN, bold=True)
+        _echo("EXIT_CODE: 0", fg=typer.colors.GREEN, bold=True)
+    except Exception:
+        _echo("EXIT_CODE: 1", fg=typer.colors.RED, bold=True)
+        raise
+    finally:
+        _LOG_FILE = None
 
 
 @app.command(name="verify-full")
@@ -288,6 +414,7 @@ def verify_full() -> None:
     typecheck()
     lint_imports()
     validate_data()
+    rule_coverage()
 
     if (REPO_ROOT / "tools/provenance_report.py").exists():
         _run([sys.executable, "tools/provenance_report.py"])
@@ -320,6 +447,33 @@ def verify_full() -> None:
     typer.secho("=" * 60, fg=typer.colors.GREEN, bold=True)
 
 
+@app.command("security-audit")
+def security_audit() -> None:
+    """Run dependency vulnerability and security audits (AUB T7.5)."""
+    typer.secho(
+        "=== Running Security and Vulnerability Audits ===", fg=typer.colors.BLUE, bold=True
+    )
+    import shutil
+
+    pip_audit = shutil.which("pip-audit")
+    if pip_audit:
+        typer.secho("--> Running pip-audit on python environment...", fg=typer.colors.CYAN)
+        _run([pip_audit, "--local"], check=False)
+    else:
+        typer.secho(
+            "pip-audit not installed; skipping python dependency audit (optional tool)",
+            fg=typer.colors.YELLOW,
+        )
+
+    npm = shutil.which("npm")
+    web_dir = REPO_ROOT / "web"
+    if npm and (web_dir / "package.json").exists():
+        typer.secho("--> Running npm audit in web/...", fg=typer.colors.CYAN)
+        _run(["npm", "audit", "--audit-level=high"], cwd=web_dir, check=False)
+
+    typer.secho("[OK] Security audit completed", fg=typer.colors.GREEN)
+
+
 @app.command(name="release-preflight")
 def release_preflight() -> None:
     """Release preflight gate: verification, report integrity, dependency lock, security posture."""
@@ -328,6 +482,7 @@ def release_preflight() -> None:
     typer.secho("=" * 60, fg=typer.colors.CYAN, bold=True)
 
     verify_full()
+    security_audit()
 
     typer.secho("=== Checking Dependency Lockfile ===", fg=typer.colors.BLUE, bold=True)
     lock_file = REPO_ROOT / "requirements.lock"
@@ -344,9 +499,9 @@ def release_preflight() -> None:
     if "USER root" in dockerfile or "USER 0" in dockerfile:
         typer.secho("FATAL: Dockerfile cannot run as root user", fg=typer.colors.RED)
         raise typer.Exit(code=1)
-    if "USER triage" not in dockerfile and "USER " not in dockerfile:
+    if "USER appuser" not in dockerfile and "USER " not in dockerfile:
         typer.secho(
-            "FATAL: Dockerfile must enforce a non-root user (e.g. USER triage)",
+            "FATAL: Dockerfile must enforce a non-root user (e.g. USER appuser)",
             fg=typer.colors.RED,
         )
         raise typer.Exit(code=1)

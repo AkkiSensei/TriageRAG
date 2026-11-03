@@ -34,6 +34,7 @@ class RetrievalConfig(BaseModel):
     version: str
     calibration_run_id: str
     top_k: int
+    contextual_chunking: bool = False
     calibrated_threshold: float
     syndrome_inferred_threshold: float
     min_syndrome_margin: float
@@ -41,17 +42,24 @@ class RetrievalConfig(BaseModel):
     bm25_b: float
     child_node_boost: float
     score_decimal_places: int
+    predicate_match_weight: float = 1.0
+    predicate_conflict_weight: float = 2.0
+    raw_token_weight: float = 1.0
+    stem_token_weight: float = 0.5
+    synonym_token_weight: float = 0.5
+    cue_token_weight: float = 0.5
+    backend_thresholds: dict[str, dict[str, float]] | None = None
     provenance: Provenance
     config_hash: str = ""
 
 
 @lru_cache
 def load_retrieval_config(data_dir: Path | None = None) -> RetrievalConfig:
-    """Load and validate calibrated retrieval configuration from YAML."""
-    target_dir = data_dir if data_dir is not None else get_data_dir()
+    """Load and validate calibrated retrieval configuration from YAML (fail-closed, R2)."""
+    target_dir = (data_dir or get_data_dir()).resolve()
     cfg_path = target_dir / "retrieval" / "config.yaml"
     if not cfg_path.exists():
-        cfg_path = get_data_dir() / "retrieval" / "config.yaml"
+        raise FileNotFoundError(f"Retrieval config not found at {cfg_path}")
 
     raw_text = cfg_path.read_text(encoding="utf-8")
     cfg_hash = hashlib.sha256(raw_text.encode("utf-8")).hexdigest()
@@ -62,10 +70,24 @@ def load_retrieval_config(data_dir: Path | None = None) -> RetrievalConfig:
     return RetrievalConfig.model_validate(parsed)
 
 
-def normalize_relevance_score(raw_score: float) -> float:
-    """Map non-negative BM25 score onto [0.0, 1.0) saturation curve s / (s + 1.0)."""
+def normalize_relevance_score(
+    raw_score: float,
+    backend: str = "bm25",
+    top_k: int = 1,
+) -> float:
+    """Map non-negative retrieval score onto [0.0, 1.0) calibrated confidence scale (T2.6)."""
     if raw_score <= 0.0:
         return 0.0
+    b_norm = backend.lower().strip()
+    if b_norm in ("hybrid_rrf", "hybrid_rrf_rerank"):
+        rrf_k = float(top_k * top_k)
+        max_theoretical_rrf = 2.0 / (rrf_k + 1.0)
+        if max_theoretical_rrf <= 0.0:
+            return 0.0
+        return min(1.0, float(raw_score / max_theoretical_rrf))
+    if b_norm in ("char_ngram", "dense"):
+        norm_factor = 2.0 + 0.5
+        return min(1.0, float(raw_score / norm_factor))
     return float(raw_score / (raw_score + 1.0))
 
 
@@ -78,10 +100,17 @@ def evaluate_abstention_with_code(
     min_margin: float | None = None,
     config: RetrievalConfig | None = None,
     *,
+    backend: str = "bm25",
     use_calibrated_for_inferred: bool = False,
+    base_best_score: float | None = None,
 ) -> tuple[bool, AbstainCode, str | None]:
     """Evaluate calibrated abstention and top-1/top-2 syndrome margin rules."""
     cfg = config if config is not None else load_retrieval_config()
+    _backend_thresh = (
+        cfg.backend_thresholds.get(backend.lower().strip())
+        if cfg.backend_thresholds is not None
+        else None
+    )
     eff_threshold = (
         threshold
         if threshold is not None
@@ -93,19 +122,29 @@ def evaluate_abstention_with_code(
     )
     eff_margin = min_margin if min_margin is not None else cfg.min_syndrome_margin
 
-    if not population_available or not scored_chunks:
+    if not population_available:
         return (
             True,
             AbstainCode.NO_POPULATION_COVERAGE,
             f"No verified protocol chunks available for population '{population}'",
         )
 
-    best_score = float(scored_chunks[0][1])
-    norm_best = normalize_relevance_score(best_score)
+    if not scored_chunks:
+        return (
+            True,
+            AbstainCode.NO_RESULTS,
+            f"No protocol chunks matched retrieval query for population '{population}'",
+        )
 
-    if norm_best < eff_threshold or best_score <= 0.0:
+    best_score = float(scored_chunks[0][1])
+    eval_score = (
+        base_best_score if (syndrome_provided and base_best_score is not None) else best_score
+    )
+    norm_best = normalize_relevance_score(eval_score, backend=backend, top_k=cfg.top_k)
+
+    if norm_best < eff_threshold or eval_score <= 0.0:
         msg = (
-            f"Top retrieval relevance {norm_best:.2f} (raw {best_score:.2f}) is below "
+            f"Top retrieval relevance {norm_best:.2f} (raw {eval_score:.2f}) is below "
             f"calibrated threshold {eff_threshold:.2f}"
         )
         return True, AbstainCode.LOW_CONFIDENCE, msg

@@ -194,6 +194,48 @@ class TestDecimalYamlLoader:
         assert val == Decimal("84.7")
         assert str(val) == "84.7"
 
+    def test_multiline_protocol_frontmatter_posix_filename_length_safety(self) -> None:
+        # On POSIX, strings > 255 bytes raise OSError: [Errno 36] File name too long
+        # if treated as a path argument to stat(). Ensure raw YAML is never checked on filesystem.
+        long_frontmatter = (
+            "\n"
+            "doc_id: ESCAL_SNAKEBITE\n"
+            "title: 'Emergency Protocol: Refractory Envenomation & Coagulopathy Escalation (SYNTHETIC)'\n"
+            "section: Refractory Envenomation & Coagulopathy Escalation\n"
+            "population: adult\n"
+            "syndrome: snakebite\n"
+            "chunk_id: SNAKE_ESCAL_01\n"
+            "synthetic: true\n"
+            "version: 1.0.0\n"
+            "license: synthetic\n"
+            "attribution: TriageRAG Synthetic Research Corpus\n"
+            "source_url: null\n"
+            "retrieved_at: null\n"
+            "reviewed_by: null\n"
+            "status: PLACEHOLDER_UNRETRIEVED\n"
+            "threshold_val: 84.7\n"
+        )
+        assert len(long_frontmatter) > 255
+        loaded = load_yaml_decimal(long_frontmatter)
+        assert loaded["doc_id"] == "ESCAL_SNAKEBITE"
+        assert loaded["synthetic"] is True
+        assert loaded["threshold_val"] == Decimal("84.7")
+
+    def test_long_single_line_raw_yaml(self) -> None:
+        long_key_val = "long_key: " + "A" * 300
+        loaded = load_yaml_decimal(long_key_val)
+        assert loaded["long_key"] == "A" * 300
+
+    def test_load_from_pathlib_and_str_path(self, tmp_path: pytest.TempPathFactory) -> None:
+        p = tmp_path / "test.yaml"  # type: ignore[operator]
+        p.write_text("drug_rate: 12.5\nname: test_drug\n", encoding="utf-8")
+        # Load via Path
+        loaded_path = load_yaml_decimal(p)
+        assert loaded_path["drug_rate"] == Decimal("12.5")
+        # Load via str path
+        loaded_str = load_yaml_decimal(str(p))
+        assert loaded_str["drug_rate"] == Decimal("12.5")
+
 
 class TestUnitsModule:
     def test_parse_dose_string_success(self) -> None:

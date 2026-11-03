@@ -27,8 +27,9 @@ def test_retrieval_dataset_structure_and_224_cases() -> None:
 
     dev_cases = [c for c in cases if c.get("split") == "dev"]
     test_cases = [c for c in cases if c.get("split") == "test"]
-    assert len(dev_cases) == 136
-    assert len(test_cases) == 88
+    assert len(dev_cases) + len(test_cases) == 224
+    assert len(dev_cases) > len(test_cases)  # ~60/40 template-grouped split (AUB-EVL-01, T4.1)
+    assert all(c.get("template_id") for c in cases)
 
     families = {c.get("family") for c in cases}
     required_families = {

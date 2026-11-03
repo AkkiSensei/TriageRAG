@@ -5,7 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from triagerag.api.schemas import HealthResponse
-from triagerag.config import get_data_dir
+from triagerag.config import get_data_dir, get_generation_mode, get_retrieval_backend
 from triagerag.contracts.enums import SourceStatus
 from triagerag.engine.registry import load_registry
 
@@ -22,7 +22,8 @@ def get_health() -> HealthResponse:
         version="0.1.0",
         ruleset_version="0.1.0",
         llm_available=True,
-        retrieval_backend="bm25",
+        generation_mode=get_generation_mode(),
+        retrieval_backend=get_retrieval_backend(),
         unreviewed_rules_count=unreviewed,
         disclaimer=(
             "Research prototype. Synthetic data only. Not a medical device. Not for clinical use."

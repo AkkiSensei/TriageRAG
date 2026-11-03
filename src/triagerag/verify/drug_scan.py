@@ -40,6 +40,33 @@ class DrugLexicon:
 
         # Filter out very short words that could trigger false positives
         self.lexicon = {w for w in self.lexicon if len(w) >= 3}
+        # Supportive medical gases and non-formulary ambient elements are not leaked drugs
+        self.lexicon.discard("oxygen")
+        self.lexicon.discard("medical gases")
+
+
+NON_DRUG_COMMON_WORDS: frozenset[str] = frozenset(
+    {
+        "aspiring",
+        "perspiration",
+        "patient",
+        "athlete",
+        "lateral",
+        "immediately",
+        "therapy",
+        "provide",
+        "experiencing",
+        "administer",
+        "administration",
+        "monitor",
+        "monitoring",
+        "resuscitation",
+        "treatment",
+        "protocol",
+        "supportive",
+        "supplemental",
+    }
+)
 
 
 def scan_narrative_for_drug_leaks(
@@ -69,6 +96,9 @@ def scan_narrative_for_drug_leaks(
     leaks: list[str] = []
     for token in tokens:
         if len(token) < 4:
+            continue
+
+        if token in NON_DRUG_COMMON_WORDS:
             continue
 
         # If token matches the explicitly bound drug or its ingredient, it is permitted

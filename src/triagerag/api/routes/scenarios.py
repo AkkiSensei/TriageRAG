@@ -53,6 +53,15 @@ SCENARIO_METADATA = {
         ),
         "expected_verdict": "CHECKED_CLEAR",
     },
+    "ABSTAIN": {
+        "id": "ABSTAIN",
+        "title": "Retrieval Abstention (NO_POPULATION_COVERAGE)",
+        "description": "15-day-old neonate with suspected anaphylaxis; corpus lacks neonatal protocol coverage.",
+        "what_it_demonstrates": (
+            "Rule R2 & ADR-0004: Safe retrieval abstention. The system abstains instead of hallucinating or inventing protocols, forcing fail-closed UNVERIFIED."
+        ),
+        "expected_verdict": "UNVERIFIED",
+    },
 }
 
 
@@ -67,7 +76,7 @@ def get_scenario(scenario_id: str) -> ScenarioDetail:
     if key not in SCENARIO_METADATA:
         raise HTTPException(
             status_code=404,
-            detail=f"Scenario '{scenario_id}' not found. Available: BLOCK, UNVERIFIED, HIGH, CLEAN",
+            detail=f"Scenario '{scenario_id}' not found. Available: BLOCK, UNVERIFIED, HIGH, CLEAN, ABSTAIN",
         )
     meta = SCENARIO_METADATA[key]
     patient, overrides = get_preloaded_scenario(key)

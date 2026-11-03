@@ -89,7 +89,7 @@ def _build_ablation_test_cases() -> list[tuple[Patient, PlanDraft]]:
         medication_history_status="confirmed_list",
         medications=[
             MedicationEntry(
-                raw_text="Viagra 50mg",
+                raw_text="Silagra 50mg",
                 ingredients=[
                     IngredientStrength(
                         ingredient_id="sildenafil",

@@ -88,16 +88,18 @@ synthetic: true
 """
     chunks = chunk_protocol_markdown(md)
     child = chunks[1]
-    assert child.chunk_id == "CTX_01_NODE_1"
+    assert child.legacy_id == "CTX_01_NODE_1"
+    assert child.chunk_id.startswith("CTX_01_")
     # Raw text must NOT contain the contextual header prefix
     assert "Acute Pericarditis Guideline ›" not in child.text
     assert child.text.startswith("1. IF pulsus paradoxus")
-    # Indexed text MUST contain the contextual header
-    expected_header = (
-        "Acute Pericarditis Guideline › Hemodynamic Tamponade Screening › "
-        "chest_pain › CTX_01_NODE_1"
-    )
-    assert expected_header in child.indexed_text
+    # Indexed text MUST contain the discriminative contextual header (T2.5 / AUB-RET-06)
+    expected_indexed_header = "Acute Pericarditis Guideline › Hemodynamic Tamponade Screening"
+    assert expected_indexed_header in child.indexed_text
+    # Full header is preserved in display_header
+    assert child.chunk_id in child.display_header
+    assert "Acute Pericarditis Guideline" in child.display_header
+    assert "chest_pain" in child.display_header
 
     # Searching for section/title terms ('pericarditis tamponade') must match the child node
     # via its contextual header even though those words do not appear in child.text!
@@ -118,7 +120,8 @@ synthetic: true
     results = index.search("pericarditis tamponade", population="adult", top_k=1)
     assert len(results) == 1
     matched_chunk, score = results[0]
-    assert matched_chunk.chunk_id == "CTX_01_NODE_1"
+    assert matched_chunk.legacy_id == "CTX_01_NODE_1"
+    assert matched_chunk.chunk_id.startswith("CTX_01_")
     assert score > 0.0
 
 
@@ -149,6 +152,8 @@ def test_decision_graph_json_adapter() -> None:
     chunks = chunk_decision_graph_json(graph)
     assert len(chunks) == 3
     assert chunks[0].chunk_id == "FLOW_01"
-    assert chunks[1].chunk_id == "FLOW_01_NODE_1"
+    assert chunks[1].legacy_id == "FLOW_01_NODE_1"
+    assert chunks[1].chunk_id.startswith("FLOW_01_")
     assert "ELSE observe closely" in chunks[1].text
-    assert chunks[2].chunk_id == "FLOW_01_NODE_2"
+    assert chunks[2].legacy_id == "FLOW_01_NODE_2"
+    assert chunks[2].chunk_id.startswith("FLOW_01_")

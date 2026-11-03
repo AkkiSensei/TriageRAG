@@ -8,6 +8,7 @@ OBEY_COMPLAINT, and NAIVE_FREE_TEXT.
 
 from __future__ import annotations
 
+import re
 from decimal import Decimal
 from enum import StrEnum
 
@@ -21,6 +22,7 @@ from triagerag.contracts.schemas import (
     SpanCitation,
 )
 from triagerag.llm.provider import LLMProvider
+from triagerag.normalize.clause_parser import extract_then_else_text, has_if_then_structure
 
 
 class FakeLLMProfile(StrEnum):
@@ -33,6 +35,9 @@ class FakeLLMProfile(StrEnum):
     IGNORE_BLOCK = "IGNORE_BLOCK"
     OBEY_COMPLAINT = "OBEY_COMPLAINT"
     NAIVE_FREE_TEXT = "NAIVE_FREE_TEXT"
+    RANKED_CHOICE = "RANKED_CHOICE"
+    WRONG_BUT_MATCHING_CLAUSE = "WRONG_BUT_MATCHING_CLAUSE"
+    QUALIFIER_DROP = "QUALIFIER_DROP"
 
 
 def _select_supporting_chunk_and_span(
@@ -234,6 +239,263 @@ class FakeLLM(LLMProvider):
                         ],
                     )
                 ],
+            )
+
+        if self.profile == FakeLLMProfile.RANKED_CHOICE:
+            # Dynamically select from the top ranked child chunk in retrieved ranking
+            child_chunks = [
+                c
+                for c in context.retrieved_chunks
+                if c.parent_id is not None or "_NODE_" in c.chunk_id
+            ]
+            top_chunk = child_chunks[0] if child_chunks else context.retrieved_chunks[0]
+
+            text = top_chunk.text
+            if has_if_then_structure(text):
+                act_text = extract_then_else_text(text).strip()
+            else:
+                lines = [line.strip() for line in text.splitlines() if len(line.strip()) >= 15]
+                act_text = lines[0] if lines else text.strip()
+
+            quoted_span = act_text[: min(len(act_text), 80)]
+            if quoted_span not in top_chunk.text:
+                quoted_span = top_chunk.text[: min(len(top_chunk.text), 60)]
+
+            bound_drug: str | None = None
+            for allowed in context.allowed_drug_ids:
+                if allowed.lower() in act_text.lower():
+                    bound_drug = allowed
+                    break
+
+            if bound_drug:
+                route = (
+                    Route.im
+                    if "intramuscular" in act_text.lower()
+                    else Route.iv
+                    if "intravenous" in act_text.lower()
+                    else Route.oral
+                )
+                ranked_steps = [
+                    PlanStepDraft(
+                        step_number=1,
+                        action_type=ActionType.administer,
+                        narrative_instruction=act_text,
+                        drug_id=bound_drug,
+                        requested_dose=ExplicitDose(amount=Decimal("0.5"), unit=DoseUnit.mg),
+                        route=route,
+                        citations=[
+                            SpanCitation(
+                                doc_id=top_chunk.doc_id,
+                                section=top_chunk.section,
+                                chunk_id=top_chunk.chunk_id,
+                                quoted_span=quoted_span,
+                            )
+                        ],
+                    )
+                ]
+            else:
+                act_type = (
+                    ActionType.diagnostic
+                    if any(
+                        w in act_text.lower()
+                        for w in ("obtain", "ecg", "imaging", "x-ray", "blood", "test")
+                    )
+                    else ActionType.monitor
+                    if "monitor" in act_text.lower()
+                    else ActionType.maneuver
+                )
+                ranked_steps = [
+                    PlanStepDraft(
+                        step_number=1,
+                        action_type=act_type,
+                        narrative_instruction=act_text,
+                        citations=[
+                            SpanCitation(
+                                doc_id=top_chunk.doc_id,
+                                section=top_chunk.section,
+                                chunk_id=top_chunk.chunk_id,
+                                quoted_span=quoted_span,
+                            )
+                        ],
+                    )
+                ]
+
+            return PlanDraft(
+                matched_protocol_title=top_chunk.section,
+                steps=ranked_steps,
+            )
+
+        if self.profile == FakeLLMProfile.WRONG_BUT_MATCHING_CLAUSE:
+            # Selects a valid verbatim span from a node whose applicability
+            # preconditions are NOT met by the patient
+            target_chunk: RetrievedChunk | None = None
+            for c in context.retrieved_chunks:
+                if "_NODE_3" in c.chunk_id or "_NODE_4" in c.chunk_id or "_NODE_2" in c.chunk_id:
+                    target_chunk = c
+                    break
+            if target_chunk is None:
+                target_chunk = context.retrieved_chunks[0]
+
+            if has_if_then_structure(target_chunk.text):
+                act_text = extract_then_else_text(target_chunk.text).strip()
+            else:
+                act_text = target_chunk.text.strip()
+
+            quoted_span = act_text[: min(len(act_text), 80)]
+            if quoted_span not in target_chunk.text:
+                quoted_span = target_chunk.text[: min(len(target_chunk.text), 60)]
+
+            bound_drug = None
+            for allowed in context.allowed_drug_ids:
+                if allowed.lower() in act_text.lower():
+                    bound_drug = allowed
+                    break
+
+            if bound_drug:
+                route = (
+                    Route.im
+                    if "intramuscular" in act_text.lower()
+                    else Route.iv
+                    if "intravenous" in act_text.lower()
+                    else Route.oral
+                )
+                wrong_steps = [
+                    PlanStepDraft(
+                        step_number=1,
+                        action_type=ActionType.administer,
+                        narrative_instruction=act_text,
+                        drug_id=bound_drug,
+                        requested_dose=ExplicitDose(amount=Decimal("0.5"), unit=DoseUnit.mg),
+                        route=route,
+                        citations=[
+                            SpanCitation(
+                                doc_id=target_chunk.doc_id,
+                                section=target_chunk.section,
+                                chunk_id=target_chunk.chunk_id,
+                                quoted_span=quoted_span,
+                            )
+                        ],
+                    )
+                ]
+            else:
+                wrong_steps = [
+                    PlanStepDraft(
+                        step_number=1,
+                        action_type=ActionType.maneuver,
+                        narrative_instruction=act_text,
+                        citations=[
+                            SpanCitation(
+                                doc_id=target_chunk.doc_id,
+                                section=target_chunk.section,
+                                chunk_id=target_chunk.chunk_id,
+                                quoted_span=quoted_span,
+                            )
+                        ],
+                    )
+                ]
+
+            return PlanDraft(
+                matched_protocol_title=target_chunk.section,
+                steps=wrong_steps,
+            )
+
+        if self.profile == FakeLLMProfile.QUALIFIER_DROP:
+            # Find a chunk that contains a qualifier in its THEN clause (repeat, consider, after)
+            target_chunk = None
+            for c in context.retrieved_chunks:
+                lower = c.text.lower()
+                if "repeat" in lower or "consider" in lower or "after" in lower:
+                    target_chunk = c
+                    break
+            if target_chunk is None:
+                target_chunk = context.retrieved_chunks[0]
+
+            if has_if_then_structure(target_chunk.text):
+                act_text = extract_then_else_text(target_chunk.text).strip()
+            else:
+                act_text = target_chunk.text.strip()
+
+            quoted_span = act_text[: min(len(act_text), 80)]
+            if quoted_span not in target_chunk.text:
+                quoted_span = target_chunk.text[: min(len(target_chunk.text), 60)]
+
+            # Deliberately strip out qualifier words from the drafted narrative instruction
+            dropped_narrative = act_text
+            for q_word in (
+                "repeat",
+                "Repeat",
+                "repeated",
+                "Repeated",
+                "consider",
+                "Consider",
+                "after",
+                "After",
+                "continue",
+                "Continue",
+                "withhold",
+                "Withhold",
+                "until",
+                "Until",
+                "if",
+                "If",
+            ):
+                dropped_narrative = re.sub(rf"\b{q_word}\b", "", dropped_narrative)
+            dropped_narrative = " ".join(dropped_narrative.split()).strip()
+            if not dropped_narrative.lower().startswith("administer"):
+                dropped_narrative = f"Administer {dropped_narrative} immediately"
+
+            bound_drug = None
+            for allowed in context.allowed_drug_ids:
+                if allowed.lower() in target_chunk.text.lower():
+                    bound_drug = allowed
+                    break
+
+            if bound_drug:
+                route = (
+                    Route.im
+                    if "intramuscular" in target_chunk.text.lower()
+                    else Route.iv
+                    if "intravenous" in target_chunk.text.lower()
+                    else Route.oral
+                )
+                drop_steps = [
+                    PlanStepDraft(
+                        step_number=1,
+                        action_type=ActionType.administer,
+                        narrative_instruction=dropped_narrative,
+                        drug_id=bound_drug,
+                        requested_dose=ExplicitDose(amount=Decimal("0.5"), unit=DoseUnit.mg),
+                        route=route,
+                        citations=[
+                            SpanCitation(
+                                doc_id=target_chunk.doc_id,
+                                section=target_chunk.section,
+                                chunk_id=target_chunk.chunk_id,
+                                quoted_span=quoted_span,
+                            )
+                        ],
+                    )
+                ]
+            else:
+                drop_steps = [
+                    PlanStepDraft(
+                        step_number=1,
+                        action_type=ActionType.maneuver,
+                        narrative_instruction=dropped_narrative,
+                        citations=[
+                            SpanCitation(
+                                doc_id=target_chunk.doc_id,
+                                section=target_chunk.section,
+                                chunk_id=target_chunk.chunk_id,
+                                quoted_span=quoted_span,
+                            )
+                        ],
+                    )
+                ]
+
+            return PlanDraft(
+                matched_protocol_title=target_chunk.section,
+                steps=drop_steps,
             )
 
         # Default: COMPLIANT profile

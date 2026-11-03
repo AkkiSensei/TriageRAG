@@ -1,0 +1,47 @@
+{
+  "id": "openfda-label-aspirin-testfixture",
+  "set_id": "SPL-ASPIRIN-FIXTURE-002",
+  "effective_time": "20240115",
+  "openfda": {
+    "generic_name": ["Aspirin"],
+    "brand_name": ["Bayer Aspirin"],
+    "product_type": ["HUMAN OTC DRUG"],
+    "route": ["ORAL"],
+    "substance_name": ["ASPIRIN"],
+    "is_original_packager": [true]
+  },
+  "indications_and_usage": [
+    "Aspirin is indicated for the temporary relief of minor aches and pains and for secondary prevention of cardiovascular events under medical supervision."
+  ],
+  "dosage_and_administration": [
+    "For suspected acute coronary syndrome, chew and swallow non-enteric coated tablet immediately as directed by emergency medical personnel."
+  ],
+  "contraindications": [
+    "Aspirin is contraindicated in patients with known allergy to nonsteroidal anti-inflammatory drugs (NSAIDs) and in patients with active peptic ulcer disease or severe bleeding disorders."
+  ],
+  "warnings_and_precautions": [
+    "Reye's syndrome: Children and teenagers who have or are recovering from chicken pox or flu-like symptoms should not use this product.",
+    "Stomach bleeding warning: This product contains an NSAID, which may cause severe stomach bleeding."
+  ],
+  "drug_interactions": [
+    "Do not use with other NSAIDs or anticoagulants without physician supervision due to increased bleeding risk."
+  ],
+  "use_in_specific_populations": [
+    "Avoid use in the third trimester of pregnancy because it may cause problems in the unborn child or complications during delivery."
+  ],
+  "pregnancy": [
+    "It is especially important not to use aspirin during the last 3 months of pregnancy unless definitely directed to do so by a doctor."
+  ],
+  "pediatric_use": [
+    "Safety and efficacy in pediatric patients with fever or viral illness are constrained by the risk of Reye's syndrome."
+  ],
+  "geriatric_use": [
+    "Elderly patients are at greater risk for serious gastrointestinal adverse events."
+  ],
+  "overdosage": [
+    "Salicylate toxicity manifests as tinnitus, hyperventilation, vomiting, hyperthermia, and metabolic acidosis."
+  ],
+  "adverse_reactions": [
+    "Common adverse reactions include dyspepsia, epigastric discomfort, nausea, and occult bleeding."
+  ]
+}

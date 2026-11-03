@@ -1,0 +1,61 @@
+{
+  "disclaimer": "Research prototype. Synthetic data only. Not a medical device. Not for clinical use.",
+  "verdicts": {
+    "BLOCKED": {
+      "label": "BLOCKED",
+      "display": "BLOCKED (contraindication / unsafe)",
+      "badge": "BLOCKED",
+      "headline": "BLOCKED: Absolute Safety Interlock Triggered",
+      "summary": "A deterministic clinical safety rule blocked this proposal. One or more active medications, severe contraindications, or dose tripwires prohibit requested orders. Under safety rule R11, absolute BLOCK interlocks cannot be overridden.",
+      "actions": [
+        "Review contraindicated medication and select alternative protocol therapy",
+        "Consult senior clinical staff or full reference guideline",
+        "Rule R11: Overrides are strictly prohibited for BLOCK verdicts"
+      ]
+    },
+    "UNVERIFIED": {
+      "label": "UNVERIFIED",
+      "display": "UNVERIFIED (missing/unresolved data)",
+      "badge": "UNVERIFIED",
+      "headline": "UNVERIFIED: Insufficient or Unresolved Clinical Data",
+      "summary": "The system could not establish a verified clinical plan. Essential physiological parameters, medication history, or protocol evidence were missing or below retrieval thresholds. Under fail-closed safety rule R2, no unverified orders can proceed.",
+      "actions": [
+        "Provide missing patient vitals, weight, or history to enable unverified checks",
+        "Explicitly select or confirm suspected clinical syndrome",
+        "Re-run triage verification after data entry"
+      ]
+    },
+    "CHECKED_ALERTS": {
+      "label": "CHECKED_ALERTS",
+      "display": "CHECKED WITH ACTIVE ALERTS",
+      "badge": "CHECKED WITH ALERTS",
+      "headline": "CHECKED WITH ALERTS: Clinical Warnings Require Review",
+      "summary": "Deterministic safety checks were completed and identified non-blocking warnings (such as duplicate therapies, moderate interactions, or elevated scores). Clinician review and logged override justifications are required before proceeding.",
+      "actions": [
+        "Review non-blocking alerts and drug interactions",
+        "Enter logged clinician override with rationale if proceeding with HIGH warnings",
+        "Administer verified steps with continuous monitoring"
+      ]
+    },
+    "CHECKED_CLEAR": {
+      "label": "CHECKED_CLEAR",
+      "display": "CHECKED CLEAR (within current ruleset coverage)",
+      "display_with_count": "CHECKED CLEAR (ruleset coverage: {ruleCount} active rules)",
+      "badge": "CHECKED CLEAR",
+      "headline": "CHECKED CLEAR: No Configured Safety Rules Triggered",
+      "summary": "All applicable deterministic rules in the active ruleset fired clear without triggering alerts. Disclaimer: This confirms compliance with configured prototype rules, not absolute clinical safety.",
+      "actions": [
+        "Review verified protocol steps with senior clinical staff",
+        "Confirm patient identification and presentation consistency",
+        "Re-assess vitals according to protocol observation schedule"
+      ]
+    }
+  },
+  "auxiliary": {
+    "HIGH": "HIGH ALERT (override required)",
+    "MODERATE": "MODERATE ALERT",
+    "INFO": "INFORMATION",
+    "NO_RULES_FIRED": "NO RULES FIRED IN THIS RULESET"
+  }
+}
+

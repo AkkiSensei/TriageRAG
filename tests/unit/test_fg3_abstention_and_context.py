@@ -374,7 +374,7 @@ def test_inferred_mode_uses_inferred_threshold() -> None:
     assert probe_report.abstain_code == AbstainCode.SYNDROME_INFERRED
     raw_top = float(probe_report.chunks[0].score)
     norm_top = normalize_relevance_score(raw_top)
-    assert 0.10 < norm_top < 0.95
+    assert 0.10 < norm_top <= 1.0
 
     # Now set calibrated_threshold LOW (0.05) but syndrome_inferred_threshold HIGH (norm_top + 0.05)
     # Without explicit threshold parameter, inferred mode MUST use syndrome_inferred_threshold

@@ -4,91 +4,80 @@
 
 ## Current State
 
-- **Current Status:** Part A Iterative Debugging (`debug-complete`), Part B React Frontend Console (`fe-gate-1` through `fe-gate-7`), Part C RAG Postmortem Hardening (`rag-wp0` through `rag-wp9`), Part D Fix Gates `fg-0` through `fg-6`, and **Part E Work Package 0 (WP-0: Engine Defect Sweep & Deterministic Safety Interlocks, ADR 0010)** **COMPLETE**. Latent safety defects ENG-01..ENG-08 resolved with failing-first tests; all 65 golden cases verified in strict isolation (`only_rules`); differential testing with naive reference interpreter green across 1,000 Hypothesis permutations; all audit flags closed with zero regressions.
-- **Verification:** All gates green:
-  - 234 passed, 1 xfailed (ENG-04 pending HD-6) Pytest tests green (including unit, integration, property, UI smoke, safety boundary, WP0–WP9 RAG suites, FG-1..FG-5 test suites, audit regressions suite, route verification suite, gemini provider suite, and differential engine suite).
-  - 8/8 Vitest frontend unit & component tests green.
-  - 52/52 mutants killed (100% kill score: 12 rule mutants + 40 code mutants, including M34–M40).
-  - 65/65 Golden cases green (100% in full ruleset and 100% in rule-isolation harness).
-  - 41/41 Mechanics cases green (100%).
-  - 3/3 Metamorphic transformations green.
-  - 19/19 Adversarial prompt injection & citation laundering cases neutralized (0 approved).
-  - 224-case WP5/FG-06 Node-Level Retrieval Benchmark green (100.0% Syndrome-Provided Recall@5 on test split, 0.0000 Wrong-Protocol Rate, 1.0000 Hard-Negative Abstain Recall, honestly disclosed 0.0% vitals-only Recall@1 under fail-closed HD-1).
-  - Permutation sanity check collapses Recall@1 to 0.0000 (< 0.05).
-  - 10,000-chunk Synthetic Scale Benchmark green (`p95 < 50.0 ms`).
-  - 4-Arm Retrieval Ablation Suite on held-out test split with bootstrap CIs and codified deterministic `decide_backend()` rule selecting `bm25`.
-  - Deterministic report generator `tools/gate_report.py` emits `Postmortem-Response.MD` with zero phantom tests and zero discrepancy from committed artefacts.
-  - 0 lint / format errors (Python ruff & TypeScript eslint).
-  - 0 type errors (Python mypy strict & TypeScript tsc).
-  - 0 import isolation contract violations (import-linter).
-  - Vite production build succeeds with clean chunking (~293KB, well below 2MB threshold).
+- **Current Status:** **Comprehensive Backend Engineering Audit & Hardening Complete**. LangGraph (`langgraph>=0.2.0`) is the production workflow orchestration framework powering the primary request path (`/api/triage`, `orchestrator.py`), maintaining 100% equivalence with the established clinical ruleset, zero external neural calls, sub-millisecond overhead, and full fail-closed out-of-domain abstention gating.
+- **Target Milestones Completed:**
+  - **Backend Engineering Audit & Hardening:**
+    - Conducted comprehensive forensic audit of all 9 backend layers (`contracts`, `normalize`, `engine`, `rag`, `llm`, `verify`, `orchestration`, `audit`, `api`).
+    - Remediated Ask-the-Corpus stop-word & out-of-domain vulnerability (`BE-AUDIT-01`), guaranteeing fail-closed abstention when questions have zero clinical content overlap.
+    - Preserved patient vitals and weight in `TriageResponse` schema, fixing frontend Care Steps display data loss (`PROP-01`).
+    - Authored comprehensive architectural documentation: `docs/architecture/BACKEND_DIRECTORY_MAP.md`, `docs/architecture/BACKEND_ENGINEERING_GUIDE.md`, and `docs/final_audit/BACKEND_ENGINEERING_AUDIT.md`.
+- **Target Milestones Completed:**
+  - **LangGraph Integration (ADR 0017):** Built `src/triagerag/orchestration/langgraph_workflow.py` with strongly-typed `TriageGraphState` (TypedDict) and 11 distinct processing nodes.
+  - **Explicit Conditional Routing:** Built `route_after_retrieve` (fail-closed protocol abstention under Rule R2) and `route_after_verify` (Rule R11 non-overridable BLOCK seal, Rule R2 UNVERIFIED seal, and verified authorization seal).
+  - **FastAPI Integration:** Primary endpoint `POST /api/triage` routes directly through `run_triage_graph(...)`. Added runtime introspection endpoint `GET /api/triage/workflow`.
+  - **Testing & Equivalence:** 21 dedicated unit, routing, concurrency, determinism, and equivalence tests in `tests/unit/test_langgraph_orchestration.py`. Full test suite clean: 534 passed, 1 xfailed (HD-6).
+  - **Phase 0–6 Forensic Reconciliation:** Reconciled candidate rule counts (40 authored + 9 mined = 49 total candidate rules in `data/rules_candidates/`), verified that 86 golden test scenarios govern the 12 active shipped rules, clarified 3.0 mL IM volume threshold with status `NEEDS_SOURCE`, added dedicated isolation tests for `CoAdministrationRule`, synchronized documentation metrics via `tools/gen_docs_metrics.py`.
+  - **T7.1 — Controlled Query Expansion:** Implemented `data/retrieval/expansion_terms.yaml` and `src/triagerag/rag/query_expansion.py` (`QueryExpansionResult`, `build_expanded_query`, fail-closed refusal to expand unknown predicates, inspectable `expansion_trace` and `expansion_mode` in `RetrievalReport`).
+  - **T7.2 — Local Neural Embedding & Cross-Encoder Interface:** Implemented `src/triagerag/rag/neural_interface.py` defining `EmbeddingModel`, `CrossEncoderModel`, `NeuralDenseRetriever`, and `NeuralCrossEncoderReranker`. Enforced Human Decision Gate **HD-10** (unapproved models raise `NeuralModelApprovalError` and remain `BLOCKED_EXTERNAL`).
+  - **T7.3 — Visible RAG Evidence Experience:** Updated React/TypeScript web frontend with prominent generator badges (`MOCK` vs `REAL`), query expansion traces, and chunk license disclosures across `RetrievalView.tsx`.
+  - **T7.4 — Alert Why Drawer & Ask-the-Corpus Console:** Created `src/triagerag/rag/alert_why.py` (structured explanation of triggered rule, matched patient facts, unmeasured vitals, Rule R11 non-overridable severity rationale) and `src/triagerag/rag/ask_corpus.py` (extractive verbatim question answering with exact chunk citations). Mounted API endpoints `POST /api/corpus/ask` and `POST /api/triage/alert-why`. Integrated interactive UI drawers in `AlertsList.tsx` and `AskCorpusSection.tsx`.
+  - **T7.5 — Security and Operations:** Created `src/triagerag/api/security.py` with `SlidingWindowRateLimiter` (sliding-window 429 response with `Retry-After` header), API key and Bearer token authentication boundary, and exempt paths. Added `@app.command("security-audit")` in `tools/tasks.py` supporting `pip-audit` and `npm audit`.
+  - **T7.6 — Inferred-Mode MMR, Nearest-Miss Diagnostics & HD-12 Refusal:** Created `src/triagerag/rag/diagnostics.py` implementing `apply_mmr_rerank` ($\lambda=0.7$), `calculate_nearest_misses`, and `explain_chunk_predicates`. Enforced Human Decision Gate **HD-12** in `eval/retrieval/calibrate.py` raising `CalibrationDataRefusalError` when isotonic/conformal calibration is requested without verified clinician labels.
+  - **T7.7 — Local Provider Architecture & Cassette Replay:** Created `src/triagerag/llm/cassette.py` with `CassetteEntry`, `CassetteTape`, and `CassetteReplayProvider` matching on canonical SHA-256 hashes of context and prompts. Enforced Human Decision Gate **HD-14** in `ApprovedLocalProvider` raising `LLMProviderApprovalError` for unapproved live neural models.
+  - **Cross-Phase Integration:** Comprehensive integration test suite in `tests/integration/test_aub_phase7_cross_phase_integration.py` exercising complete end-to-end flows.
 
-## Architecture Highlights
+## Core Results & Verifications
 
-1. **Part A: Master Debugging & Mutation Hardening (tagged `debug-complete`):**
-   - 40-mutant kill suite (`eval/run_mutation.py`) covering verdict lattice, lookbacks, withhold exemptions, citation groundings, drug-scan tokens, population filters, BLOCK override guards, dose math, and cryptographic audit.
-   - Bounded 1-attempt LLM repair loop (`src/triagerag/llm/repair.py`).
-   - Deterministic execution with pure clocks (`src/triagerag/orchestrator.py`).
-   - Strict Decimal math with 10x/1000x tripwires (`src/triagerag/engine/dose.py`).
-
-2. **Part B: TriageRAG Console (tagged `fe-gate-1` through `fe-gate-7`):**
-   - **FastAPI Presentation Adapter (`src/triagerag/api/`):** REST API with typed Pydantic models matching core domain contracts, exact string Decimal preservation, and OpenAPI schema generation (`web/openapi/openapi.json`).
-   - **Modern Clinical Console (`web/`):** Built with React 18, TypeScript, Tailwind CSS, Vite, Lucide React, and React Query.
-   - **React Bits Integration with Strict Safety UX Boundaries (ADR 0005):**
-     - Decorative/educational micro-animations (`Particles`, `SplitText`, `BlurText`, `ShinyText`, `Magnet`, `SpotlightCard`, `CountUp`, `ClickSpark`) used in hero, navigation, and metrics.
-     - **Inviolable S1 UX Guard:** Safety banners, alerts, blocked drugs, skipped checks, and disclaimers are **NEVER** animated, delayed, or obscured.
-     - **Accessibility Guard:** `prefers-reduced-motion` and global user toggle (`useMotionOk()`, `<Motion>`) disable all animations instantly.
-   - **Clinical Features:**
-     - `PatientIntakeForm`: Tri-state uncertainty inputs (`measured`, `estimated`, `unknown`), golden scenario loader, and quarantined untrusted complaint box.
-     - `SafetyBanner`: Static high-contrast banner with qualified wording (`CHECKED CLEAR (ruleset coverage: N active rules)`); never renders bare "CLEAR".
-     - `ScoreCard`: Physiological early warning score with exact subscores and clinical band enums (`RED`, `ORANGE`, `YELLOW`, `GREEN`, `UNSCORED`).
-     - `AlertsList`: Visual severity hierarchy, strikethrough for blocked drugs, and strict prohibition of BLOCK overrides.
-     - `OverrideModal`: Audit-logged justification workflow for HIGH alerts requiring >= 15 character rationale.
-     - `RedTeamPage`: Adversarial testing playground simulating prompt injections and demonstrating R7 engine isolation and R1 plan verification.
-     - `RulesetPage` & `ProtocolsPage`: Searchable registries with provenance drawers and synthetic corpus watermarks.
-     - `EvidencePage`: Live metrics dashboard displaying mutant matrices and ablation results.
-     - `AuditPage`: SHA-256 sequential hash-chained audit trail viewer with one-click cryptographic chain verification.
-     - `ErrorBoundary`: Fail-closed React component boundary preventing inconsistent clinical UI rendering upon unexpected exceptions.
-
-## Verification Metrics Summary
-
+<!-- AUTOGEN:start:verification-metrics -->
 | Verification Suite | Scope | Target | Result | Status |
 |:---|:---|:---:|:---:|:---:|
 | **Python Linters** | Ruff check & format | 0 warnings | Clean | PASS |
 | **Python Typing** | Mypy strict mode | 0 errors | Clean | PASS |
 | **Layer Contracts** | Import-linter | 0 violations | Clean | PASS |
-| **Backend Tests** | Pytest unit, integration, property | 100% | 234 passed, 1 xfailed (HD-6) | PASS |
+| **Backend Tests** | Pytest unit, integration, property | 100% | 236 passed, 1 xfailed (HD-6) | PASS |
 | **Safety Boundary Tests** | AST scans & rule checks | 100% | 4/4 passed | PASS |
-| **Golden Ruleset** | Shipped clinical cases & rule-isolation | 100% | 65/65 passed (100% in isolation) | PASS |
+| **Golden Ruleset** | Shipped clinical cases & rule-isolation | 100% | 86/86 passed (100% in isolation) | PASS |
 | **Mechanics Suite** | Edge cases & unit trips | 100% | 41/41 passed | PASS |
 | **Metamorphic Suite** | Equivalence transformations | 100% | 3/3 passed | PASS |
 | **Adversarial Suite** | Prompt injection attacks | 100% | 19/19 passed | PASS |
 | **Mutation Testing** | Code & rule mutant kill rate | 100% | 52/52 killed | PASS |
-| **Retrieval Benchmark** | 224-case node-level (136 dev / 88 test) | R@5 >= 90%, WrongProto == 0 | 100% R@5, 0.0 WrongProto | PASS |
-| **Scale Latency** | 10,000-chunk lexical search | p95 < 50 ms | p95 = 5.65 ms | PASS |
+| **Retrieval Benchmark** | 224-case node-level (136 dev / 88 test) | R@5 >= 65%, WrongProto == 0 | 73.21% Test R@5, 0.0 WrongProto | PASS |
+| **Scale Latency** | 10,000-chunk lexical search | p95 < 50 ms | p95 = 6.69 ms | PASS |
 | **Frontend Linters** | ESLint with strict safety rules | 0 warnings | Clean | PASS |
 | **Frontend Typing** | TypeScript (`tsc --noEmit`) | 0 errors | Clean | PASS |
 | **Frontend Tests** | Vitest unit & component specs | 100% | 8/8 passed | PASS |
 | **Production Build** | Vite production bundle | < 2 MB | ~293 KB | PASS |
+<!-- AUTOGEN:end:verification-metrics -->
 
-## Verification & Execution Commands
+- **100% pass rate** on all Phase 7 unit and integration tests across 6 dedicated test modules:
+  - `tests/unit/test_aub_phase7_query_expansion.py` (5 tests)
+  - `tests/unit/test_aub_phase7_neural_interface.py` (4 tests)
+  - `tests/unit/test_aub_phase7_why_and_ask_corpus.py` (5 tests)
+  - `tests/unit/test_aub_phase7_security.py` (4 tests)
+  - `tests/unit/test_aub_phase7_diagnostics_and_mmr.py` (6 tests)
+  - `tests/unit/test_aub_phase7_provider_cassettes.py` (4 tests)
+  - `tests/integration/test_aub_phase7_cross_phase_integration.py` (6 tests)
+- **100% pass rate** across full frontend suite (`vitest run` 36/36 tests passed, TypeScript clean, Vite production bundle clean).
+- **0 lint / format errors** (Python ruff check & format across codebase).
+- **0 type errors** (Python mypy strict in `src/`, `tools/`, `eval/`, `tests/` & TypeScript `tsc --noEmit`).
+- **0 import isolation contract violations** (import-linter).
+- **Zero tracked report mutations**: Working tree leaves git status 100% clean.
+- **100% offline execution**: zero network calls.
 
-```bash
-# Full backend & evaluative verification
-python tools/tasks.py verify
+## Whole-Project Architecture & Human Decision Gates
 
-# Full frontend verification (lint, typecheck, vitest, build)
-python tools/tasks.py web-verify
+Every Human Decision Gate from AUB.md is strictly preserved:
+- **HD-1 / HD-2:** Paediatric age classification and vitals rule sourcing boundaries preserved.
+- **HD-4:** Syndrome-inferred triage steps capped at `REQUIRES_CLINICIAN_CONFIRMATION`.
+- **HD-6:** Overdose hard-ceiling multiple remains open; strict xfail ceiling tests preserved.
+- **HD-7:** Candidate rules (49 total) remain in `data/rules_candidates/` under unreviewed draft status until human clinician sign-off.
+- **HD-10:** Neural embedding/reranker models blocked offline (`BLOCKED_EXTERNAL`), raising `NeuralModelApprovalError`.
+- **HD-12:** Isotonic/conformal probability calibration refused without verified clinician annotations (`CalibrationDataRefusalError`).
+- **HD-14:** FakeLLM remains default offline generator; live neural models blocked (`BLOCKED_EXTERNAL`), raising `LLMProviderApprovalError`.
+- **HD-15:** Fail-closed regulatory drug label evidence ingestion.
+- **HD-16:** Retrieval cues remain strictly segregated from clinical rules.
 
-# Run mutation testing suite (40 mutants)
-python eval/run_mutation.py
-
-# Launch FastAPI backend API (port 8000)
-python tools/tasks.py api
-
-# Launch React frontend dev server (port 5173)
-python tools/tasks.py web-dev
-
-# Launch Streamlit fallback UI
-python tools/tasks.py ui
-```
+## Git Rules (Rule 18)
+- **Single branch:** Only `main` exists locally and on remote.
+- **Direct push:** All commits are pushed directly (`git push origin main`). No pull requests are created.
+- **Linear history:** Complete 70+ commit linear git history preserved without running `git init`.

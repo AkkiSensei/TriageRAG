@@ -16,7 +16,7 @@ synthetic: true
    THEN administer intramuscular epinephrine into the anterolateral mid-thigh immediately.
 2. IF respiratory wheezing or lower airway bronchospasm persists following first line care:
    THEN administer inhaled salbutamol via nebulization with supplemental high-flow oxygen.
-3. IF signs of systemic hypoperfusion or refractory shock continue after initial therapy:
+3. IF signs of systemic hypoperfusion, compensatory tachycardia, or refractory shock continue after initial therapy:
    THEN repeat administration of intramuscular epinephrine and establish wide-bore vascular access.
 4. IF beta-blocker therapy is active on patient home medication profile:
    THEN monitor closely for refractory hypotension and consider glucagon protocol.

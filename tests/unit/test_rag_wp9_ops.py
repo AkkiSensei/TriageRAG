@@ -11,6 +11,7 @@ Safety Properties (RAG-16, Rule R12):
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 from typer.testing import CliRunner
@@ -57,14 +58,21 @@ def test_api_triage_explain_endpoint() -> None:
     assert "bm25_trace" in data
 
 
-def test_10k_chunk_scale_latency_benchmark() -> None:
+def test_10k_chunk_scale_latency_benchmark(tmp_path: Path) -> None:
     """WP9: 10,000-chunk synthetic scale benchmark verifies lexical p95 latency < 50 ms."""
     from eval.run_latency_benchmark import run_scale_benchmark
 
-    report = run_scale_benchmark(target_chunks=10000, num_queries=100)
+    out_file = tmp_path / "latency_benchmark.json"
+    report = run_scale_benchmark(
+        target_chunks=10000,
+        num_queries=100,
+        output_path=out_file,
+    )
     assert report["total_chunks"] >= 10000
     assert report["p95_latency_ms"] < 50.0
+    assert out_file.exists()
 
+    # Also assert existing production report remains unmutated
     report_path = get_repo_root() / "eval" / "reports" / "latency_benchmark.json"
     assert report_path.exists()
 

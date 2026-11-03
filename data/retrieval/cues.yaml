@@ -1,0 +1,118 @@
+version: "1.0.0"
+source_status: "SYNTHETIC_AUTHORED"
+
+# HUMAN DECISION HD-16 / AUB Task T2.3:
+# Synthetic retrieval cues mapping patient predicates to protocol vocabulary.
+# These terms are retrieval-query bridges ONLY and are NOT clinical facts or thresholds.
+provenance:
+  source_doc: "SYNTHETIC_RETRIEVAL_CUES_DRAFT"
+  section_ref: "AUB_T2_3"
+  version_or_date: "2026-DRAFT"
+  source_status: "SYNTHETIC_AUTHORED"
+  content_origin: "AGENT_DRAFT_SYNTHETIC"
+  verified: false
+  reviewer: null
+
+cues:
+  low_systolic_bp:
+    syndrome_cue: true
+    terms:
+      - "hypotension"
+      - "hypoperfusion"
+
+  normal_or_high_systolic_bp:
+    syndrome_cue: false
+    terms:
+      - "hemodynamically stable"
+      - "not low"
+
+  tachycardia:
+    syndrome_cue: true
+    terms:
+      - "tachycardia"
+
+  bradycardia:
+    syndrome_cue: true
+    terms:
+      - "bradycardia"
+
+  severe_tachypnea:
+    syndrome_cue: true
+    terms:
+      - "tachypnea"
+      - "wheezing"
+      - "bronchospasm"
+
+  respiratory_depression:
+    syndrome_cue: true
+    terms:
+      - "respiratory depression"
+      - "ventilatory drive"
+
+  hypoxemia:
+    syndrome_cue: true
+    terms:
+      - "low oxygen saturation"
+      - "hypoxia"
+
+  fever:
+    syndrome_cue: true
+    terms:
+      - "fever"
+      - "febrile"
+
+  hypothermia:
+    syndrome_cue: true
+    terms:
+      - "hypothermia"
+
+  hypoglycemia:
+    syndrome_cue: true
+    terms:
+      - "hypoglycemia"
+      - "capillary glucose"
+      - "neuroglycopenic"
+      - "dextrose"
+
+  altered_consciousness:
+    syndrome_cue: true
+    terms:
+      - "altered"
+      - "confusion"
+      - "unresponsive"
+
+  conscious_alert:
+    syndrome_cue: false
+    terms:
+      - "conscious"
+      - "alert"
+
+  beta_blocker_active:
+    syndrome_cue: false
+    terms:
+      - "beta blocker"
+      - "metoprolol"
+      - "atenolol"
+
+  pde5_inhibitor_active:
+    syndrome_cue: false
+    terms:
+      - "sildenafil"
+      - "tadalafil"
+
+  penicillin_allergy:
+    syndrome_cue: false
+    terms:
+      - "anaphylactic reaction"
+      - "aminopenicillins"
+
+  neonate_age:
+    syndrome_cue: false
+    terms:
+      - "neonate"
+      - "twenty-eight days"
+
+  paediatric_age:
+    syndrome_cue: false
+    terms:
+      - "paediatric"

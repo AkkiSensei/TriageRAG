@@ -1,4 +1,4 @@
-"""Dense, Hybrid Reciprocal Rank Fusion (RRF), and Rerank retrievers (RAG-08).
+"""Char n-gram, Hybrid Reciprocal Rank Fusion (RRF), and Lexical Rerank retrievers (RAG-08 / T0.4).
 
 Safety Properties (Section 8, RAG-01, RAG-08, Rule R12):
 1. All retriever backends implement the Retriever protocol and enforce identical
@@ -11,16 +11,17 @@ from __future__ import annotations
 
 import math
 from collections import Counter
+from pathlib import Path
 from typing import Any
 
-from triagerag.rag.abstain import load_retrieval_config
+from triagerag.rag.abstain import RetrievalConfig, load_retrieval_config
 from triagerag.rag.chunking import ProtocolChunk
 from triagerag.rag.index import BM25ClinicalIndex, ClinicalTokenizer, Retriever
 from triagerag.rag.ingest import compute_corpus_hash
 
 
 def _extract_char_ngrams(text: str, tokenizer: ClinicalTokenizer) -> Counter[str]:
-    """Build combined token + character trigram feature vector for dense cosine similarity."""
+    """Build combined token + character trigram vector for cosine similarity."""
     tokens = tokenizer.tokenize(text)
     features: Counter[str] = Counter()
     ngram_len = 2 + 1
@@ -34,19 +35,27 @@ def _extract_char_ngrams(text: str, tokenizer: ClinicalTokenizer) -> Counter[str
 
 
 class CharNgramRetriever:
-    """Offline char n-gram TF-IDF vector retriever (FG-14 / HD-5)."""
+    """Offline char n-gram TF-IDF vector retriever (FG-14 / HD-5 / T0.3)."""
 
     def __init__(
         self,
         chunks: list[ProtocolChunk],
         acronyms: dict[str, str] | None = None,
+        synonyms: dict[str, list[str]] | None = None,
+        config: RetrievalConfig | None = None,
+        retrieval_context: Any = None,
+        data_dir: Path | None = None,
     ) -> None:
-        self.tokenizer = ClinicalTokenizer(acronyms=acronyms)
+        self.data_dir: Path | None = data_dir
+        self.config: RetrievalConfig = (
+            config if config is not None else load_retrieval_config(data_dir)
+        )
+        self.tokenizer = ClinicalTokenizer(acronyms=acronyms, synonyms=synonyms)
         self.all_chunks: tuple[ProtocolChunk, ...] = tuple(chunks)
         self.corpus_hash: str = compute_corpus_hash(chunks)
         self.index_version: str = "2.0.0"
         self.backend: str = "char_ngram"
-        self.retrieval_context: Any = None
+        self.retrieval_context: Any = retrieval_context
 
         self.parents_by_id: dict[str, ProtocolChunk] = {
             c.chunk_id: c for c in self.all_chunks if c.parent_id is None
@@ -114,7 +123,7 @@ class CharNgramRetriever:
         top_k: int | None = None,
         syndrome: str | None = None,
     ) -> list[tuple[ProtocolChunk, float]]:
-        cfg = load_retrieval_config()
+        cfg = self.config
         eff_top_k = top_k if top_k is not None else cfg.top_k
         pop_key = population.lower().strip()
         if pop_key not in self.chunks_by_population:
@@ -151,7 +160,7 @@ DenseRetriever = CharNgramRetriever
 
 
 class LexicalOverlapReranker:
-    """Lexical overlap reranker computing token intersection ratio (FG-14 / HD-5)."""
+    """Lexical overlap reranker without score inflation (T2.6 / AUB-RET-02)."""
 
     def rerank(
         self,
@@ -160,31 +169,71 @@ class LexicalOverlapReranker:
         base_score: float,
         boost: float = 0.5,
     ) -> float:
-        """Scale base score by token intersection ratio against query terms."""
+        """Adjust base score by token intersection ratio bounded by base_score (no 1.5x inflation).
+
+        T2.6 (AUB-RET-02): Uses uninflated overlap adjustment:
+        score = base_score * (1.0 - boost * (1.0 - overlap_ratio)).
+        When overlap_ratio == 1.0, score == base_score.
+        When overlap_ratio < 1.0, score is proportionally discounted.
+        """
         if not query_tokens or base_score <= 0.0:
             return float(base_score)
         overlap_ratio = float(len(query_tokens & doc_tokens)) / float(len(query_tokens))
-        return float(base_score * (1.0 + boost * overlap_ratio))
+        factor = 1.0 - boost * (1.0 - overlap_ratio)
+        return float(base_score * factor)
 
 
 class HybridRRFRetriever:
-    """Reciprocal Rank Fusion (RRF) combining lexical BM25 and CharNgram retrievers."""
+    """Reciprocal Rank Fusion (RRF) combining BM25 and CharNgram retrievers (FG-14)."""
 
     def __init__(
         self,
         chunks: list[ProtocolChunk],
         acronyms: dict[str, str] | None = None,
+        synonyms: dict[str, list[str]] | None = None,
         rerank: bool = False,
+        config: RetrievalConfig | None = None,
+        retrieval_context: Any = None,
+        data_dir: Path | None = None,
     ) -> None:
-        self.bm25 = BM25ClinicalIndex(chunks, acronyms=acronyms)
-        self.dense = CharNgramRetriever(chunks, acronyms=acronyms)
+        self.data_dir: Path | None = data_dir
+        self.config: RetrievalConfig = (
+            config if config is not None else load_retrieval_config(data_dir)
+        )
+        self.bm25 = BM25ClinicalIndex(
+            chunks,
+            acronyms=acronyms,
+            synonyms=synonyms,
+            config=self.config,
+            retrieval_context=retrieval_context,
+        )
+        self.char_ngram = CharNgramRetriever(
+            chunks,
+            acronyms=acronyms,
+            synonyms=synonyms,
+            config=self.config,
+            retrieval_context=retrieval_context,
+            data_dir=data_dir,
+        )
         self.rerank = rerank
         self.reranker = LexicalOverlapReranker() if rerank else None
         self.corpus_hash: str = self.bm25.corpus_hash
         self.index_version: str = "2.0.0"
         self.backend: str = "hybrid_rrf_rerank" if rerank else "hybrid_rrf"
         self.index_by_population: dict[str, list[int]] = self.bm25.index_by_population
-        self.retrieval_context: Any = None
+        self.retrieval_context: Any = retrieval_context
+
+    @property
+    def dense(self) -> CharNgramRetriever:
+        """Deprecated property alias for char_ngram (T0.4)."""
+        import warnings
+
+        warnings.warn(
+            "HybridRRFRetriever.dense is deprecated; use .char_ngram instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.char_ngram
 
     def known_syndromes(self, population: str | None = None) -> set[str]:
         return self.bm25.known_syndromes(population=population)
@@ -199,18 +248,18 @@ class HybridRRFRetriever:
         top_k: int | None = None,
         syndrome: str | None = None,
     ) -> list[tuple[ProtocolChunk, float]]:
-        cfg = load_retrieval_config()
+        cfg = self.config
         eff_top_k = top_k if top_k is not None else cfg.top_k
         pool_k = eff_top_k * (2 + 2)
 
         bm25_hits = self.bm25.search(
             query=query, population=population, top_k=pool_k, syndrome=syndrome
         )
-        dense_hits = self.dense.search(
+        ngram_hits = self.char_ngram.search(
             query=query, population=population, top_k=pool_k, syndrome=syndrome
         )
 
-        if not bm25_hits and not dense_hits:
+        if not bm25_hits and not ngram_hits:
             return []
 
         rrf_k = float(cfg.top_k * cfg.top_k)
@@ -225,26 +274,21 @@ class HybridRRFRetriever:
                 1.0 / (rrf_k + float(rank_idx))
             )
 
-        for rank_idx, (chunk, _sc) in enumerate(dense_hits, start=1):
+        for rank_idx, (chunk, _sc) in enumerate(ngram_hits, start=1):
             chunk_map[chunk.chunk_id] = chunk
             rrf_scores[chunk.chunk_id] = rrf_scores.get(chunk.chunk_id, 0.0) + (
                 1.0 / (rrf_k + float(rank_idx))
             )
 
-        # Scale fused RRF score by top BM25 magnitude so calibrated thresholds apply consistently
-        max_bm25 = max(bm25_raw.values(), default=0.0)
-        max_rrf = max(rrf_scores.values(), default=1.0)
-        scale = max_bm25 / max_rrf if max_rrf > 0.0 and max_bm25 > 0.0 else 1.0
-
         query_tokens = set(self.bm25.tokenizer.tokenize(query))
         final_scored: list[tuple[ProtocolChunk, float]] = []
         for cid, rrf_val in rrf_scores.items():
             chunk = chunk_map[cid]
-            scaled_score = float(rrf_val * scale)
-            if self.reranker and query_tokens and scaled_score > 0.0:
+            score = float(rrf_val)
+            if self.reranker and query_tokens and score > 0.0:
                 doc_tokens = set(self.bm25.tokenizer.tokenize(chunk.indexed_text or chunk.text))
-                scaled_score = self.reranker.rerank(query_tokens, doc_tokens, scaled_score)
-            final_scored.append((chunk, scaled_score))
+                score = self.reranker.rerank(query_tokens, doc_tokens, score)
+            final_scored.append((chunk, score))
 
         final_scored.sort(key=lambda x: (-x[1], x[0].chunk_id))
         return final_scored[:eff_top_k]
@@ -254,15 +298,56 @@ def build_retriever_backend(
     backend: str,
     chunks: list[ProtocolChunk],
     acronyms: dict[str, str] | None = None,
+    synonyms: dict[str, list[str]] | None = None,
+    config: RetrievalConfig | None = None,
+    retrieval_context: Any = None,
+    data_dir: Path | None = None,
 ) -> Retriever:
-    """Factory helper constructing the requested Retriever implementation (FG-14)."""
+    """Factory helper constructing the requested Retriever implementation (FG-14 / T0.3)."""
     b_norm = backend.lower().strip()
     if b_norm == "bm25":
-        return BM25ClinicalIndex(chunks, acronyms=acronyms)
+        return BM25ClinicalIndex(
+            chunks,
+            acronyms=acronyms,
+            synonyms=synonyms,
+            config=config,
+            retrieval_context=retrieval_context,
+        )
     if b_norm in ("char_ngram", "dense"):
-        return CharNgramRetriever(chunks, acronyms=acronyms)
+        if b_norm == "dense":
+            import warnings
+
+            warnings.warn(
+                "Retriever backend 'dense' is deprecated; use 'char_ngram' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return CharNgramRetriever(
+            chunks,
+            acronyms=acronyms,
+            synonyms=synonyms,
+            config=config,
+            retrieval_context=retrieval_context,
+            data_dir=data_dir,
+        )
     if b_norm == "hybrid_rrf":
-        return HybridRRFRetriever(chunks, acronyms=acronyms, rerank=False)
+        return HybridRRFRetriever(
+            chunks,
+            acronyms=acronyms,
+            synonyms=synonyms,
+            rerank=False,
+            config=config,
+            retrieval_context=retrieval_context,
+            data_dir=data_dir,
+        )
     if b_norm in ("hybrid_rrf_rerank", "hybrid_rerank"):
-        return HybridRRFRetriever(chunks, acronyms=acronyms, rerank=True)
+        return HybridRRFRetriever(
+            chunks,
+            acronyms=acronyms,
+            synonyms=synonyms,
+            rerank=True,
+            config=config,
+            retrieval_context=retrieval_context,
+            data_dir=data_dir,
+        )
     raise ValueError(f"Unknown retrieval backend '{backend}'")

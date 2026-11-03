@@ -30,6 +30,7 @@ from triagerag.contracts.enums import (
     Severity,
     SourceStatus,
     StepStatus,
+    TrustMode,
     Verdict,
 )
 
@@ -54,8 +55,16 @@ class Provenance(BaseModel):
         if self.verified:
             if self.source_status != SourceStatus.REVIEWED:
                 raise ValueError("verified=True requires source_status == REVIEWED")
-            if not self.reviewer or not self.reviewer.strip():
+            if (
+                not self.reviewer
+                or not self.reviewer.strip()
+                or self.reviewer.upper() == "TO_BE_RESOLVED"
+            ):
                 raise ValueError("verified=True requires non-empty reviewer identifier")
+            if self.section_ref.strip().upper() == "TO_BE_RESOLVED":
+                raise ValueError("verified=True forbids unresolved section_ref")
+        if self.source_status == SourceStatus.PLACEHOLDER_UNRETRIEVED and self.verified:
+            raise ValueError("PLACEHOLDER_UNRETRIEVED sources cannot be marked verified=True")
         return self
 
 
@@ -237,10 +246,18 @@ class Patient(BaseModel):
     ]
     allergies: list[AllergyEntry] = Field(default_factory=list)
     medications: list[MedicationEntry] = Field(default_factory=list)
-    renal_impairment: Literal["yes", "no", "unknown"] = "unknown"
-    hepatic_impairment: Literal["yes", "no", "unknown"] = "unknown"
+    renal_impairment: Literal["yes", "no", "unknown", "none", "mild", "moderate", "severe"] = (
+        "unknown"
+    )
+    hepatic_impairment: Literal["yes", "no", "unknown", "none", "mild", "moderate", "severe"] = (
+        "unknown"
+    )
     suspected_syndrome: str | None = None
     chief_complaint_untrusted: str = Field(default="", max_length=500)
+    conditions: dict[str, Literal["yes", "no", "unknown"]] = Field(default_factory=dict)
+    labs: dict[str, Measured[Decimal]] = Field(default_factory=dict)
+    gestation_weeks: int | None = None
+    lactating: Literal["yes", "no", "unknown"] = "unknown"
 
     @model_validator(mode="after")
     def validate_patient_constraints(self) -> Patient:
@@ -307,7 +324,11 @@ class PlanStepDraft(BaseModel):
     drug_id: str | None = None
     requested_dose: ExplicitDose | None = None
     route: Route | None = None
-    citations: list[SpanCitation] = Field(min_length=1)
+    citations: list[SpanCitation] = Field(default_factory=list)
+    concentration_mg_per_ml: Decimal | None = None
+    diluent: str | None = None
+    rate_mg_per_min: Decimal | None = None
+    frequency_hours: Decimal | None = None
     relative_time_minutes: int | None = Field(
         default=0,
         ge=0,
@@ -375,6 +396,8 @@ class RetrievedChunk(BaseModel):
     section: str
     chunk_id: str
     parent_id: str | None = None
+    legacy_id: str | None = None
+    aliases: tuple[str, ...] = ()
     text: str
     population: str
     syndrome: str
@@ -399,6 +422,9 @@ class RetrievalReport(BaseModel):
     corpus_hash: str = ""
     index_version: str = "1.0.0"
     config_hash: str = ""
+    expansion_mode: str = "predicate_aware_bm25"
+    expansion_trace: dict[str, Any] | None = None
+    diagnostics: dict[str, Any] | None = None
 
 
 class PlanContext(BaseModel):
@@ -451,6 +477,7 @@ class CalculatedDoseReport(BaseModel):
     requested_dose: ExplicitDose
     calculated_ceiling: ExplicitDose | None = None
     calculated_recommended: ExplicitDose | None = None
+    calculated_volume_ml: Decimal | None = None
     magnitude_tripwire_triggered: bool = False
     status: Literal[
         "OK", "EXCEEDS_CEILING", "BELOW_MINIMUM", "UNVERIFIED_MISSING_CAP", "MAGNITUDE_WARNING"
@@ -478,6 +505,7 @@ class EngineReport(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     verdict: Verdict
+    unverified_reason: str | None = Field(default=None)
     score: ScoreResult | None = None
     baseline_alerts: list[Alert] = Field(default_factory=list)
     plan_alerts: list[Alert] = Field(default_factory=list)
@@ -492,6 +520,10 @@ class EngineReport(BaseModel):
         "UNREVIEWED_DRAFT"
     )
     ruleset_version: str = "0.1.0"
+    trust_mode: TrustMode = TrustMode.DEMO
+    verified_rules_count: int = 0
+    total_rules_count: int = 0
+    verified_rules_summary: str = "verified 0 of 0"
 
 
 class OverrideRecord(BaseModel):
@@ -519,6 +551,167 @@ class VerifiedStep(BaseModel):
     support_reason: str | None = None
 
 
+class ProviderMetadata(BaseModel):
+    """Execution metadata for deterministic mock plan generation and repair cycles."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    generation_mode: str = Field(default="deterministic_mock")
+    requested_profile: str | None = Field(default=None)
+    repair_attempted: bool = Field(default=False)
+    repair_cycles: int = Field(default=0, ge=0)
+    retrieval_backend: str = Field(default="bm25")
+
+
+class TriageExplanation(BaseModel):
+    """Structured, deterministic explanation of the triage result answering user questions."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    headline: str
+    plain_language_summary: str
+    outcome_reasons: list[str] = Field(default_factory=list)
+    retrieval_explanation: str
+    evidence_summary: str
+    completed_checks: list[str] = Field(default_factory=list)
+    unresolved_checks: list[str] = Field(default_factory=list)
+    rejected_paths: list[str] = Field(default_factory=list)
+    generation_disclosure: str
+    permitted_ui_actions: list[str] = Field(default_factory=list)
+
+
+class DataQualityReport(BaseModel):
+    """Deterministic assessment of clinical input data completeness and provenance."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    total_parameters: int
+    measured_count: int
+    assumed_count: int
+    missing_count: int
+    completeness_pct: Decimal
+    measured_vitals_count: int = Field(
+        default=0,
+        description="Count of distinct physiological vital signs clinically measured (HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight).",
+    )
+    provided_intake_count: int = Field(
+        default=0,
+        description="Count of documented administrative/demographic intake parameters (Age, Sex, Allergies, Meds).",
+    )
+    audit_scope: str = Field(
+        default="12 standard triage parameters: HR, SBP, DBP, RR, SpO2, Temp, Consciousness/GCS, Weight, Allergies, Meds, Age, Sex",
+        description="Explicit scope of clinical parameters counted in the data quality audit.",
+    )
+    completeness_description: str = Field(
+        default="",
+        description="Plain-English explanation of measured vs assumed vs missing parameters.",
+    )
+    measured_fields: list[str] = Field(default_factory=list)
+    assumed_fields: list[str] = Field(default_factory=list)
+    missing_fields: list[str] = Field(default_factory=list)
+
+
+class ConfidenceReport(BaseModel):
+    """Deterministic, explainable confidence evaluation of the triage decision.
+
+    Safety Disclosure (Rule R1, R3, R10):
+    Confidence level and heuristic index reflect deterministic rule decisiveness, case data
+    completeness, and protocol verification status. They are NOT empirical clinical probabilities.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    level: Literal["HIGH", "MEDIUM", "LOW"]
+    score: Decimal = Field(
+        description="Heuristic completeness/certainty index (0.00-1.00 scale). NOT a clinical probability."
+    )
+    headline: str
+    rule_evidence: str = Field(
+        default="UNSPECIFIED",
+        description="Certainty of specific triggered rule or safety interlock.",
+    )
+    case_completeness: str = Field(
+        default="COMPLETE",
+        description="Documentation completeness across the overall clinical case record.",
+    )
+    reasons: list[str] = Field(default_factory=list)
+    data_quality: DataQualityReport
+
+
+class ActionStep(BaseModel):
+    """A single deterministic immediate-action step in the triage action plan."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    description: str
+    reason: str
+    rule_id: str | None = None
+    urgency: Literal["immediate", "urgent", "routine"] = "urgent"
+
+
+class MedicationInstruction(BaseModel):
+    """A deterministic medication instruction derived from verified plan steps."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    medication_name: str
+    dose: str
+    route: str
+    timing: str
+    indication: str
+    contraindications: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    source_protocol: str | None = None
+    why_chosen: str | None = None
+    why_not_alternatives: list[str] = Field(default_factory=list)
+    dose_computation_source: str | None = None
+
+
+class MonitoringStep(BaseModel):
+    """A monitoring instruction linked to score band or alert severity."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    monitor: str
+    frequency: str
+    trigger: str
+    reason: str
+
+
+class EscalationStep(BaseModel):
+    """An escalation instruction triggered by verdict or critical alerts."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    when: str
+    escalate_to: str
+    reason: str
+
+
+class ActionPlan(BaseModel):
+    """Deterministic, human-readable action plan generated from the engine report."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    immediate_actions: list[ActionStep] = Field(default_factory=list)
+    medications: list[MedicationInstruction] = Field(default_factory=list)
+    unapproved_draft_steps: list[str] = Field(
+        default_factory=list,
+        description="Draft proposed steps that were rejected, flagged, or unverified. Administration strictly prohibited.",
+    )
+    monitoring_steps: list[MonitoringStep] = Field(default_factory=list)
+    escalation_steps: list[EscalationStep] = Field(default_factory=list)
+    assumptions: list[str] = Field(default_factory=list)
+    rule_hits: list[str] = Field(default_factory=list)
+    missing_data: list[str] = Field(default_factory=list)
+    decision_summary: str = ""
+    confidence: ConfidenceReport | None = Field(default=None)
+    protocol_match_summary: str | None = None
+    why_decision: str = ""
+    rejected_alternatives: list[str] = Field(default_factory=list)
+
+
 class TriageResponse(BaseModel):
     """Full triage response returned to UI and CLI."""
 
@@ -531,6 +724,14 @@ class TriageResponse(BaseModel):
     overrides: list[OverrideRecord] = Field(default_factory=list)
     llm_fallback_mode: bool = False
     audit_hash: str = ""
+    provider_info: ProviderMetadata = Field(default_factory=ProviderMetadata)
+    explanation: TriageExplanation | None = Field(default=None)
+    patient: Patient | None = None
+    input_patient: Patient | None = Field(default=None)
+    execution_trace: list[dict[str, Any]] = Field(default_factory=list)
+    action_plan: ActionPlan | None = Field(default=None)
+    confidence: ConfidenceReport | None = Field(default=None)
+    data_quality: DataQualityReport | None = Field(default=None)
 
 
 class Clock(Protocol):
@@ -570,3 +771,4 @@ class OrchestratorConfig(BaseModel):
     top_k_chunks: int = 5
     max_repair_cycles: int = 2
     audit_log_path: Path | None = None
+    trust_mode: TrustMode = TrustMode.DEMO

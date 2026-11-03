@@ -31,7 +31,13 @@ def normalize_patient(patient: Patient, resolver: AliasResolver) -> Patient:
             # Populate ingredients if matched to an alias or formulary drug
             if matched_id in resolver.aliases:
                 alias_entry = resolver.aliases[matched_id]
-                med_copy.ingredients = list(alias_entry.strengths)
+                ingredients = list(alias_entry.strengths)
+                present_ings = {s.ingredient_id.lower() for s in ingredients}
+                for ing in alias_entry.ingredient_ids:
+                    if ing.lower() not in present_ings:
+                        ingredients.append(IngredientStrength(ingredient_id=ing.lower()))
+                        present_ings.add(ing.lower())
+                med_copy.ingredients = ingredients
             elif matched_id in resolver.formulary_drugs:
                 drug = resolver.formulary_drugs[matched_id]
                 med_copy.ingredients = [

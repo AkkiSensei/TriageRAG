@@ -1,0 +1,32 @@
+triagerag-web@0.1.0 C:\Users\Ritunjay Deo\OneDrive\Desktop\TriageRAG\web
++-- @hookform/resolvers@3.10.0
++-- @tanstack/react-query@5.105.0
++-- @testing-library/jest-dom@6.9.1
++-- @testing-library/react@15.0.7
++-- @types/node@26.6.5
++-- @types/react-dom@18.3.7
++-- @types/react@18.3.31
++-- @typescript-eslint/eslint-plugin@7.18.0
++-- @typescript-eslint/parser@7.18.0
++-- @vitejs/plugin-react@4.7.0
++-- autoprefixer@10.6.2
++-- clsx@2.1.1
++-- eslint-plugin-react-hooks@4.6.2
++-- eslint-plugin-react@7.37.5
++-- eslint@8.57.1
++-- framer-motion@11.18.2
++-- jsdom@24.1.3
++-- lucide-react@0.378.0
++-- openapi-typescript@6.7.6
++-- postcss@8.5.32
++-- react-dom@18.3.1
++-- react-hook-form@7.91.0
++-- react-router-dom@6.30.6
++-- react@18.3.1
++-- tailwind-merge@2.6.1
++-- tailwindcss@3.4.19
++-- typescript@5.9.3
++-- vite@5.4.21
++-- vitest@1.6.1
+`-- zod@3.25.76
+

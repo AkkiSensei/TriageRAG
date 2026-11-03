@@ -21,9 +21,15 @@ from triagerag.contracts.enums import (
 from triagerag.contracts.rules_schema import (
     AllergyCrossReactivityRule,
     ClassInteractionRule,
+    CoAdministrationRule,
+    ConditionContraindicationRule,
     DuplicationRule,
+    LabInterlockRule,
+    OrganFunctionRule,
     PairRule,
     PopulationRule,
+    RateLimitRule,
+    RouteConcentrationRule,
     VitalsInterlockRule,
 )
 from triagerag.contracts.schemas import (
@@ -32,7 +38,12 @@ from triagerag.contracts.schemas import (
     PlanStepDraft,
     SkippedCheck,
 )
-from triagerag.engine.dose_engine import verify_cumulative_daily_exposure, verify_dose
+from triagerag.engine.dose_engine import (
+    verify_administration_rate,
+    verify_cumulative_daily_exposure,
+    verify_dose,
+    verify_dosing_intervals,
+)
 
 if TYPE_CHECKING:
     from triagerag.contracts.rules_schema import ClinicalRule
@@ -139,6 +150,32 @@ def _is_rule_relevant(
             return any(_drug_has_class(d, rule.class_name) for d in proposed_drugs)
         if isinstance(rule, AllergyCrossReactivityRule):
             return any(_drug_has_class(d, rule.target_class) for d in proposed_drugs)
+        if isinstance(rule, ConditionContraindicationRule):
+            return (rule.drug_id is not None and rule.drug_id in proposed_drugs) or (
+                rule.class_name is not None
+                and any(_drug_has_class(d, rule.class_name) for d in proposed_drugs)
+            )
+        if isinstance(rule, LabInterlockRule):
+            return (rule.drug_id is not None and rule.drug_id in proposed_drugs) or (
+                rule.class_name is not None
+                and any(_drug_has_class(d, rule.class_name) for d in proposed_drugs)
+            )
+        if isinstance(rule, OrganFunctionRule):
+            return rule.drug_id in proposed_drugs
+        if isinstance(rule, RouteConcentrationRule):
+            return rule.drug_id in proposed_drugs
+        if isinstance(rule, RateLimitRule):
+            return rule.drug_id in proposed_drugs
+        if isinstance(rule, CoAdministrationRule):
+            return (
+                rule.drug_or_class_a in proposed_drugs
+                or rule.drug_or_class_b in proposed_drugs
+                or any(
+                    _drug_has_class(d, rule.drug_or_class_a)
+                    or _drug_has_class(d, rule.drug_or_class_b)
+                    for d in proposed_drugs
+                )
+            )
         return True
 
     # In Baseline Evaluation (Pass 1):
@@ -179,6 +216,32 @@ def _is_rule_relevant(
         return rule.target_class in active_classes or (
             allergy_history_unresolved and "allergies" in (rule.requires_fields or [])
         )
+    if isinstance(rule, ConditionContraindicationRule):
+        return (
+            (rule.drug_id is not None and rule.drug_id in active_drugs)
+            or (rule.class_name is not None and rule.class_name in active_classes)
+            or (med_history_unresolved and "medications" in (rule.requires_fields or []))
+        )
+    if isinstance(rule, LabInterlockRule):
+        return (
+            (rule.drug_id is not None and rule.drug_id in active_drugs)
+            or (rule.class_name is not None and rule.class_name in active_classes)
+            or (med_history_unresolved and "medications" in (rule.requires_fields or []))
+        )
+    if isinstance(rule, OrganFunctionRule):
+        return rule.drug_id in active_drugs or (
+            med_history_unresolved and "medications" in (rule.requires_fields or [])
+        )
+    if isinstance(rule, CoAdministrationRule):
+        return (
+            rule.drug_or_class_a in active_drugs
+            or rule.drug_or_class_b in active_drugs
+            or rule.drug_or_class_a in active_classes
+            or rule.drug_or_class_b in active_classes
+            or (med_history_unresolved and "medications" in (rule.requires_fields or []))
+        )
+    if isinstance(rule, (RouteConcentrationRule, RateLimitRule)):
+        return rule.drug_id in active_drugs
     return True
 
 
@@ -253,6 +316,15 @@ def _evaluate_single_rule(
                 provenance=rule.provenance,
             )
 
+        if "age" in rule.requires_fields and patient.age.is_ambiguous_boundary:
+            return None, SkippedCheck(
+                rule_id=rule.id,
+                rule_type=rule.type,
+                reason="Patient age unit is ambiguous (e.g. 0 months/0 years requires days)",
+                missing_fields=["age"],
+                provenance=rule.provenance,
+            )
+
     # 2. Check rule clinical applicability to active drugs/classes
     # A rule only applies if its target drug or class is active in patient meds or plan
     if isinstance(rule, VitalsInterlockRule) and rule.drug_id not in active_drugs:
@@ -273,27 +345,64 @@ def _evaluate_single_rule(
         not patient.allergies or rule.target_class not in active_classes
     ):
         return None, None
+    if isinstance(rule, ConditionContraindicationRule):
+        drug_active = (rule.drug_id is not None and rule.drug_id in active_drugs) or (
+            rule.class_name is not None and rule.class_name in active_classes
+        )
+        if not drug_active:
+            return None, None
+    if isinstance(rule, LabInterlockRule):
+        drug_active = (rule.drug_id is not None and rule.drug_id in active_drugs) or (
+            rule.class_name is not None and rule.class_name in active_classes
+        )
+        if not drug_active:
+            return None, None
+    if isinstance(rule, OrganFunctionRule) and rule.drug_id not in active_drugs:
+        return None, None
+    if isinstance(rule, CoAdministrationRule):
+        a_match = rule.drug_or_class_a in active_drugs or rule.drug_or_class_a in active_classes
+        b_match = rule.drug_or_class_b in active_drugs or rule.drug_or_class_b in active_classes
+        if not (a_match and b_match):
+            return None, None
+    if (
+        isinstance(rule, (RouteConcentrationRule, RateLimitRule))
+        and rule.drug_id not in active_drugs
+    ):
+        return None, None
 
     # 3. Check remaining required fields (vitals) for applicable rules
     if rule.requires_fields:
         for req_field in rule.requires_fields:
-            if req_field not in (
-                "medications",
-                "medication_history_status",
-                "allergies",
-                "allergy_history_status",
-                "pregnancy",
-                "age",
+            if (
+                req_field
+                in (
+                    "medications",
+                    "medication_history_status",
+                    "allergies",
+                    "allergy_history_status",
+                    "pregnancy",
+                    "age",
+                    "conditions",
+                    "labs",
+                    "renal",
+                    "hepatic",
+                    "renal_impairment",
+                    "hepatic_impairment",
+                )
+                or req_field.startswith("labs.")
+                or req_field.startswith("conditions.")
+                or req_field.startswith("plan_step.")
             ):
-                val = _extract_patient_vital(patient, req_field)
-                if val is None:
-                    return None, SkippedCheck(
-                        rule_id=rule.id,
-                        rule_type=rule.type,
-                        reason=f"Required vital sign '{req_field}' is unknown or missing",
-                        missing_fields=[req_field],
-                        provenance=rule.provenance,
-                    )
+                continue
+            val = _extract_patient_vital(patient, req_field)
+            if val is None:
+                return None, SkippedCheck(
+                    rule_id=rule.id,
+                    rule_type=rule.type,
+                    reason=f"Required vital sign '{req_field}' is unknown or missing",
+                    missing_fields=[req_field],
+                    provenance=rule.provenance,
+                )
 
     # 4. Check rule status (NEEDS_SOURCE)
     if rule.status == RuleStatus.NEEDS_SOURCE:
@@ -599,6 +708,158 @@ def _evaluate_single_rule(
                 unverified=not rule.provenance.verified,
             ), None
 
+    elif isinstance(rule, ConditionContraindicationRule):
+        drug_match = False
+        affected_drugs: list[str] = []
+        if rule.drug_id and rule.drug_id in active_drugs:
+            drug_match = True
+            affected_drugs.append(rule.drug_id)
+        if rule.class_name and rule.class_name in active_classes:
+            drug_match = True
+            for d in active_drugs:
+                cand = registry.get_drug(d)
+                if (cand and rule.class_name in cand.classes) or (
+                    rule.class_name in registry.get_classes_for_ingredient(d)
+                ):
+                    affected_drugs.append(d)
+
+        if drug_match:
+            cond_val = patient.conditions.get(rule.condition)
+            if cond_val is None or cond_val == "unknown":
+                return None, SkippedCheck(
+                    rule_id=rule.id,
+                    rule_type="condition_contraindication",
+                    reason=f"Patient condition '{rule.condition}' status is unknown",
+                    missing_fields=[f"conditions.{rule.condition}"],
+                    provenance=rule.provenance,
+                )
+            if cond_val == rule.prohibited_status:
+                return Alert(
+                    rule_id=rule.id,
+                    severity=rule.severity,
+                    rule_type="condition_contraindication",
+                    drug_ids=sorted(set(affected_drugs)),
+                    consequence=rule.consequence,
+                    action=rule.action,
+                    provenance=rule.provenance,
+                    unverified=not rule.provenance.verified,
+                ), None
+
+    elif isinstance(rule, LabInterlockRule):
+        drug_match = False
+        affected_drugs = []
+        if rule.drug_id and rule.drug_id in active_drugs:
+            drug_match = True
+            affected_drugs.append(rule.drug_id)
+        if rule.class_name and rule.class_name in active_classes:
+            drug_match = True
+            for d in active_drugs:
+                cand = registry.get_drug(d)
+                if (cand and rule.class_name in cand.classes) or (
+                    rule.class_name in registry.get_classes_for_ingredient(d)
+                ):
+                    affected_drugs.append(d)
+
+        if drug_match:
+            lab_entry = patient.labs.get(rule.lab_name)
+            if lab_entry is None or lab_entry.source == "unknown" or lab_entry.value is None:
+                return None, SkippedCheck(
+                    rule_id=rule.id,
+                    rule_type="lab_interlock",
+                    reason=f"Laboratory value '{rule.lab_name}' is unmeasured or unknown",
+                    missing_fields=[f"labs.{rule.lab_name}"],
+                    provenance=rule.provenance,
+                )
+
+            dec_val = Decimal(str(lab_entry.value))
+            thresh = rule.threshold_value
+            op = rule.operator
+            fired = False
+            if (
+                op == "lt"
+                and dec_val < thresh
+                or op == "lte"
+                and dec_val <= thresh
+                or op == "gt"
+                and dec_val > thresh
+                or op == "gte"
+                and dec_val >= thresh
+                or op == "eq"
+                and dec_val == thresh
+            ):
+                fired = True
+
+            if fired:
+                return Alert(
+                    rule_id=rule.id,
+                    severity=rule.severity,
+                    rule_type="lab_interlock",
+                    drug_ids=sorted(set(affected_drugs)),
+                    consequence=rule.consequence,
+                    action=rule.action,
+                    provenance=rule.provenance,
+                    unverified=not rule.provenance.verified,
+                ), None
+
+    elif isinstance(rule, OrganFunctionRule):
+        if rule.drug_id in active_drugs:
+            status_val = (
+                patient.renal_impairment if rule.organ == "renal" else patient.hepatic_impairment
+            )
+            stages = {"none": 0, "mild": 1, "moderate": 2, "severe": 3}
+            max_stg = stages.get(rule.max_stage_allowed, 1)
+
+            if rule.organ == "renal" and rule.egfr_cutoff_ml_min is not None:
+                egfr_entry = patient.labs.get("egfr_ml_min")
+                if (
+                    egfr_entry
+                    and egfr_entry.value is not None
+                    and egfr_entry.value < rule.egfr_cutoff_ml_min
+                ):
+                    return Alert(
+                        rule_id=rule.id,
+                        severity=rule.severity,
+                        rule_type="organ_function",
+                        drug_ids=[rule.drug_id],
+                        consequence=rule.consequence,
+                        action=rule.action,
+                        provenance=rule.provenance,
+                        unverified=not rule.provenance.verified,
+                    ), None
+
+            cur_stg = stages.get(
+                status_val,
+                0 if status_val == "no" else (2 if status_val == "yes" else None),
+            )
+            if cur_stg is not None and cur_stg > max_stg:
+                return Alert(
+                    rule_id=rule.id,
+                    severity=rule.severity,
+                    rule_type="organ_function",
+                    drug_ids=[rule.drug_id],
+                    consequence=rule.consequence,
+                    action=rule.action,
+                    provenance=rule.provenance,
+                    unverified=not rule.provenance.verified,
+                ), None
+
+    elif isinstance(rule, CoAdministrationRule):
+
+        def _matches_target(drug_or_class: str) -> bool:
+            return drug_or_class in active_drugs or drug_or_class in active_classes
+
+        if _matches_target(rule.drug_or_class_a) and _matches_target(rule.drug_or_class_b):
+            return Alert(
+                rule_id=rule.id,
+                severity=rule.severity,
+                rule_type="co_administration",
+                drug_ids=sorted({rule.drug_or_class_a, rule.drug_or_class_b}),
+                consequence=rule.consequence,
+                action=rule.action,
+                provenance=rule.provenance,
+                unverified=not rule.provenance.verified,
+            ), None
+
     return None, None
 
 
@@ -670,6 +931,7 @@ def evaluate_plan(
                     requested_dose=step.requested_dose,
                     registry=registry,
                     step_number=step.step_number,
+                    step=step,
                 )
                 dose_reports.append(dose_report)
                 prov = drug.provenance if drug else registry.rules[0].provenance
@@ -760,6 +1022,106 @@ def evaluate_plan(
     )
     alerts.extend(cum_alerts)
     skipped_checks.extend(cum_skips)
+
+    # Minimum interval / frequency verification (AUB-ENG-02)
+    interval_alerts, interval_skips = verify_dosing_intervals(
+        patient=patient,
+        steps=steps,
+        registry=registry,
+    )
+    alerts.extend(interval_alerts)
+    skipped_checks.extend(interval_skips)
+
+    # Administration rate verification (AUB-ENG-02)
+    rate_alerts, rate_skips = verify_administration_rate(
+        patient=patient,
+        steps=steps,
+        registry=registry,
+    )
+    alerts.extend(rate_alerts)
+    skipped_checks.extend(rate_skips)
+
+    # Schema V2 Step-level rule checks: RouteConcentrationRule & RateLimitRule
+    for step in steps:
+        if step.action_type == ActionType.administer and step.drug_id:
+            for rule in registry.rules:
+                if isinstance(rule, RouteConcentrationRule) and rule.drug_id == step.drug_id:
+                    if rule.allowed_routes and step.route and step.route not in rule.allowed_routes:
+                        alerts.append(
+                            Alert(
+                                rule_id=rule.id,
+                                severity=rule.severity,
+                                rule_type="route_concentration",
+                                drug_ids=[step.drug_id],
+                                consequence=f"Route '{step.route}' not permitted; allowed routes: {[r.value for r in rule.allowed_routes]}",
+                                action=rule.action,
+                                provenance=rule.provenance,
+                                unverified=not rule.provenance.verified,
+                                step_number=step.step_number,
+                            )
+                        )
+                    if (
+                        rule.prohibited_routes
+                        and step.route
+                        and step.route in rule.prohibited_routes
+                    ):
+                        alerts.append(
+                            Alert(
+                                rule_id=rule.id,
+                                severity=rule.severity,
+                                rule_type="route_concentration",
+                                drug_ids=[step.drug_id],
+                                consequence=f"Route '{step.route}' is strictly prohibited for '{step.drug_id}'",
+                                action=rule.action,
+                                provenance=rule.provenance,
+                                unverified=not rule.provenance.verified,
+                                step_number=step.step_number,
+                            )
+                        )
+                    if (
+                        rule.max_concentration_mg_per_ml is not None
+                        and step.concentration_mg_per_ml is not None
+                        and step.concentration_mg_per_ml > rule.max_concentration_mg_per_ml
+                    ):
+                        alerts.append(
+                            Alert(
+                                rule_id=rule.id,
+                                severity=rule.severity,
+                                rule_type="route_concentration",
+                                drug_ids=[step.drug_id],
+                                consequence=(
+                                    f"Concentration {step.concentration_mg_per_ml} mg/mL exceeds "
+                                    f"maximum limit of {rule.max_concentration_mg_per_ml} mg/mL"
+                                ),
+                                action=rule.action,
+                                provenance=rule.provenance,
+                                unverified=not rule.provenance.verified,
+                                step_number=step.step_number,
+                            )
+                        )
+
+                elif isinstance(rule, RateLimitRule) and rule.drug_id == step.drug_id:
+                    if (
+                        rule.max_rate_mg_per_min is not None
+                        and step.rate_mg_per_min is not None
+                        and step.rate_mg_per_min > rule.max_rate_mg_per_min
+                    ):
+                        alerts.append(
+                            Alert(
+                                rule_id=rule.id,
+                                severity=rule.severity,
+                                rule_type="rate_limit",
+                                drug_ids=[step.drug_id],
+                                consequence=(
+                                    f"Administration rate {step.rate_mg_per_min} mg/min exceeds "
+                                    f"maximum ceiling of {rule.max_rate_mg_per_min} mg/min"
+                                ),
+                                action=rule.action,
+                                provenance=rule.provenance,
+                                unverified=not rule.provenance.verified,
+                                step_number=step.step_number,
+                            )
+                        )
 
     combined_drugs = _get_active_drug_identifiers(patient, registry) | proposed_administer_drugs
     combined_classes = _get_active_classes(patient, registry)

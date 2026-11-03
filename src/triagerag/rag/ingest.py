@@ -16,7 +16,7 @@ import hashlib
 import logging
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
@@ -25,6 +25,7 @@ from triagerag.config import get_data_dir
 from triagerag.contracts.enums import SourceStatus
 from triagerag.normalize.sanitizer import detect_suspicious_patterns
 from triagerag.rag.chunking import ProtocolChunk, chunk_protocol_markdown
+from triagerag.rag.node_predicates import load_node_predicates_config
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ class CorpusManifestEntry(BaseModel):
     syndrome: str
     synthetic: bool
     license: str | None = None
+    license_tag: Literal["synthetic", "public_domain", "cc_by_nc_sa", "restricted"] = "synthetic"
     attribution: str | None = None
     source_url: str | None = None
     version: str = "1.0.0"
@@ -56,6 +58,7 @@ class CorpusManifest(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     manifest_version: str = "1.0.0"
+    generator_seed: int | None = None
     controlled_syndromes: list[str] = Field(default_factory=list)
     syndrome_aliases: dict[str, str] = Field(default_factory=dict)
     documents: list[CorpusManifestEntry] = Field(default_factory=list)
@@ -96,8 +99,12 @@ def compute_corpus_hash(chunks: list[ProtocolChunk]) -> str:
 
 
 @lru_cache
-def load_corpus_manifest(data_dir: Path | None = None) -> CorpusManifest:
-    """Load data/corpus/manifest.yaml if present, or derive from ingested chunks."""
+def load_corpus_manifest(
+    data_dir: Path | None = None,
+    *,
+    allow_derive: bool = False,
+) -> CorpusManifest:
+    """Load data/corpus/manifest.yaml if present, or derive when permitted (fail-closed, R2)."""
     target_dir = (data_dir if data_dir is not None else get_data_dir()).resolve()
     manifest_path = target_dir / "corpus" / "manifest.yaml"
     if manifest_path.exists():
@@ -105,13 +112,16 @@ def load_corpus_manifest(data_dir: Path | None = None) -> CorpusManifest:
         if isinstance(raw, dict):
             return CorpusManifest.model_validate(raw)
 
-    # Fallback derivation when operating on a temporary test data_dir without manifest.yaml
-    report = ingest_protocols_with_report(target_dir, strict_unparsed=False)
+    if not allow_derive:
+        raise FileNotFoundError(f"Corpus manifest not found at {manifest_path} (fail-closed, R2)")
+
+    # Explicit fallback derivation when permitted
+    report = ingest_protocols_with_report(target_dir, strict_unparsed=False, derive_manifest=True)
     syndromes = sorted({c.syndrome for c in report.chunks if c.syndrome})
     return CorpusManifest(
         manifest_version="1.0.0",
         controlled_syndromes=syndromes,
-        syndrome_aliases={"paediatric_sepsis_screen": "paediatric_sepsis"},
+        syndrome_aliases={},
         documents=[],
     )
 
@@ -120,24 +130,20 @@ def ingest_protocols_with_report(
     data_dir: Path,
     *,
     strict_unparsed: bool = True,
+    derive_manifest: bool = False,
+    contextual_chunking: bool = False,
 ) -> IngestReport:
     """Ingest and validate all protocol markdown files from data directories.
 
     Scans data/protocols_synthetic/, data/protocols_real/, and data/corpus/ (excluding manifest).
     Quarantines malformed files per-file rather than aborting the entire ingestion run.
+    Absent manifest.yaml quarantines all documents unless derive_manifest is True (fail-closed, R2).
     """
     all_chunks: list[ProtocolChunk] = []
     loaded_docs: list[str] = []
     quarantined: list[QuarantinedDocument] = []
     unparsed_by_doc: dict[str, list[str]] = {}
     flagged_chunks: dict[str, list[str]] = {}
-
-    # Block status REVIEWED if document has flagged prompt injection patterns (FG-17)
-    manifest_map: dict[str, CorpusManifestEntry] = {}
-    manifest_file = data_dir / "corpus" / "manifest.yaml"
-    if manifest_file.exists():
-        manifest = load_corpus_manifest(data_dir)
-        manifest_map = {d.doc_id: d for d in manifest.documents}
 
     candidate_dirs = [
         data_dir / "protocols_synthetic",
@@ -155,10 +161,40 @@ def ingest_protocols_with_report(
                     seen_paths.add(resolved)
                     md_files.append(md_file)
 
+    manifest_file = data_dir / "corpus" / "manifest.yaml"
+    manifest_map: dict[str, CorpusManifestEntry] = {}
+    if not manifest_file.exists():
+        if not derive_manifest:
+            reason = f"Corpus manifest missing: {manifest_file} not found (fail-closed, R2)"
+            for md_file in md_files:
+                logger.warning("Quarantining protocol %s: %s", md_file.name, reason)
+                quarantined.append(QuarantinedDocument(path=str(md_file), reason=reason))
+            return IngestReport(
+                chunks=[],
+                loaded_docs=[],
+                quarantined=quarantined,
+                unparsed_by_doc={},
+                flagged_chunks={},
+                corpus_hash="",
+            )
+    else:
+        manifest = load_corpus_manifest(data_dir)
+        manifest_map = {d.doc_id: d for d in manifest.documents}
+
+    node_pred_cfg = None
+    try:
+        node_pred_cfg = load_node_predicates_config(data_dir)
+    except Exception as exc:
+        logger.warning("Node predicates config not loaded during ingest: %s", exc)
+
     for md_file in md_files:
         try:
             content = md_file.read_text(encoding="utf-8")
-            doc_chunks = chunk_protocol_markdown(content, source_path=md_file)
+            doc_chunks = chunk_protocol_markdown(
+                content,
+                source_path=md_file,
+                contextual_chunking=contextual_chunking,
+            )
         except Exception as exc:
             reason = str(exc)
             logger.warning("Quarantining protocol %s: %s", md_file.name, reason)
@@ -183,15 +219,36 @@ def ingest_protocols_with_report(
                 quarantined.append(QuarantinedDocument(path=str(md_file), reason=reason))
                 continue
 
-        # Check for corpus-borne prompt injection patterns (RAG-11 / FG-17)
+        # Check for corpus-borne prompt injection patterns (RAG-11 / FG-17) and attach predicates
         checked_chunks: list[ProtocolChunk] = []
         doc_has_flagged = False
         for chunk in doc_chunks:
             suspicious = detect_suspicious_patterns(chunk.text)
+            pred_update: dict[str, Any] = {}
             if suspicious:
                 doc_has_flagged = True
                 flagged_chunks[chunk.chunk_id] = list(suspicious)
-                chunk = chunk.model_copy(update={"suspicious_patterns": suspicious})
+                pred_update["suspicious_patterns"] = suspicious
+            decl = None
+            if node_pred_cfg:
+                if chunk.chunk_id in node_pred_cfg.nodes:
+                    decl = node_pred_cfg.nodes[chunk.chunk_id]
+                elif chunk.legacy_id and chunk.legacy_id in node_pred_cfg.nodes:
+                    decl = node_pred_cfg.nodes[chunk.legacy_id]
+
+            if decl is not None:
+                pred_update.update(
+                    {
+                        "requires_predicates": decl.requires_predicates,
+                        "contraindicated_by": decl.contraindicated_by,
+                        "always_applicable": decl.always_applicable,
+                        "predicate_review_required": decl.predicate_review_required,
+                    }
+                )
+            else:
+                pred_update["always_applicable"] = True
+            if pred_update:
+                chunk = chunk.model_copy(update=pred_update)
             checked_chunks.append(chunk)
 
         entry = manifest_map.get(parent.doc_id)
@@ -217,6 +274,12 @@ def ingest_protocols_with_report(
 
         loaded_docs.append(parent.doc_id)
         all_chunks.extend(checked_chunks)
+
+    from triagerag.rag.aliases import build_corpus_alias_map, save_node_aliases
+
+    alias_map = build_corpus_alias_map(all_chunks)
+    if alias_map:
+        save_node_aliases(alias_map, data_dir)
 
     corpus_hash = compute_corpus_hash(all_chunks)
     return IngestReport(

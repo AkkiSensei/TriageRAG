@@ -22,9 +22,15 @@ from triagerag.contracts.data_schemas import (
 from triagerag.contracts.rules_schema import (
     AllergyCrossReactivityRule,
     ClassInteractionRule,
+    CoAdministrationRule,
+    ConditionContraindicationRule,
     DuplicationRule,
+    LabInterlockRule,
+    OrganFunctionRule,
     PairRule,
     PopulationRule,
+    RateLimitRule,
+    RouteConcentrationRule,
     VitalsInterlockRule,
 )
 from triagerag.normalize.yaml_loader import load_yaml_decimal
@@ -105,6 +111,12 @@ def validate_all() -> None:
         "vitals_interlock": VitalsInterlockRule,
         "population": PopulationRule,
         "duplication": DuplicationRule,
+        "condition_contraindication": ConditionContraindicationRule,
+        "lab_interlock": LabInterlockRule,
+        "route_concentration": RouteConcentrationRule,
+        "organ_function": OrganFunctionRule,
+        "co_administration": CoAdministrationRule,
+        "rate_limit": RateLimitRule,
     }
 
     if not rules_dir.exists():
@@ -140,6 +152,26 @@ def validate_all() -> None:
             except Exception as e:
                 errors.append(f"Rule file {rule_file.name} failed: {e}")
         print(f"  [OK] data/rules/ ({total_rules} rules validated)")
+
+    # 5b. Validate rules_candidates/*.yaml
+    cand_dir = data_dir / "rules_candidates"
+    if cand_dir.exists():
+        total_cand = 0
+        for cand_file in cand_dir.glob("*.yaml"):
+            try:
+                data = load_yaml_decimal(cand_file)
+                raw_rules = data.get("rules", [])
+                for r in raw_rules:
+                    rtype = r.get("type")
+                    if rtype not in rule_type_map:
+                        errors.append(f"Unknown candidate rule type '{rtype}' in {cand_file.name}")
+                        continue
+                    rule_model = rule_type_map[rtype]
+                    rule_model.model_validate(r)
+                    total_cand += 1
+            except Exception as e:
+                errors.append(f"Candidate rule file {cand_file.name} failed: {e}")
+        print(f"  [OK] data/rules_candidates/ ({total_cand} candidate rules validated)")
 
     # 6. Validate scoring/*.yaml
     scoring_dir = data_dir / "scoring"
@@ -204,6 +236,45 @@ def validate_all() -> None:
         print(f"  [OK] data/retrieval/vitals_flags.yaml ({vf_rules_count} rules validated)")
     except Exception as e:
         errors.append(f"vitals_flags.yaml validation failed: {e}")
+
+    # 9. Validate retrieval/predicates.yaml (AUB T2.1 / D2)
+    from triagerag.rag.predicates import load_predicate_vocabulary
+
+    try:
+        load_predicate_vocabulary.cache_clear()
+        pred_cfg = load_predicate_vocabulary(data_dir)
+        print(
+            f"  [OK] data/retrieval/predicates.yaml "
+            f"({len(pred_cfg.predicates)} synthetic predicates validated)"
+        )
+    except Exception as e:
+        errors.append(f"predicates.yaml validation failed: {e}")
+
+    # 10. Validate retrieval/node_predicates.yaml (AUB T2.2 / D2)
+    from triagerag.rag.node_predicates import load_node_predicates_config
+
+    try:
+        load_node_predicates_config.cache_clear()
+        np_cfg = load_node_predicates_config(data_dir)
+        print(
+            f"  [OK] data/retrieval/node_predicates.yaml "
+            f"({len(np_cfg.nodes)} decision nodes validated)"
+        )
+    except Exception as e:
+        errors.append(f"node_predicates.yaml validation failed: {e}")
+
+    # 11. Validate retrieval/cues.yaml (AUB T2.3 / HD-16)
+    from triagerag.rag.cues import load_retrieval_cues
+
+    try:
+        load_retrieval_cues.cache_clear()
+        cues_cfg = load_retrieval_cues(data_dir)
+        print(
+            f"  [OK] data/retrieval/cues.yaml "
+            f"({len(cues_cfg.cues)} synthetic cue mappings validated)"
+        )
+    except Exception as e:
+        errors.append(f"cues.yaml validation failed: {e}")
 
     if errors:
         print("\nDATA VALIDATION FAILED WITH ERRORS:")

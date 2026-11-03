@@ -65,7 +65,10 @@ def run(
     ] = False,
     scenario: Annotated[
         str | None,
-        typer.Option("--scenario", help="Preloaded scenario: BLOCK | UNVERIFIED | HIGH | CLEAN"),
+        typer.Option(
+            "--scenario",
+            help="Preloaded scenario: BLOCK | UNVERIFIED | HIGH | CLEAN | ABSTAIN",
+        ),
     ] = None,
     audit_log: Annotated[
         Path | None,
@@ -111,7 +114,7 @@ def run(
     else:
         console.print(
             "[yellow]No patient file provided. Use --demo or "
-            "--scenario [BLOCK|UNVERIFIED|HIGH|CLEAN], "
+            "--scenario [BLOCK|UNVERIFIED|HIGH|CLEAN|ABSTAIN], "
             "or pass a path to a patient JSON file.[/yellow]"
         )
         raise typer.Exit(code=1)
@@ -150,31 +153,165 @@ def run(
         )
     )
 
-    verdict_display = engine.verdict.value
-    if engine.verdict == Verdict.CHECKED_CLEAR:
-        # Section 12 wording rule: never show the bare word "CLEAR"
-        verdict_display = "No rules fired (within covered scope) — ruleset unreviewed"
+    from triagerag.contracts.wording import get_verdict_entry
+
+    verdict_entry = get_verdict_entry(engine.verdict.value)
+    verdict_display = str(verdict_entry.get("display", engine.verdict.value))
 
     score_val = engine.score.total_score if engine.score else "N/A"
     score_band = engine.score.band.value if engine.score else "UNSCORED"
 
+    conf_level = response.confidence.level if response.confidence else "N/A"
+    conf_color = (
+        "green" if conf_level == "HIGH" else ("yellow" if conf_level == "MEDIUM" else "red")
+    )
+    dq_str = "N/A"
+    if response.data_quality:
+        dq = response.data_quality
+        dq_str = f"{dq.measured_count} meas / {dq.assumed_count} assump / {dq.missing_count} miss"
+
     banner_table = Table(title="TRIAGE ENGINE REPORT BANNER", expand=True)
     banner_table.add_column("Verdict", style=f"bold {verdict_color}")
+    banner_table.add_column("Confidence", style=f"bold {conf_color}", justify="center")
+    banner_table.add_column("Data Quality", style="cyan", justify="center")
     banner_table.add_column("EWS Score", style="bold")
     banner_table.add_column("Band", style="bold")
     banner_table.add_column("Checks Run", justify="right")
     banner_table.add_column("Checks Skipped", justify="right")
+    banner_table.add_column("Trust Mode", justify="center")
+    banner_table.add_column("Verified Rules", justify="center")
     banner_table.add_column("Ruleset Review State", style="italic")
 
     banner_table.add_row(
         verdict_display,
+        f"[{conf_color}]{conf_level}[/{conf_color}]",
+        dq_str,
         str(score_val),
         score_band,
         str(engine.checks_run),
         str(len(engine.checks_skipped)),
+        str(engine.trust_mode.upper()),
+        engine.verified_rules_summary,
         engine.ruleset_review_state,
     )
     console.print(banner_table)
+
+    # 1b. Canonical Decision Ledger & Explanation
+    if response.explanation:
+        exp = response.explanation
+        exp_lines = [
+            f"[bold]{exp.headline}[/bold]",
+            f"{exp.plain_language_summary}",
+            "",
+            "[bold cyan]Why Did I Get This Result?[/bold cyan]",
+        ]
+        for r in exp.outcome_reasons:
+            exp_lines.append(f" • {r}")
+
+        if exp.rejected_paths:
+            exp_lines.append("")
+            exp_lines.append("[bold red]Why Alternative Paths Were Rejected:[/bold red]")
+            for rej in exp.rejected_paths:
+                exp_lines.append(f" • {rej}")
+
+        if exp.permitted_ui_actions:
+            exp_lines.append("")
+            exp_lines.append("[bold green]Permitted Next Steps:[/bold green]")
+            for act in exp.permitted_ui_actions:
+                exp_lines.append(f" • {act}")
+
+        console.print(
+            Panel(
+                "\n".join(exp_lines),
+                title="CANONICAL DECISION LEDGER & EXPLANATION",
+                border_style="cyan",
+            )
+        )
+
+    # 1c. 8-Stage Execution Decision Ledger (LangGraph)
+    if response.execution_trace:
+        trace_table = Table(title="8-STAGE EXECUTION DECISION LEDGER (LANGGRAPH)", expand=True)
+        trace_table.add_column("Stage #", justify="right", style="bold")
+        trace_table.add_column("Node", style="bold cyan")
+        trace_table.add_column("Status", style="bold green")
+        trace_table.add_column("Duration", justify="right")
+        trace_table.add_column("Diagnostic Details", style="dim")
+
+        for idx, tr in enumerate(response.execution_trace, 1):
+            dur = f"{tr.get('duration_ms', 0):.2f} ms"
+            node_name = str(tr.get("node", "unknown"))
+            st = str(tr.get("status", "completed"))
+            details_str = ", ".join(f"{k}={v}" for k, v in tr.get("details", {}).items())
+            trace_table.add_row(str(idx), node_name, st, dur, details_str)
+        console.print(trace_table)
+
+    # 1d. Input Normalization Ledger
+    if response.patient:
+        pat = response.patient
+        norm_table = Table(
+            title="INPUT NORMALIZATION LEDGER (INPUT VS NORMALIZED PATIENT)", expand=True
+        )
+        norm_table.add_column("Entity Type", style="bold")
+        norm_table.add_column("Input Raw Text", style="dim")
+        norm_table.add_column("Normalized Active Entity / Value", style="bold")
+        norm_table.add_column("Status", justify="center")
+
+        for m in pat.medications:
+            ings = ", ".join(i.ingredient_id for i in m.ingredients) if m.ingredients else "None"
+            st_color = "green" if m.resolved else "yellow"
+            st_label = "RESOLVED" if m.resolved else f"UNRESOLVED ({m.suggestion or 'no match'})"
+            norm_table.add_row(
+                "Medication", m.raw_text, ings, f"[{st_color}]{st_label}[/{st_color}]"
+            )
+
+        for a in pat.allergies:
+            st_color = "green" if a.resolved else "yellow"
+            st_label = "RESOLVED" if a.resolved else f"UNRESOLVED ({a.suggestion or 'no match'})"
+            norm_table.add_row(
+                "Allergy",
+                a.raw_substance,
+                a.normalized_allergen_id or "None",
+                f"[{st_color}]{st_label}[/{st_color}]",
+            )
+
+        wt_val = (
+            f"{pat.weight_kg.value} kg ({pat.weight_kg.source})"
+            if pat.weight_kg and pat.weight_kg.value
+            else "Unknown"
+        )
+        pop_cat = getattr(pat.age.population_category, "value", str(pat.age.population_category))
+        unit_val = getattr(pat.age.unit, "value", str(pat.age.unit))
+        norm_table.add_row(
+            "Demographics",
+            f"Age: {pat.age.value} {unit_val}",
+            f"Population: {pop_cat}, Weight: {wt_val}",
+            "[green]NORMALIZED[/green]",
+        )
+        console.print(norm_table)
+
+    # 1e. Retriever Evidence Ledger
+    if response.retrieval:
+        ret = response.retrieval
+        ac_val = getattr(ret.abstain_code, "value", str(ret.abstain_code))
+        ret_status = (
+            f"[yellow]ABSTAINED ({ac_val})[/yellow]"
+            if ret.abstained
+            else "[green]EVALUATED[/green]"
+        )
+        ret_summary = (
+            f"Backend: {ret.backend.upper()} | Status: {ret_status}\n"
+            f"Query: {ret.query or '(automatic)'} | Filters: {ret.filters}\n"
+            f"Chunks Considered: {len(ret.chunks)}"
+        )
+        if ret.reason:
+            ret_summary += f"\nAbstention Reason: {ret.reason}"
+        console.print(
+            Panel(
+                ret_summary,
+                title="RETRIEVER EVIDENCE & GROUNDING LEDGER",
+                border_style="blue",
+            )
+        )
 
     # 2. Alerts and blocked drugs
     all_alerts = engine.baseline_alerts + engine.plan_alerts
@@ -284,6 +421,139 @@ def run(
             )
         )
 
+    # 6. Deterministic Action Plan (attendant clinical workflow)
+    if response.action_plan:
+        plan = response.action_plan
+        summary_text = f"[bold]{plan.decision_summary}[/bold]"
+        if plan.why_decision:
+            summary_text += f"\n\n[bold cyan]Clinical Rationale:[/bold cyan]\n{plan.why_decision}"
+        if plan.protocol_match_summary:
+            summary_text += (
+                f"\n\n[bold green]Protocol Match:[/bold green]\n{plan.protocol_match_summary}"
+            )
+        if plan.confidence:
+            conf_lines = "\n".join(f" - {cr}" for cr in plan.confidence.reasons)
+            summary_text += f"\n\n[bold yellow]Confidence Assessment ({plan.confidence.level}):[/bold yellow]\n{conf_lines}"
+        if plan.assumptions:
+            assump_lines = "\n".join(f" - [yellow]{a}[/yellow]" for a in plan.assumptions)
+            summary_text += f"\n\n[bold]Demo Assumptions / Defaults:[/bold]\n{assump_lines}"
+        console.print(
+            Panel(
+                summary_text,
+                title="DETERMINISTIC CLINICAL ACTION PLAN SUMMARY",
+                border_style="magenta",
+            )
+        )
+
+        # 6a. Input Data Quality Breakdown
+        if plan.confidence and plan.confidence.data_quality:
+            dq = plan.confidence.data_quality
+            dq_table = Table(
+                title=f"INPUT DATA QUALITY AUDIT ({dq.measured_count} Measured / {dq.assumed_count} Assumed / {dq.missing_count} Missing -- Completeness: {dq.completeness_pct}%)",
+                expand=True,
+            )
+            dq_table.add_column("Provenance Category", style="bold")
+            dq_table.add_column("Parameter Details")
+            dq_table.add_column("Safety Impact", style="dim")
+
+            for mf in dq.measured_fields:
+                dq_table.add_row("[green]MEASURED[/green]", mf, "Verified clinical measurement")
+            for af in dq.assumed_fields:
+                dq_table.add_row(
+                    "[yellow]ASSUMED DEFAULT[/yellow]",
+                    af,
+                    "Placeholder default; requires clinical verification",
+                )
+            for xf in dq.missing_fields:
+                dq_table.add_row(
+                    "[bold red]MISSING / UNKNOWN[/bold red]",
+                    xf,
+                    "Missing parameter; enforces fail-closed boundary",
+                )
+            console.print(dq_table)
+
+        if plan.immediate_actions:
+            act_table = Table(title="IMMEDIATE CLINICAL ACTIONS", expand=True)
+            act_table.add_column("Urgency", style="bold")
+            act_table.add_column("Action Title", style="bold")
+            act_table.add_column("Description")
+            act_table.add_column("Clinical Rationale", style="dim")
+            for action_item in plan.immediate_actions:
+                u_color = (
+                    "red"
+                    if action_item.urgency == "immediate"
+                    else ("yellow" if action_item.urgency == "urgent" else "green")
+                )
+                act_table.add_row(
+                    f"[{u_color}]{action_item.urgency.upper()}[/{u_color}]",
+                    action_item.title,
+                    action_item.description,
+                    action_item.reason,
+                )
+            console.print(act_table)
+
+        if plan.medications:
+            med_table = Table(title="MEDICATION ADMINISTRATION INSTRUCTIONS", expand=True)
+            med_table.add_column("Medication", style="bold green")
+            med_table.add_column("Dose & Route", style="bold")
+            med_table.add_column("Timing")
+            med_table.add_column("Why Chosen (Protocol Evidence)", style="dim")
+            med_table.add_column("Warnings / Contraindications", style="yellow")
+            for med in plan.medications:
+                warn_str = ", ".join(med.warnings + med.contraindications) or "None"
+                dose_and_route = f"{med.dose} via {med.route.upper()}"
+                why_text = med.why_chosen or "Formulary protocol intervention"
+                if med.dose_computation_source:
+                    why_text += (
+                        f"\n[dim italic]Dose Source: {med.dose_computation_source}[/dim italic]"
+                    )
+                med_table.add_row(
+                    med.medication_name,
+                    dose_and_route,
+                    med.timing,
+                    why_text,
+                    warn_str,
+                )
+            console.print(med_table)
+
+        if plan.unapproved_draft_steps:
+            unapp_table = Table(
+                title="NON-APPROVED / PROHIBITED DRAFT STEPS (ADMINISTRATION FORBIDDEN)",
+                expand=True,
+            )
+            unapp_table.add_column("Proposed Step & Status", style="bold red")
+            unapp_table.add_column("Clinical Safety Interlock", style="yellow")
+            for u in plan.unapproved_draft_steps:
+                parts = u.split(" -- ")
+                step_part = parts[0]
+                prohib_part = (
+                    parts[1] if len(parts) > 1 else "Administration prohibited under safety policy"
+                )
+                unapp_table.add_row(step_part, prohib_part)
+            console.print(unapp_table)
+
+        if plan.monitoring_steps or plan.escalation_steps:
+            obs_table = Table(title="MONITORING & ESCALATION PROTOCOL", expand=True)
+            obs_table.add_column("Type", style="bold")
+            obs_table.add_column("Parameter / Trigger", style="bold")
+            obs_table.add_column("Frequency / Target")
+            obs_table.add_column("Clinical Rationale", style="dim")
+            for mon_step in plan.monitoring_steps:
+                obs_table.add_row(
+                    "MONITOR",
+                    mon_step.monitor,
+                    f"Freq: {mon_step.frequency} ({mon_step.trigger})",
+                    mon_step.reason,
+                )
+            for esc_step in plan.escalation_steps:
+                obs_table.add_row(
+                    "[bold red]ESCALATE[/bold red]",
+                    esc_step.when,
+                    f"To: {esc_step.escalate_to}",
+                    esc_step.reason,
+                )
+            console.print(obs_table)
+
     console.print(f"[dim]Audit Record Hash: {response.audit_hash}[/dim]")
 
 
@@ -376,7 +646,7 @@ def retrieve_cmd(
     ] = True,
     backend: Annotated[
         str,
-        typer.Option("--backend", help="Retriever backend: bm25 | dense | hybrid_rrf"),
+        typer.Option("--backend", help="Retriever backend: bm25 | char_ngram | hybrid_rrf"),
     ] = "bm25",
 ) -> None:
     """Execute protocol retrieval and render the Retrieval Inspector diagnostic trace."""
@@ -461,11 +731,20 @@ def corpus_validate(
         Path | None,
         typer.Option("--data-dir", help="Data directory containing protocol corpus"),
     ] = None,
+    derive_manifest: Annotated[
+        bool,
+        typer.Option(
+            "--derive-manifest",
+            help="Allow deriving corpus manifest when manifest.yaml is missing",
+        ),
+    ] = False,
 ) -> None:
     """Validate all protocol files, frontmatter provenance, and round-trip chunking invariants."""
     _print_disclaimer()
     target_dir = data_dir or get_data_dir()
-    report = ingest_protocols_with_report(target_dir, strict_unparsed=True)
+    report = ingest_protocols_with_report(
+        target_dir, strict_unparsed=True, derive_manifest=derive_manifest
+    )
 
     errors: list[str] = []
     if report.quarantined:
@@ -492,6 +771,10 @@ def corpus_validate(
                     )
         except Exception as exc:
             errors.append(f"Manifest validation failed: {exc}")
+    elif not derive_manifest:
+        errors.append(
+            f"Missing corpus manifest: {manifest_path} (pass --derive-manifest to override)"
+        )
 
     if not report.loaded_docs and not errors:
         errors.append(f"FAILED: No valid protocol documents found in {target_dir}")
@@ -518,11 +801,20 @@ def corpus_report(
         Path | None,
         typer.Option("--data-dir", help="Data directory containing protocol corpus"),
     ] = None,
+    derive_manifest: Annotated[
+        bool,
+        typer.Option(
+            "--derive-manifest",
+            help="Allow deriving corpus manifest when manifest.yaml is missing",
+        ),
+    ] = False,
 ) -> None:
     """Print detailed corpus provenance, population/syndrome distribution, and quarantine report."""
     _print_disclaimer()
     target_dir = data_dir or get_data_dir()
-    report = ingest_protocols_with_report(target_dir, strict_unparsed=False)
+    report = ingest_protocols_with_report(
+        target_dir, strict_unparsed=False, derive_manifest=derive_manifest
+    )
 
     table = Table(title=f"CORPUS REPORT (Hash: {report.corpus_hash[:16]})", expand=True)
     table.add_column("Chunk ID")

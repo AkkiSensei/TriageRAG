@@ -13,7 +13,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from triagerag.contracts.enums import AgeUnit
+from triagerag.contracts.enums import AgeUnit, RetrievalBackend
 from triagerag.contracts.schemas import Age, Measured, OverrideRecord, Patient, Vitals
 from triagerag.llm.fake import FakeLLMProfile
 
@@ -22,6 +22,7 @@ class HealthResponse(BaseModel):
     version: str = "0.1.0"
     ruleset_version: str = "0.1.0"
     llm_available: bool = True
+    generation_mode: str = "deterministic_mock"
     retrieval_backend: str = "bm25"
     unreviewed_rules_count: int = 0
     disclaimer: str = (
@@ -47,6 +48,7 @@ class TriageApiRequest(BaseModel):
     overrides: list[OverrideRecord] | None = None
     llm_profile: FakeLLMProfile = FakeLLMProfile.COMPLIANT
     include_complaint_in_llm: bool = False
+    retrieval_backend: RetrievalBackend | None = None
 
     @field_validator("llm_profile", mode="before")
     @classmethod
@@ -70,6 +72,7 @@ class ExplainApiRequest(BaseModel):
     suspected_syndrome: str | None = None
     vitals: Vitals | dict[str, Any] = Field(default_factory=dict)
     assessed_at: datetime | None = None
+    retrieval_backend: RetrievalBackend | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -150,6 +153,8 @@ class ProtocolChunkDto(BaseModel):
     chunk_id: str
     doc_id: str
     parent_id: str | None = None
+    legacy_id: str | None = None
+    aliases: list[str] = Field(default_factory=list)
     title: str = ""
     section: str
     population: str
@@ -159,6 +164,7 @@ class ProtocolChunkDto(BaseModel):
     version: str = "1.0.0"
     content_hash: str = ""
     license: str | None = None
+    license_tag: str = "synthetic"
     attribution: str | None = None
     source_url: str | None = None
     source_status: str = "PLACEHOLDER_UNRETRIEVED"

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "triagerag"
-version = "0.1.0"
+version = "0.3.1"
 description = "Deterministic emergency-triage decision support and machine-verified plan drafting"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -19,6 +19,7 @@ dependencies = [
     "typer>=0.12.0",
     "rich>=13.7.0",
     "streamlit>=1.35.0",
+    "langgraph>=0.2.0",
 ]
 
 [project.optional-dependencies]
@@ -29,6 +30,12 @@ core = [
     "rapidfuzz>=3.8.0",
     "typer>=0.12.0",
     "rich>=13.7.0",
+    "langgraph>=0.2.0",
+]
+telemetry = [
+    "opentelemetry-api==1.45.1",
+    "opentelemetry-sdk==1.45.1",
+    "opentelemetry-exporter-otlp-proto-http==1.45.1",
 ]
 rag = []
 ui = [
@@ -45,14 +52,12 @@ dev = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.29.0",
     "httpx>=0.27.0",
+    "langgraph>=0.2.0",
 ]
 api = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.29.0",
     "httpx>=0.27.0",
-]
-llm = [
-    "google-genai>=0.1.0",
 ]
 dense = [
     "sentence-transformers>=2.7.0",
@@ -70,6 +75,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["E501"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -94,6 +100,7 @@ check_untyped_defs = true
 module = [
     "rapidfuzz.*",
     "google.*",
+    "opentelemetry.*",
 ]
 ignore_missing_imports = true
 
@@ -121,6 +128,7 @@ forbidden_modules = [
     "triagerag.verify",
     "triagerag.audit",
     "triagerag.orchestrator",
+    "triagerag.orchestration",
     "triagerag.ui",
     "triagerag.cli",
     "triagerag.api",
@@ -130,6 +138,7 @@ forbidden_modules = [
     "anthropic",
     "google",
     "langchain",
+    "langgraph",
     "llama_index",
     "chromadb",
     "sentence_transformers",
@@ -142,7 +151,7 @@ name = "Layered architecture"
 type = "layers"
 layers = [
     "triagerag.ui | triagerag.cli | triagerag.api",
-    "triagerag.orchestrator",
+    "triagerag.orchestrator | triagerag.orchestration",
     "triagerag.verify | triagerag.audit",
     "triagerag.llm | triagerag.rag",
     "triagerag.engine",

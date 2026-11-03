@@ -1,0 +1,287 @@
+version: "1.0.0"
+source_status: "SYNTHETIC_AUTHORED"
+
+# HUMAN DECISION HD-2 / AUB Task T2.1:
+# Structured retrieval predicates for patient-conditioned ranking.
+# These predicates are retrieval cues only and are NOT clinical rules or approval conditions.
+provenance:
+  source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+  section_ref: "AUB_T2_1"
+  version_or_date: "2026-DRAFT"
+  source_status: "SYNTHETIC_AUTHORED"
+  content_origin: "AGENT_DRAFT_SYNTHETIC"
+  verified: false
+  reviewer: null
+
+predicates:
+  - id: "low_systolic_bp"
+    description: "Systolic blood pressure below 90 mmHg (hypotension/shock indicator for retrieval)"
+    target_field: "vitals.systolic_bp_mmhg"
+    operator: "<"
+    threshold: 90
+    expected_value: null
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "normal_or_high_systolic_bp"
+    description: "Systolic blood pressure at or above 90 mmHg (hemodynamically stable for vasodilators)"
+    target_field: "vitals.systolic_bp_mmhg"
+    operator: ">="
+    threshold: 90
+    expected_value: null
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "tachycardia"
+    description: "Heart rate above 100 bpm (tachycardia indicator for retrieval)"
+    target_field: "vitals.heart_rate_bpm"
+    operator: ">"
+    threshold: 100
+    expected_value: null
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "bradycardia"
+    description: "Heart rate below 60 bpm (bradycardia indicator for retrieval)"
+    target_field: "vitals.heart_rate_bpm"
+    operator: "<"
+    threshold: 60
+    expected_value: null
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "severe_tachypnea"
+    description: "Respiratory rate at or above 25 bpm (tachypnea/bronchospasm indicator for retrieval)"
+    target_field: "vitals.respiratory_rate_bpm"
+    operator: ">="
+    threshold: 25
+    expected_value: null
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "respiratory_depression"
+    description: "Respiratory rate below 10 bpm (hypoventilation/opioid toxicity indicator for retrieval)"
+    target_field: "vitals.respiratory_rate_bpm"
+    operator: "<"
+    threshold: 10
+    expected_value: null
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "hypoxemia"
+    description: "Oxygen saturation below 92% (hypoxia indicator for retrieval)"
+    target_field: "vitals.spo2_percent"
+    operator: "<"
+    threshold: 92
+    expected_value: null
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "fever"
+    description: "Body temperature at or above 38.0 C (febrile/sepsis screening indicator)"
+    target_field: "vitals.temperature_c"
+    operator: ">="
+    threshold: 38.0
+    expected_value: null
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "hypothermia"
+    description: "Body temperature below 36.0 C (hypothermia indicator for retrieval)"
+    target_field: "vitals.temperature_c"
+    operator: "<"
+    threshold: 36.0
+    expected_value: null
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "hypoglycemia"
+    description: "Bedside blood glucose at or below 70 mg/dL (hypoglycemia indicator for retrieval)"
+    target_field: "vitals.blood_glucose_mg_dl"
+    operator: "<="
+    threshold: 70.0
+    expected_value: null
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "altered_consciousness"
+    description: "Patient consciousness not alert or GCS < 15 (encephalopathy indicator for retrieval)"
+    target_field: "vitals.consciousness"
+    operator: "!="
+    threshold: null
+    expected_value: "A"
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "conscious_alert"
+    description: "Patient consciousness is alert (conscious oral route indicator for retrieval)"
+    target_field: "vitals.consciousness"
+    operator: "=="
+    threshold: null
+    expected_value: "A"
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "beta_blocker_active"
+    description: "Active beta-blocker therapy on patient medication profile"
+    target_field: "medications"
+    operator: "has_class"
+    threshold: null
+    expected_value: "BETA_BLOCKERS"
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "pde5_inhibitor_active"
+    description: "Active PDE5 inhibitor therapy on patient medication profile"
+    target_field: "medications"
+    operator: "has_class"
+    threshold: null
+    expected_value: "PDE5_INHIBITORS"
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "penicillin_allergy"
+    description: "Documented penicillin or aminopenicillin allergy on patient allergy profile"
+    target_field: "allergies"
+    operator: "has_class"
+    threshold: null
+    expected_value: "PENICILLINS"
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "neonate_age"
+    description: "Chronological age at or below 28 days"
+    target_field: "age.to_days"
+    operator: "<="
+    threshold: 28
+    expected_value: null
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null
+
+  - id: "paediatric_age"
+    description: "Patient age falls within paediatric population category"
+    target_field: "age.population_category"
+    operator: "=="
+    threshold: null
+    expected_value: "paediatric"
+    allowed_values: []
+    provenance:
+      source_doc: "SYNTHETIC_RETRIEVAL_PREDICATE_VOCABULARY"
+      section_ref: "AUB_T2_1"
+      version_or_date: "2026-DRAFT"
+      source_status: "SYNTHETIC_AUTHORED"
+      content_origin: "AGENT_DRAFT_SYNTHETIC"
+      verified: false
+      reviewer: null

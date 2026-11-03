@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TriageRAGAnnotatorSubmission",
+  "type": "object",
+  "required": [
+    "annotator_id",
+    "annotator_role",
+    "annotation_date",
+    "cases"
+  ],
+  "properties": {
+    "annotator_id": {
+      "type": "string",
+      "description": "Unique identifier of the clinician or reviewer"
+    },
+    "annotator_role": {
+      "type": "string",
+      "description": "Clinical role (e.g., Emergency Physician, Triage Nurse, Research Clinician)"
+    },
+    "annotation_date": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO date of annotation completion"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "case_id",
+          "ratings"
+        ],
+        "properties": {
+          "case_id": {
+            "type": "string"
+          },
+          "ratings": {
+            "type": "object",
+            "description": "Mapping from node_id to integer grade {0, 1, 2}",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2
+            }
+          },
+          "clinical_comment": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
